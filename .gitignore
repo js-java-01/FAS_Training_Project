@@ -1,0 +1,46 @@
+### Maven ###
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/
+build/
+dependency-reduced-pom.xml
+release.properties
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+### Eclipse ###
+.classpath
+.project
+.settings/
+bin/
+
+### VS Code ###
+.vscode/
+
+### Logs and temp files ###
+*.log
+logs/
+tmp/
+*.tmp
+*.bak
+*.swp
+.DS_Store
+
+### OS-specific ###
+Thumbs.db
+ehthumbs.db
+*.stackdump
+$RECYCLE.BIN/
+
+### Environment files ###
+.env
+*.env
+
+### Node (if frontend included) ###
+node_modules/
+dist/
