@@ -10,16 +10,28 @@ import com.example.starter_project_2025.system.menu.repository.MenuItemRepositor
 import com.example.starter_project_2025.system.menu.repository.MenuRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
+import com.example.starter_project_2025.system.locationData.entity.Commune;
+import com.example.starter_project_2025.system.locationData.entity.Province;
+import com.example.starter_project_2025.system.locationData.repository.CommuneRepository;
+import com.example.starter_project_2025.system.locationData.repository.ProvinceRepository;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +43,10 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final MenuRepository menuRepository;
     private final MenuItemRepository menuItemRepository;
+    private final ProvinceRepository provinceRepository;
+    private final CommuneRepository communeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -43,10 +58,12 @@ public class DataInitializer implements CommandLineRunner {
             initializeRoles();
             initializeUsers();
             initializeMenus();
-            log.info("Database initialization completed successfully!");
         } else {
-            log.info("Database already initialized, skipping data initialization.");
+            log.info("Database already initialized, skipping core data initialization.");
         }
+
+        initializeLocationData();
+        log.info("Database initialization completed successfully!");
     }
 
     private void initializePermissions() {
@@ -172,4 +189,41 @@ public class DataInitializer implements CommandLineRunner {
         item.setRequiredPermission(permission);
         return item;
     }
+
+    private void initializeLocationData() {
+        if (provinceRepository.count() > 0 || communeRepository.count() > 0) {
+            log.info("Location data already initialized, skipping location data import.");
+            return;
+        }
+
+        try (InputStream inputStream = new ClassPathResource("LocationData.json").getInputStream()) {
+            LocationDataJson locationData = objectMapper.readValue(inputStream, LocationDataJson.class);
+
+            List<Province> provinces = locationData.province().stream()
+                    .map(p -> new Province(p.idProvince(), p.name()))
+                    .toList();
+            provinceRepository.saveAll(provinces);
+
+            Map<String, Province> provinceById = provinces.stream()
+                    .collect(Collectors.toMap(Province::getId, Function.identity()));
+
+            List<Commune> communes = locationData.commune().stream()
+                    .map(c -> new Commune(c.idCommune(), c.name(), provinceById.get(c.idProvince())))
+                    .toList();
+            communeRepository.saveAll(communes);
+
+            log.info("Initialized {} provinces and {} communes", provinces.size(), communes.size());
+        } catch (IOException e) {
+            log.error("Failed to import location data from LocationData.json", e);
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record LocationDataJson(List<ProvinceJson> province, List<CommuneJson> commune) { }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record ProvinceJson(String idProvince, String name) { }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record CommuneJson(String idProvince, String idCommune, String name) { }
 }
