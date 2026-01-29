@@ -30,20 +30,13 @@ public class Role {
     private String description;
 
     @Column(nullable = false)
-    private Integer hierarchyLevel = 0;
-
-    @Column(nullable = false)
     private Boolean isActive = true;
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     private Set<User> users = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-        name = "role_permissions",
-        joinColumns = @JoinColumn(name = "role_id"),
-        inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
+    @JoinTable(name = "role_permissions", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<Permission> permissions = new HashSet<>();
 
     @CreationTimestamp

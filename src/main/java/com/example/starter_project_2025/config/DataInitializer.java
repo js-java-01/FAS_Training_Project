@@ -68,8 +68,7 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
-                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN")
-        );
+                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"));
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }
@@ -87,14 +86,14 @@ public class DataInitializer implements CommandLineRunner {
         Role adminRole = new Role();
         adminRole.setName("ADMIN");
         adminRole.setDescription("Administrator with full system access");
-        adminRole.setHierarchyLevel(1);
+        // adminRole.setHierarchyLevel(1);
         adminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
         roleRepository.save(adminRole);
 
         Role studentRole = new Role();
         studentRole.setName("STUDENT");
         studentRole.setDescription("Student with limited access to educational resources");
-        studentRole.setHierarchyLevel(2);
+        // studentRole.setHierarchyLevel(2);
         studentRole.setPermissions(new HashSet<>(permissionRepository.findByAction("READ")));
         roleRepository.save(studentRole);
 
@@ -153,14 +152,17 @@ public class DataInitializer implements CommandLineRunner {
         adminMenu.setDisplayOrder(2);
         adminMenu = menuRepository.save(adminMenu);
 
-        MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1, "USER_READ");
-        MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2, "ROLE_READ");
+        MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1,
+                "USER_READ");
+        MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2,
+                "ROLE_READ");
         menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement));
 
         log.info("Initialized 2 menus with menu items");
     }
 
-    private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order, String permission) {
+    private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order,
+            String permission) {
         MenuItem item = new MenuItem();
         item.setMenu(menu);
         item.setParent(parent);
