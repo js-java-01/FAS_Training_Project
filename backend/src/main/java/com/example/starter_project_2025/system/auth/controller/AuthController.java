@@ -18,14 +18,4 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class AuthController {
 
-    private final AuthService authService;
-
-    // @PostMapping("/login")
-    // @Operation(summary = "Authenticate user", description = "Authenticates user
-    // credentials and returns JWT token")
-    // public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest
-    // loginRequest) {
-    // LoginResponse response = authService.authenticateUser(loginRequest);
-    // return ResponseEntity.ok(response);
-    // }
 }
