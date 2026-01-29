@@ -1,97 +1,73 @@
-# RBAC System Frontend
+# React + TypeScript + Vite
 
-React TypeScript frontend for the Role-Based Access Control system.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Features
+Currently, two official plugins are available:
 
-- JWT Authentication
-- Role-based access control
-- Permission-based UI rendering
-- User management
-- Role management with permission assignment
-- Protected routes
-- Responsive design with Tailwind CSS
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Prerequisites
+## React Compiler
 
-- Node.js 18+
-- npm or yarn
+The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
 
-## Installation
+## Expanding the ESLint configuration
 
-```bash
-npm install
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
-## Configuration
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-Copy `.env.example` to `.env` and configure:
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-```env
-VITE_API_URL=http://localhost:8080/api
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
-
-## Development
-
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:3000`
-
-## Build
-
-```bash
-npm run build
-```
-
-## Default Credentials
-
-- **Admin**: admin@example.com / password123
-- **Student**: student@example.com / password123
-
-## Project Structure
-
-```
-src/
-├── api/           # API client functions
-├── components/    # Reusable components
-├── contexts/      # React contexts (Auth)
-├── hooks/         # Custom hooks
-├── pages/         # Page components
-├── types/         # TypeScript type definitions
-└── utils/         # Utility functions
-```
-
-## Available Routes
-
-- `/login` - Login page
-- `/dashboard` - Main dashboard (requires authentication)
-- `/users` - User management (requires USER_READ permission)
-- `/roles` - Role management (requires ROLE_READ permission)
-- `/unauthorized` - Access denied page
-
-## Key Components
-
-### AuthContext
-Manages authentication state and provides auth methods.
-
-### ProtectedRoute
-Wrapper component for routes that require authentication and/or specific permissions.
-
-### PermissionGate
-Component for conditional rendering based on permissions.
-
-## API Integration
-
-All API calls are made through centralized API service files in the `src/api` directory:
-- `authApi.ts` - Authentication
-- `userApi.ts` - User operations
-- `roleApi.ts` - Role operations
-- `permissionApi.ts` - Permission operations
-- `menuApi.ts` - Menu operations
-
-The Axios instance in `axiosInstance.ts` automatically:
-- Adds JWT token to requests
-- Handles 401 unauthorized responses
-- Redirects to login on authentication failure
