@@ -21,8 +21,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
@@ -31,8 +30,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
@@ -41,8 +39,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.UNAUTHORIZED.value(),
                 "Invalid email or password",
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
@@ -51,8 +48,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.FORBIDDEN.value(),
                 "You don't have permission to access this resource",
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
@@ -81,10 +77,28 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "An unexpected error occurred: " + message,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    public record ErrorResponse(int status, String message, LocalDateTime timestamp) {}
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                LocalDateTime.now());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                LocalDateTime.now());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    public record ErrorResponse(int status, String message, LocalDateTime timestamp) {
+    }
 }

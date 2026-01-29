@@ -1,28 +1,34 @@
 package com.example.starter_project_2025.system.auth.service.otp;
 
-import java.util.concurrent.TimeUnit;
+import org.springframework.stereotype.Service;
 
-import org.springframework.data.redis.core.StringRedisTemplate;
+import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
+import com.example.starter_project_2025.system.auth.service.redis.RedisService;
 
 import lombok.RequiredArgsConstructor;
 
+@Service
 @RequiredArgsConstructor
 public class OtpServiceImpl implements OtpService {
-    private final StringRedisTemplate redisTemplate;
+    private final RedisService redisService;
+    private static final String PREFIX = "REG_DATA:";
 
     @Override
-    public void saveOtp(String email, String otp) {
-        redisTemplate.opsForValue().set(email, otp, 5, TimeUnit.MINUTES);
+    public String generatedOtpAndSave(String email, RegisterCreateDTO registerCreateDTO) {
+        String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+        String key = PREFIX + email + ":" + otp;
+        redisService.save(key, registerCreateDTO, 5, java.util.concurrent.TimeUnit.MINUTES);
+        return otp;
     }
 
     @Override
-    public String getOtp(String email) {
-        return redisTemplate.opsForValue().get(email);
-    }
-
-    @Override
-    public void deleteOtp(String email) {
-        redisTemplate.delete(email);
+    public RegisterCreateDTO verifyAndGetRegistrationData(String email, String otp) {
+        String key = PREFIX + email + ":" + otp;
+        RegisterCreateDTO registerCreateDTO = redisService.get(key, RegisterCreateDTO.class);
+        if (registerCreateDTO != null) {
+            redisService.delete(key);
+        }
+        return registerCreateDTO;
     }
 
 }
