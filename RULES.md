@@ -1,4 +1,4 @@
-```md
+
 # Git Commit Convention / Branch Naming Convention
 
 Tài liệu này mô tả **quy ước viết commit message** nhằm giúp lịch sử Git rõ ràng, dễ đọc, dễ tra cứu và hỗ trợ tốt cho code review, CI/CD, và quản lý phiên bản.
@@ -14,8 +14,6 @@ Tài liệu này mô tả **quy ước viết commit message** nhằm giúp lị
 ---
 
 ## Cấu trúc commit message
-
-```
 
 <type>(<scope>): <subject>
 
