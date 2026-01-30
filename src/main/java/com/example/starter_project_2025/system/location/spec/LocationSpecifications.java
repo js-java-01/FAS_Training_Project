@@ -29,6 +29,6 @@ public final class LocationSpecifications {
     public static Specification<Location> byLocationStatus(LocationStatus status) {
         return (root, query, cb) ->
                 status == null ? cb.conjunction()
-                        : cb.equal(root.get("status"), status);
+                        : cb.equal(root.get("locationStatus"), status);
     }
 }
