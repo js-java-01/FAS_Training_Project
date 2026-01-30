@@ -56,7 +56,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </header>
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="container grid h-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {children}
           </div>
         </main>

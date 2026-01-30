@@ -6,6 +6,7 @@ import { Login } from './pages/Login';
 import { RoleManagement } from './pages/RoleManagement';
 import { Unauthorized } from './pages/Unauthorized';
 import { UserManagement } from './pages/UserManagement';
+import ModulesManagement from "@/pages/modules";
 
 function App() {
   return (
@@ -41,6 +42,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+            <Route path="/modules" element={<ModulesManagement />} />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
