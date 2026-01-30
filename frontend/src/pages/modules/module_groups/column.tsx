@@ -64,6 +64,9 @@ export const getColumns = (
             cell: (info) => (
                 <span className="font-medium">{info.getValue()}</span>
             ),
+            meta: {
+                title: "Name",
+            },
         }),
 
         /* ================= DESCRIPTION ================= */
@@ -75,6 +78,9 @@ export const getColumns = (
           {info.getValue() || "-"}
         </span>
             ),
+            meta: {
+                title: "Description",
+            },
         }),
 
         /* ================= DISPLAY ORDER ================= */
@@ -86,6 +92,9 @@ export const getColumns = (
           {info.getValue()}
         </span>
             ),
+            meta: {
+                title: "Display Order",
+            }
         }),
 
         /* ================= STATUS ================= */
@@ -98,6 +107,9 @@ export const getColumns = (
                 ) : (
                     <Badge variant="destructive">Inactive</Badge>
                 ),
+            meta: {
+                title: "Status",
+            }
         }),
 
         /* ================= CREATED AT ================= */
@@ -106,6 +118,9 @@ export const getColumns = (
             size: 160,
             cell: (info) =>
                 new Date(info.getValue()).toLocaleDateString(),
+        meta: {
+                title: "Created At",
+            }
         }),
 
         /* ================= ACTIONS ================= */
@@ -140,6 +155,9 @@ export const getColumns = (
                     )}
                 </div>
             ),
+            meta: {
+                title: "Actions",
+            },
             enableSorting: false,
         }),
     ];
