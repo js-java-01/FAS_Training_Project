@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import { Menu, MenuItem, CreateMenuRequest, CreateMenuItemRequest } from '../types/menu';
+import type { Menu, MenuItem, CreateMenuRequest, CreateMenuItemRequest } from '../types/menu';
 
 export const menuApi = {
   getAllMenus: async (page = 0, size = 20, sort = 'displayOrder,asc') => {

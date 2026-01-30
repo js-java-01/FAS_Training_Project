@@ -1,3 +1,23 @@
+export type IconKey =
+    | "dashboard"
+    | "users"
+    | "person"
+    | "people"
+    | "security"
+    | "settings"
+    | "menu"
+    | "folder"
+    | "layers"
+    | "calendar"
+    | "book-open"
+    | "clipboard-check"
+    | "home"
+    | "star"
+    | "building"
+    | "map-pin"
+    | "trending-up"
+
+
 export interface Menu {
   id: string;
   name: string;
@@ -15,7 +35,7 @@ export interface MenuItem {
   parentId?: string;
   title: string;
   url?: string;
-  icon?: string;
+  icon?: IconKey
   description?: string;
   displayOrder: number;
   isActive: boolean;
