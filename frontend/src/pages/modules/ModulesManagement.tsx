@@ -1,5 +1,5 @@
-import { MainLayout } from "@/components/MainLayout";
-import DynamicBreadcrumbs from "@/components/DynamicBreadcrumbs";
+import { MainLayout } from "@/components/layout/MainLayout.tsx";
+import DynamicBreadcrumbs from "@/components/layout/DynamicBreadcrumbs.tsx";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
@@ -25,13 +25,13 @@ export default function ModulesManagement() {
     }, [id]);
 
     return (
-        <MainLayout>
-            <DynamicBreadcrumbs
-                pathTitles={{
-                    moduleGroups: "Module Groups",
-                    ...(moduleGroup ? { [id!]: moduleGroup.name } : {}),
-                }}
-            />
+        <MainLayout breadcrumb={ <DynamicBreadcrumbs
+            pathTitles={{
+                moduleGroups: "Module Groups",
+                ...(moduleGroup ? { [id!]: moduleGroup.name } : {}),
+            }}
+        />}>
+
 
             <h1>{moduleGroup?.name ?? "Loading..."}</h1>
         </MainLayout>
