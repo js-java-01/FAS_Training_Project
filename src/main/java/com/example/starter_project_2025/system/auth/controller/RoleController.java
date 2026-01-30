@@ -72,7 +72,7 @@ public class RoleController {
     }
 
     @PostMapping("/{id}/toggle-status")
-    @Operation(summary = "Toggle role status", description = "Activate or deactivate a role")
+    @Operation(summary = "Toggle role locationStatus", description = "Activate or deactivate a role")
     public ResponseEntity<RoleDTO> toggleRoleStatus(@PathVariable UUID id) {
         RoleDTO role = roleService.toggleRoleStatus(id);
         return ResponseEntity.ok(role);

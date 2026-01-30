@@ -55,7 +55,7 @@ export const UserManagement: React.FC = () => {
       await userApi.toggleUserStatus(id);
       loadData();
     } catch (error) {
-      alert('Error toggling user status');
+      alert('Error toggling user locationStatus');
     }
   };
 

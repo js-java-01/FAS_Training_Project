@@ -9,4 +9,5 @@ public interface LocationDataService {
     List<ProvinceDTO> getAllProvinces();
     List<CommuneDTO> getCommunesByProvinceId(String provinceId);
 //    List<CommuneDTO>  getAllCommunes();
+    boolean existsCommuneId(String communeId);
 }
