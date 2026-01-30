@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.auth.dto;
+package com.example.starter_project_2025.system.auth.dto.login;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,8 @@ import java.util.Set;
 
 @Data
 @AllArgsConstructor
-public class LoginResponse {
+public class LoginResponse
+{
     private String token;
     private String type = "Bearer";
     private String email;
@@ -16,7 +17,8 @@ public class LoginResponse {
     private String role;
     private Set<String> permissions;
 
-    public LoginResponse(String token, String email, String firstName, String lastName, String role, Set<String> permissions) {
+    public LoginResponse(String token, String email, String firstName, String lastName, String role, Set<String> permissions)
+    {
         this.token = token;
         this.type = "Bearer";
         this.email = email;
