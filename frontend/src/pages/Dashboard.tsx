@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { PermissionGate } from '../components/PermissionGate';
 import { MainLayout } from '../components/MainLayout';
-import { dashboardApi, DashboardStats } from '../api/dashboardApi';
+import { dashboardApi, type DashboardStats } from '../api/dashboardApi';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
