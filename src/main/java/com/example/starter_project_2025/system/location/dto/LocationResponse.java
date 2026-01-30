@@ -15,5 +15,7 @@ public class LocationResponse {
     private String name;
     private String address;
     private String communeId;
+    private String communeName;
+    private String provinceName;
     private LocationStatus status;
 }

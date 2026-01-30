@@ -41,6 +41,14 @@ public class LocationDataServiceImpl implements LocationDataService {
 
     @Override
     @Transactional(readOnly = true)
+    public CommuneDTO getCommuneById(String communeId) {
+        return communeRepo.findById(communeId)
+                .map(c -> new CommuneDTO(c.getId(), c.getName(), c.getProvince().getId()))
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public boolean existsCommuneId(String communeId) {
         if (communeId == null || communeId.isBlank()) return false;
         return communeRepo.existsById(communeId.trim());

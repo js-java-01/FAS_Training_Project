@@ -233,7 +233,7 @@ export const LocationManagement: React.FC = () => {
                   Address
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Commune ID
+                  Commune - Province
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Status
@@ -248,7 +248,9 @@ export const LocationManagement: React.FC = () => {
                 <tr key={location.id}>
                   <td className="px-6 py-4 whitespace-nowrap">{location.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{location.address}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{location.communeId}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {location.communeName}, {location.provinceName}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 py-1 text-xs rounded-full ${

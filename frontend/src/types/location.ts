@@ -8,6 +8,8 @@ export interface Location {
   name: string;
   address: string;
   communeId: string;
+  communeName: string;
+  provinceName: string;
   status: LocationStatus;
 }
 

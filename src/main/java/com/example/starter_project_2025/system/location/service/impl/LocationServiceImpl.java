@@ -117,11 +117,29 @@ public class LocationServiceImpl implements LocationService {
     }
 
     private LocationResponse toResponse(Location location) {
+        var commune = locationDataService.getCommuneById(location.getCommuneId());
+        
+        String communeName = "";
+        String provinceName = "";
+        
+        if (commune != null) {
+            communeName = commune.name();
+            // Get province name from province ID
+            var provinces = locationDataService.getAllProvinces();
+            provinceName = provinces.stream()
+                .filter(p -> p.id().equals(commune.provinceId()))
+                .findFirst()
+                .map(p -> p.name())
+                .orElse("");
+        }
+        
         return LocationResponse.builder()
                 .id(location.getId())
                 .name(location.getName())
                 .address(location.getAddress())
                 .communeId(location.getCommuneId())
+                .communeName(communeName)
+                .provinceName(provinceName)
                 .status(location.getLocationStatus())
                 .build();
     }
