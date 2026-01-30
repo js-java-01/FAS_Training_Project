@@ -14,7 +14,11 @@ import ModulesManagement from "@/pages/modules/ModulesManagement.tsx";
 function App() {
   return (
     <BrowserRouter>
-      <Toaster position="top-right" richColors />
+      <Toaster duration={1500} position="top-right" richColors toastOptions={
+        {
+          className: 'p-4'
+        }
+      } />
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
