@@ -10,10 +10,10 @@ import com.example.starter_project_2025.system.menu.repository.MenuItemRepositor
 import com.example.starter_project_2025.system.menu.repository.MenuRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
-import com.example.starter_project_2025.system.locationData.entity.Commune;
-import com.example.starter_project_2025.system.locationData.entity.Province;
-import com.example.starter_project_2025.system.locationData.repository.CommuneRepository;
-import com.example.starter_project_2025.system.locationData.repository.ProvinceRepository;
+import com.example.starter_project_2025.system.location.data.entity.Commune;
+import com.example.starter_project_2025.system.location.data.entity.Province;
+import com.example.starter_project_2025.system.location.data.repository.CommuneRepository;
+import com.example.starter_project_2025.system.location.data.repository.ProvinceRepository;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

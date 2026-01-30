@@ -1,6 +1,8 @@
-package com.example.starter_project_2025.system.locationData.controller;
+package com.example.starter_project_2025.system.location.data.controller;
+import com.example.starter_project_2025.system.location.data.dto.CommuneDTO;
+import com.example.starter_project_2025.system.location.data.dto.ProvinceDTO;
 import com.example.starter_project_2025.system.locationData.dto.*;
-import com.example.starter_project_2025.system.locationData.service.LocationDataService;
+import com.example.starter_project_2025.system.location.data.service.LocationDataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;

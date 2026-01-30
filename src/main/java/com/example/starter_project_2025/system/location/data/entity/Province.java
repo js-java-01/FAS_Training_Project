@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.locationData.entity;
+package com.example.starter_project_2025.system.location.data.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
