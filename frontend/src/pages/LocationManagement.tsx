@@ -24,7 +24,7 @@ export const LocationManagement: React.FC = () => {
     name: '',
     address: '',
     communeId: '',
-    status: LocationStatus.ACTIVE,
+    status: undefined as any,
   });
 
   useEffect(() => {
@@ -104,6 +104,8 @@ export const LocationManagement: React.FC = () => {
         communeId: '',
         status: LocationStatus.ACTIVE,
       });
+      setSelectedProvince('');
+      setCommunes([]);
       setCurrentPage(0);
       loadData();
     } catch (error: any) {
@@ -139,7 +141,9 @@ export const LocationManagement: React.FC = () => {
         alert('Error deleting location');
       }
     }
-  };async (location: Location) => {
+  };
+
+  const openEditModal = async (location: Location) => {
     setSelectedLocation({ ...location });
     setShowEditModal(true);
     

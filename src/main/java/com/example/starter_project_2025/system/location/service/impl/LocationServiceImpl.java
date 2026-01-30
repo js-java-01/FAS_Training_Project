@@ -63,7 +63,7 @@ public class LocationServiceImpl implements LocationService {
                 .name(request.getName().trim())
                 .address(request.getAddress().trim())
                 .communeId(request.getCommuneId())
-                .locationStatus(LocationStatus.ACTIVE)
+                .locationStatus(request.getStatus())
                 .build();
 
         return toResponse(locationRepository.save(location));
