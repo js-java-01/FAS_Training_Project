@@ -54,7 +54,7 @@ export const RoleManagement: React.FC = () => {
       await roleApi.toggleRoleStatus(id);
       loadData();
     } catch (error) {
-      alert('Error toggling role status');
+      alert('Error toggling role locationStatus');
     }
   };
 

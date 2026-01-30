@@ -1,9 +1,7 @@
-package com.example.starter_project_2025.system.locationData.entity;
+package com.example.starter_project_2025.system.location.data.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
 
-import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -13,7 +11,7 @@ import lombok.*;
 public class Commune {
     @Id
     @Column(length = 5)
-    private String id; // idCommune
+    private String id;
 
     @Column(nullable = false)
     private String name;
