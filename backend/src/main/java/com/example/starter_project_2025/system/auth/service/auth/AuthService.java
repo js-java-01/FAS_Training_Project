@@ -4,4 +4,6 @@ import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateD
 
 public interface AuthService {
     public String registerUser(RegisterCreateDTO registerCreateDTO);
+
+    public boolean verifyEmail(String email, String code);
 }

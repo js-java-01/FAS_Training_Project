@@ -2,14 +2,18 @@ package com.example.starter_project_2025.system.auth.service.auth;
 
 import java.util.Optional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import com.example.starter_project_2025.mapper.UserMapper;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
+import com.example.starter_project_2025.system.auth.entity.Role;
+import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.service.email.EmailService;
 import com.example.starter_project_2025.system.auth.service.otp.OtpService;
-
+import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -21,6 +25,9 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final UserRepository userRepository;
     private final TemplateEngine templateEngine;
+    private final UserMapper userMapper;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public String registerUser(RegisterCreateDTO registerCreateDTO) {
@@ -42,6 +49,23 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Failed to send OTP email", e);
         }
         return otp;
+    }
+
+    @Override
+    public boolean verifyEmail(String email, String code) {
+        RegisterCreateDTO registerCreateDTO = otpService.verifyAndGetRegistrationData(email, code);
+        if (registerCreateDTO == null) {
+            return false;
+        }
+
+        User user = userMapper.toEntity(registerCreateDTO);
+        Role role = roleRepository.findByName("STUDENT").isPresent()
+                ? roleRepository.findByName("STUDENT").get()
+                : roleRepository.findByName("USER").orElseThrow(() -> new IllegalArgumentException("Role not found"));
+        user.setRole(role);
+        user.setPasswordHash(passwordEncoder.encode(registerCreateDTO.getPassword()));
+        userRepository.save(user);
+        return true;
     }
 
 }
