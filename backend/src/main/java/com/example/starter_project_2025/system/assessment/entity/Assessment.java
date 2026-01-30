@@ -1,9 +1,6 @@
 package com.example.starter_project_2025.system.assessment.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -21,8 +18,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Assessment {
     @Id
-    @NotBlank(message = "id must not be blank")
-
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @NotBlank(message = "name is required")
