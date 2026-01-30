@@ -51,7 +51,7 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public LocationResponse create(LocationRequest request) {
 
-        if (!locationDataService.existsById(request.getCommuneId())) {
+        if (!locationDataService.existsCommuneId(String.valueOf(request.getCommuneId()))) {
             throw new IllegalArgumentException("Commune not found: " + request.getCommuneId());
         }
 
@@ -92,7 +92,7 @@ public class LocationServiceImpl implements LocationService {
         }
 
         if (request.getCommuneId() != null) {
-            if (!locationDataService.existsById(request.getCommuneId())) {
+            if (!locationDataService.existsCommuneId(String.valueOf(request.getCommuneId()))) {
                 throw new IllegalArgumentException("Commune not found: " + request.getCommuneId());
             }
             location.setCommuneId(request.getCommuneId());

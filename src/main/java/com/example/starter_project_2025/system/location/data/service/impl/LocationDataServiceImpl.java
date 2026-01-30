@@ -20,6 +20,7 @@ public class LocationDataServiceImpl implements LocationDataService {
 
     private final ProvinceRepository provinceRepo;
     private final CommuneRepository communeRepo;
+    private final List<ProvinceDTO> provinces;
 
     @Override
     @Transactional(readOnly = true)
@@ -37,4 +38,12 @@ public class LocationDataServiceImpl implements LocationDataService {
                 .map(c -> new CommuneDTO(c.getId(), c.getName(), c.getProvince().getId()))
                 .toList();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsCommuneId(String communeId) {
+        if (communeId == null || communeId.isBlank()) return false;
+        return communeRepo.existsById(communeId.trim());
+    }
+
 }
