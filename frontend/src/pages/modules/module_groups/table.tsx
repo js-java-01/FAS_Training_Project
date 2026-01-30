@@ -4,8 +4,8 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Menu } from "@/types/menu";
-import { encodeBase64 } from "@/utils/base64";
-import { mockModuleGroups } from "../moduleGroups.mock.ts";
+import { encodeBase64 } from "@/utils/base64.utils.ts";
+import { mockModuleGroups } from "../../../mocks/moduleGroups.mock.ts";
 
 export default function ModuleGroupsTable() {
     const navigate = useNavigate();

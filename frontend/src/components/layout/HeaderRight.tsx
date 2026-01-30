@@ -1,18 +1,9 @@
-import { LogOutIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge.tsx";
-import { Button } from "@/components/ui/button.tsx";
 import { useAuth } from "@/hooks/useAuth.ts";
-import { useNavigate } from "react-router-dom";
-import {TooltipWrapper} from "@/components/TooltipWrapper.tsx";
 
 export default function HeaderRight() {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
+    const { user } = useAuth();
 
-    const handleLogout = () => {
-        logout();
-        navigate("/login");
-    };
 
     return (
         <div className="flex items-center gap-3">
@@ -21,17 +12,6 @@ export default function HeaderRight() {
                     {user.role.toLowerCase()}
                 </Badge>
             )}
-
-            <TooltipWrapper content={"Logout"}>
-                <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={handleLogout}
-                    title="Logout"
-                >
-                    <LogOutIcon className="size-4" />
-                </Button>
-            </TooltipWrapper>
         </div>
     );
 }

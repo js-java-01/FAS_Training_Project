@@ -2,9 +2,9 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import DynamicBreadcrumbs from "@/components/layout/DynamicBreadcrumbs";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { b64DecodeUnicode } from "@/utils/base64";
+import { b64DecodeUnicode } from "@/utils/base64.utils.ts";
 import type { Menu } from "@/types/menu";
-import { mockModuleGroups } from "./moduleGroups.mock.ts";
+import { mockModuleGroups } from "../../mocks/moduleGroups.mock.ts";
 
 export default function ModulesManagement() {
     const { id } = useParams<{ id: string }>();
