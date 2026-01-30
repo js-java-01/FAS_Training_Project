@@ -20,10 +20,3 @@ public interface AuthService {
 
     void logout(HttpServletRequest request, HttpServletResponse response);
 }
-
-public interface AuthService {
-
-    LoginResponse login(LoginRequest reqData, HttpServletResponse response);
-
-    void logout(HttpServletRequest request, HttpServletResponse response);
-}
