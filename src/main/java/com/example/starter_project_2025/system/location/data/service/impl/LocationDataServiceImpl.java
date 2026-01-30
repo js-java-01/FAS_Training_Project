@@ -2,7 +2,7 @@ package com.example.starter_project_2025.system.location.data.service.impl;
 
 import com.example.starter_project_2025.system.location.data.dto.CommuneDTO;
 import com.example.starter_project_2025.system.location.data.dto.ProvinceDTO;
-import com.example.starter_project_2025.system.locationData.dto.*;
+import com.example.starter_project_2025.system.location.data.dto.*;
 import com.example.starter_project_2025.system.location.data.entity.Province;
 import com.example.starter_project_2025.system.location.data.repository.CommuneRepository;
 import com.example.starter_project_2025.system.location.data.repository.ProvinceRepository;
