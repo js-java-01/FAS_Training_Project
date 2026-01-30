@@ -1,9 +1,11 @@
-import type {Menu} from "@/types/menu.ts";
+import type { Menu } from "@/types/menu";
+import { DataTable } from "@/components/data_table/DataTable";
+import { getColumns } from "@/pages/modules/module_groups/column";
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import type {ColumnDef} from "@tanstack/react-table";
-import {DataTable} from "@/components/data_table/DataTable.tsx";
-import {getColumns} from "@/pages/modules/module_groups/column.tsx";
 
-const mockModuleGroups: Menu[] = Array.from({length: 200}, (_, index) => {
+const mockModuleGroups: Menu[] = Array.from({ length: 200 }, (_, index) => {
     const now = new Date();
 
     return {
@@ -22,10 +24,22 @@ const mockModuleGroups: Menu[] = Array.from({length: 200}, (_, index) => {
 });
 
 export default function ModuleGroupsTable() {
-    const columns = getColumns();
-    return (<DataTable<Menu, unknown>
-        columns={columns as ColumnDef<Menu, unknown>[]}
-        data={mockModuleGroups}
+    const navigate = useNavigate();
 
-    />)
+    const columns = useMemo(
+        () =>
+            getColumns({
+                onView: (menu) => navigate(`/moduleGroups/${menu.id}`),
+                onEdit: (menu) => console.log("Edit", menu.id),
+                onDelete: (menu) => console.log("Delete", menu.id),
+            }),
+        [navigate]
+    );
+
+    return (
+        <DataTable<Menu, unknown>
+            columns={columns as ColumnDef<Menu, unknown>[]}
+            data={mockModuleGroups}
+        />
+    );
 }

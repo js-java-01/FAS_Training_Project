@@ -6,7 +6,8 @@ import { Login } from './pages/Login';
 import { RoleManagement } from './pages/RoleManagement';
 import { Unauthorized } from './pages/Unauthorized';
 import { UserManagement } from './pages/UserManagement';
-import ModulesManagement from "@/pages/modules";
+import ModuleGroupsManagement from "@/pages/modules/ModuleGroupsManagement.tsx";
+import ModulesManagement from "@/pages/modules/ModulesManagement.tsx";
 
 function App() {
   return (
@@ -43,7 +44,8 @@ function App() {
             }
           />
 
-            <Route path="/modules" element={<ModulesManagement />} />
+            <Route path="/moduleGroups" element={<ModuleGroupsManagement />} />
+            <Route  path="/moduleGroups/:id" element={<ModulesManagement />} />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
