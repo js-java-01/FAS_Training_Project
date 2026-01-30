@@ -6,6 +6,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { UserManagement } from './pages/UserManagement';
 import { RoleManagement } from './pages/RoleManagement';
+import { LocationManagement } from './pages/LocationManagement';
 import { Unauthorized } from './pages/Unauthorized';
 
 function App() {
@@ -39,6 +40,15 @@ function App() {
             element={
               <ProtectedRoute requiredPermission="ROLE_READ">
                 <RoleManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/locations"
+            element={
+              <ProtectedRoute requiredPermission="LOCATION_READ">
+                <LocationManagement />
               </ProtectedRoute>
             }
           />
