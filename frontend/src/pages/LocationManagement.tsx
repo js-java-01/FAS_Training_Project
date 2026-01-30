@@ -4,6 +4,7 @@ import { locationDataApi, Province, Commune } from '../api/locationDataApi';
 import { Location, CreateLocationRequest, LocationStatus } from '../types/location';
 import { PermissionGate } from '../components/PermissionGate';
 import { MainLayout } from '../components/MainLayout';
+import { useDebounce } from '../hooks/useDebounce';
 
 export const LocationManagement: React.FC = () => {
   const [locations, setLocations] = useState<Location[]>([]);
@@ -17,6 +18,7 @@ export const LocationManagement: React.FC = () => {
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedEditProvince, setSelectedEditProvince] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [statusFilter, setStatusFilter] = useState<LocationStatus | ''>('');
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -30,7 +32,7 @@ export const LocationManagement: React.FC = () => {
   useEffect(() => {
     loadData();
     loadProvinces();
-  }, [currentPage, searchQuery, statusFilter]);
+  }, [currentPage, debouncedSearchQuery, statusFilter]);
 
   useEffect(() => {
     if (selectedProvince) {
@@ -53,7 +55,7 @@ export const LocationManagement: React.FC = () => {
       const data = await locationApi.searchLocations(
         currentPage,
         10,
-        searchQuery || undefined,
+        debouncedSearchQuery || undefined,
         undefined,
         statusFilter || undefined
       );
@@ -227,6 +229,9 @@ export const LocationManagement: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  STT
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -244,8 +249,11 @@ export const LocationManagement: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {locations.map((location) => (
+              {locations.map((location, index) => (
                 <tr key={location.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                    {currentPage * 10 + index + 1}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">{location.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{location.address}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
