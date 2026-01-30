@@ -8,6 +8,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import com.example.starter_project_2025.mapper.UserMapper;
+import com.example.starter_project_2025.system.auth.dto.forgotpassword.ForgotPasswordDTO;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
@@ -64,6 +65,38 @@ public class AuthServiceImpl implements AuthService {
                 : roleRepository.findByName("USER").orElseThrow(() -> new IllegalArgumentException("Role not found"));
         user.setRole(role);
         user.setPasswordHash(passwordEncoder.encode(registerCreateDTO.getPassword()));
+        userRepository.save(user);
+        return true;
+    }
+
+    @Override
+    public String forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Email not found"));
+        String otp = otpService.generatedOtpAndSave(email, email);
+        Context context = new Context();
+        context.setVariable("otpCode", otp);
+        String body = templateEngine.process("forgot-password-email", context);
+        try {
+            emailService.sendEmail(email, "Password Reset OTP", body);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send password reset email", e);
+        }
+        return otp;
+    }
+
+    @Override
+    public boolean verifyForgotPasswordOtpAndSavePassword(ForgotPasswordDTO forgotPasswordDTO) {
+        String email = forgotPasswordDTO.getEmail();
+        String otp = forgotPasswordDTO.getOtp();
+        String newPassword = forgotPasswordDTO.getNewPassword();
+        String savedEmail = otpService.verifyAndGetRegistrationData(email, otp);
+        if (savedEmail == null || !savedEmail.equals(email)) {
+            throw new IllegalArgumentException("Invalid OTP or email");
+        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Email not found"));
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         return true;
     }

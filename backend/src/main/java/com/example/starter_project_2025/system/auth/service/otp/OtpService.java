@@ -3,8 +3,8 @@ package com.example.starter_project_2025.system.auth.service.otp;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
 
 public interface OtpService {
-    String generatedOtpAndSave(String email, RegisterCreateDTO registerCreateDTO);
+    <T> String generatedOtpAndSave(String email, T DTO);
 
-    RegisterCreateDTO verifyAndGetRegistrationData(String email, String otp);
+    <T> T verifyAndGetRegistrationData(String email, String otp);
 
 }

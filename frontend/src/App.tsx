@@ -2,11 +2,11 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { Dashboard } from './pages/Dashboard';
-import { Login } from './pages/Login';
+import { Login } from './pages/auth/Login';
 import { RoleManagement } from './pages/RoleManagement';
 import { Unauthorized } from './pages/Unauthorized';
 import { UserManagement } from './pages/UserManagement';
-import Register from './pages/Register';
+import Register from './pages/auth/Register';
 import { Toaster } from 'sonner';
 
 function App() {

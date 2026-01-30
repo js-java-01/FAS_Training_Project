@@ -1,5 +1,7 @@
 package com.example.starter_project_2025.system.auth.controller;
 
+import com.example.starter_project_2025.system.auth.dto.forgotpassword.ForgotPasswordCreateDTO;
+import com.example.starter_project_2025.system.auth.dto.forgotpassword.ForgotPasswordDTO;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterVerifyDTO;
 import com.example.starter_project_2025.system.auth.service.auth.AuthService;
@@ -34,6 +36,19 @@ public class AuthController {
     public ResponseEntity<Boolean> verifyUser(
             @Valid @RequestBody RegisterVerifyDTO registerVerifyDTO) {
         boolean isVerified = authService.verifyEmail(registerVerifyDTO.getEmail(), registerVerifyDTO.getCode());
+        return new ResponseEntity<>(isVerified, HttpStatus.OK);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordCreateDTO forgotPasswordCreateDTO) {
+        String otp = authService.forgotPassword(forgotPasswordCreateDTO.getEmail());
+        return new ResponseEntity<>(otp, HttpStatus.OK);
+    }
+
+    @PostMapping("/verify-forgot-password")
+    public ResponseEntity<Boolean> verifyForgotPasswordOtpAndSavePassword(
+            @Valid @RequestBody ForgotPasswordDTO forgotPasswordDTO) {
+        boolean isVerified = authService.verifyForgotPasswordOtpAndSavePassword(forgotPasswordDTO);
         return new ResponseEntity<>(isVerified, HttpStatus.OK);
     }
 

@@ -14,21 +14,21 @@ public class OtpServiceImpl implements OtpService {
     private static final String PREFIX = "REG_DATA:";
 
     @Override
-    public String generatedOtpAndSave(String email, RegisterCreateDTO registerCreateDTO) {
+    public <T> String generatedOtpAndSave(String email, T DTO) {
         String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
         String key = PREFIX + email + ":" + otp;
-        redisService.save(key, registerCreateDTO, 5, java.util.concurrent.TimeUnit.MINUTES);
+        redisService.save(key, DTO, 5, java.util.concurrent.TimeUnit.MINUTES);
         return otp;
     }
 
     @Override
-    public RegisterCreateDTO verifyAndGetRegistrationData(String email, String otp) {
+    public <T> T verifyAndGetRegistrationData(String email, String otp) {
         String key = PREFIX + email + ":" + otp;
-        RegisterCreateDTO registerCreateDTO = redisService.get(key, RegisterCreateDTO.class);
-        if (registerCreateDTO != null) {
+        T data = redisService.get(key, (Class<T>) Object.class);
+        if (data != null) {
             redisService.delete(key);
         }
-        return registerCreateDTO;
+        return data;
     }
 
 }
