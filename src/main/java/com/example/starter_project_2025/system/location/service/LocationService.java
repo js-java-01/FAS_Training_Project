@@ -23,4 +23,6 @@ public interface LocationService {
     LocationResponse update(UUID id, LocationRequest request);
 
     void deactivate(UUID id);
+
+    void deletePermanently(UUID id);
 }

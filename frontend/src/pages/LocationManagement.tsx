@@ -28,6 +28,9 @@ export const LocationManagement: React.FC = () => {
     communeId: '',
     status: undefined as any,
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [locationToDelete, setLocationToDelete] = useState<Location | null>(null);
+
 
   useEffect(() => {
     loadData();
@@ -118,7 +121,7 @@ export const LocationManagement: React.FC = () => {
   const handleEditLocation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedLocation) return;
-    
+
     try {
       await locationApi.updateLocation(selectedLocation.id, {
         name: selectedLocation.name,
@@ -148,7 +151,7 @@ export const LocationManagement: React.FC = () => {
   const openEditModal = async (location: Location) => {
     setSelectedLocation({ ...location });
     setShowEditModal(true);
-    
+
     // Find province for this commune
     try {
       const allProvinces = await locationDataApi.getAllProvinces();
@@ -261,11 +264,10 @@ export const LocationManagement: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 py-1 text-xs rounded-full ${
-                        location.status === LocationStatus.ACTIVE
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
+                      className={`px-2 py-1 text-xs rounded-full ${location.status === LocationStatus.ACTIVE
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                        }`}
                     >
                       {location.status}
                     </span>
@@ -281,11 +283,15 @@ export const LocationManagement: React.FC = () => {
                     </PermissionGate>
                     <PermissionGate permission="LOCATION_DELETE">
                       <button
-                        onClick={() => handleDeleteLocation(location.id)}
+                        onClick={() => {
+                          setLocationToDelete(location);
+                          setShowDeleteModal(true);
+                        }}
                         className="text-red-600 hover:text-red-900"
                       >
                         Delete
                       </button>
+
                     </PermissionGate>
                   </td>
                 </tr>
@@ -513,6 +519,54 @@ export const LocationManagement: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Delete Permanently Confirmation Modal */}
+      {showDeleteModal && locationToDelete && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 max-w-md w-full">
+      <h2 className="text-lg font-bold text-red-600 mb-3">
+        Delete location?
+      </h2>
+
+      <p className="text-sm text-gray-700 mb-6">
+        You are about to permanently delete{' '}
+        <strong>{locationToDelete.name}</strong> from your organization.
+        <br />
+        <span className="font-semibold text-red-600">
+          This action cannot be undone.
+        </span>
+      </p>
+
+      <div className="flex justify-end space-x-3">
+        <button
+          onClick={() => {
+            setShowDeleteModal(false);
+            setLocationToDelete(null);
+          }}
+          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={async () => {
+            try {
+              await locationApi.deleteLocationPermanently(locationToDelete.id);
+              setShowDeleteModal(false);
+              setLocationToDelete(null);
+              loadData();
+            } catch (error) {
+              alert('Error deleting location permanently');
+            }
+          }}
+          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </MainLayout>
   );
 };

@@ -40,4 +40,9 @@ export const locationApi = {
   deleteLocation: async (id: string): Promise<void> => {
     await axiosInstance.delete(`/locations/${id}`);
   },
+
+  deleteLocationPermanently: async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/locations/${id}/permanent`);
+},
+
 };
