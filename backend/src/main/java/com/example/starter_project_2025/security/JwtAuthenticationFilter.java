@@ -1,5 +1,7 @@
 package com.example.starter_project_2025.security;
 
+import com.example.starter_project_2025.constant.ErrorMessage;
+import com.example.starter_project_2025.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,20 +19,35 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter
+{
 
     private final JwtUtil jwtUtil;
-    private final UserDetailsServiceImpl userDetailsService;
+    private final UserDetailsServiceImpl userService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
-        try {
+                                    FilterChain filterChain) throws ServletException, IOException
+    {
+        try
+        {
             String jwt = getJwtFromRequest(request);
-            if (StringUtils.hasText(jwt) && jwtUtil.validateToken(jwt)) {
-                String email = jwtUtil.getEmailFromToken(jwt);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            if (StringUtils.hasText(jwt) && jwtUtil.validateToken(jwt))
+            {
+//                String userId = jwtUtil.getUserIdFromToken(jwt);
+//                if (redisService.isBlacklisted(userId)) {
+//                    response.sendError(HttpServletResponse.SC_FORBIDDEN, ErrorMessage.ACCOUNT_HAS_BEEN_LOCKED);
+//                    return;
+//                }
+
+                UserDetails userDetails = jwtUtil.getUserDetailsFromToken(jwt);
+
+                if (userDetails != null && !userDetails.isEnabled())
+                {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, ErrorMessage.ACCOUNT_HAS_BEEN_LOCKED);
+                    return;
+                }
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -38,18 +55,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-        } catch (Exception ex) {
+        } catch (Exception ex)
+        {
             logger.error("Could not set user authentication in security context", ex);
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private String getJwtFromRequest(HttpServletRequest request) {
+    private String getJwtFromRequest(HttpServletRequest request)
+    {
         String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer "))
+        {
             return bearerToken.substring(7);
         }
         return null;
     }
+
 }
