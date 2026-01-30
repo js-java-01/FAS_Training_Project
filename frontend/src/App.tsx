@@ -6,15 +6,18 @@ import { Login } from './pages/Login';
 import { RoleManagement } from './pages/RoleManagement';
 import { Unauthorized } from './pages/Unauthorized';
 import { UserManagement } from './pages/UserManagement';
+import Register from './pages/Register';
+import { Toaster } from 'sonner';
 
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" richColors />
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
-
+          <Route path='/register' element={<Register />} />
           <Route
             path="/dashboard"
             element={
@@ -23,7 +26,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/users"
             element={
@@ -32,7 +34,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/roles"
             element={

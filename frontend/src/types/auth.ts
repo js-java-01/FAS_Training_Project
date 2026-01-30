@@ -43,3 +43,15 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
 }
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+
+}
+export interface VerifyRequest {
+  email: string;
+  code: string;
+}
