@@ -8,6 +8,8 @@ import { Unauthorized } from './pages/Unauthorized';
 import { UserManagement } from './pages/UserManagement';
 import Register from './pages/auth/Register';
 import { Toaster } from 'sonner';
+import ModuleGroupsManagement from "@/pages/modules/ModuleGroupsManagement.tsx";
+import ModulesManagement from "@/pages/modules/ModulesManagement.tsx";
 
 function App() {
   return (
@@ -42,6 +44,9 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/moduleGroups" element={<ModuleGroupsManagement />} />
+          <Route path="/moduleGroups/:id" element={<ModulesManagement />} />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>

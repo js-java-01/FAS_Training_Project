@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { roleApi } from '../api/roleApi';
 import { permissionApi } from '../api/permissionApi';
-import { Role, CreateRoleRequest } from '../types/role';
-import { Permission } from '../types/permission';
+import type { Role, CreateRoleRequest } from '../types/role';
+import type { Permission } from '../types/permission';
 import { PermissionGate } from '../components/PermissionGate';
 import { MainLayout } from '../components/MainLayout';
 
