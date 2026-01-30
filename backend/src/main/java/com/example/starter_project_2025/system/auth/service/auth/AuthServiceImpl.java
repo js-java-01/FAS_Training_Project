@@ -1,40 +1,40 @@
 package com.example.starter_project_2025.system.auth.service.auth;
 
-import java.util.Optional;
-
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-
 import com.example.starter_project_2025.mapper.UserMapper;
+import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.auth.dto.forgotpassword.ForgotPasswordDTO;
+import com.example.starter_project_2025.system.auth.dto.login.LoginRequest;
+import com.example.starter_project_2025.system.auth.dto.login.LoginResponse;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.service.email.EmailService;
 import com.example.starter_project_2025.system.auth.service.otp.OtpService;
+import com.example.starter_project_2025.system.auth.service.refreshToken.RefreshTokenService;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
-import com.example.starter_project_2025.security.UserDetailsImpl;
-import com.example.starter_project_2025.system.auth.dto.login.LoginRequest;
-import com.example.starter_project_2025.system.auth.dto.login.LoginResponse;
-import com.example.starter_project_2025.system.auth.service.refreshToken.RefreshTokenService;
 import com.example.starter_project_2025.system.user.service.UserService;
 import com.example.starter_project_2025.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl implements AuthService {
+public class AuthServiceImpl implements AuthService
+{
     private final OtpService otpService;
     private final EmailService emailService;
     private final UserRepository userRepository;
@@ -48,10 +48,12 @@ public class AuthServiceImpl implements AuthService {
     private final UserService userServiceImpl;
 
     @Override
-    public String registerUser(RegisterCreateDTO registerCreateDTO) {
+    public String registerUser(RegisterCreateDTO registerCreateDTO)
+    {
 
         boolean exists = userRepository.existsByEmail(registerCreateDTO.getEmail());
-        if (exists) {
+        if (exists)
+        {
             throw new IllegalArgumentException("Email already in use");
         }
         String otp = otpService.generatedOtpAndSave(registerCreateDTO.getEmail(), registerCreateDTO);
@@ -61,18 +63,22 @@ public class AuthServiceImpl implements AuthService {
                 Optional.ofNullable(registerCreateDTO.getFirstName() + " " + registerCreateDTO.getLastName())
                         .orElse("User"));
         String body = templateEngine.process("otp-email", context);
-        try {
+        try
+        {
             emailService.sendEmail(registerCreateDTO.getEmail(), "Your OTP Code", body);
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             throw new RuntimeException("Failed to send OTP email", e);
         }
         return otp;
     }
 
     @Override
-    public boolean verifyEmail(String email, String code) {
+    public boolean verifyEmail(String email, String code)
+    {
         RegisterCreateDTO registerCreateDTO = otpService.verifyAndGetRegistrationData(email, code);
-        if (registerCreateDTO == null) {
+        if (registerCreateDTO == null)
+        {
             return false;
         }
 
@@ -87,28 +93,33 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String forgotPassword(String email) {
+    public String forgotPassword(String email)
+    {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Email not found"));
         String otp = otpService.generatedOtpAndSave(email, email);
         Context context = new Context();
         context.setVariable("otpCode", otp);
         String body = templateEngine.process("forgot-password-email", context);
-        try {
+        try
+        {
             emailService.sendEmail(email, "Password Reset OTP", body);
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             throw new RuntimeException("Failed to send password reset email", e);
         }
         return otp;
     }
 
     @Override
-    public boolean verifyForgotPasswordOtpAndSavePassword(ForgotPasswordDTO forgotPasswordDTO) {
+    public boolean verifyForgotPasswordOtpAndSavePassword(ForgotPasswordDTO forgotPasswordDTO)
+    {
         String email = forgotPasswordDTO.getEmail();
         String otp = forgotPasswordDTO.getOtp();
         String newPassword = forgotPasswordDTO.getNewPassword();
         String savedEmail = otpService.verifyAndGetRegistrationData(email, otp);
-        if (savedEmail == null || !savedEmail.equals(email)) {
+        if (savedEmail == null || !savedEmail.equals(email))
+        {
             throw new IllegalArgumentException("Invalid OTP or email");
         }
         User user = userRepository.findByEmail(email)
@@ -119,7 +130,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public LoginResponse login(LoginRequest reqData, HttpServletResponse response) {
+    public LoginResponse login(LoginRequest reqData, HttpServletResponse response)
+    {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(reqData.getEmail(), reqData.getPassword()));
 
@@ -128,7 +140,8 @@ public class AuthServiceImpl implements AuthService {
 
         String at = jwtUtils.generateToken(authentication);
 
-        if (reqData.isRememberedMe()) {
+        if (reqData.isRememberedMe())
+        {
             var user = userServiceImpl.findByEmail(userDetails.getEmail());
             var rt = refreshTokenService.generateAndSaveRefreshToken(user);
             ResponseCookie cookie = ResponseCookie.from("refresh_token", rt)
@@ -146,20 +159,19 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void logout(HttpServletRequest request, HttpServletResponse response) {
+    public void logout(HttpServletRequest request, HttpServletResponse response)
+    {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof UserDetailsImpl userDetails) {
+        if (auth != null && auth.getPrincipal() instanceof UserDetailsImpl userDetails)
+        {
             refreshTokenService.revokeAllByUser(userDetails.getId());
-
-            clearLogoutCookie(response);
-
             SecurityContextHolder.clearContext();
-        } else if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() instanceof String) {
-            clearLogoutCookie(response);
         }
+        clearLogoutCookie(response);
     }
 
-    private void clearLogoutCookie(HttpServletResponse response) {
+    private void clearLogoutCookie(HttpServletResponse response)
+    {
         ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
                 .secure(false)
