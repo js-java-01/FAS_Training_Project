@@ -141,7 +141,7 @@ export function useSidebarMenus() {
                 items,
             }
         })
-    }, [menus, hasPermission, iconMap, isActiveRoute])
+    }, [menus, hasPermission, isActiveRoute])
     /* --------------------------------------- */
 
     return {
