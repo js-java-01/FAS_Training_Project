@@ -21,7 +21,7 @@ public class LocationController {
     @GetMapping
     public Page<LocationResponse> search(
             @RequestParam(required = false) String q,
-            @RequestParam(required = false) UUID communeId,
+            @RequestParam(required = false) String communeId,
             @RequestParam(required = false) LocationStatus status,
             @PageableDefault(size = 10) Pageable pageable
     ) {

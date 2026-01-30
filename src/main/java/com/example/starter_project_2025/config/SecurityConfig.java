@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/**").hasAnyAuthority("USER_READ", "USER_CREATE", "USER_UPDATE", "USER_DELETE")
                         .requestMatchers("/api/roles/**").hasAnyAuthority("ROLE_READ", "ROLE_CREATE", "ROLE_UPDATE", "ROLE_DELETE")
                         .requestMatchers("/api/permissions/**").hasAnyAuthority("ROLE_READ", "ROLE_CREATE")
+                        .requestMatchers("/api/locations/**").hasAnyAuthority("ROLE_READ", "ROLE_CREATE")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

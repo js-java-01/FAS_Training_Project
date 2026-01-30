@@ -26,7 +26,7 @@ public class Location {
     private String address;
 
     @Column(name = "commune_id", nullable = false)
-    private UUID communeId;
+    private String communeId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

@@ -20,7 +20,7 @@ public final class LocationSpecifications {
         };
     }
 
-    public static Specification<Location> byCommune(UUID communeId) {
+    public static Specification<Location> byCommune(String communeId) {
         return (root, query, cb) ->
                 communeId == null ? cb.conjunction()
                         : cb.equal(root.get("communeId"), communeId);

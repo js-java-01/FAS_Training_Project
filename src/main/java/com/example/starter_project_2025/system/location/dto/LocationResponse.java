@@ -14,6 +14,6 @@ public class LocationResponse {
     private UUID id;
     private String name;
     private String address;
-    private UUID communeId;
+    private String communeId;
     private LocationStatus status;
 }

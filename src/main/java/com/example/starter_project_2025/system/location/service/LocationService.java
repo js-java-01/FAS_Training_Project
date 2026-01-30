@@ -11,7 +11,7 @@ public interface LocationService {
 
     Page<LocationResponse> search(
             String q,
-            UUID communeId,
+            String communeId,
             LocationStatus locationStatus,
             Pageable pageable
     );

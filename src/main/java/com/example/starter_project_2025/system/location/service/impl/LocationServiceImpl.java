@@ -28,7 +28,7 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<LocationResponse> search(String q, UUID communeId, LocationStatus status, Pageable pageable) {
+    public Page<LocationResponse> search(String q, String communeId, LocationStatus status, Pageable pageable) {
 
         Specification<Location> spec = Specification
                 .where(LocationSpecifications.nameLike(q))

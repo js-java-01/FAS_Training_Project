@@ -13,6 +13,6 @@ import java.util.UUID;
 public class LocationRequest {
     private String name;
     private String address;
-    private UUID communeId;
+    private String communeId;
     private LocationStatus status;
 }
