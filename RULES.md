@@ -14,7 +14,7 @@ Tài liệu này mô tả **quy ước viết commit message** nhằm giúp lị
 ---
 
 ## Cấu trúc commit message
-
+```
 <type>(<scope>): <subject>
 
 <body>
@@ -224,7 +224,4 @@ Quy ước đặt tên branch giúp team dễ hiểu mục đích làm việc, h
 ```
 G1-ThienTN
 G3-HuongDS
-```
-
-```
 ```
