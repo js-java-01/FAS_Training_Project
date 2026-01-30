@@ -13,6 +13,7 @@ export interface User {
 export interface LoginRequest {
   email: string;
   password: string;
+  isRememberedMe: boolean;
 }
 
 export interface LoginResponse {
@@ -49,9 +50,17 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
-
 }
 export interface VerifyRequest {
   email: string;
   code: string;
+}
+
+export interface AuthState {
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  permissions: string[];
+  isAuthenticated: boolean;
 }
