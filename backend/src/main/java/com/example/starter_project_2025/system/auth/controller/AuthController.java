@@ -42,8 +42,8 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "Register a new user", description = "Registers a new user and sends an OTP to their email.")
     public ResponseEntity<String> registerUser(@Valid @RequestBody RegisterCreateDTO registerCreateDTO) {
-        String otp = authService.registerUser(registerCreateDTO);
-        return new ResponseEntity<>(otp, HttpStatus.OK);
+        String success = authService.registerUser(registerCreateDTO);
+        return new ResponseEntity<>(success, HttpStatus.OK);
     }
 
     @PostMapping("/verify")
@@ -55,8 +55,8 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordCreateDTO forgotPasswordCreateDTO) {
-        String otp = authService.forgotPassword(forgotPasswordCreateDTO.getEmail());
-        return new ResponseEntity<>(otp, HttpStatus.OK);
+        String success = authService.forgotPassword(forgotPasswordCreateDTO.getEmail());
+        return new ResponseEntity<>(success, HttpStatus.OK);
     }
 
     @PostMapping("/verify-forgot-password")

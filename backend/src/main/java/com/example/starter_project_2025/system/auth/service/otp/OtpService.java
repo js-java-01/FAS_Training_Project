@@ -5,6 +5,6 @@ import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateD
 public interface OtpService {
     <T> String generatedOtpAndSave(String email, T DTO);
 
-    <T> T verifyAndGetRegistrationData(String email, String otp);
+    <T> T verifyAndGetRegistrationData(String email, String otp, Class<T> clazz);
 
 }

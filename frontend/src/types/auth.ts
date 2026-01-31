@@ -55,3 +55,17 @@ export interface VerifyRequest {
   email: string;
   code: string;
 }
+
+export interface ForgotPasswordEmailRequest {
+  email: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+  token: string;
+  newPassword: string;
+}
+export interface ResetPasswordData {
+  password: string;
+  confirmPassword: string;
+}

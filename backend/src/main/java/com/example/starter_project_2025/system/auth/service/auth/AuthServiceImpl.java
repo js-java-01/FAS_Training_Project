@@ -26,6 +26,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -66,12 +67,13 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to send OTP email", e);
         }
-        return otp;
+        return "Success";
     }
 
     @Override
     public boolean verifyEmail(String email, String code) {
-        RegisterCreateDTO registerCreateDTO = otpService.verifyAndGetRegistrationData(email, code);
+        RegisterCreateDTO registerCreateDTO = otpService.verifyAndGetRegistrationData(email, code,
+                RegisterCreateDTO.class);
         if (registerCreateDTO == null) {
             return false;
         }
@@ -93,21 +95,22 @@ public class AuthServiceImpl implements AuthService {
         String otp = otpService.generatedOtpAndSave(email, email);
         Context context = new Context();
         context.setVariable("otpCode", otp);
-        String body = templateEngine.process("forgot-password-email", context);
+        context.setVariable("email", email);
+        String body = templateEngine.process("forgotPassword", context);
         try {
             emailService.sendEmail(email, "Password Reset OTP", body);
         } catch (Exception e) {
             throw new RuntimeException("Failed to send password reset email", e);
         }
-        return otp;
+        return "Success";
     }
 
     @Override
     public boolean verifyForgotPasswordOtpAndSavePassword(ForgotPasswordDTO forgotPasswordDTO) {
         String email = forgotPasswordDTO.getEmail();
-        String otp = forgotPasswordDTO.getOtp();
+        String token = forgotPasswordDTO.getToken();
         String newPassword = forgotPasswordDTO.getNewPassword();
-        String savedEmail = otpService.verifyAndGetRegistrationData(email, otp);
+        String savedEmail = otpService.verifyAndGetRegistrationData(email, token, String.class);
         if (savedEmail == null || !savedEmail.equals(email)) {
             throw new IllegalArgumentException("Invalid OTP or email");
         }

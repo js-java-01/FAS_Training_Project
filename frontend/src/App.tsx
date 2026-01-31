@@ -6,10 +6,11 @@ import { Login } from './pages/auth/Login';
 import { RoleManagement } from './pages/RoleManagement';
 import { Unauthorized } from './pages/Unauthorized';
 import { UserManagement } from './pages/UserManagement';
-import Register from './pages/auth/Register';
 import { Toaster } from 'sonner';
 import ModuleGroupsManagement from "@/pages/modules/ModuleGroupsManagement.tsx";
 import ModulesManagement from "@/pages/modules/ModulesManagement.tsx";
+import RegisterPage from './pages/auth/RegisterPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 
 function App() {
   return (
@@ -23,7 +24,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
-          <Route path='/register' element={<Register />} />
+          <Route path='/register' element={<RegisterPage />} />
+          <Route path='/forgot-password' element={<ForgotPasswordPage />} />
           <Route
             path="/dashboard"
             element={
