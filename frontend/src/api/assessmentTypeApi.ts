@@ -46,4 +46,42 @@ export const assessmentTypeApi = {
     );
     return response.data;
   },
+
+  importAssessments: async (file: File): Promise<AssessmentType[]> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await axiosInstance.post<AssessmentType[]>(
+      '/assessments/import',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    return response.data;
+  },
+
+  exportAssessments: async (): Promise<void> => {
+    const response = await axiosInstance.get('/assessments/export', {
+      responseType: 'blob',
+    });
+
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'assessments.xlsx';
+    document.body.appendChild(link);
+    link.click();
+
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+
+
 };
+

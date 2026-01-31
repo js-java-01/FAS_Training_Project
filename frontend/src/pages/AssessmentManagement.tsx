@@ -32,7 +32,26 @@ export const AssessmentManagement: React.FC = () => {
         deleteAssessment,
         reload,
         setSearchTerm,
+        handleImport,
+        handleExport,
     } = useAssessment();
+
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const onImportClick = () => {
+        if (window.confirm('Are you sure you want to import assessment types?')) {
+            fileInputRef.current?.click();
+        }
+    };
+
+    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            handleImport(file);
+            // Reset input so searching the same file again triggers change event
+            e.target.value = '';
+        }
+    };
 
     const getBadgeStyle = (name: string) => {
         const lowerName = name.toLowerCase();
@@ -83,17 +102,29 @@ export const AssessmentManagement: React.FC = () => {
                     </div>
 
                     <div className="flex space-x-2">
-                        <button className="flex items-center space-x-2 px-3 py-1.5 border rounded-md text-sm
+                        <button
+                            onClick={handleExport}
+                            className="flex items-center space-x-2 px-3 py-1.5 border rounded-md text-sm
                             hover:bg-gray-100 hover:border-gray-400 transition">
                             <Download size={16} />
                             <span>Export</span>
                         </button>
 
-                        <button className="flex items-center space-x-2 px-3 py-1.5 border rounded-md text-sm
-                            hover:bg-gray-100 hover:border-gray-400 transition">
+                        <button
+                            onClick={onImportClick}
+                            className="flex items-center space-x-2 px-3 py-1.5 border rounded-md text-sm
+                            hover:bg-gray-100 hover:border-gray-400 transition"
+                        >
                             <Upload size={16} />
                             <span>Import</span>
                         </button>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={onFileChange}
+                            className="hidden"
+                            accept=".xlsx,.xls,.csv"
+                        />
 
                         <PermissionGate permission="ASSESSMENT_CREATE">
                             <button
@@ -188,7 +219,7 @@ export const AssessmentManagement: React.FC = () => {
                                     {formatDate(assessment.createdAt)}
                                 </td>
 
-                                
+
 
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex space-x-3">
@@ -236,7 +267,7 @@ export const AssessmentManagement: React.FC = () => {
                         </h2>
 
                         <form
-                            
+
                             onSubmit={(e) => {
                                 e.preventDefault();
                                 if (isEditMode)

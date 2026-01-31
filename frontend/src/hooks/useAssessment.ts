@@ -105,6 +105,32 @@ export const useAssessment = () => {
         }
     };
 
+    const handleImport = async (file: File) => {
+        try {
+            setIsLoading(true);
+            await assessmentTypeApi.importAssessments(file);
+            await loadData();
+            alert('Import successful');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Import failed');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleExport = async () => {
+        if (!window.confirm('Are you sure you want to export assessments types?'))
+            return;
+
+        try {
+            await assessmentTypeApi.exportAssessments();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Export failed');
+        }
+    };
+
     useEffect(() => {
         loadData();
     }, []);
@@ -130,6 +156,8 @@ export const useAssessment = () => {
         openCreateModal,
         openEditModal,
         deleteAssessment,
+        handleImport,
+        handleExport,
         reload: loadData,
     };
 };
