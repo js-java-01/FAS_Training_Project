@@ -11,7 +11,7 @@ const iconMap: { [key: string]: string } = {
   security: '🔐',
   menu: '📋',
   settings: '⚙️',
-  school: '🎓',
+  school: '🏫',
   assignment: '📝',
   grade: '📈',
   'graduation-cap': '🎓',
