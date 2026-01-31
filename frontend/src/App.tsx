@@ -15,23 +15,29 @@ import { UserManagement } from "./pages/UserManagement";
 import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import Register from "./pages/auth/Register";
-
+// import { SidebarProvider } from "./components/ui/sidebar";
 
 function App() {
   return (
     <BrowserRouter>
-      <Toaster duration={1500} position="top-right" richColors toastOptions={
-        {
-          className: 'p-4'
-        }
-      } />
+      <Toaster
+        duration={1500}
+        position="top-right"
+        richColors
+        toastOptions={{
+          className: "p-4",
+        }}
+      />
       <AuthProvider>
+        {/* <SidebarProvider>
+         
+        </SidebarProvider> */}
         <Routes>
           <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
-          <Route path='/register' element={<RegisterPage />} />
-          <Route path='/forgot-password' element={<ForgotPasswordPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/register" element={<Register />} />
           <Route
             path="/dashboard"
@@ -58,19 +64,22 @@ function App() {
             }
           />
 
-          <Route path="/moduleGroups" element={
-            <ProtectedRoute requiredPermission="ROLE_READ">
-              <ModuleGroupsManagement />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/moduleGroups"
+            element={
+              <ProtectedRoute requiredPermission="ROLE_READ">
+                <ModuleGroupsManagement />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/moduleGroups/:id" element={<ModuleGroupDetail />} />
           <Route path="/modules" element={<ModulesManagement />} />
           <Route path="/modules/:id" element={<ModuleDetail />} />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        </Routes >
-      </AuthProvider >
-    </BrowserRouter >
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
