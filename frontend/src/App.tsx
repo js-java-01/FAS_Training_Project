@@ -6,6 +6,7 @@ import { Login } from './pages/Login';
 import { RoleManagement } from './pages/RoleManagement';
 import { Unauthorized } from './pages/Unauthorized';
 import { UserManagement } from './pages/UserManagement';
+import { StudentManagement } from './pages/StudentManagement';
 
 function App() {
   return (
@@ -38,6 +39,15 @@ function App() {
             element={
               <ProtectedRoute requiredPermission="ROLE_READ">
                 <RoleManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/students"
+            element={
+              <ProtectedRoute requiredPermission="STUDENT_READ">
+                <StudentManagement />
               </ProtectedRoute>
             }
           />
