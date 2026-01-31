@@ -57,7 +57,6 @@ function App() {
           }
         />
 
-        <Route path="/moduleGroups/:id" element={<ModulesManagement />} />
         <Route path="/moduleGroups" element={<ModuleGroupsManagement />} />
         <Route path="/moduleGroups/:id" element={<ModuleGroupDetail />} />
         <Route path="/modules" element={<ModulesManagement />} />
