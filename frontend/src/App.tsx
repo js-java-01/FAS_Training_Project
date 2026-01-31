@@ -6,6 +6,7 @@ import { Login } from './pages/Login';
 import { RoleManagement } from './pages/RoleManagement';
 import { Unauthorized } from './pages/Unauthorized';
 import { UserManagement } from './pages/UserManagement';
+import { AssessmentManagement } from './pages/AssessmentManagement';
 
 function App() {
   return (
@@ -32,6 +33,16 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/assessments"
+            element={
+              <ProtectedRoute requiredPermission="ASSESSMENT_READ">
+                <AssessmentManagement />
+              </ProtectedRoute>
+            }
+          />
+
 
           <Route
             path="/roles"
