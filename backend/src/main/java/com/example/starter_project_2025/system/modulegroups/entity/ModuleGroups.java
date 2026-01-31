@@ -1,4 +1,5 @@
-package com.example.starter_project_2025.system.menu.entity;
+// File: `backend/src/main/java/com/example/starter_project_2025/system/modulegroups/entity/ModuleGroup.java`
+package com.example.starter_project_2025.system.modulegroups.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,11 +16,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "menus")
+@Table(name = "module_groups")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Menu {
+public class ModuleGroups {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -37,9 +38,9 @@ public class Menu {
     @Column(nullable = false)
     private Integer displayOrder = 0;
 
-    @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "moduleGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    private List<MenuItem> menuItems = new ArrayList<>();
+    private List<Module> modules = new ArrayList<>();
 
     @CreationTimestamp
     @Column(updatable = false)

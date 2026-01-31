@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.menu.entity;
+package com.example.starter_project_2025.system.modulegroups.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,27 +15,27 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "menu_items")
+@Table(name = "module")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MenuItem {
+public class Module {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "menu_id", nullable = false)
-    private Menu menu;
+    @JoinColumn(name = "module_group_id", nullable = false)
+    private ModuleGroups moduleGroup;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    private MenuItem parent;
+    private Module parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    private List<MenuItem> children = new ArrayList<>();
+    private List<Module> children = new ArrayList<>();
 
     @Column(nullable = false, length = 100)
     private String title;
