@@ -1,8 +1,10 @@
 package com.example.starter_project_2025.system.user.entity;
 
 import com.example.starter_project_2025.system.auth.entity.Role;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -16,7 +18,8 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class User
+{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -35,7 +38,9 @@ public class User {
     private String lastName;
 
     @ManyToOne(fetch = FetchType.EAGER)
+
     @JoinColumn(name = "role_id", nullable = false)
+    @JsonManagedReference
     private Role role;
 
     @Column(nullable = false)
