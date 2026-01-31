@@ -19,6 +19,7 @@ const resetSchema = z.object({
 interface ResetPasswordFormProps {
     onSubmit: (data: ResetPasswordData) => void;
     loading: boolean;
+
 }
 
 export const ResetPasswordForm = ({ onSubmit, loading }: ResetPasswordFormProps) => {

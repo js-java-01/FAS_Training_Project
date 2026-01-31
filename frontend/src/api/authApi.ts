@@ -27,7 +27,7 @@ export const authApi = {
   resetPassword: async (data: ForgotPasswordRequest): Promise<string> => {
     const response = await axiosInstance.post<string>('/auth/verify-forgot-password', {
       email: data.email,
-      otp: data.token,
+      token: data.token,
       newPassword: data.newPassword
     });
     return response.data;
