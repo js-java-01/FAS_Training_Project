@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
-import { moduleGroupApi } from "@/api/moduleGroupApi";
+import { moduleGroupApi } from "@/api/moduleApi";
 import { motion } from "framer-motion";
 import { easeOut } from "framer-motion";
 
@@ -37,7 +37,12 @@ export const ModuleGroupForm: React.FC<{
         isActive: initial.isActive ?? true,
       });
     } else {
-      setForm({ name: "", description: "", displayOrder: 1, isActive: true });
+      setForm({
+        name: "",
+        description: "",
+        displayOrder: 1,
+        isActive: true,
+      });
     }
     setErrors({});
   }, [initial, open]);
@@ -59,21 +64,38 @@ export const ModuleGroupForm: React.FC<{
     setSaving(true);
     try {
       let saved;
+
       if (form.id) {
-        saved = await moduleGroupApi.update(form.id, {
+        const res = await moduleGroupApi.updateModuleGroup(form.id, {
           name: form.name,
           description: form.description,
           displayOrder: form.displayOrder,
           isActive: form.isActive,
         });
+
+        saved = {
+          id: res.id,
+          name: res.name,
+          description: res.description,
+          displayOrder: res.displayOrder,
+          isActive: res.isActive,
+        };
       } else {
-        saved = await moduleGroupApi.create({
+        const res = await moduleGroupApi.createModuleGroup({
           name: form.name,
           description: form.description,
           displayOrder: form.displayOrder,
-          isActive: form.isActive,
         });
+
+        saved = {
+          id: res.id,
+          name: res.name,
+          description: res.description,
+          displayOrder: res.displayOrder,
+          isActive: res.isActive,
+        };
       }
+
       onSaved?.(saved);
       onClose();
     } catch (err: unknown) {
