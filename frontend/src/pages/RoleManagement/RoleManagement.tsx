@@ -6,6 +6,8 @@ import { Permission } from "../../types/permission";
 import { MainLayout } from "../../components/MainLayout";
 import { PermissionGate } from "../../components/PermissionGate";
 import { FiPlus } from "react-icons/fi";
+import { toast } from "react-toastify";
+
 
 import { RoleCard } from "./components/RoleCard";
 import { RoleFormModal } from "./components/RoleFormModal";
@@ -68,13 +70,20 @@ export const RoleManagement: React.FC = () => {
 
   const submitRole = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEditMode && selectedRole) {
-      await roleApi.updateRole(selectedRole.id, roleForm);
-    } else {
-      await roleApi.createRole(roleForm);
+    try {
+      if (isEditMode && selectedRole) {
+        await roleApi.updateRole(selectedRole.id, roleForm);
+        toast.success("Role updated successfully");
+      } else {
+        await roleApi.createRole(roleForm);
+        toast.success("Role created successfully");
+      }
+      setShowForm(false);
+      loadData();
+    } catch (error: any) {
+      const message = error?.response?.data?.message || "Failed to save role";
+      toast.error(message);
     }
-    setShowForm(false);
-    loadData();
   };
 
   if (loading) return <MainLayout>Loading...</MainLayout>;
@@ -102,13 +111,26 @@ export const RoleManagement: React.FC = () => {
         }}
         onEdit={openEdit}
         onToggleStatus={async (id) => {
-          await roleApi.toggleRoleStatus(id);
-          loadData();
+          try {
+            await roleApi.toggleRoleStatus(id);
+            toast.success("Role status updated");
+            loadData();
+          } catch (error: any) {
+            const message = error?.response?.data?.message || "Failed to update status";
+            toast.error(message);
+          }
         }}
         onDelete={async (id) => {
-          if (confirm("Delete role?")) {
-            await roleApi.deleteRole(id);
-            loadData();
+          if (window.confirm("Are you sure you want to delete this role? This cannot be undone.")) {
+            try {
+              await roleApi.deleteRole(id);
+              toast.success("Role deleted successfully");
+              loadData();
+            } catch (error: any) {
+              console.error("Delete failed:", error);
+              const message = error?.response?.data?.message || "Failed to delete role. It might be assigned to existing users.";
+              toast.error(message);
+            }
           }
         }}
       />
