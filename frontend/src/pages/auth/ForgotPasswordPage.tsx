@@ -8,7 +8,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 
-export default function ForgotPassword() {
+export default function ForgotPasswordPage() {
     const [searchParams] = useSearchParams();
     const token = searchParams.get('token');
     const email = searchParams.get('email');

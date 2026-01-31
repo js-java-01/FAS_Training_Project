@@ -1,33 +1,21 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { AuthProvider } from "./contexts/AuthContext";
-import { Dashboard } from "./pages/Dashboard";
-import { Login } from "./pages/auth/Login";
-import { RoleManagement } from "./pages/RoleManagement";
-import { Unauthorized } from "./pages/Unauthorized";
-import { UserManagement } from "./pages/UserManagement";
-import Register from "./pages/auth/Register";
 import { Toaster } from "sonner";
-import ModuleGroupsManagement from "@/pages/modules/ModuleGroupsManagement.tsx";
-import ModulesManagement from "@/pages/modules/ModulesManagement.tsx";
+import { AuthProvider } from "./contexts/AuthContext";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { AuthProvider } from './contexts/AuthContext';
-import { Dashboard } from './pages/Dashboard';
-import { Login } from './pages/Login';
-import { RoleManagement } from './pages/RoleManagement';
-import { Unauthorized } from './pages/Unauthorized';
-import { UserManagement } from './pages/UserManagement';
-import { Toaster } from 'sonner';
-import ModuleGroupsManagement from "@/pages/modules/ModuleGroupsManagement.tsx";
-import ModulesManagement from "@/pages/modules/ModulesManagement.tsx";
-import RegisterPage from './pages/auth/RegisterPage';
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
-import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsManagement.tsx";
-import ModuleGroupDetail from "@/pages/modules/module_groups/ModuleGroupDetail.tsx";
-import ModulesManagement from "@/pages/modules/module/ModulesManagement.tsx";
-import ModuleDetail from "@/pages/modules/module/ModuleDetail.tsx";
+import { Login } from "./pages/auth/Login";
+import { Unauthorized } from "./pages/Unauthorized";
+import RegisterPage from "./pages/auth/RegisterPage";
+import ModuleDetail from "./pages/modules/module/ModuleDetail";
+import ModulesManagement from "./pages/modules/module/ModulesManagement";
+import ModuleGroupDetail from "./pages/modules/module_groups/ModuleGroupDetail";
+import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { RoleManagement } from "./pages/RoleManagement";
+import { UserManagement } from "./pages/UserManagement";
+import { Dashboard } from "./pages/Dashboard";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import Register from "./pages/auth/Register";
+
 
 function App() {
   return (
@@ -70,10 +58,14 @@ function App() {
             }
           />
 
-            <Route path="/moduleGroups" element={<ModuleGroupsManagement />} />
-            <Route  path="/moduleGroups/:id" element={<ModuleGroupDetail />} />
-            <Route path="/modules" element={<ModulesManagement />} />
-            <Route path="/modules/:id" element={<ModuleDetail />} />
+          <Route path="/moduleGroups" element={
+            <ProtectedRoute requiredPermission="ROLE_READ">
+              <ModuleGroupsManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="/moduleGroups/:id" element={<ModuleGroupDetail />} />
+          <Route path="/modules" element={<ModulesManagement />} />
+          <Route path="/modules/:id" element={<ModuleDetail />} />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes >
