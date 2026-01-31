@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { Sidebar } from './Sidebar';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Sidebar } from "./Sidebar";
+import { authApi } from "@/api/authApi";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -9,12 +11,12 @@ interface MainLayoutProps {
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { firstName, lastName, role } = useSelector((state: RootState) => state.auth);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    await authApi.logout();
+    navigate("/login");
   };
 
   return (
@@ -39,10 +41,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <div className="flex items-center space-x-4">
               <div className="hidden md:block">
                 <span className="text-sm text-gray-600">
-                  {user?.firstName} {user?.lastName}
+                  {firstName} {lastName}
                 </span>
                 <span className="ml-2 px-2 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">
-                  {user?.role}
+                  {role}
                 </span>
               </div>
               <button
@@ -56,9 +58,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </header>
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto">
-          <div className="container grid h-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {children}
-          </div>
+          <div className="container grid h-full mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</div>
         </main>
       </div>
     </div>

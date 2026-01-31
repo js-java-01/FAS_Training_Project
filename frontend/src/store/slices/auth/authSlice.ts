@@ -26,7 +26,7 @@ const authSlice = createSlice({
       state.role = role || "";
       state.isAuthenticated = !!token;
 
-      localStorage.setItem("access_token", token || "");
+      localStorage.setItem("token", token || "");
       localStorage.setItem("email", email || "");
       localStorage.setItem("firstName", firstName || "");
       localStorage.setItem("lastName", lastName || "");
