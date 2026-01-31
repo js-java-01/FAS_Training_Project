@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { menuApi } from '../api/menuApi';
-import { Menu } from '../types/menu';
+import type { Menu } from '../types/menu';
 import { usePermissions } from '../hooks/usePermissions';
 
 const iconMap: { [key: string]: string } = {
@@ -178,6 +178,29 @@ export const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ is
               </nav>
             </div>
           ))}
+
+          {/* Temporary Programming Language Menu - Following KietNG's style */}
+          <div className="mb-6">
+            <div className="px-4 mb-2">
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Development
+              </h3>
+            </div>
+            <nav className="space-y-1">
+              <Link
+                to="/programming-languages"
+                onClick={() => onClose()}
+                className={`flex items-center px-4 py-3 text-sm font-medium transition-colors ${
+                  location.pathname === '/programming-languages'
+                    ? 'bg-gray-800 text-white border-l-4 border-blue-500'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                }`}
+              >
+                <span className="mr-3 text-lg">💻</span>
+                <span>Programming Languages</span>
+              </Link>
+            </nav>
+          </div>
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-800">
