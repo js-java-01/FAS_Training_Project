@@ -8,6 +8,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useDispatch } from "react-redux";
 import { setLogin } from "@/store/slices/auth/authSlice";
 import { authApi } from "@/api/authApi";
+import axios from "axios";
 
 const URL_LOGIN_WITH_GOOGLE =
   import.meta.env.VITE_API_URL_FOR_GOOGLE || "http://localhost:8080/oauth2/authorization/google";
@@ -32,8 +33,15 @@ export const Login: React.FC = () => {
       dispatch(setLogin(res));
       navigate("/dashboard");
     } catch (err) {
-      if (err instanceof Error) setError(err.message);
-      else setError("Something went  wrong !");
+      if (axios.isAxiosError(err)) {
+        const backendMsg = err.response?.data?.message;
+
+        setError(backendMsg || "Invalid email or password");
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unexpected error occurred!");
+      }
     } finally {
       setIsLoading(false);
     }
