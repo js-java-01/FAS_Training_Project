@@ -8,6 +8,8 @@ import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
 import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
 import com.example.starter_project_2025.system.menu.repository.MenuRepository;
+import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
+import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final MenuRepository menuRepository;
     private final MenuItemRepository menuItemRepository;
+    private final ProgrammingLanguageRepository programmingLanguageRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -43,9 +46,14 @@ public class DataInitializer implements CommandLineRunner {
             initializeRoles();
             initializeUsers();
             initializeMenus();
+            initializeProgrammingLanguages();
             log.info("Database initialization completed successfully!");
         } else {
-            log.info("Database already initialized, skipping data initialization.");
+            log.info("Database already initialized, checking for missing permissions...");
+            // Check if programming language permissions exist, if not, add them
+            ensureProgrammingLanguagePermissions();
+            // Always check and initialize programming languages if they don't exist
+            initializeProgrammingLanguages();
         }
     }
 
@@ -68,7 +76,11 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
-                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN")
+                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"),
+                createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages", "PROGRAMMING_LANGUAGE", "CREATE"),
+                createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages", "PROGRAMMING_LANGUAGE", "READ"),
+                createPermission("PROGRAMMING_LANGUAGE_UPDATE", "Update existing programming languages", "PROGRAMMING_LANGUAGE", "UPDATE"),
+                createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages", "PROGRAMMING_LANGUAGE", "DELETE")
         );
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
@@ -155,7 +167,8 @@ public class DataInitializer implements CommandLineRunner {
 
         MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1, "USER_READ");
         MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2, "ROLE_READ");
-        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement));
+        MenuItem programmingLanguageManagement = createMenuItem(adminMenu, null, "Programming Languages", "/programming-languages", "school", 3, "PROGRAMMING_LANGUAGE_READ");
+        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, programmingLanguageManagement));
 
         log.info("Initialized 2 menus with menu items");
     }
@@ -171,5 +184,53 @@ public class DataInitializer implements CommandLineRunner {
         item.setIsActive(true);
         item.setRequiredPermission(permission);
         return item;
+    }
+
+    private void initializeProgrammingLanguages() {
+        // Only initialize if no programming languages exist
+        if (programmingLanguageRepository.count() == 0) {
+            ProgrammingLanguage java = createProgrammingLanguage("Java", "17", "Object-oriented programming language widely used for enterprise applications", true);
+            ProgrammingLanguage python = createProgrammingLanguage("Python", "3.11", "High-level interpreted language popular for data science and web development", true);
+            ProgrammingLanguage javascript = createProgrammingLanguage("JavaScript", "ES2023", "Dynamic programming language essential for web development", true);
+            ProgrammingLanguage csharp = createProgrammingLanguage("C#", "11.0", "Modern object-oriented language developed by Microsoft", true);
+            ProgrammingLanguage cpp = createProgrammingLanguage("C++", "20", "General-purpose programming language with low-level control", true);
+            ProgrammingLanguage go = createProgrammingLanguage("Go", "1.21", "Fast, statically typed language designed for modern software development", false);
+
+            programmingLanguageRepository.saveAll(Arrays.asList(java, python, javascript, csharp, cpp, go));
+            log.info("Initialized 6 programming languages");
+        } else {
+            log.info("Programming languages already exist, skipping initialization");
+        }
+    }
+
+    private ProgrammingLanguage createProgrammingLanguage(String name, String version, String description, boolean isSupported) {
+        ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
+        return language;
+    }
+
+    private void ensureProgrammingLanguagePermissions() {
+        // Check if programming language permissions exist
+        boolean hasProgLangPerms = permissionRepository.existsByName("PROGRAMMING_LANGUAGE_READ");
+        
+        if (!hasProgLangPerms) {
+            log.info("Programming language permissions not found, adding them...");
+            
+            List<Permission> progLangPermissions = Arrays.asList(
+                createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages", "PROGRAMMING_LANGUAGE", "CREATE"),
+                createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages", "PROGRAMMING_LANGUAGE", "READ"),
+                createPermission("PROGRAMMING_LANGUAGE_UPDATE", "Update existing programming languages", "PROGRAMMING_LANGUAGE", "UPDATE"),
+                createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages", "PROGRAMMING_LANGUAGE", "DELETE")
+            );
+            
+            permissionRepository.saveAll(progLangPermissions);
+            
+            // Add these permissions to the ADMIN role
+            Role adminRole = roleRepository.findByName("ADMIN").orElse(null);
+            if (adminRole != null) {
+                adminRole.getPermissions().addAll(progLangPermissions);
+                roleRepository.save(adminRole);
+                log.info("Added programming language permissions to ADMIN role");
+            }
+        }
     }
 }
