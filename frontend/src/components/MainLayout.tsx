@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sidebar } from "./Sidebar";
+import { Sidebar } from "../components/ui/sidebar";
 import { authApi } from "@/api/authApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
