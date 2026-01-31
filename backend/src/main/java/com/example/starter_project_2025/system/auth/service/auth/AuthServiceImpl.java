@@ -16,12 +16,11 @@ import com.example.starter_project_2025.system.auth.service.refreshToken.Refresh
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import com.example.starter_project_2025.system.user.service.UserService;
+import com.example.starter_project_2025.util.CookieUtil;
 import com.example.starter_project_2025.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -49,6 +48,7 @@ public class AuthServiceImpl implements AuthService
     private final RefreshTokenService refreshTokenService;
     private final UserService userServiceImpl;
     private final AuthMapper authMapper;
+    private final CookieUtil cookieUtil;
 
     @Override
     public String registerUser(RegisterCreateDTO registerCreateDTO)
@@ -147,14 +147,7 @@ public class AuthServiceImpl implements AuthService
         {
             var user = userServiceImpl.findByEmail(userDetails.getEmail());
             var rt = refreshTokenService.generateAndSaveRefreshToken(user);
-            ResponseCookie cookie = ResponseCookie.from("refresh_token", rt)
-                    .httpOnly(true)
-                    .secure(false)
-                    .path("/")
-                    .maxAge(7 * 24 * 60 * 60)
-                    .sameSite("Lax")
-                    .build();
-            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            cookieUtil.addCookie(response, rt);
         }
 
         var res = authMapper.toLoginResponse(userDetails);
@@ -171,19 +164,7 @@ public class AuthServiceImpl implements AuthService
             refreshTokenService.revokeAllByUser(userDetails.getId());
             SecurityContextHolder.clearContext();
         }
-        clearLogoutCookie(response);
-    }
-
-    private void clearLogoutCookie(HttpServletResponse response)
-    {
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(0)
-                .sameSite("Lax")
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        cookieUtil.clearLogoutCookie(response);
     }
 
     @Override

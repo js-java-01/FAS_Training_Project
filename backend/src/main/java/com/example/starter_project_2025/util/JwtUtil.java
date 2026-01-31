@@ -26,10 +26,9 @@ public class JwtUtil
     @Value("${JWT_SECRET}")
     private String jwtSecret;
 
-//    @Value("${app.jwt.at.expiration-ms:900000}")
-//    private long jwtExps;
+    @Value("${app.jwt.at.expiration-ms:900000}")
+    private long jwtAtExp;
 
-    private long jwtAtExp = 10;
     @Value("${app.jwt.rt.expiration-ms:604800000}")
     private long jwtRtExp;
 
@@ -63,7 +62,10 @@ public class JwtUtil
                 .setSubject(userDetails.getEmail())
                 .claim("userId", userDetails.getId().toString())
                 .claim("role", userDetails.getRole())
-                .claim("permission", userDetails.getAuthorities().stream()
+                .claim("email", userDetails.getEmail())
+                .claim("firstName", userDetails.getFirstName())
+                .claim("lastName", userDetails.getLastName())
+                .claim("permissions", userDetails.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toList())
                 )
