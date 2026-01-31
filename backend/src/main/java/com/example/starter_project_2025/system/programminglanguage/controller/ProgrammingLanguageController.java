@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/programming-languages")
+@RequestMapping("/api/programming-languages")
 public class ProgrammingLanguageController {
 
     private final ProgrammingLanguageService service;
@@ -19,7 +19,7 @@ public class ProgrammingLanguageController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('TRAINING_ADMIN', 'CONTENT_CURATOR')")
+    @PreAuthorize("hasAuthority('PROGRAMMING_LANGUAGE_CREATE')")
     public ProgrammingLanguageResponse create(
             @Valid @RequestBody ProgrammingLanguageCreateRequest request
     ) {
@@ -27,7 +27,7 @@ public class ProgrammingLanguageController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('TRAINING_ADMIN')")
+    @PreAuthorize("hasAuthority('PROGRAMMING_LANGUAGE_UPDATE')")
     public ProgrammingLanguageResponse update(
             @PathVariable Long id,
             @Valid @RequestBody ProgrammingLanguageUpdateRequest request
@@ -36,17 +36,19 @@ public class ProgrammingLanguageController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('TRAINING_ADMIN')")
+    @PreAuthorize("hasAuthority('PROGRAMMING_LANGUAGE_DELETE')")
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('PROGRAMMING_LANGUAGE_READ')")
     public ProgrammingLanguageResponse getById(@PathVariable Long id) {
         return service.getById(id);
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('PROGRAMMING_LANGUAGE_READ')")
     public Page<ProgrammingLanguageResponse> list(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,

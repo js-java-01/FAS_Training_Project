@@ -39,6 +39,7 @@ public class ProgrammingLanguage {
         this.name = name;
         this.version = version;
         this.description = description;
+        this.isSupported = false; // Set default value
     }
 
     public Long getId() {
