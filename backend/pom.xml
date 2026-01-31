@@ -95,6 +95,13 @@
 			<version>2.5.0</version>			<!-- ✅ stable for Spring Boot 3.x -->
 		</dependency>
 
+		<!-- Apache POI for Excel Import/Export -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.5</version>
+		</dependency>
+
 		<!-- Tests -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
