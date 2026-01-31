@@ -6,8 +6,10 @@ import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRe
 import com.example.starter_project_2025.system.assessment.service.AssessmentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -54,5 +56,13 @@ public class AssessmentController {
     public ResponseEntity<Void> delete(@PathVariable String id) {
         assessService.deleteAssessment(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/import",consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<List<AssessmentDTO>> importAssessments(
+            @RequestParam("file") MultipartFile file
+    ) {
+        return ResponseEntity.ok(assessService.importAssessments(file));
     }
 }
