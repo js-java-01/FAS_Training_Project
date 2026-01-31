@@ -1,4 +1,4 @@
-import type { IconKey } from "@/types/menu"
+import type { IconKey } from "@/types/module"
 import type { LucideIcon } from "lucide-react"
 
 import {

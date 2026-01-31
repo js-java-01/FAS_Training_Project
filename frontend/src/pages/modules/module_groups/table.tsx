@@ -1,30 +1,23 @@
-import { DataTable } from "@/components/data_table/DataTable";
-import { getColumns } from "@/pages/modules/module_groups/column";
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import type { ColumnDef } from "@tanstack/react-table";
-import type { Menu } from "@/types/menu";
-import { encodeBase64 } from "@/utils/base64.utils";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { ModuleGroupForm } from "./form";
-import type { ModuleGroupDto } from "./form";
-import ConfirmDialog from "@/components/ui/confirmdialog";
-import { mockMenus } from "@/mocks/mockMenus.mock";
+import { DataTable } from "@/components/data_table/DataTable"
+import { getColumns } from "@/pages/modules/module_groups/column"
+import { useEffect, useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import type { ColumnDef } from "@tanstack/react-table"
+import { encodeBase64 } from "@/utils/base64.utils"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
+
+import type { ModuleGroup } from "@/types/module"
+import { moduleGroupApi } from "@/api/moduleApi"
+
+/* ------------------------------------------ */
 
 export default function ModuleGroupsTable() {
-    const navigate = useNavigate();
-    const [data, setData] = useState<Menu[]>(mockMenus);
-    const [openForm, setOpenForm] = useState(false);
-    const [editing, setEditing] = useState<ModuleGroupDto | null>(null);
-    const [deleting, setDeleting] = useState<Menu | null>(null);
-    const [toast, setToast] = useState<string | null>(null);
+    const navigate = useNavigate()
+    const [data, setData] = useState<ModuleGroup[]>([])
+    const [loading, setLoading] = useState(false)
 
-    const showToast = (msg: string) => {
-        setToast(msg);
-        setTimeout(() => setToast(null), 2000);
-    };
-
+    /* -------- COLUMNS ------------------------ */
     const columns = useMemo(
         () =>
             getColumns({
@@ -51,7 +44,37 @@ export default function ModuleGroupsTable() {
                 },
             }),
         [navigate]
-    );
+    )
+    /* ---------------------------------------- */
+
+    /* -------- LOAD DATA (API) ---------------- */
+    useEffect(() => {
+        let mounted = true
+
+        const fetchData = async () => {
+            setLoading(true)
+            try {
+                const res = await moduleGroupApi.getAllModuleGroupsList()
+                if (mounted) {
+                    setData(res)
+                }
+            } catch (err) {
+                console.error("Failed to load module groups", err)
+            } finally {
+                if (mounted) {
+                    setLoading(false)
+                }
+            }
+        }
+
+        fetchData()
+
+        return () => {
+            mounted = false
+        }
+    }, [])
+
+    /* ---------------------------------------- */
 
     // SAVE 
     const handleSaved = (saved: ModuleGroupDto) => {

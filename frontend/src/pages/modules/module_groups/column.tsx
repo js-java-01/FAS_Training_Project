@@ -1,20 +1,20 @@
 import { createColumnHelper} from "@tanstack/react-table";
-import type { Menu } from "@/types/menu";
+import type { ModuleGroup } from "@/types/module";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { EditIcon, EyeIcon, Trash } from "lucide-react";
 
 export type TableActions = {
-    onView?: (row: Menu) => void;
-    onEdit?: (row: Menu) => void;
-    onDelete?: (row: Menu) => void;
+    onView?: (row: ModuleGroup) => void;
+    onEdit?: (row: ModuleGroup) => void;
+    onDelete?: (row: ModuleGroup) => void;
 };
 
 export const getColumns = (
     actions?: TableActions
 ) => {
-    const columnHelper = createColumnHelper<Menu>();
+    const columnHelper = createColumnHelper<ModuleGroup>();
 
     return [
         /* ================= SELECT ================= */
