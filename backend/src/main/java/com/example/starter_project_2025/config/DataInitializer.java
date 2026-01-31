@@ -68,7 +68,11 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
-                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN")
+                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"),
+                createPermission("STUDENT_CREATE", "Create new students", "STUDENT", "CREATE"),
+                createPermission("STUDENT_READ", "View students", "STUDENT", "READ"),
+                createPermission("STUDENT_UPDATE", "Update existing students", "STUDENT", "UPDATE"),
+                createPermission("STUDENT_DELETE", "Delete students", "STUDENT", "DELETE")
         );
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
@@ -155,7 +159,8 @@ public class DataInitializer implements CommandLineRunner {
 
         MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1, "USER_READ");
         MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2, "ROLE_READ");
-        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement));
+        MenuItem studentManagement = createMenuItem(adminMenu, null, "Student Management", "/students", "graduation-cap", 3, "STUDENT_READ");
+        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, studentManagement));
 
         log.info("Initialized 2 menus with menu items");
     }
