@@ -40,4 +40,9 @@ export const locationApi = {
   deleteLocation: async (id: string): Promise<void> => {
     await axiosInstance.delete(`/locations/${id}`);
   },
+
+  getAllLocations: async (): Promise<Location[]> => {
+    const response = await axiosInstance.get<Location[]>('/locations/all');
+    return response.data;
+  },
 };

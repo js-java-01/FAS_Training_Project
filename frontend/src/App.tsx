@@ -7,6 +7,7 @@ import { Dashboard } from './pages/Dashboard';
 import { UserManagement } from './pages/UserManagement';
 import { RoleManagement } from './pages/RoleManagement';
 import { LocationManagement } from './pages/LocationManagement';
+import { DepartmentManagement } from './pages/DepartmentManagement';
 import { Unauthorized } from './pages/Unauthorized';
 
 function App() {
@@ -52,6 +53,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+            <Route
+                path="/departments"
+                element={
+                    <ProtectedRoute requiredPermission="DEPARTMENT_READ">
+                        <DepartmentManagement />
+                    </ProtectedRoute>
+                }
+            />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
