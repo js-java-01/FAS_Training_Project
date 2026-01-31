@@ -1,15 +1,16 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { AuthProvider } from './contexts/AuthContext';
-import { Dashboard } from './pages/Dashboard';
-import { Login } from './pages/auth/Login';
-import { RoleManagement } from './pages/RoleManagement';
-import { Unauthorized } from './pages/Unauthorized';
-import { UserManagement } from './pages/UserManagement';
-import Register from './pages/auth/Register';
-import { Toaster } from 'sonner';
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AuthProvider } from "./contexts/AuthContext";
+import { Dashboard } from "./pages/Dashboard";
+import { Login } from "./pages/auth/Login";
+import { RoleManagement } from "./pages/RoleManagement";
+import { Unauthorized } from "./pages/Unauthorized";
+import { UserManagement } from "./pages/UserManagement";
+import Register from "./pages/auth/Register";
+import { Toaster } from "sonner";
 import ModuleGroupsManagement from "@/pages/modules/ModuleGroupsManagement.tsx";
 import ModulesManagement from "@/pages/modules/ModulesManagement.tsx";
+import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 
 function App() {
   return (
@@ -17,9 +18,10 @@ function App() {
       <Toaster position="top-right" richColors />
       <AuthProvider>
         <Routes>
+          <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
-          <Route path='/register' element={<Register />} />
+          <Route path="/register" element={<Register />} />
           <Route
             path="/dashboard"
             element={

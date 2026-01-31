@@ -29,10 +29,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     exe();
   }, []);
 
-  const login = async (credentials: LoginRequest) => {
+  const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
     try {
       const response = await authApi.login(credentials);
       setUser(response);
+      return response;
     } catch (err) {
       await authApi.logout();
       if (err instanceof Error) {
@@ -72,6 +73,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return permissions.every((permission) => user.permissions.includes(permission));
   };
 
+  const setGoogleUser = (userData: LoginResponse) => {
+    setUser(userData);
+  };
+
   const value: AuthContextType = {
     user,
     login,
@@ -81,6 +86,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     hasAllPermissions,
     isAuthenticated: !!user,
     isLoading,
+    setGoogleUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

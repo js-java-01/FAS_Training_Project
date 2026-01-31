@@ -36,13 +36,14 @@ export interface CreateUserRequest {
 
 export interface AuthContextType {
   user: LoginResponse | null;
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<LoginResponse>;
   logout: () => void;
   hasPermission: (permission: string) => boolean;
   hasAnyPermission: (permissions: string[]) => boolean;
   hasAllPermissions: (permissions: string[]) => boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
+  setGoogleUser: (user: LoginResponse) => void;
 }
 
 export interface RegisterRequest {
@@ -57,6 +58,7 @@ export interface VerifyRequest {
 }
 
 export interface AuthState {
+  token: string;
   email: string;
   firstName: string;
   lastName: string;

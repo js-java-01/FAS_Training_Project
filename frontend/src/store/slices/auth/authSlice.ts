@@ -2,6 +2,7 @@ import type { AuthState, LoginResponse } from "@/types/auth";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: AuthState = {
+  token: localStorage.getItem("token") || "",
   email: localStorage.getItem("email") || "",
   firstName: localStorage.getItem("firstName") || "",
   lastName: localStorage.getItem("lastName") || "",
@@ -15,21 +16,25 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setLogin: (state, action: PayloadAction<LoginResponse>) => {
-      const { permissions, email, firstName, lastName, role } = action.payload;
-      state.email = email;
-      state.permissions = permissions;
-      state.firstName = firstName;
-      state.lastName = lastName;
-      state.role = role;
-      state.isAuthenticated = true;
+      const { token, permissions, email, firstName, lastName, role } = action.payload;
 
-      localStorage.setItem("email", email);
-      localStorage.setItem("firstName", firstName);
-      localStorage.setItem("lastName", lastName);
-      localStorage.setItem("role", role);
-      localStorage.setItem("permissions", JSON.stringify(permissions));
+      state.token = token || "";
+      state.email = email || "";
+      state.permissions = permissions || [];
+      state.firstName = firstName || "";
+      state.lastName = lastName || "";
+      state.role = role || "";
+      state.isAuthenticated = !!token;
+
+      localStorage.setItem("access_token", token || "");
+      localStorage.setItem("email", email || "");
+      localStorage.setItem("firstName", firstName || "");
+      localStorage.setItem("lastName", lastName || "");
+      localStorage.setItem("role", role || "");
+      localStorage.setItem("permissions", JSON.stringify(permissions || []));
     },
     setLogout: (state) => {
+      state.token = "";
       state.email = "";
       state.firstName = "";
       state.lastName = "";

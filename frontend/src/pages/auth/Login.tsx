@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "motion/react";
+import { FcGoogle } from "react-icons/fc";
+import { useDispatch } from "react-redux";
+import { setLogin } from "@/store/slices/auth/authSlice";
+
+const URL_LOGIN_WITH_GOOGLE =
+  import.meta.env.VITE_API_URL_FOR_GOOGLE || "http://localhost:8080/oauth2/authorization/google";
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -14,14 +20,17 @@ export const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
     try {
-      await login({ email, password, isRememberedMe });
+      const res = await login({ email: cleanEmail, password: cleanPassword, isRememberedMe });
+      dispatch(setLogin(res));
       navigate("/dashboard");
     } catch (err) {
       if (err instanceof Error) setError(err.message);
@@ -33,6 +42,10 @@ export const Login: React.FC = () => {
 
   const handleIsRememberMe = (checked: boolean) => {
     setIsRememberedMe(checked);
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = URL_LOGIN_WITH_GOOGLE;
   };
 
   return (
@@ -122,6 +135,10 @@ export const Login: React.FC = () => {
             )}
           </Button>
         </form>
+
+        <Button onClick={handleGoogleLogin} variant="outline" className="w-full mt-3">
+          <FcGoogle className="mr-2 h-4 w-4" /> Continue with Google
+        </Button>
 
         <div className="mt-4 text-center">
           <p className="text-sm text-muted-foreground">
