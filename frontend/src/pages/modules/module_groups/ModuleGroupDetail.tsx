@@ -4,9 +4,9 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { b64DecodeUnicode } from "@/utils/base64.utils.ts";
 import type { Menu } from "@/types/menu.ts";
-import { mockModuleGroups } from "@/mocks/moduleGroups.mock.ts";
 import {FolderOpen} from "lucide-react";
 import {Card, CardContent, CardHeader} from "@/components/ui/card.tsx";
+import {mockMenus} from "@/mocks/mockMenus.mock.ts";
 
 export default function ModuleGroupDetail() {
     const { id } = useParams<{ id: string }>();
@@ -17,7 +17,7 @@ export default function ModuleGroupDetail() {
     useEffect(() => {
         if (!parentId) return;
 
-        const found = mockModuleGroups.find((m) => m.id === parentId);
+        const found = mockMenus.find((m) => m.id === parentId);
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setModuleGroup(found ?? null);
     }, [parentId]);
