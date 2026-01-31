@@ -6,8 +6,9 @@ import { Login } from './pages/Login';
 import { RoleManagement } from './pages/RoleManagement';
 import { Unauthorized } from './pages/Unauthorized';
 import { UserManagement } from './pages/UserManagement';
-import ModuleGroupsManagement from "@/pages/modules/ModuleGroupsManagement.tsx";
-import ModulesManagement from "@/pages/modules/ModulesManagement.tsx";
+import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsManagement.tsx";
+import ModuleGroupDetail from "@/pages/modules/module_groups/ModuleGroupDetail.tsx";
+import ModulesManagement from "@/pages/modules/module/ModulesManagement.tsx";
 
 function App() {
   return (
@@ -45,7 +46,8 @@ function App() {
           />
 
             <Route path="/moduleGroups" element={<ModuleGroupsManagement />} />
-            <Route  path="/moduleGroups/:id" element={<ModulesManagement />} />
+            <Route  path="/moduleGroups/:id" element={<ModuleGroupDetail />} />
+            <Route path="/modules" element={<ModulesManagement />} />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>

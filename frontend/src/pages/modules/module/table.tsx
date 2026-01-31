@@ -1,22 +1,22 @@
 import { DataTable } from "@/components/data_table/DataTable";
-import { getColumns } from "@/pages/modules/module_groups/column";
+import { getColumns } from "@/pages/modules/module/column";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Menu } from "@/types/menu";
+import type { MenuItem } from "@/types/menu";
 import { encodeBase64 } from "@/utils/base64.utils.ts";
 import {Button} from "@/components/ui/button.tsx";
 import {Plus} from "lucide-react";
 import {mockMenus} from "@/mocks/mockMenus.mock.ts";
 
-export default function ModuleGroupsTable() {
+export default function ModulesTable() {
     const navigate = useNavigate();
 
     const columns = useMemo(
         () =>
             getColumns({
                 onView: (menu) => {
-                    navigate(`/moduleGroups/${encodeBase64(menu.id)}`);
+                    navigate(`/modules/${encodeBase64(menu.id)}`);
                 },
                 onEdit: (menu) => console.log("Edit", menu.id),
                 onDelete: (menu) => console.log("Delete", menu.id),
@@ -25,13 +25,13 @@ export default function ModuleGroupsTable() {
     );
 
     return (
-        <DataTable<Menu, unknown>
-            columns={columns as ColumnDef<Menu, unknown>[]}
-            data={mockMenus}
+        <DataTable<MenuItem, unknown>
+            columns={columns as ColumnDef<MenuItem, unknown>[]}
+            data={mockMenus.flatMap(mg => mg.menuItems)}
             isSearch={true}
-            searchPlaceholder={"module group name or description"}
+            searchPlaceholder={"module name or description"}
             headerActions={  <Button
-                onClick={() => console.log("Add New Module Group")}
+                onClick={() => console.log("Add New Module")}
                 className="justify-self-end w-full lg:w-30 bg-blue-600 text-white"
                 variant="outline"
                 autoFocus={false}
