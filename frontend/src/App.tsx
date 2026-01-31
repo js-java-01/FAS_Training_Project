@@ -1,13 +1,13 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { Login } from './pages/Login';
-import { Dashboard } from './pages/Dashboard';
-import { UserManagement } from './pages/UserManagement';
-import { RoleManagement } from './pages/RoleManagement';
-import { LocationManagement } from './pages/LocationManagement';
-import { Unauthorized } from './pages/Unauthorized';
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Login } from "./pages/Login";
+import { Dashboard } from "./pages/Dashboard";
+import { UserManagement } from "./pages/UserManagement";
+import { RoleManagement } from "./pages/RoleManagement/RoleManagement";
+import { LocationManagement } from "./pages/LocationManagement";
+import { Unauthorized } from "./pages/Unauthorized";
 
 function App() {
   return (
