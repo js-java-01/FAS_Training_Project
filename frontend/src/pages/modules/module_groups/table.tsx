@@ -1,45 +1,179 @@
-import type { Menu } from "@/types/menu";
-import { DataTable } from "@/components/data_table/DataTable";
-import { getColumns } from "@/pages/modules/module_groups/column";
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import type {ColumnDef} from "@tanstack/react-table";
+import { DataTable } from "@/components/data_table/DataTable"
+import { getColumns } from "@/pages/modules/module_groups/column"
+import { useEffect, useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import type { ColumnDef } from "@tanstack/react-table"
+import { encodeBase64 } from "@/utils/base64.utils"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
 
-const mockModuleGroups: Menu[] = Array.from({ length: 200 }, (_, index) => {
-    const now = new Date();
+import type { ModuleGroup } from "@/types/module"
+import { moduleGroupApi } from "@/api/moduleApi"
 
-    return {
-        id: `mg-${crypto.randomUUID()}`,
-        name: `Module Group ${index + 1}`,
-        description:
-            index % 2 === 0
-                ? "Manage system-level configurations"
-                : "Manage application modules",
-        isActive: Math.random() > 0.3,
-        displayOrder: index + 1,
-        menuItems: [],
-        createdAt: new Date(now.getTime() - index * 86400000).toISOString(),
-        updatedAt: now.toISOString(),
-    };
-});
+/* ------------------------------------------ */
 
 export default function ModuleGroupsTable() {
-    const navigate = useNavigate();
+    const navigate = useNavigate()
+    const [data, setData] = useState<ModuleGroup[]>([])
+    const [loading, setLoading] = useState(false)
 
+    /* -------- COLUMNS ------------------------ */
     const columns = useMemo(
         () =>
             getColumns({
-                onView: (menu) => navigate(`/moduleGroups/${menu.id}`),
-                onEdit: (menu) => console.log("Edit", menu.id),
-                onDelete: (menu) => console.log("Delete", menu.id),
+                // VIEW
+                onView: (menu) => {
+                    navigate(`/moduleGroups/${encodeBase64(menu.id)}`);
+                },
+
+                // EDIT
+                onEdit: (menu: Menu) => {
+                    setEditing({
+                        id: menu.id,
+                        name: menu.name,
+                        description: menu.description,
+                        displayOrder: menu.displayOrder,
+                        isActive: menu.isActive,
+                    });
+                    setOpenForm(true);
+                },
+
+                // DELETE
+                onDelete: (menu) => {
+                    setDeleting(menu);
+                },
             }),
         [navigate]
-    );
+    )
+    /* ---------------------------------------- */
+
+    /* -------- LOAD DATA (API) ---------------- */
+    useEffect(() => {
+        let mounted = true
+
+        const fetchData = async () => {
+            setLoading(true)
+            try {
+                const res = await moduleGroupApi.getAllModuleGroupsList()
+                if (mounted) {
+                    setData(res)
+                }
+            } catch (err) {
+                console.error("Failed to load module groups", err)
+            } finally {
+                if (mounted) {
+                    setLoading(false)
+                }
+            }
+        }
+
+        fetchData()
+
+        return () => {
+            mounted = false
+        }
+    }, [])
+
+    /* ---------------------------------------- */
+
+    // SAVE 
+    const handleSaved = (saved: ModuleGroupDto) => {
+        if (saved.id) {
+            // EDIT
+            setData(prev =>
+                prev.map(item =>
+                    item.id === saved.id
+                        ? {
+                              ...item,
+                              name: saved.name,
+                              description: saved.description,
+                              displayOrder: saved.displayOrder,
+                              isActive: saved.isActive,
+                          } as Menu
+                        : item
+                )
+            );
+            showToast("Updated (mock)");
+        } else {
+            const newItem: Menu = {
+                id: crypto.randomUUID(),
+                name: saved.name,
+                description: saved.description,
+                displayOrder: saved.displayOrder ?? prevMaxOrder(data) + 1,
+                isActive: saved.isActive ?? true,
+                createdAt: new Date().toISOString(),
+            } as unknown as Menu;
+
+            setData(prev => [...prev, newItem]);
+            showToast("Created (mock)");
+        }
+
+        setOpenForm(false);
+        setEditing(null);
+    };
+
+    const prevMaxOrder = (arr: Menu[]) =>
+        arr.reduce((max, i) => Math.max(max, i.displayOrder ?? 0), 0);
+
+    // DELETE 
+    const handleDelete = () => {
+        if (!deleting) return;
+        setData(prev => prev.filter(i => i.id !== deleting.id));
+        setDeleting(null);
+        showToast("Deleted (mock)");
+    };
 
     return (
-        <DataTable<Menu, unknown>
-            columns={columns as ColumnDef<Menu, unknown>[]}
-            data={mockModuleGroups}
-        />
+        <div className="relative space-y-4">
+
+            {/* toast */}
+            {toast && (
+                <div className="fixed top-6 right-6 bg-black text-white px-4 py-2 rounded shadow
+                                animate-[fadeIn_.2s_ease-out]">
+                    {toast}
+                </div>
+            )}
+
+            <DataTable<Menu, unknown>
+                columns={columns as ColumnDef<Menu, unknown>[]}
+                data={data}
+                isSearch={true}
+                searchPlaceholder={"module group name or description"}
+                headerActions={
+                    <Button
+                        onClick={() => {
+                            setEditing(null); // tạo mới
+                            setOpenForm(true);
+                        }}
+                        className="flex items-center gap-2 bg-blue-600 text-white
+                                   hover:bg-blue-700 transition hover:scale-[1.02]"
+                        autoFocus={false}
+                    >
+                        Add New
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                }
+            />
+
+            {/* modal add / edit */}
+            <ModuleGroupForm
+                open={openForm}
+                onClose={() => {
+                    setOpenForm(false);
+                    setEditing(null);
+                }}
+                initial={editing}
+                onSaved={handleSaved}
+            />
+
+            {/* confirm delete */}
+            <ConfirmDialog
+                open={!!deleting}
+                title="Delete module group?"
+                description={`Are you sure you want to delete "${deleting?.name}"?`}
+                onCancel={() => setDeleting(null)}
+                onConfirm={handleDelete}
+            />
+        </div>
     );
 }

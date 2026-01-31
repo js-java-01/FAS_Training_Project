@@ -4,10 +4,10 @@ import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
-import com.example.starter_project_2025.system.menu.entity.Menu;
-import com.example.starter_project_2025.system.menu.entity.MenuItem;
-import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
-import com.example.starter_project_2025.system.menu.repository.MenuRepository;
+import com.example.starter_project_2025.system.modulegroups.entity.Module;
+import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
+import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
+import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +29,8 @@ public class DataInitializer implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final UserRepository userRepository;
-    private final MenuRepository menuRepository;
-    private final MenuItemRepository menuItemRepository;
+    private final ModuleGroupsRepository moduleGroupsRepository;
+    private final ModuleRepository moduleRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -42,7 +42,7 @@ public class DataInitializer implements CommandLineRunner {
             initializePermissions();
             initializeRoles();
             initializeUsers();
-            initializeMenus();
+            initializeModuleGroups();
             log.info("Database initialization completed successfully!");
         } else {
             log.info("Database already initialized, skipping data initialization.");
@@ -86,14 +86,12 @@ public class DataInitializer implements CommandLineRunner {
         Role adminRole = new Role();
         adminRole.setName("ADMIN");
         adminRole.setDescription("Administrator with full system access");
-        // adminRole.setHierarchyLevel(1);
         adminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
         roleRepository.save(adminRole);
 
         Role studentRole = new Role();
         studentRole.setName("STUDENT");
         studentRole.setDescription("Student with limited access to educational resources");
-        // studentRole.setHierarchyLevel(2);
         studentRole.setPermissions(new HashSet<>(permissionRepository.findByAction("READ")));
         roleRepository.save(studentRole);
 
@@ -134,44 +132,44 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized 3 users (admin@example.com, student@example.com, jane.smith@example.com)");
     }
 
-    private void initializeMenus() {
-        Menu mainMenu = new Menu();
-        mainMenu.setName("Main Menu");
-        mainMenu.setDescription("Primary navigation menu");
-        mainMenu.setIsActive(true);
-        mainMenu.setDisplayOrder(1);
-        mainMenu = menuRepository.save(mainMenu);
+    private void initializeModuleGroups() {
+        ModuleGroups mainGroup = new ModuleGroups();
+        mainGroup.setName("Main Menu");
+        mainGroup.setDescription("Primary navigation menu");
+        mainGroup.setIsActive(true);
+        mainGroup.setDisplayOrder(1);
+        mainGroup = moduleGroupsRepository.save(mainGroup);
 
-        MenuItem dashboard = createMenuItem(mainMenu, null, "Dashboard", "/dashboard", "dashboard", 1, null);
-        menuItemRepository.save(dashboard);
+        Module dashboard = createModule(mainGroup, null, "Dashboard", "/dashboard", "dashboard", 1, null);
+        moduleRepository.save(dashboard);
 
-        Menu adminMenu = new Menu();
-        adminMenu.setName("Administration");
-        adminMenu.setDescription("Administrative functions menu");
-        adminMenu.setIsActive(true);
-        adminMenu.setDisplayOrder(2);
-        adminMenu = menuRepository.save(adminMenu);
+        ModuleGroups adminGroup = new ModuleGroups();
+        adminGroup.setName("Administration");
+        adminGroup.setDescription("Administrative functions menu");
+        adminGroup.setIsActive(true);
+        adminGroup.setDisplayOrder(2);
+        adminGroup = moduleGroupsRepository.save(adminGroup);
 
-        MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1,
+        Module userManagement = createModule(adminGroup, null, "User Management", "/users", "people", 1,
                 "USER_READ");
-        MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2,
+        Module roleManagement = createModule(adminGroup, null, "Role Management", "/roles", "security", 2,
                 "ROLE_READ");
-        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement));
+        moduleRepository.saveAll(Arrays.asList(userManagement, roleManagement));
 
-        log.info("Initialized 2 menus with menu items");
+        log.info("Initialized 2 module groups with modules");
     }
 
-    private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order,
-            String permission) {
-        MenuItem item = new MenuItem();
-        item.setMenu(menu);
-        item.setParent(parent);
-        item.setTitle(title);
-        item.setUrl(url);
-        item.setIcon(icon);
-        item.setDisplayOrder(order);
-        item.setIsActive(true);
-        item.setRequiredPermission(permission);
-        return item;
+    private Module createModule(ModuleGroups moduleGroup, Module parent, String title, String url, String icon, int order,
+                                String permission) {
+        Module m = new Module();
+        m.setModuleGroup(moduleGroup);
+        m.setParent(parent);
+        m.setTitle(title);
+        m.setUrl(url);
+        m.setIcon(icon);
+        m.setDisplayOrder(order);
+        m.setIsActive(true);
+        m.setRequiredPermission(permission);
+        return m;
     }
 }
