@@ -1,0 +1,73 @@
+package com.example.starter_project_2025.system.programminglanguage.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "programming_languages",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "name")
+            }
+        )
+public class ProgrammingLanguage {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 255,unique = true)
+    private String name;
+
+    @Column(length = 255)
+    private String version;
+
+    @Column(length = 1000)
+    private String description;
+
+    @Column(nullable = false)
+    private Boolean isSupported;
+
+    protected ProgrammingLanguage(){}
+
+    public ProgrammingLanguage(String name, String version, String description, Boolean isSupported) {
+        this.name = name;
+        this.version = version;
+        this.description = description;
+        this.isSupported = false;
+    }
+
+    public ProgrammingLanguage(String name, String version, String description) {
+        this.name = name;
+        this.version = version;
+        this.description = description;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Boolean isSupported() {
+        return isSupported;
+    }
+
+    public void updateDetails(String name, String version, String description) {
+        this.name = name;
+        this.version = version;
+        this.description = description;
+    }
+
+    void setSupported(Boolean supported) {
+        this.isSupported = supported;
+    }
+}
