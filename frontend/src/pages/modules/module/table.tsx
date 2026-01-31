@@ -24,10 +24,8 @@ export default function ModulesTable() {
                 onView: (module) => {
                     navigate(`/modules/${encodeBase64(module.id)}`)
                 },
-                onEdit: (module) =>
-                    console.log("Edit", module.id),
-                onDelete: (module) =>
-                    console.log("Delete", module.id),
+                onEdit: (menu) => openEditModal(menu),
+                onDelete: (menu) => handleDelete(menu),
             }),
         [navigate]
     )
@@ -62,25 +60,30 @@ export default function ModulesTable() {
     /* ---------------------------------------- */
 
     return (
-        <DataTable<Module, unknown>
-            columns={columns as ColumnDef<Module, unknown>[]}
-            data={data}
-            isSearch={true}
-            isLoading={loading}
-            searchPlaceholder={"module name or description"}
-            headerActions={
-                <Button
-                    onClick={() =>
-                        navigate("/modules/create")
-                    }
-                    className="justify-self-end w-full lg:w-30 bg-blue-600 text-white"
-                    variant="outline"
-                    autoFocus={false}
-                >
-                    Add New
-                    <Plus className="h-4 w-4" />
-                </Button>
-            }
-        />
-    )
+        <>
+            <DataTable<MenuItem, unknown>
+                columns={columns as ColumnDef<MenuItem, unknown>[]}
+                data={data}
+                isSearch={true}
+                searchPlaceholder={"module name or description"}
+                headerActions={
+                    <Button
+                        onClick={openCreateModal}
+                        className="justify-self-end w-full lg:w-30 bg-blue-600 text-white"
+                        variant="outline"
+                        autoFocus={false}
+                    >
+                        Add New
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                }
+            />
+            <ModuleForm
+                open={isFormOpen}
+                onClose={() => setIsFormOpen(false)}
+                onSubmit={editingModule ? handleUpdate : handleCreate}
+                initialData={editingModule}
+            />
+        </>
+    );
 }

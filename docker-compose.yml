@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Container MySQL
@@ -7,8 +7,10 @@ services:
     container_name: rbac-mysql
     restart: always
     environment:
-      MYSQL_DATABASE: learnmangement
+      MYSQL_DATABASE: learnmanagement
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     ports:
       - "3306:3306"
     volumes:

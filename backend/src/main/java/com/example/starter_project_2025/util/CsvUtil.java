@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.util;
 
-import com.example.starter_project_2025.system.auth.dto.PermissionDTO;
-import com.example.starter_project_2025.system.auth.dto.RoleDTO;
+import com.example.starter_project_2025.system.auth.dto.permission.PermissionDTO;
+import com.example.starter_project_2025.system.auth.dto.role.RoleDTO;
 import com.example.starter_project_2025.system.user.dto.UserDTO;
 import org.springframework.stereotype.Component;
 

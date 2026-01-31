@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "module")
+@Table(name = "modules")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

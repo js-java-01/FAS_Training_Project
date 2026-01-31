@@ -1,8 +1,12 @@
 package com.example.starter_project_2025.system.auth.entity;
 
 import com.example.starter_project_2025.system.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,7 +21,8 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Role {
+public class Role
+{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,6 +38,7 @@ public class Role {
     private Boolean isActive = true;
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+    @JsonBackReference
     private Set<User> users = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
