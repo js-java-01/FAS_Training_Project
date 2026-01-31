@@ -28,7 +28,7 @@ export function MainLayout({
                     </div>
                 </header>
 
-                <main className="mx-auto w-full h-screen flex-1 px-4 py-6">
+                <main className="mx-auto w-full h-screen flex-1 px-6 py-2">
                     {children}
                 </main>
             </SidebarInset>

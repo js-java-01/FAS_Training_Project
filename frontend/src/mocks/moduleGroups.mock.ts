@@ -63,7 +63,7 @@ const createModules = (menuId: string): MenuItem[] => {
     ];
 };
 
-export const mockModuleGroups: Menu[] = Array.from({ length: 10 }, (_, i) => {
+export const mockModuleGroups: Menu[] = Array.from({ length: 100 }, (_, i) => {
     const id = `mg-${i + 1}`;
     const now = new Date().toISOString();
 
