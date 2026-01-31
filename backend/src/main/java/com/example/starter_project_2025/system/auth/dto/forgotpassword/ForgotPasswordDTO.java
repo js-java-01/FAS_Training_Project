@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 public class ForgotPasswordDTO {
     @Email(message = "Invalid email format", regexp = ".+@.+\\..+")
     private String email;
-    @Size(min = 6, max = 6, message = "OTP must be 6 characters long")
-    private String otp;
+    @Size(min = 6, max = 6, message = "Token must be 6 characters long")
+    private String token;
     @NotBlank(message = "New password is required")
     private String newPassword;
 }

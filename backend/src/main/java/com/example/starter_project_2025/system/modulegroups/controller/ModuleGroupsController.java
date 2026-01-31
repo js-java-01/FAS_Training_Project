@@ -21,7 +21,7 @@ import java.util.UUID;
 @RequestMapping("/api/module-groups")
 @RequiredArgsConstructor
 @Tag(name = "Module Group Management", description = "APIs for managing module groups")
-@SecurityRequirement(name = "Bearer Authentication")
+@SecurityRequirement(name = "bearerAuth")
 public class ModuleGroupsController {
 
     private final ModuleGroupsService moduleGroupsService;

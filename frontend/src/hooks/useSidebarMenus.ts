@@ -39,7 +39,7 @@ export function useSidebarMenus() {
     /* -------- MAP MODULE ➜ NavMain ---------- */
     const navGroups = useMemo(() => {
         return moduleGroups.map((group) => {
-            const items = group.modules
+            const items = group.module
                 .filter(
                     (module) =>
                         !module.parentId &&

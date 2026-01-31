@@ -22,9 +22,9 @@ public class OtpServiceImpl implements OtpService {
     }
 
     @Override
-    public <T> T verifyAndGetRegistrationData(String email, String otp) {
+    public <T> T verifyAndGetRegistrationData(String email, String otp, Class<T> clazz) {
         String key = PREFIX + email + ":" + otp;
-        T data = redisService.get(key, (Class<T>) Object.class);
+        T data = redisService.get(key, clazz);
         if (data != null) {
             redisService.delete(key);
         }

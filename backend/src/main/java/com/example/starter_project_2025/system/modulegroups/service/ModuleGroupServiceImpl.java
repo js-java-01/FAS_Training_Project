@@ -24,14 +24,14 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
     private final ModuleGroupsRepository moduleGroupsRepository;
 
     @Override
-    @PreAuthorize("hasAuthority('MODULE_GROUP_READ')")
+    @PreAuthorize("hasAuthority('MENU_READ')")
     public Page<ModuleGroupsDTO> getAll(Pageable pageable) {
         return moduleGroupsRepository.findAll(pageable)
                 .map(this::toDTO);
     }
 
     @Override
-    @PreAuthorize("hasAuthority('MODULE_GROUP_READ')")
+    @PreAuthorize("hasAuthority('MENU_READ')")
     public List<ModuleGroupsDTO> getAllList() {
         return moduleGroupsRepository.findAllByOrderByDisplayOrderAsc()
                 .stream()
@@ -48,17 +48,15 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('MODULE_GROUP_READ')")
+    @PreAuthorize("hasAuthority('MENU_READ')")
     public ModuleGroupsDTO getById(UUID id) {
         ModuleGroups group = moduleGroupsRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("ModuleGroup", "id", id)
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("ModuleGroup", "id", id));
         return toDTO(group);
     }
 
     @Override
-    @PreAuthorize("hasAuthority('MODULE_GROUP_CREATE')")
+    @PreAuthorize("hasAuthority('MENU_CREATE')")
     public ModuleGroupsDTO create(ModuleGroupsDTO dto) {
         if (moduleGroupsRepository.existsByName(dto.getName())) {
             throw new BadRequestException("Module group name already exists: " + dto.getName());
@@ -77,12 +75,10 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('MODULE_GROUP_UPDATE')")
+    @PreAuthorize("hasAuthority('MENU_UPDATE')")
     public ModuleGroupsDTO update(UUID id, ModuleGroupsDTO dto) {
         ModuleGroups group = moduleGroupsRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("ModuleGroup", "id", id)
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("ModuleGroup", "id", id));
 
         if (dto.getName() != null && !dto.getName().equals(group.getName())) {
             if (moduleGroupsRepository.existsByName(dto.getName())) {
@@ -103,31 +99,25 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('MODULE_GROUP_DELETE')")
+    @PreAuthorize("hasAuthority('MENU_DELETE')")
     public void delete(UUID id) {
 
         ModuleGroups group = moduleGroupsRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("ModuleGroup", "id", id)
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("ModuleGroup", "id", id));
 
         if (group.getModules() != null && !group.getModules().isEmpty()) {
             throw new BadRequestException(
-                    "Cannot delete module group because it still contains modules"
-            );
+                    "Cannot delete module group because it still contains modules");
         }
 
         moduleGroupsRepository.delete(group);
     }
 
-
     @Override
-    @PreAuthorize("hasAuthority('MODULE_GROUP_UPDATE')")
+    @PreAuthorize("hasAuthority('MENU_UPDATE')")
     public ModuleGroupsDTO toggleStatus(UUID id) {
         ModuleGroups group = moduleGroupsRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("ModuleGroup", "id", id)
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("ModuleGroup", "id", id));
         group.setIsActive(!group.getIsActive());
         return toDTO(moduleGroupsRepository.save(group));
     }
@@ -139,8 +129,7 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
         dto.setDescription(group.getDescription());
         dto.setDisplayOrder(group.getDisplayOrder());
         dto.setTotalModules(
-                group.getModules() != null ? group.getModules().size() : 0
-        );
+                group.getModules() != null ? group.getModules().size() : 0);
         dto.setIsActive(group.getIsActive());
         dto.setCreatedAt(group.getCreatedAt());
         dto.setUpdatedAt(group.getUpdatedAt());
