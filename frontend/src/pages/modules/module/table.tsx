@@ -1,79 +1,63 @@
-import { DataTable } from "@/components/data_table/DataTable";
-import { getColumns } from "@/pages/modules/module/column";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import type { ColumnDef } from "@tanstack/react-table";
-import type { MenuItem } from "@/types/menu";
-import { encodeBase64 } from "@/utils/base64.utils.ts";
-import { Button } from "@/components/ui/button.tsx";
-import { Plus } from "lucide-react";
-import { ModuleForm } from "./ModuleForm";
-import { mockMenus } from "@/mocks/mockMenus.mock";
+import { DataTable } from "@/components/data_table/DataTable"
+import { getColumns } from "@/pages/modules/module/column"
+import { useEffect, useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import type { ColumnDef } from "@tanstack/react-table"
+import type { Module } from "@/types/module"
+import { encodeBase64 } from "@/utils/base64.utils"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
+
+import { moduleApi } from "@/api/moduleApi"
+
+/* ------------------------------------------ */
 
 export default function ModulesTable() {
-    const navigate = useNavigate();
-    const [data, setData] = useState<MenuItem[]>(mockMenus.flatMap(m => m.menuItems));
+    const navigate = useNavigate()
+    const [data, setData] = useState<Module[]>([])
+    const [loading, setLoading] = useState(false)
 
-    // Form State
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingModule, setEditingModule] = useState<MenuItem | null>(null);
-
-    const handleCreate = (formData: Partial<MenuItem>) => {
-        const newItem: MenuItem = {
-            ...formData,
-            id: `new-${Date.now()}`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            children: [],
-            isActive: formData.isActive ?? true,
-            displayOrder: formData.displayOrder ?? 0,
-            menuId: formData.menuId || "menu-systems",
-            title: formData.title || "New Module",
-            // Add other required fields with defaults
-        } as MenuItem;
-
-        setData((prev) => [...prev, newItem]);
-        setIsFormOpen(false);
-    };
-
-    const handleUpdate = (formData: Partial<MenuItem>) => {
-        if (!editingModule) return;
-
-        setData((prev) => prev.map(item =>
-            item.id === editingModule.id ? { ...item, ...formData, updatedAt: new Date().toISOString() } as MenuItem : item
-        ));
-
-        setIsFormOpen(false);
-        setEditingModule(null);
-    };
-
-    const handleDelete = (menu: MenuItem) => {
-        if (window.confirm(`Are you sure you want to delete module "${menu.title}"?`)) {
-             setData((prev) => prev.filter(item => item.id !== menu.id));
-        }
-    };
-
-    const openCreateModal = () => {
-        setEditingModule(null);
-        setIsFormOpen(true);
-    };
-
-    const openEditModal = (menu: MenuItem) => {
-        setEditingModule(menu);
-        setIsFormOpen(true);
-    };
-
+    /* -------- COLUMNS ------------------------ */
     const columns = useMemo(
         () =>
             getColumns({
-                onView: (menu) => {
-                    navigate(`/modules/${encodeBase64(menu.id)}`);
+                onView: (module) => {
+                    navigate(`/modules/${encodeBase64(module.id)}`)
                 },
                 onEdit: (menu) => openEditModal(menu),
                 onDelete: (menu) => handleDelete(menu),
             }),
         [navigate]
-    );
+    )
+    /* ---------------------------------------- */
+
+    /* -------- LOAD DATA (API) ---------------- */
+    useEffect(() => {
+        let mounted = true
+
+        const fetchData = async () => {
+            setLoading(true)
+            try {
+                const res = await moduleApi.getAllModules()
+                if (mounted) {
+                    setData(res.content ?? res)
+                }
+            } catch (err) {
+                console.error("Failed to load modules", err)
+            } finally {
+                if (mounted) {
+                    setLoading(false)
+                }
+            }
+        }
+
+        fetchData()
+
+        return () => {
+            mounted = false
+        }
+    }, [])
+    /* ---------------------------------------- */
 
     return (
         <>
