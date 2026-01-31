@@ -7,4 +7,9 @@ public class ErrorMessage
 
     // AUTH
     public static final String ACCOUNT_HAS_BEEN_LOCKED = "Your account has been locked.";
+    public static final String REFRESH_TOKEN_HAS_EXPIRED = "Refresh Token has expired or is invalid!";
+    public static final String REFRESH_TOKEN_MISSING = "Refresh Token is missing";
+
+    // ROLE
+    public static final String ROLE_NOT_FOUND = "Default Role not found";
 }

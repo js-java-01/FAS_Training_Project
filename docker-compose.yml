@@ -9,6 +9,8 @@ services:
     environment:
       MYSQL_DATABASE: learnmanagement
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     ports:
       - "3306:3306"
     volumes:

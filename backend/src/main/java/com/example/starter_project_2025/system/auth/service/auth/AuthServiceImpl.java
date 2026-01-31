@@ -1,37 +1,39 @@
 package com.example.starter_project_2025.system.auth.service.auth;
 
-import java.util.Optional;
-
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-
+import com.example.starter_project_2025.constant.ErrorMessage;
+import com.example.starter_project_2025.mapper.AuthMapper;
 import com.example.starter_project_2025.mapper.UserMapper;
+import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.auth.dto.forgotpassword.ForgotPasswordDTO;
+import com.example.starter_project_2025.system.auth.dto.login.LoginRequest;
+import com.example.starter_project_2025.system.auth.dto.login.LoginResponse;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.service.email.EmailService;
 import com.example.starter_project_2025.system.auth.service.otp.OtpService;
+import com.example.starter_project_2025.system.auth.service.refreshToken.RefreshTokenService;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
-import com.example.starter_project_2025.security.UserDetailsImpl;
-import com.example.starter_project_2025.system.auth.dto.login.LoginRequest;
-import com.example.starter_project_2025.system.auth.dto.login.LoginResponse;
-import com.example.starter_project_2025.system.auth.service.refreshToken.RefreshTokenService;
 import com.example.starter_project_2025.system.user.service.UserService;
+import com.example.starter_project_2025.util.CookieUtil;
 import com.example.starter_project_2025.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.scheduling.annotation.Async;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +49,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtils;
     private final RefreshTokenService refreshTokenService;
     private final UserService userServiceImpl;
+    private final AuthMapper authMapper;
+    private final CookieUtil cookieUtil;
 
     @Override
     public String registerUser(RegisterCreateDTO registerCreateDTO) {
@@ -134,18 +138,12 @@ public class AuthServiceImpl implements AuthService {
         if (reqData.isRememberedMe()) {
             var user = userServiceImpl.findByEmail(userDetails.getEmail());
             var rt = refreshTokenService.generateAndSaveRefreshToken(user);
-            ResponseCookie cookie = ResponseCookie.from("refresh_token", rt)
-                    .httpOnly(true)
-                    .secure(false)
-                    .path("/")
-                    .maxAge(7 * 24 * 60 * 60)
-                    .sameSite("Lax")
-                    .build();
-            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            cookieUtil.addCookie(response, rt);
         }
 
-        return new LoginResponse(at, userDetails.getEmail(), userDetails.getFirstName(), userDetails.getLastName(),
-                userDetails.getRole(), userDetails.getPermissions());
+        var res = authMapper.toLoginResponse(userDetails);
+        res.setToken(at);
+        return res;
     }
 
     @Override
@@ -153,23 +151,25 @@ public class AuthServiceImpl implements AuthService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof UserDetailsImpl userDetails) {
             refreshTokenService.revokeAllByUser(userDetails.getId());
-
-            clearLogoutCookie(response);
-
             SecurityContextHolder.clearContext();
-        } else if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() instanceof String) {
-            clearLogoutCookie(response);
         }
+        cookieUtil.clearLogoutCookie(response);
     }
 
-    private void clearLogoutCookie(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(0)
-                .sameSite("Lax")
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    @Override
+    public LoginResponse refresh(String token) {
+        if (jwtUtils.validateToken(token)) {
+            String email = jwtUtils.getEmailFromToken(token);
+            var user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
+            var userDetails = UserDetailsImpl.build(user);
+            String newToken = jwtUtils.generateToken(userDetails);
+
+            var res = authMapper.toLoginResponse(userDetails);
+            res.setToken(newToken);
+            return res;
+        } else {
+            throw new RuntimeException(ErrorMessage.REFRESH_TOKEN_HAS_EXPIRED);
+        }
     }
 }

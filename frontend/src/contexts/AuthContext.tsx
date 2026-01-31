@@ -1,6 +1,6 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { LoginRequest, LoginResponse, AuthContextType } from '../types/auth';
-import { authApi } from '../api/authApi';
+import React, { createContext, useState, useEffect, type ReactNode } from "react";
+import { type LoginRequest, type LoginResponse, type AuthContextType } from "../types/auth";
+import { authApi } from "../api/authApi";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -9,35 +9,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
+    const exe = async () => {
+      const storedUser = localStorage.getItem("user");
+      const storedToken = localStorage.getItem("token");
 
-    if (storedUser && storedToken) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Failed to parse stored user:', error);
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+      if (storedUser && storedToken) {
+        try {
+          setUser(JSON.parse(storedUser) as LoginResponse);
+        } catch (error) {
+          console.error("Failed to parse stored user:", error);
+          localStorage.removeItem("user");
+          localStorage.removeItem("token");
+          await authApi.logout();
+        }
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    exe();
   }, []);
 
-  const login = async (credentials: LoginRequest) => {
+  const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
     try {
       const response = await authApi.login(credentials);
-      console.log('=== LOGIN RESPONSE ===');
-      console.log('Full response:', response);
-      console.log('Token:', response.token);
-      console.log('Permissions:', response.permissions);
-      console.log('Permissions count:', response.permissions?.length || 0);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response));
       setUser(response);
-      console.log('User stored in state:', response);
-    } catch (error) {
-      throw error;
+      return response;
+    } catch (err) {
+      await authApi.logout();
+      if (err instanceof Error) {
+        throw new Error(err.message);
+      }
+      throw new Error("An unknown error occurred");
     }
   };
 
@@ -48,7 +50,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const hasPermission = (permission: string): boolean => {
     if (!user || !user.permissions) {
-      console.log(`hasPermission(${permission}): user or permissions missing`, { user: !!user, hasPerms: !!user?.permissions });
+      console.log(`hasPermission(${permission}): user or permissions missing`, {
+        user: !!user,
+        hasPerms: !!user?.permissions,
+      });
       return false;
     }
     const result = user.permissions.includes(permission);
@@ -60,12 +65,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const hasAnyPermission = (permissions: string[]): boolean => {
     if (!user || !user.permissions) return false;
-    return permissions.some(permission => user.permissions.includes(permission));
+    return permissions.some((permission) => user.permissions.includes(permission));
   };
 
   const hasAllPermissions = (permissions: string[]): boolean => {
     if (!user || !user.permissions) return false;
-    return permissions.every(permission => user.permissions.includes(permission));
+    return permissions.every((permission) => user.permissions.includes(permission));
+  };
+
+  const setGoogleUser = (userData: LoginResponse) => {
+    setUser(userData);
   };
 
   const value: AuthContextType = {
@@ -77,6 +86,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     hasAllPermissions,
     isAuthenticated: !!user,
     isLoading,
+    setGoogleUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -85,7 +95,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 export const useAuthContext = () => {
   const context = React.useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuthContext must be used within an AuthProvider');
+    throw new Error("useAuthContext must be used within an AuthProvider");
   }
   return context;
 };
