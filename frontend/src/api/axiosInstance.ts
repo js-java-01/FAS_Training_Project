@@ -20,7 +20,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 axiosInstance.interceptors.response.use(
@@ -40,11 +40,12 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalReq);
       } catch (err) {
         await authApi.logout();
+        window.location.href = "/login";
         return Promise.reject(err);
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

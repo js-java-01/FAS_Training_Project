@@ -26,7 +26,12 @@ public class JwtUtil
     @Value("${JWT_SECRET}")
     private String jwtSecret;
 
-    private int jwtExps = 900000; // 15 mins
+//    @Value("${app.jwt.at.expiration-ms:900000}")
+//    private long jwtExps;
+
+    private long jwtAtExp = 10;
+    @Value("${app.jwt.rt.expiration-ms:604800000}")
+    private long jwtRtExp;
 
     private Key getSigningKey()
     {
@@ -36,18 +41,34 @@ public class JwtUtil
     public String generateToken(Authentication authentication)
     {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExps);
+        return buildToken(userDetails, jwtAtExp);
+    }
+
+    public String generateToken(UserDetailsImpl userDetails)
+    {
+        return buildToken(userDetails, jwtAtExp);
+    }
+
+    public String generateRtToken(UserDetailsImpl userDetails)
+    {
+        return buildToken(userDetails, jwtRtExp);
+    }
+
+    private String buildToken(UserDetailsImpl userDetails, long exp)
+    {
+        var now = new Date();
+        var expDate = new Date(now.getTime() + exp);
 
         return Jwts.builder()
                 .setSubject(userDetails.getEmail())
                 .claim("userId", userDetails.getId().toString())
                 .claim("role", userDetails.getRole())
-                .claim("permissions", userDetails.getAuthorities().stream()
+                .claim("permission", userDetails.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList()))
+                        .collect(Collectors.toList())
+                )
                 .setIssuedAt(now)
-                .setExpiration(expiryDate)
+                .setExpiration(expDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
@@ -98,4 +119,5 @@ public class JwtUtil
                 .collect(Collectors.toSet());
         return new UserDetailsImpl(id, email, null, null, null, role, permissions, true);
     }
+
 }

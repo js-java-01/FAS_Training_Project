@@ -1,5 +1,7 @@
 package com.example.starter_project_2025.system.auth.service.auth;
 
+import com.example.starter_project_2025.constant.ErrorMessage;
+import com.example.starter_project_2025.mapper.AuthMapper;
 import com.example.starter_project_2025.mapper.UserMapper;
 import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.auth.dto.forgotpassword.ForgotPasswordDTO;
@@ -46,6 +48,7 @@ public class AuthServiceImpl implements AuthService
     private final JwtUtil jwtUtils;
     private final RefreshTokenService refreshTokenService;
     private final UserService userServiceImpl;
+    private final AuthMapper authMapper;
 
     @Override
     public String registerUser(RegisterCreateDTO registerCreateDTO)
@@ -154,8 +157,9 @@ public class AuthServiceImpl implements AuthService
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         }
 
-        return new LoginResponse(at, userDetails.getEmail(), userDetails.getFirstName(), userDetails.getLastName(),
-                userDetails.getRole(), userDetails.getPermissions());
+        var res = authMapper.toLoginResponse(userDetails);
+        res.setToken(at);
+        return res;
     }
 
     @Override
@@ -180,5 +184,24 @@ public class AuthServiceImpl implements AuthService
                 .sameSite("Lax")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    @Override
+    public LoginResponse refresh(String token)
+    {
+        if (jwtUtils.validateToken(token))
+        {
+            String email = jwtUtils.getEmailFromToken(token);
+            var user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
+            var userDetails = UserDetailsImpl.build(user);
+            String newToken = jwtUtils.generateToken(userDetails);
+
+            var res = authMapper.toLoginResponse(userDetails);
+            res.setToken(newToken);
+            return res;
+        } else
+        {
+            throw new RuntimeException(ErrorMessage.REFRESH_TOKEN_HAS_EXPIRED);
+        }
     }
 }
