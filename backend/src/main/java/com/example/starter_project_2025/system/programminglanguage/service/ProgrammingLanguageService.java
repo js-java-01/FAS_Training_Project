@@ -1,12 +1,16 @@
 package com.example.starter_project_2025.system.programminglanguage.service;
 
-import com.example.starter_project_2025.aop.annotation.LogExecutionTime;
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
-import com.example.starter_project_2025.system.programminglanguage.dto.*;
+import com.example.starter_project_2025.system.programminglanguage.dto.ProgrammingLanguageCreateRequest;
+import com.example.starter_project_2025.system.programminglanguage.dto.ProgrammingLanguageResponse;
+import com.example.starter_project_2025.system.programminglanguage.dto.ProgrammingLanguageUpdateRequest;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
 import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -19,7 +23,6 @@ public class ProgrammingLanguageService {
         this.repository = repository;
     }
 
-    @LogExecutionTime
     public ProgrammingLanguageResponse create(ProgrammingLanguageCreateRequest request) {
         if (repository.existsByNameIgnoreCase(request.getName())) {
             throw new BadRequestException(
