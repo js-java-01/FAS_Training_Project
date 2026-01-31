@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.menu.dto;
+package com.example.starter_project_2025.system.modulegroups.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-public class MenuItemDTO {
+public class ModuleDTO {
     private UUID id;
 
-    @NotNull(message = "Menu ID is required")
-    private UUID menuId;
+    @NotNull(message = "Module group ID is required")
+    private UUID moduleGroupsId;
 
     private UUID parentId;
 
@@ -27,7 +27,7 @@ public class MenuItemDTO {
     private Integer displayOrder = 0;
     private Boolean isActive = true;
     private String requiredPermission;
-    private List<MenuItemDTO> children = new ArrayList<>();
+    private List<ModuleDTO> children = new ArrayList<>();
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
