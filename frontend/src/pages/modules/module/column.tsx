@@ -1,20 +1,20 @@
 import { createColumnHelper} from "@tanstack/react-table";
-import type { ModuleGroup } from "@/types/module";
-import { Badge } from "@/components/ui/badge";
+import type { Module} from "@/types/module";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { EditIcon, EyeIcon, Trash } from "lucide-react";
+import {EditIcon, EyeIcon, Trash} from "lucide-react";
+import {iconMap} from "@/constants/iconMap.ts";
 
 export type TableActions = {
-    onView?: (row: ModuleGroup) => void;
-    onEdit?: (row: ModuleGroup) => void;
-    onDelete?: (row: ModuleGroup) => void;
+    onView?: (row: Module) => void;
+    onEdit?: (row: Module) => void;
+    onDelete?: (row: Module) => void;
 };
 
 export const getColumns = (
     actions?: TableActions
 ) => {
-    const columnHelper = createColumnHelper<ModuleGroup>();
+    const columnHelper = createColumnHelper<Module>();
 
     return [
         /* ================= SELECT ================= */
@@ -43,22 +43,8 @@ export const getColumns = (
             enableHiding: false,
         }),
 
-        /* ================= NUMBER ================= */
-        columnHelper.display({
-            id: "number",
-            header: "#",
-            size: 60,
-            cell: ({ row, table }) =>
-                row.index +
-                1 +
-                table.getState().pagination.pageIndex *
-                table.getState().pagination.pageSize,
-            enableSorting: false,
-            enableHiding: false,
-        }),
-
         /* ================= NAME ================= */
-        columnHelper.accessor("name", {
+        columnHelper.accessor("title", {
             header: "Name",
             size: 200,
             cell: (info) => (
@@ -69,7 +55,46 @@ export const getColumns = (
             },
         }),
 
-        /* ================= DESCRIPTION ================= */
+        /* ================= Url ================= */
+        columnHelper.accessor("url", {
+            header: "Url",
+            size: 200,
+            cell: (info) => (
+                <span className="font-medium">{info.getValue()}</span>
+            ),
+            meta: {
+                title: "Url",
+            },
+        }),
+
+        /* ================= Icon ================= */
+    columnHelper.accessor("icon", {
+        header: "Icon",
+        size: 200,
+        cell: (info) => {
+            const iconKey = info.getValue();
+
+            if (!iconKey || !(iconKey in iconMap)) {
+                return null; // or render fallback icon
+            }
+
+            const Icon = iconMap[iconKey as keyof typeof iconMap];
+
+            return (
+                <div className="flex items-center gap-2">
+                    <Icon className="w-4 h-4 text-gray-700" />
+                    <span className="font-medium">
+        {info.getValue()}
+      </span>
+                </div>
+            );
+        },
+        meta: {
+            title: "Icon",
+        },
+    }),
+
+    /* ================= DESCRIPTION ================= */
         columnHelper.accessor("description", {
             header: "Description",
             size: 300,
@@ -83,42 +108,13 @@ export const getColumns = (
             },
         }),
 
-        /* ================= DISPLAY ORDER ================= */
-        columnHelper.accessor("displayOrder", {
-            header: "Order",
-            size: 80,
-            cell: (info) => (
-                <span className="block text-center">
-          {info.getValue()}
-        </span>
-            ),
-            meta: {
-                title: "Display Order",
-            }
-        }),
-
-        /* ================= STATUS ================= */
-        columnHelper.accessor("isActive", {
-            header: "Status",
-            size: 100,
-            cell: (info) =>
-                info.getValue() ? (
-                    <Badge variant="outline">Active</Badge>
-                ) : (
-                    <Badge variant="destructive">Inactive</Badge>
-                ),
-            meta: {
-                title: "Status",
-            }
-        }),
-
         /* ================= CREATED AT ================= */
         columnHelper.accessor("createdAt", {
             header: "Created At",
             size: 160,
             cell: (info) =>
                 new Date(info.getValue()).toLocaleDateString(),
-        meta: {
+            meta: {
                 title: "Created At",
             }
         }),

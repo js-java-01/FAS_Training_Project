@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { PermissionGate } from '../components/PermissionGate';
-import { MainLayout } from '../components/MainLayout';
+import { MainLayout } from '../components/layout/MainLayout.tsx';
 import { dashboardApi, type DashboardStats } from '../api/dashboardApi';
+import DynamicBreadcrumbs from "@/components/layout/DynamicBreadcrumbs.tsx";
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -26,7 +27,7 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <MainLayout>
+    <MainLayout breadcrumb={<DynamicBreadcrumbs/>}>
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

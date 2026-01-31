@@ -1,33 +1,33 @@
 import { DataTable } from "@/components/data_table/DataTable"
-import { getColumns } from "@/pages/modules/module_groups/column"
+import { getColumns } from "@/pages/modules/module/column"
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
+import type { Module } from "@/types/module"
 import { encodeBase64 } from "@/utils/base64.utils"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 
-import type { ModuleGroup } from "@/types/module"
-import { moduleGroupApi } from "@/api/moduleApi"
+import { moduleApi } from "@/api/moduleApi"
 
 /* ------------------------------------------ */
 
-export default function ModuleGroupsTable() {
+export default function ModulesTable() {
     const navigate = useNavigate()
-    const [data, setData] = useState<ModuleGroup[]>([])
+    const [data, setData] = useState<Module[]>([])
     const [loading, setLoading] = useState(false)
 
     /* -------- COLUMNS ------------------------ */
     const columns = useMemo(
         () =>
             getColumns({
-                onView: (group) => {
-                    navigate(`/moduleGroups/${encodeBase64(group.id)}`)
+                onView: (module) => {
+                    navigate(`/modules/${encodeBase64(module.id)}`)
                 },
-                onEdit: (group) =>
-                    console.log("Edit", group.id),
-                onDelete: (group) =>
-                    console.log("Delete", group.id),
+                onEdit: (module) =>
+                    console.log("Edit", module.id),
+                onDelete: (module) =>
+                    console.log("Delete", module.id),
             }),
         [navigate]
     )
@@ -40,12 +40,12 @@ export default function ModuleGroupsTable() {
         const fetchData = async () => {
             setLoading(true)
             try {
-                const res = await moduleGroupApi.getAllModuleGroupsList()
+                const res = await moduleApi.getAllModules()
                 if (mounted) {
-                    setData(res)
+                    setData(res.content ?? res)
                 }
             } catch (err) {
-                console.error("Failed to load module groups", err)
+                console.error("Failed to load modules", err)
             } finally {
                 if (mounted) {
                     setLoading(false)
@@ -59,20 +59,19 @@ export default function ModuleGroupsTable() {
             mounted = false
         }
     }, [])
-
     /* ---------------------------------------- */
 
     return (
-        <DataTable<ModuleGroup, unknown>
-            columns={columns as ColumnDef<ModuleGroup, unknown>[]}
+        <DataTable<Module, unknown>
+            columns={columns as ColumnDef<Module, unknown>[]}
             data={data}
             isSearch={true}
             isLoading={loading}
-            searchPlaceholder={"module group name or description"}
+            searchPlaceholder={"module name or description"}
             headerActions={
                 <Button
                     onClick={() =>
-                        navigate("/moduleGroups/create")
+                        navigate("/modules/create")
                     }
                     className="justify-self-end w-full lg:w-30 bg-blue-600 text-white"
                     variant="outline"
