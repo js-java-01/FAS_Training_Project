@@ -1,8 +1,8 @@
-import type { Menu } from "@/types/menu";
+import type { ModuleGroup } from "@/types/module";
 
 const now = new Date().toISOString();
 
-export const mockMenus: Menu[] = [
+export const mockMenus: ModuleGroup[] = [
     {
         id: "menu-systems",
         name: "Systems",
@@ -11,10 +11,10 @@ export const mockMenus: Menu[] = [
         displayOrder: 1,
         createdAt: now,
         updatedAt: now,
-        menuItems: [
+        modules: [
             {
                 id: "mi-users",
-                menuId: "menu-systems",
+                moduleGroupId: "menu-systems",
                 title: "Users",
                 url: "/systems/users",
                 icon: "users",
@@ -28,7 +28,7 @@ export const mockMenus: Menu[] = [
             },
             {
                 id: "mi-modules",
-                menuId: "menu-systems",
+                moduleGroupId: "menu-systems",
                 title: "Modules",
                 url: "/modules",
                 icon: "folder",
@@ -42,7 +42,7 @@ export const mockMenus: Menu[] = [
             },
             {
                 id: "mi-roles",
-                menuId: "menu-systems",
+                moduleGroupId: "menu-systems",
                 title: "Roles",
                 url: "/systems/roles",
                 icon: "security",
@@ -56,7 +56,7 @@ export const mockMenus: Menu[] = [
             },
             {
                 id: "mi-module-groups",
-                menuId: "menu-systems",
+                moduleGroupId: "menu-systems",
                 title: "Module Groups",
                 url: "/moduleGroups",
                 icon: "layers",
@@ -70,7 +70,7 @@ export const mockMenus: Menu[] = [
             },
             {
                 id: "mi-skills",
-                menuId: "menu-systems",
+                moduleGroupId: "menu-systems",
                 title: "Skills",
                 url: "/systems/skills",
                 icon: "trending-up",
@@ -84,7 +84,7 @@ export const mockMenus: Menu[] = [
             },
             {
                 id: "mi-skill-groups",
-                menuId: "menu-systems",
+                moduleGroupId: "menu-systems",
                 title: "Skill Groups",
                 url: "/systems/skill-groups",
                 icon: "layers",
@@ -98,7 +98,7 @@ export const mockMenus: Menu[] = [
             },
             {
                 id: "mi-departments",
-                menuId: "menu-systems",
+                moduleGroupId: "menu-systems",
                 title: "Departments",
                 url: "/systems/departments",
                 icon: "building",
@@ -112,7 +112,7 @@ export const mockMenus: Menu[] = [
             },
             {
                 id: "mi-locations",
-                menuId: "menu-systems",
+                moduleGroupId: "menu-systems",
                 title: "Locations",
                 url: "/systems/locations",
                 icon: "map-pin",
@@ -135,10 +135,10 @@ export const mockMenus: Menu[] = [
         displayOrder: 2,
         createdAt: now,
         updatedAt: now,
-        menuItems: [
+        modules: [
             {
                 id: "mi-courses",
-                menuId: "menu-training",
+                moduleGroupId: "menu-training",
                 title: "Courses",
                 url: "/training/courses",
                 icon: "home",
@@ -152,7 +152,7 @@ export const mockMenus: Menu[] = [
             },
             {
                 id: "mi-topics",
-                menuId: "menu-training",
+                moduleGroupId: "menu-training",
                 title: "Topics",
                 url: "/training/topics",
                 icon: "star",
@@ -175,10 +175,10 @@ export const mockMenus: Menu[] = [
         displayOrder: 3,
         createdAt: now,
         updatedAt: now,
-        menuItems: [
+        modules: [
             {
                 id: "mi-assessments",
-                menuId: "menu-assessments",
+                moduleGroupId: "menu-assessments",
                 title: "Assessments",
                 url: "/assessments",
                 icon: "clipboard-check",
@@ -201,10 +201,10 @@ export const mockMenus: Menu[] = [
         displayOrder: 4,
         createdAt: now,
         updatedAt: now,
-        menuItems: [
+        modules: [
             {
                 id: "mi-classes",
-                menuId: "menu-training-classes",
+                moduleGroupId: "menu-training-classes",
                 title: "Classes",
                 url: "/training-classes",
                 icon: "calendar",
@@ -227,10 +227,10 @@ export const mockMenus: Menu[] = [
         displayOrder: 5,
         createdAt: now,
         updatedAt: now,
-        menuItems: [
+        modules: [
             {
                 id: "mi-learning-hub",
-                menuId: "menu-learning-hub",
+                moduleGroupId: "menu-learning-hub",
                 title: "Learning Hub",
                 url: "/learning-hub",
                 icon: "book-open",

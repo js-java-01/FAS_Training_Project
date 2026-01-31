@@ -1,20 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useLocation } from "react-router-dom"
-import type { Menu } from "@/types/menu"
+import type { ModuleGroup } from "@/types/module"
 
 import { usePermissions } from "@/hooks/usePermissions"
 import { canAccessUI } from "@/utils/permission.utils"
-import { menuApi } from "@/api/menuApi.ts";
-import {mockMenus} from "@/mocks/mockMenus.mock.ts";
-import {iconMap} from "@/constants/iconMap.ts";
-
+import { moduleGroupApi } from "@/api/moduleApi"
+import { iconMap } from "@/constants/iconMap"
 
 /* ------------------------------------------ */
 export function useSidebarMenus() {
-    const [menus, setMenus] = useState<Menu[]>([])
+    const [moduleGroups, setModuleGroups] = useState<ModuleGroup[]>([])
     const { hasPermission } = usePermissions()
     const location = useLocation()
-
 
     /* -------- ACTIVE ROUTE CHECK ------------ */
     const isActiveRoute = useCallback(
@@ -26,39 +23,39 @@ export function useSidebarMenus() {
     )
     /* --------------------------------------- */
 
-    /* -------- LOAD MENUS (API) -------------- */
+    /* -------- LOAD MODULE GROUPS (API) ------ */
     useEffect(() => {
-        menuApi
-            .getActiveMenus()
-            .then(setMenus)
+        moduleGroupApi
+            .getActiveModuleGroups()
+            .then(setModuleGroups)
             .catch(() => {
-                // Chưa login → fallback mock
-                console.warn("Menu API failed → use mockMenusMock")
-                setMenus(mockMenus)
+                console.warn("You don't have permission to access modules")
+
             })
     }, [])
-
+    console.log("Module Groups:", moduleGroups)
     /* --------------------------------------- */
 
-    /* -------- MAP MENU ➜ NavMain ------------ */
+    /* -------- MAP MODULE ➜ NavMain ---------- */
     const navGroups = useMemo(() => {
-        return menus.map((menu) => {
-            const items = menu.menuItems
+        return moduleGroups.map((group) => {
+            const items = group.modules
                 .filter(
-                    (item) =>
-                        !item.parentId &&
+                    (module) =>
+                        !module.parentId &&
                         canAccessUI(
-                            item.requiredPermission,
+                            module.requiredPermission,
                             hasPermission
                         )
                 )
                 .sort((a, b) => a.displayOrder - b.displayOrder)
-                .map((item) => {
+                .map((module) => {
                     const safeIcon =
-                        item.icon && item.icon in iconMap
-                            ? item.icon
+                        module.icon && module.icon in iconMap
+                            ? module.icon
                             : "menu"
-                    const children = item.children
+
+                    const children = module.children
                         ?.filter((c) =>
                             canAccessUI(
                                 c.requiredPermission,
@@ -75,11 +72,11 @@ export function useSidebarMenus() {
                         }))
 
                     return {
-                        title: item.title,
-                        url: item.url || "#",
+                        title: module.title,
+                        url: module.url || "#",
                         icon: iconMap[safeIcon],
                         isActive:
-                            isActiveRoute(item.url) ||
+                            isActiveRoute(module.url) ||
                             children?.some((c) =>
                                 isActiveRoute(c.url)
                             ),
@@ -91,12 +88,12 @@ export function useSidebarMenus() {
                 })
 
             return {
-                id: menu.id,
-                name: menu.name,
+                id: group.id,
+                name: group.name,
                 items,
             }
         })
-    }, [menus, hasPermission, isActiveRoute])
+    }, [moduleGroups, hasPermission, isActiveRoute])
     /* --------------------------------------- */
 
     return {
