@@ -9,6 +9,7 @@ import { useDispatch } from "react-redux";
 import { setLogin } from "@/store/slices/auth/authSlice";
 import { authApi } from "@/api/authApi";
 import axios from "axios";
+import { Eye, EyeOff } from "lucide-react";
 
 const URL_LOGIN_WITH_GOOGLE =
   import.meta.env.VITE_API_URL_FOR_GOOGLE || "http://localhost:8080/oauth2/authorization/google";
@@ -19,6 +20,7 @@ export const Login: React.FC = () => {
   const [isRememberedMe, setIsRememberedMe] = useState<boolean>(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -51,7 +53,9 @@ export const Login: React.FC = () => {
     setIsRememberedMe(checked);
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    setError("");
     window.location.href = URL_LOGIN_WITH_GOOGLE;
   };
 
@@ -98,15 +102,20 @@ export const Login: React.FC = () => {
                 Password
               </label>
             </div>
-            <Input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="••••••••"
-              className="bg-background"
-            />
+            <div className="flex justify-items-center">
+              <Input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="bg-background "
+              />
+              <Button type="button" onClick={() => setShowPassword((prev) => !prev)} style={{ marginLeft: "10px" }}>
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </Button>
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -143,7 +152,7 @@ export const Login: React.FC = () => {
           </Button>
         </form>
 
-        <Button onClick={handleGoogleLogin} variant="outline" className="w-full mt-3">
+        <Button disabled={isLoading} onClick={handleGoogleLogin} variant="outline" className="w-full mt-3">
           <FcGoogle className="mr-2 h-4 w-4" /> Continue with Google
         </Button>
 
