@@ -15,16 +15,10 @@ import java.util.UUID;
 @Repository
 public interface ModuleGroupsRepository extends JpaRepository<ModuleGroups, UUID> {
 
-    @Query("""
-                SELECT DISTINCT mg
-                FROM ModuleGroups mg
-                LEFT JOIN FETCH mg.modules
-                WHERE mg.isActive = true
-                ORDER BY mg.displayOrder ASC
-            """)
-    Optional<ModuleGroups> findByName(String name);
+
 
     List<ModuleGroups> findAllByOrderByDisplayOrderAsc();
+    List<ModuleGroups> findAllByNameAndIsActiveTrue(String name);
 
     @Query("""
     SELECT DISTINCT mg

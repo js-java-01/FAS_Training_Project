@@ -2,15 +2,17 @@ package com.example.starter_project_2025.system.modulegroups.controller;
 
 import com.example.starter_project_2025.system.modulegroups.dto.request.CreateModuleRequest;
 import com.example.starter_project_2025.system.modulegroups.dto.request.UpdateModuleRequest;
-import com.example.starter_project_2025.system.modulegroups.dto.response.CreateModuleResponse;
-import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleDetail;
-import com.example.starter_project_2025.system.modulegroups.dto.response.UpdateModuleResponse;
+import com.example.starter_project_2025.system.modulegroups.dto.response.*;
 import com.example.starter_project_2025.system.modulegroups.service.ModuleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -74,4 +76,40 @@ public class ModuleController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping
+    @Operation(summary = "Search modules with pagination")
+    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
+    public ResponseEntity<ApiResponse<PageResponse<ModuleDetail>>> searchModules(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) UUID moduleGroupId,
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "displayOrder,asc") String[] sort
+    ) {
+        // ---- page: convert 1-based -> 0-based ----
+        int pageIndex = Math.max(page - 1, 0);
+
+        String sortField = sort[0];
+        Sort.Direction direction =
+                sort.length > 1
+                        ? Sort.Direction.fromString(sort[1])
+                        : Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(
+                pageIndex,
+                size,
+                Sort.by(direction, sortField)
+        );
+
+        Page<ModuleDetail> pageResult =
+                moduleService.searchModules(keyword, moduleGroupId, isActive, pageable);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        PageResponse.from(pageResult),
+                        "Modules retrieved successfully"
+                )
+        );
+    }
 }

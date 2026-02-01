@@ -79,7 +79,7 @@ export const getColumns = (actions?: TableActions) => {
     }),
 
         /* ================= DISPLAY ORDER ================= */
-        columnHelper.accessor("totalModules", {
+        columnHelper.accessor("displayOrder", {
             header: (info) => <SortHeader title="Total Modules" info={info} />,
             size: 80,
             cell: (info) => (
@@ -106,11 +106,11 @@ export const getColumns = (actions?: TableActions) => {
             <Badge
             className={
                 info.getValue()
-                ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none" // Style xanh lá
-                : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none" // Style đỏ (hoặc giữ variant="destructive")
+                ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none"
+                : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none"
             }
             >
-            {info.getValue() ? "ACTIVE" : "INACTIVE"}
+            {info.getValue() ? "Active" : "In Active"}
             </Badge>
         ),
         meta: {

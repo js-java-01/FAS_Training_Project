@@ -2,9 +2,12 @@ package com.example.starter_project_2025.system.modulegroups.controller;
 
 import com.example.starter_project_2025.system.modulegroups.dto.request.CreateModuleGroup;
 import com.example.starter_project_2025.system.modulegroups.dto.request.UpdateModuleGroup;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ApiResponse;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleGroupDetailResponse;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleGroupResponse;
+import com.example.starter_project_2025.system.modulegroups.dto.response.PageResponse;
 import com.example.starter_project_2025.system.modulegroups.service.ModuleGroupsService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,29 +34,9 @@ public class ModuleGroupsController {
 
     private final ModuleGroupsService moduleGroupsService;
 
-    // ================= SEARCH + PAGINATION =================
-    // Chỉ match khi CÓ param page
-    @GetMapping(params = "page")
-    @Operation (summary = "Search module groups with pagination")
-    @PreAuthorize("hasAuthority('MENU_READ')")
-    public ResponseEntity<Page<ModuleGroupDetailResponse>> searchModuleGroups(
-            @RequestParam int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "displayOrder,asc") String[] sort,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Boolean isActive
-    ) {
-        Sort.Direction direction = Sort.Direction.fromString(sort[1]);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
-
-        return ResponseEntity.ok(
-                moduleGroupsService.searchModuleGroups(keyword, isActive, pageable)
-        );
-    }
-
 
     @GetMapping({"/list"})
-    @Operation (summary = "Get all module groups")
+    @Operation(summary = "Get all module groups")
     @PreAuthorize("hasAuthority('MENU_READ')")
     public ResponseEntity<List<ModuleGroupDetailResponse>> getAllModuleGroups() {
         return ResponseEntity.ok(moduleGroupsService.getAll());
@@ -61,55 +44,41 @@ public class ModuleGroupsController {
 
 
     @GetMapping("/details")
-    @Operation (summary = "Get all module group details for admin panel/sidebar")
+    @Operation(summary = "Get all module group details for admin panel/sidebar")
     @PreAuthorize("hasAuthority('MENU_READ')")
     public ResponseEntity<List<ModuleGroupDetailResponse>> getAllModuleGroupDetails() {
         return ResponseEntity.ok(moduleGroupsService.getAllDetails());
     }
 
     @GetMapping("/active")
-    @Operation(summary = "Get active module groups with active modules (for sidebar)")
+    @Operation(summary = "Get active module groups with active modules")
     @PreAuthorize("hasAuthority('MENU_READ')")
     public ResponseEntity<List<ModuleGroupDetailResponse>> getActiveModuleGroups() {
-
-        return ResponseEntity.ok(
-                moduleGroupsService.getActiveGroupsWithActiveModules()
-        );
+        return ResponseEntity.ok(moduleGroupsService.getActiveGroupsWithActiveModules());
     }
 
 
     @GetMapping("/{id}")
-    @Operation (summary = "View module group details by ID")
+    @Operation(summary = "View module group details")
     @PreAuthorize("hasAuthority('MENU_READ')")
-    public ResponseEntity<ModuleGroupDetailResponse> viewModuleGroup(
-            @PathVariable UUID id) {
-
-        return ResponseEntity.ok(
-                moduleGroupsService.getDetailById(id)
-        );
+    public ResponseEntity<ModuleGroupDetailResponse> viewModuleGroup(@PathVariable UUID id) {
+        return ResponseEntity.ok(moduleGroupsService.getDetailById(id));
     }
 
 
     @PostMapping
     @PreAuthorize("hasAuthority('MENU_CREATE')")
-    public ResponseEntity<ModuleGroupResponse> createModuleGroup(
-            @Valid @RequestBody CreateModuleGroup request) {
+    public ResponseEntity<ModuleGroupResponse> createModuleGroup(@Valid @RequestBody CreateModuleGroup request) {
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(moduleGroupsService.create(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(moduleGroupsService.create(request));
     }
 
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('MENU_UPDATE')")
-    public ResponseEntity<ModuleGroupDetailResponse> updateModuleGroup(
-            @PathVariable UUID id,
-            @Valid @RequestBody UpdateModuleGroup request) {
+    public ResponseEntity<ModuleGroupDetailResponse> updateModuleGroup(@PathVariable UUID id, @Valid @RequestBody UpdateModuleGroup request) {
 
-        return ResponseEntity.ok(
-                moduleGroupsService.update(id, request)
-        );
+        return ResponseEntity.ok(moduleGroupsService.update(id, request));
     }
 
 
@@ -118,11 +87,39 @@ public class ModuleGroupsController {
     public ResponseEntity<Void> deleteModuleGroup(@PathVariable UUID id) {
 
         moduleGroupsService.delete(id);
-        return ResponseEntity.noContent().build(); // 204
+        return ResponseEntity.noContent().build();
     }
 
-//    @PostMapping("/{id}/toggle-status")
-//    public ResponseEntity<ModuleGroupsDTO> toggleModuleGroupStatus(@PathVariable UUID id) {
-//        return ResponseEntity.ok(moduleGroupsService.toggleStatus(id));
-//    }
+    @GetMapping(params = "page")
+    @Operation(summary = "Search module groups with pagination")
+    @PreAuthorize("hasAuthority('MENU_READ')")
+    public ResponseEntity<ApiResponse<PageResponse<ModuleGroupDetailResponse>>> searchModuleGroups(
+            @RequestParam int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "displayOrder,asc") String[] sort,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean isActive
+    ) {
+        String sortField = sort[0];
+        Sort.Direction direction =
+                sort.length > 1
+                        ? Sort.Direction.fromString(sort[1])
+                        : Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(direction, sortField)
+        );
+
+        Page<ModuleGroupDetailResponse> pageResult =
+                moduleGroupsService.searchModuleGroups(keyword, isActive, pageable);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        PageResponse.from(pageResult),
+                        "Module groups retrieved successfully"
+                )
+        );
+    }
 }
