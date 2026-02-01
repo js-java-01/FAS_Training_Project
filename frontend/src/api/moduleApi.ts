@@ -27,7 +27,7 @@ export const moduleGroupApi = {
 
     getAllModuleGroupsList: async (): Promise<ModuleGroup[]> => {
         const response = await axiosInstance.get<ModuleGroup[]>(
-            '/module-groups/list'
+            '/module-groups/details'
         );
         return response.data;
     },

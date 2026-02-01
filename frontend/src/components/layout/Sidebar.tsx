@@ -13,9 +13,7 @@ import { authApi } from "@/api/authApi";
 
 export function SidebarMenu() {
   const { navGroups } = useSidebarMenus();
-  // const { logout } = useAuth()
   const navigate = useNavigate();
-
   return (
     <Sidebar variant="inset">
       {/* Header */}

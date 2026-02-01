@@ -65,7 +65,7 @@ export default function ModuleGroupsTable() {
             id: group.id,
             name: group.name,
             description: group.description ?? "",
-            displayOrder: group.displayOrder,
+            displayOrder: group.totalModules,
             isActive: group.isActive,
           });
           setOpenForm(true);
@@ -85,7 +85,7 @@ export default function ModuleGroupsTable() {
         await moduleGroupApi.updateModuleGroup(saved.id, {
           name: saved.name,
           description: saved.description,
-          displayOrder: saved.displayOrder,
+          totalModules: saved.displayOrder,
           isActive: saved.isActive,
         });
         showToast("Updated");
@@ -122,6 +122,8 @@ export default function ModuleGroupsTable() {
       setDeleting(null);
     }
   };
+
+  console.log("Rendering ModuleGroupsTable", data);
   
   return (
     <div className="relative space-y-4 h-full flex-1">
