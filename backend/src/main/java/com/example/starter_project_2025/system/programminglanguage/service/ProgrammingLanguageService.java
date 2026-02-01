@@ -255,15 +255,35 @@ public class ProgrammingLanguageService {
             Sheet sheet = workbook.getSheetAt(0);
             int lastRowNum = sheet.getLastRowNum();
 
-            // Skip header row (row 0)
+            if (lastRowNum < 0) {
+                throw new BadRequestException("The Excel file is empty or contains no data");
+            }
+
+            // Validate header row (row 0)
+            Row headerRow = sheet.getRow(0);
+            if (headerRow == null) {
+                throw new BadRequestException("Header row is missing in the Excel file");
+            }
+
+            // Find column indices by matching header names
+            Integer nameColumnIndex = findColumnIndex(headerRow, "Name");
+            Integer versionColumnIndex = findColumnIndex(headerRow, "Version");
+            Integer descriptionColumnIndex = findColumnIndex(headerRow, "Description");
+
+            // Validate that required columns are present
+            if (nameColumnIndex == null) {
+                throw new BadRequestException("Required column 'Name' not found in header row. Expected headers: Name, Version, Description");
+            }
+
+            // Process data rows (starting from row 1)
             for (int rowNum = 1; rowNum <= lastRowNum; rowNum++) {
                 Row row = sheet.getRow(rowNum);
                 if (row == null) continue;
 
                 try {
-                    String name = getCellStringValue(row.getCell(0));
-                    String version = getCellStringValue(row.getCell(1));
-                    String description = getCellStringValue(row.getCell(2));
+                    String name = getCellStringValue(row.getCell(nameColumnIndex));
+                    String version = versionColumnIndex != null ? getCellStringValue(row.getCell(versionColumnIndex)) : null;
+                    String description = descriptionColumnIndex != null ? getCellStringValue(row.getCell(descriptionColumnIndex)) : null;
 
                     // Validate required fields
                     if (!StringUtils.hasText(name)) {
@@ -280,8 +300,8 @@ public class ProgrammingLanguageService {
                     // Create new programming language
                     ProgrammingLanguage language = new ProgrammingLanguage(
                             name.trim(),
-                            normalize(version),
-                            normalize(description)
+                            normalizeString(version),
+                            normalizeString(description)
                     );
 
                     repository.save(language);
@@ -299,6 +319,31 @@ public class ProgrammingLanguageService {
         return result;
     }
 
+    /**
+     * Finds the column index for a given header name (case-insensitive).
+     * Handles headers with suffixes like "Name (Required)".
+     *
+     * @param headerRow the header row to search
+     * @param headerName the header name to find
+     * @return the column index if found, null otherwise
+     */
+    private Integer findColumnIndex(Row headerRow, String headerName) {
+        for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+            Cell cell = headerRow.getCell(i);
+            if (cell != null) {
+                String cellValue = getCellStringValue(cell);
+                if (cellValue != null) {
+                    // Remove parentheses and their content, then trim and compare
+                    String cleanedValue = cellValue.replaceAll("\\s*\\([^)]*\\)", "").trim();
+                    if (cleanedValue.equalsIgnoreCase(headerName)) {
+                        return i;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     private String getCellStringValue(Cell cell) {
         if (cell == null) return null;
 
@@ -308,5 +353,17 @@ public class ProgrammingLanguageService {
             case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
             default -> null;
         };
+    }
+
+    /**
+     * Normalizes a string by trimming whitespace and handling null values.
+     *
+     * @param input the string to normalize
+     * @return normalized string or null if input was null/empty
+     */
+    private String normalizeString(String input) {
+        if (input == null) return null;
+        String trimmed = input.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }
