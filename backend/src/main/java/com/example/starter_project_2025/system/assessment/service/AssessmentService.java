@@ -7,12 +7,16 @@ import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRe
 import com.example.starter_project_2025.system.assessment.entity.Assessment;
 import com.example.starter_project_2025.system.assessment.mapper.AssessmentMapper;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
+import com.example.starter_project_2025.system.assessment.spec.AssessmentSpecification;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -20,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,45 +40,51 @@ public class AssessmentService {
     @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
     public AssessmentDTO findById(String id) {
         Assessment assessment = assessRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Assessment", "id", id));
+
         return assessmentMapper.toDto(assessment);
     }
 
-    @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
-    public List<AssessmentDTO> findAssessmentByName(String name) {
-        return assessmentMapper.toDto(
-                assessRepo.findByNameContainingIgnoreCase(name));
-    }
-
-    @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
-    public List<AssessmentDTO> getAllAssessments() {
-        return assessmentMapper.toDto(assessRepo.findAll());
-    }
-
+    // ==================== CREATE ====================
     @PreAuthorize("hasAuthority('ASSESSMENT_CREATE')")
-    public AssessmentDTO createAssessment(CreateAssessmentRequest request) {
+    public AssessmentDTO create(CreateAssessmentRequest request) {
+
+        if (assessRepo.existsByName(request.getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Assessment name already exists");
+        }
+
         Assessment assessment = assessmentMapper.toEntity(request);
         return assessmentMapper.toDto(assessRepo.save(assessment));
     }
 
+    // ==================== UPDATE ====================
     @PreAuthorize("hasAuthority('ASSESSMENT_UPDATE')")
-    public AssessmentDTO updateAssessment(String id, UpdateAssessmentRequest request) {
-        Assessment assessment = assessRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
+    public AssessmentDTO update(String id, UpdateAssessmentRequest request) {
+
+        Assessment assessment = assessRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
 
         assessmentMapper.updateEntityFromRequest(request, assessment);
-
         return assessmentMapper.toDto(assessRepo.save(assessment));
     }
 
+    // ==================== DELETE ====================
     @PreAuthorize("hasAuthority('ASSESSMENT_DELETE')")
-    public void deleteAssessment(String id) {
-        Assessment assessment = assessRepo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Assessment not found with id: " + id));
+    public void delete(String id) {
+
+        Assessment assessment = assessRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
 
         assessRepo.delete(assessment);
+    }
+
+    // ==================== SEARCH + PAGINATION ====================
+    @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
+    public Page<AssessmentDTO> search(String name, String keyword, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
+        Specification<Assessment> spec = Specification.where(AssessmentSpecification.nameContains(name)).and(AssessmentSpecification.keyword(keyword))
+                .and(AssessmentSpecification.createdAfter(fromDate))
+                .and(AssessmentSpecification.createdBefore(toDate));
+
+        return assessRepo.findAll(spec, pageable).map(assessmentMapper::toDto);
     }
 
     @PreAuthorize("hasAuthority('ASSESSMENT_CREATE')")
@@ -88,7 +99,6 @@ public class AssessmentService {
 
         try {
             if (fileName != null && (fileName.endsWith(".xlsx") || fileName.endsWith(".xls"))) {
-                // Handle Excel (.xlsx, .xls)
                 try (InputStream is = file.getInputStream();
                         Workbook workbook = new XSSFWorkbook(is)) {
                     Sheet sheet = workbook.getSheetAt(0);
@@ -110,7 +120,6 @@ public class AssessmentService {
                     }
                 }
             } else {
-                // Handle CSV
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
                     String line;
                     boolean isHeader = true;
@@ -156,12 +165,10 @@ public class AssessmentService {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Assessment Types");
 
-        // Header
         Row header = sheet.createRow(0);
         header.createCell(0).setCellValue("name");
         header.createCell(1).setCellValue("description");
 
-        // Data
         int rowIdx = 1;
         for (Assessment t : types) {
             Row row = sheet.createRow(rowIdx++);
@@ -169,7 +176,6 @@ public class AssessmentService {
             row.createCell(1).setCellValue(t.getDescription());
         }
 
-        // Auto size
         sheet.autoSizeColumn(0);
         sheet.autoSizeColumn(1);
 
