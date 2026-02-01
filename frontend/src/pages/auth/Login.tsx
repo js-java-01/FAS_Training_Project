@@ -53,7 +53,9 @@ export const Login: React.FC = () => {
     setIsRememberedMe(checked);
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    setError("");
     window.location.href = URL_LOGIN_WITH_GOOGLE;
   };
 
@@ -150,7 +152,7 @@ export const Login: React.FC = () => {
           </Button>
         </form>
 
-        <Button onClick={handleGoogleLogin} variant="outline" className="w-full mt-3">
+        <Button disabled={isLoading} onClick={handleGoogleLogin} variant="outline" className="w-full mt-3">
           <FcGoogle className="mr-2 h-4 w-4" /> Continue with Google
         </Button>
 
