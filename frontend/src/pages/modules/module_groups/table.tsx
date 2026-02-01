@@ -3,22 +3,25 @@ import { getColumns } from "@/pages/modules/module_groups/column";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ComponentType, SVGProps, ReactNode } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
+import { useNavigate } from "react-router-dom";
+import type {ColumnDef, SortingState} from "@tanstack/react-table";
+import { encodeBase64 } from "@/utils/base64.utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  Package, 
-  Network, 
-  FileText, 
-  Layers, 
-  ToggleLeft, 
-  ChevronDown, 
-  ChevronUp, 
+import {
+  Plus,
+  Package,
+  Network,
+  FileText,
+  Layers,
+  ToggleLeft,
+  ChevronDown,
+  ChevronUp,
   Loader2,
-  Box 
+  Box
 } from "lucide-react";
 import type { ModuleGroup, Module } from "@/types/module";
-import { moduleGroupApi, moduleApi } from "@/api/moduleApi"; 
+import { moduleGroupApi, moduleApi } from "@/api/moduleApi";
 
 import { ModuleGroupForm } from "./form";
 import type { ModuleGroupDto } from "./form";
@@ -65,6 +68,7 @@ const DetailRow = ({
 );
 
 export default function ModuleGroupsTable() {
+  const navigate = useNavigate();
   const [data, setData] = useState<ModuleGroup[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -75,7 +79,7 @@ export default function ModuleGroupsTable() {
   const [viewingGroup, setViewingGroup] = useState<ModuleGroup | null>(null);
   const [viewingModules, setViewingModules] = useState<Module[]>([]);
   const [loadingModules, setLoadingModules] = useState(false);
-  const [isModulesOpen, setIsModulesOpen] = useState(false); 
+  const [isModulesOpen, setIsModulesOpen] = useState(false);
 
   // Toast
   const [toast, setToast] = useState<string | null>(null);
@@ -84,8 +88,9 @@ export default function ModuleGroupsTable() {
     const t = setTimeout(() => setToast(null), 2000);
     return () => clearTimeout(t);
   }, []);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
-  /* ================= LOAD DATA TABLE ================= */
+  /* ---------- load / reload ---------- */
   const reload = useCallback(async () => {
     setLoading(true);
     try {
@@ -106,7 +111,7 @@ export default function ModuleGroupsTable() {
   /* ================= LOAD DATA FOR VIEW DETAIL ================= */
   useEffect(() => {
     if (viewingGroup?.id) {
-      let mounted = true; 
+      let mounted = true;
 
       const fetchData = async () => {
         setLoadingModules(true);
@@ -119,7 +124,7 @@ export default function ModuleGroupsTable() {
 
           if (mounted) {
             setViewingModules(modules);
-            setViewingGroup(prev => prev ? ({...prev, ...groupDetail}) : groupDetail); 
+            setViewingGroup(prev => prev ? ({...prev, ...groupDetail}) : groupDetail);
           }
         } catch (error) {
           console.error("Failed to load details", error);
@@ -128,7 +133,7 @@ export default function ModuleGroupsTable() {
           if (mounted) setLoadingModules(false);
         }
       };
-      
+
       setIsModulesOpen(true);
       fetchData();
 
@@ -137,14 +142,14 @@ export default function ModuleGroupsTable() {
       setViewingModules([]);
       setIsModulesOpen(false);
     }
-  }, [viewingGroup?.id]); 
+  }, [viewingGroup?.id]);
 
   /* ================= COLUMNS & ACTIONS ================= */
   const columns = useMemo(
     () =>
       getColumns({
         onView: (group: ModuleGroup) => {
-          setViewingGroup(group); 
+          setViewingGroup(group);
         },
         onEdit: (group: ModuleGroup) => {
           setEditing({
@@ -154,19 +159,20 @@ export default function ModuleGroupsTable() {
             displayOrder: group.displayOrder,
             isActive: group.isActive,
           });
-          setOpenForm(true); 
+          setOpenForm(true);
         },
         onDelete: (group: ModuleGroup) => {
-          setDeleting(group); 
+          setDeleting(group);
         },
       }),
     []
   );
 
-  /* ================= HANDLERS ================= */
+  /* ---------- save (create / update) ---------- */
   const handleSaved = async (saved: ModuleGroupDto) => {
     try {
       if (saved.id) {
+        // update
         await moduleGroupApi.updateModuleGroup(saved.id, {
           name: saved.name,
           description: saved.description,
@@ -175,6 +181,7 @@ export default function ModuleGroupsTable() {
         });
         showToast("Updated successfully");
       } else {
+        // create
         await moduleGroupApi.createModuleGroup({
           name: saved.name,
           description: saved.description,
@@ -182,15 +189,17 @@ export default function ModuleGroupsTable() {
         });
         showToast("Created successfully");
       }
+
       await reload();
       setOpenForm(false);
       setEditing(null);
     } catch (err) {
-      console.error("Save failed", err);
+      console.error("Save module group failed", err);
       showToast("Save failed");
     }
   };
 
+  /* ---------- delete ---------- */
   const handleDelete = async () => {
     if (!deleting) return;
     try {
@@ -205,6 +214,8 @@ export default function ModuleGroupsTable() {
     }
   };
 
+  console.log("Rendering ModuleGroupsTable", data);
+
   return (
     <div className="relative space-y-4 h-full flex-1">
       {/* Toast */}
@@ -218,9 +229,13 @@ export default function ModuleGroupsTable() {
       <DataTable<ModuleGroup, unknown>
         columns={columns as ColumnDef<ModuleGroup, unknown>[]}
         data={data}
-        isSearch={true}
+        isSearch
         isLoading={loading}
-        searchPlaceholder={"Search module groups..."}
+        searchPlaceholder={"module group name"}
+        searchValue={["name"]}
+        sorting={sorting}
+        onSortingChange={setSorting}
+        manualSorting={false}
         headerActions={
           <Button
             onClick={() => {

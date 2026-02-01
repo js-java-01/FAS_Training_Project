@@ -1,9 +1,12 @@
-import { createColumnHelper } from "@tanstack/react-table";
+import { createColumnHelper} from "@tanstack/react-table";
 import type { ModuleGroup } from "@/types/module";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { EditIcon, EyeIcon, Trash } from "lucide-react";
+import dayjs from "dayjs";
+import SortHeader from "@/components/data_table/SortHeader.tsx";
+import FilterHeader from "@/components/data_table/FilterHeader.tsx";
 
 export type TableActions = {
   onView?: (row: ModuleGroup) => void;
@@ -51,66 +54,86 @@ export const getColumns = (actions?: TableActions) => {
       enableHiding: false,
     }),
 
-    /* ================= NAME ================= */
-    columnHelper.accessor("name", {
-      header: "Name",
-      size: 200,
-      cell: (info) => (
-        <span className="font-medium text-gray-700">{info.getValue()}</span>
-      ),
-      meta: { title: "Name" },
-    }),
+        /* ================= NAME ================= */
+        columnHelper.accessor("name", {
+            header: (info) => <SortHeader title="Name" info={info} />,
+            size: 200,
+            cell: (info) => (
+                <span className="font-medium">{info.getValue()}</span>
+            ),
+            meta: {
+                title: "Name",
+            },
+        }),
 
-    /* ================= DESCRIPTION ================= */
-    columnHelper.accessor("description", {
-      header: "Description",
-      size: 300,
-      cell: (info) => (
-        <span className="text-muted-foreground line-clamp-2">
+        /* ================= DESCRIPTION ================= */
+        columnHelper.accessor("description", {
+            header: (info) => <SortHeader title="Description" info={info} />,
+            size: 300,
+            cell: (info) => (
+                <span className="text-muted-foreground line-clamp-2">
           {info.getValue() || "-"}
         </span>
       ),
       meta: { title: "Description" },
     }),
 
-    /* ================= DISPLAY ORDER ================= */
-    columnHelper.accessor("displayOrder", {
-      header: () => <div className="text-center w-full">Order</div>, // Header canh giữa
-      size: 80,
-      cell: (info) => (
-        <div className="text-center w-full font-medium text-gray-600">
+        /* ================= DISPLAY ORDER ================= */
+        columnHelper.accessor("totalModules", {
+            header: (info) => <SortHeader title="Total Modules" info={info} />,
+            size: 80,
+            cell: (info) => (
+                <span className="block text-center">
           {info.getValue()}
-        </div> // Cell canh giữa
+        </div>
       ),
       meta: { title: "Display Order" },
     }),
 
-    /* ================= STATUS ================= */
-    columnHelper.accessor("isActive", {
-      header: "Status",
-      size: 100,
-      cell: (info) =>
-        info.getValue() ? (
-          <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none">
-            Active
-          </Badge>
-        ) : (
-          <Badge variant="destructive">Inactive</Badge>
-        ),
-      meta: { title: "Status" },
-    }),
+        /* ================= STATUS ================= */
+        columnHelper.accessor("isActive", {
+            id: "isActive",
+            header: ({ column }) => (
+                <FilterHeader
+                    column={column}
+                    title="Status"
+                    selectedValue={column.getFilterValue() as string}
+                    onFilterChange={(value) => column.setFilterValue(value || undefined)}
+                />
+            ),
+            size: 120,
+            cell: (info) => (
+                <Badge
+                    variant={info.getValue() ? "outline" : "destructive"}
+                >
+          {info.getValue() ? "ACTIVE" : "INACTIVE"}
+        </Badge>
+            ),
+            meta: {
+                filterOptions: ["ACTIVE", "INACTIVE"],
+                labelOptions: {
+                    ACTIVE: "Active",
+                    INACTIVE: "Inactive",
+                },
+                title: "Status",
+            },
+            filterFn: (row, columnId, filterValue) => {
+                if (!filterValue) return true;
+                return row.getValue(columnId) === filterValue;
+            },
+            enableSorting: false,
+        }),
 
-    /* ================= CREATED AT ================= */
-    columnHelper.accessor("createdAt", {
-      header: "Created At",
-      size: 160,
-      cell: (info) => (
-        <span className="text-gray-500">
-            {new Date(info.getValue()).toLocaleDateString()}
-        </span>
-      ),
-      meta: { title: "Created At" },
-    }),
+        /* ================= CREATED AT ================= */
+        columnHelper.accessor("createdAt", {
+            header: (info) => <SortHeader title="Created At" info={info} />,
+            size: 160,
+            cell: (info) =>
+                dayjs(info.getValue()).format("HH:mm DD-MM-YYYY"),
+            meta: {
+                title: "Created At",
+            }
+        }),
 
     /* ================= ACTIONS ================= */
     columnHelper.display({

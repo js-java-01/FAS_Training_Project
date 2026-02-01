@@ -1,6 +1,5 @@
 package com.example.starter_project_2025.system.modulegroups.mapper;
 
-import com.example.starter_project_2025.system.modulegroups.dto.ModuleGroupsDTO;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleGroupDetailResponse;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleGroupResponse;
 import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
@@ -103,6 +102,29 @@ public class ModuleGroupMapper {
                 .requiredPermission(module.getRequiredPermission())
                 .build();
     }
+    public ModuleGroupDetailResponse toActiveResponse(ModuleGroups group) {
+        ModuleGroupDetailResponse res = new ModuleGroupDetailResponse();
+        res.setId(group.getId());
+        res.setName(group.getName());
+        res.setDescription(group.getDescription());
 
+        if (group.getModules() != null) {
+            var activeModules = group.getModules()
+                    .stream()
+                    .filter(m -> Boolean.TRUE.equals(m.getIsActive()))
+                    .sorted(Comparator.comparingInt(m ->
+                            m.getDisplayOrder() != null ? m.getDisplayOrder() : 0
+                    ))
+                    .map(this::toModuleDetail)
+                    .toList();
+
+            res.setModules(activeModules);
+            res.setTotalModules(activeModules.size());
+        } else {
+            res.setTotalModules(0);
+        }
+
+        return res;
+    }
 
 }

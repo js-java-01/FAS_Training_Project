@@ -12,9 +12,6 @@ import java.util.UUID;
 @Repository
 public interface ModuleGroupsRepository extends JpaRepository<ModuleGroups, UUID> {
 
-    Optional<ModuleGroups> findByName(String name);
-
-    // Lấy các module group active + fetch modules
     @Query("""
                 SELECT DISTINCT mg
                 FROM ModuleGroups mg
@@ -22,11 +19,11 @@ public interface ModuleGroupsRepository extends JpaRepository<ModuleGroups, UUID
                 WHERE mg.isActive = true
                 ORDER BY mg.displayOrder ASC
             """)
-    List<ModuleGroups> findActiveModuleGroupsWithModules();
 
-    List<ModuleGroups> findByIsActive(Boolean isActive);
 
     List<ModuleGroups> findAllByOrderByDisplayOrderAsc();
 
     boolean existsByName(String name);
+    List<ModuleGroups> findByIsActiveTrueOrderByDisplayOrderAsc();
+
 }

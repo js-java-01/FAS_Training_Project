@@ -3,10 +3,9 @@ import { useLocation } from "react-router-dom"
 import type { ModuleGroup } from "@/types/module"
 
 import { usePermissions } from "@/hooks/usePermissions"
-import { canAccessUI } from "@/utils/permission.utils"
+import { canAccessMenuItem } from "@/utils/permission.utils"
 import { moduleGroupApi } from "@/api/moduleApi"
 import { iconMap } from "@/constants/iconMap"
-import {mockMenus} from "@/mocks/mockMenus.mock.ts";
 
 /* ------------------------------------------ */
 export function useSidebarMenus() {
@@ -31,71 +30,70 @@ export function useSidebarMenus() {
             .then(setModuleGroups)
             .catch(() => {
                 console.warn("You don't have permission to access modules")
-                setModuleGroups(mockMenus)
+                // setModuleGroups(mockMenus)
             })
     }, [])
-    console.log("Module Groups:", moduleGroups)
     /* --------------------------------------- */
 
-    /* -------- MAP MODULE ➜ NavMain ---------- */
+    /* -------- MAP MODULE ➜ Sidebar Nav ------ */
     const navGroups = useMemo(() => {
-        return moduleGroups.map((group) => {
-            const items = group.module
-                .filter(
-                    (module) =>
-                        !module.parentId &&
-                        canAccessUI(
-                            module.requiredPermission,
-                            hasPermission
-                        )
-                )
-                .sort((a, b) => a.displayOrder - b.displayOrder)
-                .map((module) => {
-                    const safeIcon =
-                        module.icon && module.icon in iconMap
-                            ? module.icon
-                            : "menu"
-
-                    const children = module.children
-                        ?.filter((c) =>
-                            canAccessUI(
-                                c.requiredPermission,
+        return moduleGroups
+            .map((group) => {
+                const items = group.modules
+                    .filter(
+                        (module) =>
+                            !module.parentId &&
+                            canAccessMenuItem(
+                                module.requiredPermission,
                                 hasPermission
                             )
-                        )
-                        .sort(
-                            (a, b) =>
-                                a.displayOrder - b.displayOrder
-                        )
-                        .map((c) => ({
-                            title: c.title,
-                            url: c.url || "#",
-                        }))
+                    )
+                    .sort((a, b) => a.displayOrder - b.displayOrder)
+                    .map((module) => {
+                        const safeIcon =
+                            module.icon && module.icon in iconMap
+                                ? module.icon
+                                : "menu"
 
-                    return {
-                        title: module.title,
-                        url: module.url || "#",
-                        icon: iconMap[safeIcon],
-                        isActive:
-                            isActiveRoute(module.url) ||
-                            children?.some((c) =>
-                                isActiveRoute(c.url)
-                            ),
-                        items:
-                            children && children.length > 0
-                                ? children
-                                : undefined,
-                    }
-                })
+                        const children = module.children
+                            ?.filter((c) =>
+                                canAccessMenuItem(
+                                    c.requiredPermission,
+                                    hasPermission
+                                )
+                            )
+                            .sort((a, b) => a.displayOrder - b.displayOrder)
+                            .map((c) => ({
+                                title: c.title,
+                                url: c.url || "#",
+                            }))
 
-            return {
-                id: group.id,
-                name: group.name,
-                items,
-            }
-        })
+                        return {
+                            title: module.title,
+                            url: module.url || "#",
+                            icon: iconMap[safeIcon],
+                            isActive:
+                                isActiveRoute(module.url) ||
+                                children?.some((c) =>
+                                    isActiveRoute(c.url)
+                                ),
+                            items:
+                                children && children.length > 0
+                                    ? children
+                                    : undefined,
+                        }
+                    })
+
+                if (items.length === 0) return null
+
+                return {
+                    id: group.id,
+                    name: group.name,
+                    items,
+                }
+            })
+            .filter(Boolean)
     }, [moduleGroups, hasPermission, isActiveRoute])
-    /* --------------------------------------- */
 
     return {
         navGroups,
