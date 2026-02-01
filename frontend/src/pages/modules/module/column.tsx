@@ -45,7 +45,8 @@ export const getColumns = (
         }),
 
         /* ================= NAME ================= */
-        columnHelper.accessor("title", {
+        columnHelper.accessor((row) => row.title || row.name || "", {
+            id: "title",
             header: "Name",
             size: 200,
             cell: (info) => (

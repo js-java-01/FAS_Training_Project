@@ -1,5 +1,4 @@
 import axios from "axios";
-import { authApi } from "./authApi";
 import type { LoginResponse } from "@/types/auth";
 import { store } from "@/store/store";
 import { setLogout } from "@/store/slices/auth/authSlice";
@@ -30,7 +29,7 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalReq = error.config;
 
-    if (error?.response?.status === 401 && !originalReq._retry && !originalReq.url.includes("/auth/login")) {
+    if (error?.response?.status === 401 && !originalReq._retry && !originalReq.url.includes("/auth/login") && !originalReq.url.includes("/auth/logout")) {
       originalReq._retry = true;
       try {
         const res = await axios.post<LoginResponse>("http://localhost:8080/api/refresh", {}, { withCredentials: true });
@@ -41,7 +40,6 @@ axiosInstance.interceptors.response.use(
 
         return axiosInstance(originalReq);
       } catch (err) {
-        await authApi.logout();
         store.dispatch(setLogout());
         window.location.href = "/login";
         return Promise.reject(err);
