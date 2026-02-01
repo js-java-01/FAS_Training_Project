@@ -1,8 +1,11 @@
 package com.example.starter_project_2025.system.modulegroups.repository;
 
 import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,11 +22,34 @@ public interface ModuleGroupsRepository extends JpaRepository<ModuleGroups, UUID
                 WHERE mg.isActive = true
                 ORDER BY mg.displayOrder ASC
             """)
-
+    Optional<ModuleGroups> findByName(String name);
 
     List<ModuleGroups> findAllByOrderByDisplayOrderAsc();
 
+    @Query("""
+    SELECT DISTINCT mg
+    FROM ModuleGroups mg
+    LEFT JOIN FETCH mg.modules
+    ORDER BY mg.displayOrder ASC
+""")
+    List<ModuleGroups> findAllWithModules();
+
     boolean existsByName(String name);
+
     List<ModuleGroups> findByIsActiveTrueOrderByDisplayOrderAsc();
+
+
+    @Query("""
+        SELECT mg FROM ModuleGroups mg
+        WHERE
+            (:keyword IS NULL OR LOWER(mg.name) LIKE :keyword)
+        AND (:isActive IS NULL OR mg.isActive = :isActive)
+    """)
+    Page<ModuleGroups> search(
+            @Param("keyword") String keyword,
+            @Param("isActive") Boolean isActive,
+            Pageable pageable
+    );
+
 
 }

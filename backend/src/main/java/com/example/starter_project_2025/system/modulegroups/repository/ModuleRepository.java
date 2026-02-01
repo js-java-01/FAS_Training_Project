@@ -1,6 +1,8 @@
 package com.example.starter_project_2025.system.modulegroups.repository;
 
 import com.example.starter_project_2025.system.modulegroups.entity.Module;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,5 +19,23 @@ public interface ModuleRepository extends JpaRepository<Module, UUID> {
     boolean existsByModuleGroupIdAndTitle(UUID moduleGroupId, String title);
 
     List<Module> findByIsActive(Boolean isActive);
+
+    @Query("""
+        SELECT m FROM Module m
+        WHERE
+            (
+                :keyword IS NULL
+                OR LOWER(m.title) LIKE :keyword
+                OR LOWER(m.url) LIKE :keyword
+            )
+        AND (:isActive IS NULL OR m.isActive = :isActive)
+        AND (:moduleGroupId IS NULL OR m.moduleGroup.id = :moduleGroupId)
+    """)
+    Page<Module> search(
+            @Param("keyword") String keyword,
+            @Param("isActive") Boolean isActive,
+            @Param("moduleGroupId") UUID moduleGroupId,
+            Pageable pageable
+    );
 }
 
