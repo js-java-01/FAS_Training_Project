@@ -24,12 +24,17 @@ public class ModuleImportExportController {
         return service.downloadTemplate();
     }
 
-    @PostMapping("/import")
+    @PostMapping(
+            value = "/import",
+            consumes = "multipart/form-data"
+    )
+    @PreAuthorize("hasAuthority('MENU_ITEM_CREATE')")
     public ResponseEntity<ImportResultResponse> importModules(
-            @RequestParam("file") MultipartFile file
+            @RequestPart("file") MultipartFile file
     ) {
         return ResponseEntity.ok(service.importExcel(file));
     }
+
 
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportModules() {

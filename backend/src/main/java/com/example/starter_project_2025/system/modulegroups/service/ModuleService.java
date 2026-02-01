@@ -25,10 +25,9 @@ public interface ModuleService {
 
     Page<ModuleDetail> searchModules(
             String keyword,
-            Boolean isActive,
             UUID moduleGroupId,
+            Boolean isActive,
             Pageable pageable
     );
-
 
 }
