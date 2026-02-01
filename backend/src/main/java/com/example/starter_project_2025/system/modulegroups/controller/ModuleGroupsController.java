@@ -10,6 +10,10 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,43 +31,63 @@ public class ModuleGroupsController {
 
     private final ModuleGroupsService moduleGroupsService;
 
-    @GetMapping
-    @Operation (summary = "Get all module groups for admin panel")
+    // ================= SEARCH + PAGINATION =================
+    // Chỉ match khi CÓ param page
+    @GetMapping(params = "page")
+    @Operation (summary = "Search module groups with pagination")
     @PreAuthorize("hasAuthority('MENU_READ')")
-    public ResponseEntity<List<ModuleGroupDetailResponse>> getAllModuleGroups() {
-        return ResponseEntity.ok(moduleGroupsService.getAll());
+    public ResponseEntity<Page<ModuleGroupDetailResponse>> searchModuleGroups(
+            @RequestParam int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "displayOrder,asc") String[] sort,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean isActive
+    ) {
+        Sort.Direction direction = Sort.Direction.fromString(sort[1]);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
+
+        return ResponseEntity.ok(
+                moduleGroupsService.searchModuleGroups(keyword, isActive, pageable)
+        );
     }
 
 
+    @GetMapping
+    @Operation (summary = "Get all module groups")
+    @PreAuthorize("hasAuthority('MENU_READ')")
+    public ResponseEntity<List<ModuleGroupDetailResponse>> getAllModuleGroups() {
+        return ResponseEntity.ok(
+                moduleGroupsService.getAll()
+        );
+    }
+
     @GetMapping("/details")
-    @Operation (summary = "Get all module group details for admin panel/sidebar")
     @PreAuthorize("hasAuthority('MENU_READ')")
     public ResponseEntity<List<ModuleGroupDetailResponse>> getAllModuleGroupDetails() {
-        return ResponseEntity.ok(moduleGroupsService.getAllDetails());
+        return ResponseEntity.ok(
+                moduleGroupsService.getAllDetails()
+        );
     }
 
     @GetMapping("/active")
-    @Operation(summary = "Get active module groups with active modules (for sidebar)")
+    @Operation (summary = "Get active module groups with active modules")
     @PreAuthorize("hasAuthority('MENU_READ')")
     public ResponseEntity<List<ModuleGroupDetailResponse>> getActiveModuleGroups() {
-
         return ResponseEntity.ok(
                 moduleGroupsService.getActiveGroupsWithActiveModules()
         );
     }
 
-
     @GetMapping("/{id}")
-    @Operation (summary = "View module group details by ID")
+    @Operation (summary = "View module group details")
     @PreAuthorize("hasAuthority('MENU_READ')")
     public ResponseEntity<ModuleGroupDetailResponse> viewModuleGroup(
-            @PathVariable UUID id) {
-
+            @PathVariable UUID id
+    ) {
         return ResponseEntity.ok(
                 moduleGroupsService.getDetailById(id)
         );
     }
-
 
     @PostMapping
     @PreAuthorize("hasAuthority('MENU_CREATE')")

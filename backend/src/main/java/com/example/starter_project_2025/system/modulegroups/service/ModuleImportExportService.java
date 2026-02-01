@@ -4,7 +4,7 @@ import com.example.starter_project_2025.system.modulegroups.dto.response.ImportR
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface ModuleGroupImportExportService {
+public interface ModuleImportExportService {
 
     ResponseEntity<byte[]> downloadTemplate();
 
