@@ -5,59 +5,18 @@ import { toast } from "sonner";
 
 import { DataTable } from "@/components/data_table/DataTable";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Plus,
-  Package,
-  Network,
-  FileText,
-  Layers,
-  ToggleLeft,
-  ChevronDown,
-  ChevronUp,
-  Loader2,
-  Box
-} from "lucide-react";
-import type { ModuleGroup, Module } from "@/types/module";
-import { moduleGroupApi, moduleApi } from "@/api/moduleApi";
+
+import type { ModuleGroup,  } from "@/types/module";
+import { moduleGroupApi,  } from "@/api/moduleApi";
 
 import { ModuleGroupForm } from "./form";
 import type { ModuleGroupDto } from "./form";
 import ConfirmDialog from "@/components/ui/confirmdialog";
 import {useGetAllModuleGroups} from "@/pages/modules/module_groups/queries";
 import { useDebounce } from "@uidotdev/usehooks";
+import { getColumns } from "./column";
+import { ModuleGroupDetailDialog } from "./DetailDialog";
 
-// --- Component DetailRow ---
-const DetailRow = ({
-  icon: Icon,
-  label,
-  value,
-  isBadge = false,
-}: {
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
-  label: string;
-  value?: ReactNode;
-  isBadge?: boolean;
-}) => (
-  <div className="space-y-1.5">
-    <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-      <Icon className="w-4 h-4 text-gray-500" /> {label}
-    </label>
-    <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 min-h-[42px] flex items-center">
-      {isBadge ? (
-        value ? (
-          <Badge className="bg-green-100 text-green-700 border-green-200 shadow-none hover:bg-green-200">
-            Active
-          </Badge>
-        ) : (
-          <Badge variant="destructive">Inactive</Badge>
-        )
-      ) : (
-        value || <span className="text-gray-400 italic">No data</span>
-      )}
-    </div>
-  </div>
-);
 
 export default function ModuleGroupsTable() {
   const [data, setData] = useState<ModuleGroup[]>([]);
