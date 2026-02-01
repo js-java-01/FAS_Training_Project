@@ -43,6 +43,7 @@ public class DataInitializer implements CommandLineRunner {
             initializeRoles();
             initializeUsers();
             initializeModuleGroups();
+
             log.info("Database initialization completed successfully!");
         } else {
             log.info("Database already initialized, skipping data initialization.");
@@ -133,42 +134,70 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initializeModuleGroups() {
+        // 1. Nhóm: Main Menu
         ModuleGroups mainGroup = new ModuleGroups();
         mainGroup.setName("Main Menu");
-        mainGroup.setDescription("Primary navigation menu");
-        mainGroup.setIsActive(true);
+        mainGroup.setDescription("Main navigation menu of the application");
         mainGroup.setDisplayOrder(1);
-        mainGroup = moduleGroupsRepository.save(mainGroup);
+        mainGroup.setIsActive(true);
+        mainGroup = moduleGroupsRepository.save(mainGroup); // Lưu để lấy ID tự sinh
 
-        Module dashboard = createModule(mainGroup, "Dashboard", "/dashboard", "dashboard", 1, null);
-        moduleRepository.save(dashboard);
+        moduleRepository.save(createModule(mainGroup, "Dashboard", "/dashboard", "home", 1, "MENU_READ",
+                "System dashboard overview"));
 
-        ModuleGroups adminGroup = new ModuleGroups();
-        adminGroup.setName("Administration");
-        adminGroup.setDescription("Administrative functions menu");
-        adminGroup.setIsActive(true);
-        adminGroup.setDisplayOrder(2);
-        adminGroup = moduleGroupsRepository.save(adminGroup);
+        // 2. Nhóm: User Management
+        ModuleGroups userGroup = new ModuleGroups();
+        userGroup.setName("User Management");
+        userGroup.setDescription("Manage user accounts, roles, and permissions");
+        userGroup.setDisplayOrder(2);
+        userGroup.setIsActive(true);
+        userGroup = moduleGroupsRepository.save(userGroup);
 
-        Module userManagement = createModule(adminGroup, "User Management", "/users", "people", 1,
-                "USER_READ");
-        Module roleManagement = createModule(adminGroup,  "Role Management", "/roles", "security", 2,
-                "ROLE_READ");
-        moduleRepository.saveAll(Arrays.asList(userManagement, roleManagement));
+        moduleRepository.save(
+                createModule(userGroup, "User Management", "/users", "users", 1, "USER_READ", "Manage system users"));
 
-        log.info("Initialized 2 module groups with modules");
+        // 3. Nhóm: Role Management
+        ModuleGroups roleGroup = new ModuleGroups();
+        roleGroup.setName("Role Management");
+        roleGroup.setDescription("Manage roles and role-based access control");
+        roleGroup.setDisplayOrder(3);
+        roleGroup.setIsActive(true);
+        roleGroup = moduleGroupsRepository.save(roleGroup);
+
+        moduleRepository.save(createModule(roleGroup, "Role Management", "/roles", "shield", 2, "ROLE_READ",
+                "Manage roles and permissions"));
+
+        // 4. Nhóm: System Management
+        ModuleGroups systemGroup = new ModuleGroups();
+        systemGroup.setName("System Management");
+        systemGroup.setDescription("System configuration and administration");
+        systemGroup.setDisplayOrder(4);
+        systemGroup.setIsActive(true);
+        systemGroup = moduleGroupsRepository.save(systemGroup);
+
+        // Nhóm này có 2 module con
+        Module moduleGroupsSub = createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 1, "MENU_READ",
+                "Manage module groups");
+        Module modulesSub = createModule(systemGroup, "Modules", "/modules", "menu", 2, "MENU_READ",
+                "Manage system modules");
+
+        moduleRepository.saveAll(Arrays.asList(moduleGroupsSub, modulesSub));
+
+        log.info("Initialized 4 module groups and their respective modules.");
     }
 
-    private Module createModule(ModuleGroups moduleGroup, String title, String url, String icon, int order,
-                                String permission) {
-        Module m = new Module();
-        m.setModuleGroup(moduleGroup);
-        m.setTitle(title);
-        m.setUrl(url);
-        m.setIcon(icon);
-        m.setDisplayOrder(order);
-        m.setIsActive(true);
-        m.setRequiredPermission(permission);
-        return m;
+    private Module createModule(ModuleGroups group, String title, String url, String icon,
+            int order, String permission, String description) {
+        Module module = new Module();
+        module.setModuleGroup(group); // Gán quan hệ group_id
+        module.setTitle(title);
+        module.setUrl(url);
+        module.setIcon(icon);
+        module.setDisplayOrder(order);
+        module.setRequiredPermission(permission);
+        module.setDescription(description);
+        module.setIsActive(true);
+        return module;
     }
+
 }
