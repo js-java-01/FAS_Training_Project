@@ -3,10 +3,10 @@ import { useLocation } from "react-router-dom"
 import type { ModuleGroup } from "@/types/module"
 
 import { usePermissions } from "@/hooks/usePermissions"
-import { canAccessUI } from "@/utils/permission.utils"
+import { canAccessMenuItem } from "@/utils/permission.utils"
 import { moduleGroupApi } from "@/api/moduleApi"
 import { iconMap } from "@/constants/iconMap"
-import {mockMenus} from "@/mocks/mockMenus.mock.ts";
+// import { mockMenus } from "@/mocks/mockMenus.mock"
 
 /* ------------------------------------------ */
 export function useSidebarMenus() {
@@ -31,20 +31,19 @@ export function useSidebarMenus() {
             .then(setModuleGroups)
             .catch(() => {
                 console.warn("You don't have permission to access modules")
-                setModuleGroups(mockMenus)
+                // setModuleGroups(mockMenus)
             })
     }, [])
-    console.log("Module Groups:", moduleGroups)
     /* --------------------------------------- */
 
-    /* -------- MAP MODULE ➜ NavMain ---------- */
+    /* -------- MAP MODULE ➜ Sidebar Nav ------ */
     const navGroups = useMemo(() => {
         return moduleGroups.map((group) => {
             const items = group.module
                 .filter(
                     (module) =>
                         !module.parentId &&
-                        canAccessUI(
+                        canAccessMenuItem(
                             module.requiredPermission,
                             hasPermission
                         )
@@ -58,7 +57,7 @@ export function useSidebarMenus() {
 
                     const children = module.children
                         ?.filter((c) =>
-                            canAccessUI(
+                            canAccessMenuItem(
                                 c.requiredPermission,
                                 hasPermission
                             )
@@ -95,7 +94,6 @@ export function useSidebarMenus() {
             }
         })
     }, [moduleGroups, hasPermission, isActiveRoute])
-    /* --------------------------------------- */
 
     return {
         navGroups,
