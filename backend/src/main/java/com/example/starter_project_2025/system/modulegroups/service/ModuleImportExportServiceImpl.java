@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -103,19 +104,22 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
                         throw new IllegalArgumentException("moduleGroup|Module group is required");
                     }
 
-                    ModuleGroups group = moduleGroupsRepository
-                            .findByName(moduleGroupName)
-                            .orElseThrow(() ->
-                                    new IllegalArgumentException(
-                                            "moduleGroup|Module group not found: " + moduleGroupName
-                                    ));
+                    List<ModuleGroups> groups =
+                            moduleGroupsRepository.findAllByNameAndIsActiveTrue(moduleGroupName);
 
-                    if (moduleRepository.existsByModuleGroupIdAndTitle(group.getId(), title)) {
+                    if (groups.isEmpty()) {
                         throw new IllegalArgumentException(
-                                "title|Module title already exists in this module group"
+                                "moduleGroup|Module group not found: " + moduleGroupName
                         );
                     }
 
+                    if (groups.size() > 1) {
+                        throw new IllegalArgumentException(
+                                "moduleGroup|Duplicate module group name: " + moduleGroupName
+                        );
+                    }
+
+                    ModuleGroups group = groups.get(0);
                     Module module = new Module();
                     module.setTitle(title);
                     module.setUrl(url);

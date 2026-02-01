@@ -5,6 +5,7 @@ import ActionBtn from "@/components/data_table/ActionBtn";
 import {EditIcon, EyeIcon, Trash} from "lucide-react";
 import {iconMap} from "@/constants/iconMap.ts";
 import dayjs from "dayjs";
+import { Badge } from "@/components/ui/badge";
 
 export type TableActions = {
     onView?: (row: Module) => void;
@@ -45,7 +46,8 @@ export const getColumns = (
         }),
 
         /* ================= NAME ================= */
-        columnHelper.accessor("title", {
+        columnHelper.accessor((row) => row.title || row.name || "", {
+            id: "title",
             header: "Name",
             size: 200,
             cell: (info) => (
@@ -106,6 +108,23 @@ export const getColumns = (
             ),
             meta: {
                 title: "Description",
+            },
+        }),
+
+        /* ================= STATUS ================= */
+        columnHelper.accessor("isActive", {
+            header: "Status",
+            size: 100,
+            cell: (info) => {
+                const isActive = info.getValue();
+                return (
+                    <Badge className={`${isActive ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-200" : "bg-red-100 text-red-700 hover:bg-red-200 border-red-200"}`} variant="outline">
+                        {isActive ? "Active" : "Inactive"}
+                    </Badge>
+                );
+            },
+            meta: {
+                title: "Status",
             },
         }),
 

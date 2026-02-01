@@ -15,7 +15,6 @@ import com.example.starter_project_2025.system.modulegroups.repository.ModuleRep
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,16 +32,17 @@ public class ModuleServiceImpl implements ModuleService {
     private final ModuleMapper moduleMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ModuleDetail> searchModules(
             String keyword,
-            Boolean isActive,
             UUID moduleGroupId,
+            Boolean isActive,
             Pageable pageable
     ) {
         Page<Module> page = moduleRepository.search(
                 keyword,
-                isActive,
                 moduleGroupId,
+                isActive,
                 pageable
         );
 

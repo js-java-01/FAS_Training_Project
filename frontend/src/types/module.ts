@@ -36,6 +36,7 @@ export interface Module {
     parentId?: string;
 
     title: string;
+    name?: string; // Backend might return name instead of title
     url?: string;
     icon?: IconKey;
     description?: string;
@@ -70,4 +71,3 @@ export interface CreateModuleRequest {
     displayOrder?: number;
     requiredPermission?: string;
 }
-
