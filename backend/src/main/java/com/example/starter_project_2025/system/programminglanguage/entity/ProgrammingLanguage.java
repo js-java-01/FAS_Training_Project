@@ -26,7 +26,7 @@ public class ProgrammingLanguage {
     @Column(nullable = false)
     private Boolean isSupported;
 
-    protected ProgrammingLanguage(){}
+    public ProgrammingLanguage(){}
 
     public ProgrammingLanguage(String name, String version, String description, Boolean isSupported) {
         this.name = name;

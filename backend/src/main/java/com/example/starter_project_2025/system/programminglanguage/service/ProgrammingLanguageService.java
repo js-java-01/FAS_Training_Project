@@ -6,7 +6,9 @@ import com.example.starter_project_2025.system.programminglanguage.dto.Programmi
 import com.example.starter_project_2025.system.programminglanguage.dto.ProgrammingLanguageResponse;
 import com.example.starter_project_2025.system.programminglanguage.dto.ProgrammingLanguageUpdateRequest;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
+import com.example.starter_project_2025.system.programminglanguage.mapper.ProgrammingLanguageMapper;
 import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,13 +17,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 @Service
+@RequiredArgsConstructor
 public class ProgrammingLanguageService {
 
     private final ProgrammingLanguageRepository repository;
-
-    public ProgrammingLanguageService(ProgrammingLanguageRepository repository) {
-        this.repository = repository;
-    }
+    private final ProgrammingLanguageMapper mapper;
 
     public ProgrammingLanguageResponse create(ProgrammingLanguageCreateRequest request) {
         if (repository.existsByNameIgnoreCase(request.getName())) {
@@ -30,14 +30,10 @@ public class ProgrammingLanguageService {
             );
         }
 
-        ProgrammingLanguage language = new ProgrammingLanguage(
-                request.getName().trim(),
-                normalize(request.getVersion()),
-                normalize(request.getDescription())
-        );
+        ProgrammingLanguage language = mapper.toEntity(request);
 
         ProgrammingLanguage saved = repository.save(language);
-        return toResponse(saved);
+        return mapper.toResponse(saved);
     }
 
     public ProgrammingLanguageResponse update(Long id, ProgrammingLanguageUpdateRequest request) {
@@ -50,13 +46,9 @@ public class ProgrammingLanguageService {
                     "Programming language with this name already exists"
             );
         }
-        language.updateDetails(
-                request.getName().trim(),
-                normalize(request.getVersion()),
-                normalize(request.getDescription())
-        );
+        mapper.updateEntityFromRequest(request, language);
         ProgrammingLanguage saved = repository.save(language);
-        return toResponse(saved);
+        return mapper.toResponse(saved);
     }
 
     public void delete(Long id) {
@@ -72,7 +64,7 @@ public class ProgrammingLanguageService {
     public ProgrammingLanguageResponse getById(Long id) {
         ProgrammingLanguage language = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Programming language not found"));
-        return toResponse(language);
+        return mapper.toResponse(language);
     }
 
     public Page<ProgrammingLanguageResponse> list(
@@ -94,25 +86,7 @@ public class ProgrammingLanguageService {
         } else {
             result = repository.findAll(pageable);
         }
-        return result.map(this::toResponse);
-    }
-
-    private ProgrammingLanguageResponse toResponse(ProgrammingLanguage entity) {
-        ProgrammingLanguageResponse response = new ProgrammingLanguageResponse();
-        response.setId(entity.getId());
-        response.setName(entity.getName());
-        response.setVersion(
-                entity.getVersion() != null ? entity.getVersion() : "N/A"
-        );
-        response.setDescription(
-                entity.getDescription() != null ? entity.getDescription() : "N/A"
-        );
-        response.setSupported(entity.isSupported());
-        return response;
-    }
-
-    private String normalize(String value) {
-        return StringUtils.hasText(value) ? value.trim() : null;
+        return result.map(mapper::toResponse);
     }
 
     private boolean isUsedByAnyExercise(Long programmingLanguageId) {
