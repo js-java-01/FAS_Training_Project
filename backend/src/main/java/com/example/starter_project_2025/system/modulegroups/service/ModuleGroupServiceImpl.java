@@ -110,7 +110,6 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasAuthority('MENU_DELETE')")
     public void delete(UUID id) {
 
         ModuleGroups group = moduleGroupsRepository.findById(id)
@@ -127,6 +126,15 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
         group.setIsActive(false);
 
         moduleGroupsRepository.save(group);
+    }
+
+    @Override
+    public List<ModuleGroupDetailResponse> getActiveGroupsWithActiveModules() {
+        return moduleGroupsRepository.findByIsActiveTrueOrderByDisplayOrderAsc()
+                .stream()
+                .map(moduleGroupMapper::toActiveResponse)
+                .filter(res -> res.getTotalModules() > 0) // optional: hide empty group
+                .toList();
     }
 
 }
