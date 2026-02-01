@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { EditIcon, EyeIcon, Trash } from "lucide-react";
+import dayjs from "dayjs";
 
 export type TableActions = {
     onView?: (row: ModuleGroup) => void;
@@ -84,8 +85,8 @@ export const getColumns = (
         }),
 
         /* ================= DISPLAY ORDER ================= */
-        columnHelper.accessor("displayOrder", {
-            header: "Order",
+        columnHelper.accessor("totalModules", {
+            header: "Total Modules",
             size: 80,
             cell: (info) => (
                 <span className="block text-center">
@@ -117,8 +118,8 @@ export const getColumns = (
             header: "Created At",
             size: 160,
             cell: (info) =>
-                new Date(info.getValue()).toLocaleDateString(),
-        meta: {
+                dayjs(info.getValue()).format("DD/MM/YYYY"),
+            meta: {
                 title: "Created At",
             }
         }),
