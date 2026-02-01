@@ -1,187 +1,234 @@
-import React, { useRef, useState } from 'react';
-import {
-    Plus,
-    Search,
-    Eye,
-    Edit,
-    Trash2,
-    Download,
-    Upload,
+import React, { useState, useCallback, useEffect } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+    Plus, 
+    Upload, 
+    Download, 
+    Search, 
+    Eye, 
+    Edit, 
+    Trash2, 
+    ChevronLeft, 
+    ChevronRight,
     ArrowUpDown,
     ArrowUp,
     ArrowDown,
-    ChevronLeft,
-    ChevronRight,
+    Loader2
 } from 'lucide-react';
-
-import { PermissionGate } from '../components/PermissionGate';
 import { MainLayout } from '../components/MainLayout';
+import { PermissionGate } from '../components/PermissionGate';
+import { useToast } from '../hooks/use-toast';
 import {
     CreateLanguageModal,
     UpdateLanguageModal,
     ViewLanguageModal,
     DeleteLanguageDialog,
     ImportLanguageDialog,
-    getLanguageBadgeStyle,
-    getSupportedBadgeStyle,
-    displayValue,
+    ExportModal
 } from '../components/programming-language';
-import { useProgrammingLanguagesQuery, useProgrammingLanguageMutations, downloadExport } from '../hooks/useProgrammingLanguages';
-import type { ProgrammingLanguage, ProgrammingLanguageRequest } from '../types/programmingLanguage';
+import { programmingLanguageApi } from '../api/programmingLanguageApi';
+import type { 
+    ProgrammingLanguage,
+    ProgrammingLanguageRequest,
+    ExportRequest,
+    ExportPreviewResponse,
+    ImportResult
+} from '../types/programmingLanguage';
 
 /**
- * Programming Language Management Page
- *
- * State Management Strategy:
- * - Server state (data fetching, caching, mutations) → TanStack Query
- * - UI state (modals, search, pagination) → Local useState
- * - Form state → Encapsulated in modal components
- *
- * This separation follows TanStack Query best practices and keeps
- * the page component focused on orchestration rather than form logic.
+ * Programming Language Management Page with Enhanced Table
+ * 
+ * This page uses the same data loading approach as ExportModal
+ * with proper sorting, pagination, search, and action buttons.
  */
 export const ProgrammingLanguageManagement: React.FC = () => {
-    // ========================================
-    // UI State: Search, Pagination & Sorting
-    // ========================================
-    /** Current search input value (updates on every keystroke) */
-    const [searchQuery, setSearchQuery] = useState('');
-    /** Debounced search value (triggers API call after 500ms delay) */
-    const [debouncedSearch, setDebouncedSearch] = useState('');
-    /** Current page index (0-based) */
-    const [currentPage, setCurrentPage] = useState(0);
-    /** Number of items per page */
-    const [pageSize, setPageSize] = useState(10);
-    /** Field to sort by (empty string = no sorting) */
-    const [sortBy, setSortBy] = useState('');
-    /** Sort direction */
-    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-    /** Ref for search debounce timeout */
-    const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
 
     // ========================================
-    // UI State: Modal Visibility
+    // State: Table Data & Configuration
     // ========================================
-    /** Controls Create Programming Language modal */
+    const [tableData, setTableData] = useState<ExportPreviewResponse | null>(null);
+    const [isLoadingTable, setIsLoadingTable] = useState(false);
+
+    // ========================================
+    // State: Table Configuration (similar to ExportModal)
+    // ========================================
+    const [keyword, setKeyword] = useState('');
+    const [filters] = useState<Record<string, string>>({});
+    const [sortBy, setSortBy] = useState('name');
+    const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
+    const [page, setPage] = useState(0);
+    const [size, setSize] = useState(10);
+    
+    // Selected fields for table display
+    const selectedFields = ['name', 'version', 'description', 'isSupported'];
+
+    // ========================================
+    // State: Modal Controls
+    // ========================================
     const [showCreateModal, setShowCreateModal] = useState(false);
-    /** Controls Edit Programming Language modal */
     const [showUpdateModal, setShowUpdateModal] = useState(false);
-    /** Controls View Details modal (read-only) */
     const [showViewModal, setShowViewModal] = useState(false);
-    /** Controls Delete Confirmation dialog */
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    /** Controls Import CSV dialog */
     const [showImportDialog, setShowImportDialog] = useState(false);
-    /** Currently selected language for view/edit/delete operations */
+    const [showExportModal, setShowExportModal] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState<ProgrammingLanguage | null>(null);
-    /** Loading state for export operation */
-    const [isExporting, setIsExporting] = useState(false);
 
     // ========================================
-    // Server State: TanStack Query Hooks
+    // Load Table Data (similar to ExportModal's loadPreview)
     // ========================================
-    const { data, isLoading, isFetching } = useProgrammingLanguagesQuery({
-        page: currentPage,
-        size: pageSize,
-        search: debouncedSearch,
-        sortBy: sortBy || undefined,
-        sortDir: sortBy ? sortDir : undefined,
-    });
-    const { createMutation, updateMutation, deleteMutation, importMutation } = useProgrammingLanguageMutations();
-
-    // ========================================
-    // Derived Data
-    // ========================================
-    /** Paginated list of programming languages from current query */
-    const languages = data?.content ?? [];
-    /** Total number of records matching current filters */
-    const totalElements = data?.totalElements ?? 0;
-    /** Total number of pages available */
-    const totalPages = data?.totalPages ?? 0;
-
-    // ========================================
-    // Event Handlers: Search & Sort
-    // ========================================
-
-    /** BR-PL-08: Search debounce 500ms; "Enter" executes immediately */
-    const handleSearch = (query: string, immediate = false) => {
-        setSearchQuery(query);
-        setCurrentPage(0);
-        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-        if (immediate) {
-            setDebouncedSearch(query);
-        } else {
-            searchTimeoutRef.current = setTimeout(() => setDebouncedSearch(query), 500);
+    const loadTableData = useCallback(async () => {
+        setIsLoadingTable(true);
+        try {
+            const request: ExportRequest = {
+                keyword: keyword || undefined,
+                filters: Object.keys(filters).length > 0 ? filters : undefined,
+                sortBy,
+                sortDirection,
+                page,
+                size,
+                selectedFields,
+                format: 'EXCEL'
+            };
+            const response = await programmingLanguageApi.getExportPreview(request);
+            setTableData(response);
+        } catch (error) {
+            console.error('Failed to load table data:', error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to load programming languages data",
+            });
+        } finally {
+            setIsLoadingTable(false);
         }
+    }, [keyword, filters, sortBy, sortDirection, page, size, toast]);
+
+    // Load table data on mount and when config changes
+    useEffect(() => {
+        loadTableData();
+    }, [page, size, sortBy, sortDirection, loadTableData]);
+
+    // ========================================
+    // Event Handlers: Table Controls
+    // ========================================
+    const handleSearch = () => {
+        setPage(0);
+        loadTableData();
     };
 
-    /** BR-PL-07: Sort toggles asc → desc → none */
     const handleSort = (field: string) => {
         if (sortBy === field) {
-            if (sortDir === 'asc') {
-                setSortDir('desc');
-            } else {
-                setSortBy('');
-            }
+            setSortDirection(prev => prev === 'ASC' ? 'DESC' : 'ASC');
         } else {
             setSortBy(field);
-            setSortDir('asc');
+            setSortDirection('ASC');
         }
-        setCurrentPage(0);
-    };
-
-    const handleSearchKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            handleSearch(searchQuery, true);
-        }
+        setPage(0);
     };
 
     const getSortIcon = (field: string) => {
         if (sortBy !== field) {
             return <ArrowUpDown className="h-4 w-4 text-gray-400" />;
         }
-        return sortDir === 'asc'
+        return sortDirection === 'ASC'
             ? <ArrowUp className="h-4 w-4 text-blue-500" />
             : <ArrowDown className="h-4 w-4 text-blue-500" />;
     };
 
     // ========================================
-    // Event Handlers: CRUD Operations
+    // CRUD Mutations
     // ========================================
+    const createMutation = useMutation({
+        mutationFn: programmingLanguageApi.create,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['programmingLanguages'] });
+            loadTableData();
+            setShowCreateModal(false);
+            toast({
+                variant: "success",
+                title: "Success",
+                description: "Programming language created successfully!",
+            });
+        },
+        onError: (error: any) => {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.response?.data?.message || "Failed to create programming language",
+            });
+        }
+    });
 
-    const handleCreate = (data: ProgrammingLanguageRequest) => {
-        createMutation.mutate(data, {
-            onSuccess: () => setShowCreateModal(false),
-        });
-    };
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: ProgrammingLanguageRequest }) =>
+            programmingLanguageApi.update(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['programmingLanguages'] });
+            loadTableData();
+            setShowUpdateModal(false);
+            setSelectedLanguage(null);
+            toast({
+                variant: "success",
+                title: "Success",
+                description: "Programming language updated successfully!",
+            });
+        },
+        onError: (error: any) => {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.response?.data?.message || "Failed to update programming language",
+            });
+        }
+    });
 
-    const handleUpdate = (id: number, data: ProgrammingLanguageRequest) => {
-        updateMutation.mutate({ id, data }, {
-            onSuccess: () => setShowUpdateModal(false),
-        });
-    };
+    const deleteMutation = useMutation({
+        mutationFn: programmingLanguageApi.delete,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['programmingLanguages'] });
+            loadTableData();
+            setShowDeleteDialog(false);
+            setSelectedLanguage(null);
+            toast({
+                variant: "success",
+                title: "Success",
+                description: "Programming language deleted successfully!",
+            });
+        },
+        onError: (error: any) => {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.response?.data?.message || "Failed to delete programming language",
+            });
+        }
+    });
 
-    const handleDelete = () => {
-        if (!selectedLanguage) return;
-        deleteMutation.mutate(selectedLanguage.id, {
-            onSuccess: () => setShowDeleteDialog(false),
-        });
-    };
-
-    const handleImport = (file: File) => {
-        importMutation.mutate(file);
-    };
-
-    const handleExport = async () => {
-        setIsExporting(true);
-        await downloadExport();
-        setIsExporting(false);
-    };
+    const importMutation = useMutation({
+        mutationFn: programmingLanguageApi.import,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['programmingLanguages'] });
+            loadTableData();
+            toast({
+                variant: "success",
+                title: "Import Successful",
+                description: "Programming languages imported successfully!",
+            });
+        },
+        onError: (error: any) => {
+            toast({
+                variant: "destructive",
+                title: "Import Failed",
+                description: error.response?.data?.message || "Failed to import programming languages",
+            });
+        }
+    });
 
     // ========================================
-    // Event Handlers: Modal Open
+    // Modal Event Handlers
     // ========================================
-
     const openViewModal = (language: ProgrammingLanguage) => {
         setSelectedLanguage(language);
         setShowViewModal(true);
@@ -197,6 +244,58 @@ export const ProgrammingLanguageManagement: React.FC = () => {
         setShowDeleteDialog(true);
     };
 
+    const handleCreate = (data: ProgrammingLanguageRequest) => {
+        createMutation.mutate(data);
+    };
+
+    const handleUpdate = (id: number, data: ProgrammingLanguageRequest) => {
+        updateMutation.mutate({ id, data });
+    };
+
+    const handleDelete = () => {
+        if (selectedLanguage) {
+            deleteMutation.mutate(selectedLanguage.id);
+        }
+    };
+
+    const handleImport = (file: File) => {
+        importMutation.mutate(file);
+    };
+
+    // ========================================
+    // Helper Functions
+    // ========================================
+    const formatCellValue = (value: unknown): string => {
+        if (value === null || value === undefined) return '-';
+        if (typeof value === 'boolean') return value ? 'Supported' : 'Not Supported';
+        return String(value);
+    };
+
+    const getFieldLabel = (fieldName: string): string => {
+        const labels: Record<string, string> = {
+            name: 'Name',
+            version: 'Version', 
+            description: 'Description',
+            isSupported: 'Supported'
+        };
+        return labels[fieldName] || fieldName;
+    };
+
+    const getCellClassName = (fieldName: string, value: unknown): string => {
+        if (fieldName === 'isSupported') {
+            const isSupported = Boolean(value);
+            return `inline-flex px-2 py-1 text-xs font-medium rounded-full border ${
+                isSupported 
+                    ? 'bg-green-50 text-green-700 border-green-200' 
+                    : 'bg-red-50 text-red-700 border-red-200'
+            }`;
+        }
+        if (fieldName === 'name') {
+            return 'inline-flex px-2 py-1 text-xs font-medium rounded-full border bg-blue-50 text-blue-700 border-blue-200';
+        }
+        return 'text-gray-900';
+    };
+
     // ========================================
     // Render
     // ========================================
@@ -206,223 +305,197 @@ export const ProgrammingLanguageManagement: React.FC = () => {
                 {/* Header */}
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Programming Language Management</h1>
-                        <p className="text-gray-600">Manage programming languages used in the system</p>
+                        <h1 className="text-2xl font-bold text-gray-900">Programming Languages</h1>
+                        <p className="text-gray-600">Manage programming languages and their configurations</p>
                     </div>
                     <div className="flex gap-3">
-                        {/* Export Button */}
                         <PermissionGate permission="PROGRAMMING_LANGUAGE_READ">
                             <button
-                                onClick={handleExport}
-                                disabled={isExporting}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors shadow-sm"
+                                onClick={() => setShowExportModal(true)}
+                                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                             >
                                 <Download className="h-4 w-4" />
-                                {isExporting ? 'Exporting...' : 'Export'}
+                                Export
                             </button>
                         </PermissionGate>
-
-                        {/* Import Button */}
                         <PermissionGate permission="PROGRAMMING_LANGUAGE_CREATE">
                             <button
                                 onClick={() => setShowImportDialog(true)}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                             >
                                 <Upload className="h-4 w-4" />
                                 Import
                             </button>
                         </PermissionGate>
-
-                        {/* Create Button */}
                         <PermissionGate permission="PROGRAMMING_LANGUAGE_CREATE">
                             <button
                                 onClick={() => setShowCreateModal(true)}
-                                className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-700 text-white rounded-lg hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg font-medium transition-all duration-200 transform hover:scale-105"
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
-                                <Plus className="h-5 w-5" />
-                                Create Programming Language
+                                <Plus className="h-4 w-4" />
+                                Create Language
                             </button>
                         </PermissionGate>
                     </div>
                 </div>
 
-                {/* Search and Filters */}
-                <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
-                    <div className="flex gap-4 items-center">
+                {/* Search Section */}
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="flex gap-4">
                         <div className="flex-1">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <input
                                     type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => handleSearch(e.target.value)}
-                                    onKeyPress={handleSearchKeyPress}
                                     placeholder="Search programming languages..."
+                                    value={keyword}
+                                    onChange={(e) => setKeyword(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-600">Show:</span>
-                            <select
-                                value={pageSize}
-                                onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(0); }}
-                                className="border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                <option value={10}>10</option>
-                                <option value={25}>25</option>
-                                <option value={50}>50</option>
-                                <option value={100}>100</option>
-                            </select>
-                            <span className="text-sm text-gray-600">per page</span>
-                        </div>
+                        <button
+                            onClick={handleSearch}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            Search
+                        </button>
                     </div>
                 </div>
 
-                {/* Data Table */}
-                <div className="bg-white rounded-lg shadow border border-gray-200">
-                    {/* Results Summary */}
-                    <div className="px-6 py-4 border-b border-gray-200">
-                        <p className="text-sm text-gray-600">
-                            Showing {languages.length} of {totalElements} programming languages
-                            {isFetching && !isLoading && <span className="ml-2 text-blue-500">(updating...)</span>}
-                        </p>
-                    </div>
-
-                    {isLoading ? (
-                        <div className="p-8 text-center">
-                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                            <p className="mt-2 text-gray-600">Loading programming languages...</p>
-                        </div>
-                    ) : languages.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500">
-                            <p>No programming languages found</p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th
-                                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 w-1/3"
-                                                onClick={() => handleSort('name')}
-                                            >
-                                                <div className="flex items-center gap-1">
-                                                    Name
-                                                    {getSortIcon('name')}
-                                                </div>
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
-                                                Version
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
-                                                Supported
-                                            </th>
-                                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-200">
-                                        {languages.map((language) => (
-                                            <tr key={language.id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 w-1/3">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getLanguageBadgeStyle(language.name)}`}>
-                                                        {language.name}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-gray-900 w-1/4">
-                                                    {displayValue(language.version)}
-                                                </td>
-                                                <td className="px-6 py-4 w-1/4">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getSupportedBadgeStyle(language.isSupported)}`}>
-                                                        {language.isSupported ? 'Supported' : 'Not Supported'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 w-1/6">
-                                                    <div className="flex justify-center gap-2">
-                                                        <PermissionGate permission="PROGRAMMING_LANGUAGE_READ">
-                                                            <button
-                                                                onClick={() => openViewModal(language)}
-                                                                className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                                                title="View details"
-                                                            >
-                                                                <Eye className="h-4 w-4" />
-                                                            </button>
-                                                        </PermissionGate>
-
-                                                        <PermissionGate permission="PROGRAMMING_LANGUAGE_UPDATE">
-                                                            <button
-                                                                onClick={() => openUpdateModal(language)}
-                                                                className="p-1 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
-                                                                title="Edit"
-                                                            >
-                                                                <Edit className="h-4 w-4" />
-                                                            </button>
-                                                        </PermissionGate>
-
-                                                        <PermissionGate permission="PROGRAMMING_LANGUAGE_DELETE">
-                                                            <button
-                                                                onClick={() => openDeleteDialog(language)}
-                                                                className="p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                                title="Delete"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </button>
-                                                        </PermissionGate>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                {/* Table Section */}
+                <div className="bg-white rounded-lg border border-gray-200">
+                    <div className="p-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                Programming Languages ({tableData?.totalElements ?? 0})
+                            </h2>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-600">Show:</span>
+                                <select
+                                    value={size}
+                                    onChange={(e) => { setSize(Number(e.target.value)); setPage(0); }}
+                                    className="border border-gray-300 rounded px-2 py-1 text-sm"
+                                >
+                                    <option value={5}>5</option>
+                                    <option value={10}>10</option>
+                                    <option value={25}>25</option>
+                                </select>
                             </div>
+                        </div>
 
-                            {/* Pagination */}
-                            {totalPages > 1 && (
-                                <div className="px-6 py-4 border-t border-gray-200">
-                                    <div className="flex justify-between items-center">
-                                        <div className="text-sm text-gray-600">
-                                            Page {currentPage + 1} of {totalPages}
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => setCurrentPage(currentPage - 1)}
-                                                disabled={currentPage === 0}
-                                                className="p-2 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <ChevronLeft className="h-4 w-4" />
-                                            </button>
-                                            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                                                const page = Math.max(0, Math.min(totalPages - 5, currentPage - 2)) + i;
-                                                return (
-                                                    <button
-                                                        key={page}
-                                                        onClick={() => setCurrentPage(page)}
-                                                        className={`px-3 py-2 border rounded ${
-                                                            page === currentPage
-                                                                ? 'bg-blue-600 text-white border-blue-600'
-                                                                : 'border-gray-300 hover:bg-gray-50'
-                                                        }`}
-                                                    >
-                                                        {page + 1}
-                                                    </button>
-                                                );
-                                            })}
-                                            <button
-                                                onClick={() => setCurrentPage(currentPage + 1)}
-                                                disabled={currentPage >= totalPages - 1}
-                                                className="p-2 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <ChevronRight className="h-4 w-4" />
-                                            </button>
-                                        </div>
+                        {/* Table */}
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                            {isLoadingTable ? (
+                                <div className="p-8 text-center">
+                                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-blue-500" />
+                                    <p className="mt-2 text-sm text-gray-500">Loading data...</p>
+                                </div>
+                            ) : tableData && tableData.content.length > 0 ? (
+                                <>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    {selectedFields.map((field) => (
+                                                        <th
+                                                            key={field}
+                                                            onClick={() => handleSort(field)}
+                                                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                                                        >
+                                                            <div className="flex items-center gap-1">
+                                                                {getFieldLabel(field)}
+                                                                {getSortIcon(field)}
+                                                            </div>
+                                                        </th>
+                                                    ))}
+                                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                                                        Actions
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-200">
+                                                {tableData.content.map((row, idx) => (
+                                                    <tr key={(row.id as number) || idx} className="hover:bg-gray-50">
+                                                        {selectedFields.map((field) => (
+                                                            <td key={field} className="px-6 py-4">
+                                                                <span className={getCellClassName(field, row[field])}>
+                                                                    {formatCellValue(row[field])}
+                                                                </span>
+                                                            </td>
+                                                        ))}
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex justify-center gap-2">
+                                                                <PermissionGate permission="PROGRAMMING_LANGUAGE_READ">
+                                                                    <button
+                                                                        onClick={() => openViewModal(row as unknown as ProgrammingLanguage)}
+                                                                        className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                                        title="View details"
+                                                                    >
+                                                                        <Eye className="h-4 w-4" />
+                                                                    </button>
+                                                                </PermissionGate>
+
+                                                                <PermissionGate permission="PROGRAMMING_LANGUAGE_UPDATE">
+                                                                    <button
+                                                                        onClick={() => openUpdateModal(row as unknown as ProgrammingLanguage)}
+                                                                        className="p-1 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
+                                                                        title="Edit"
+                                                                    >
+                                                                        <Edit className="h-4 w-4" />
+                                                                    </button>
+                                                                </PermissionGate>
+
+                                                                <PermissionGate permission="PROGRAMMING_LANGUAGE_DELETE">
+                                                                    <button
+                                                                        onClick={() => openDeleteDialog(row as unknown as ProgrammingLanguage)}
+                                                                        className="p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                                        title="Delete"
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </button>
+                                                                </PermissionGate>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </div>
+
+                                    {/* Pagination */}
+                                    {tableData.totalPages > 1 && (
+                                        <div className="px-6 py-4 border-t border-gray-200 flex justify-between items-center bg-gray-50">
+                                            <span className="text-sm text-gray-600">
+                                                Page {page + 1} of {tableData.totalPages}
+                                            </span>
+                                            <div className="flex gap-1">
+                                                <button
+                                                    onClick={() => setPage(p => p - 1)}
+                                                    disabled={page === 0}
+                                                    className="p-2 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    <ChevronLeft className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setPage(p => p + 1)}
+                                                    disabled={page >= tableData.totalPages - 1}
+                                                    className="p-2 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    <ChevronRight className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="p-8 text-center text-gray-500 text-sm">
+                                    No programming languages found
                                 </div>
                             )}
-                        </>
-                    )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -461,8 +534,18 @@ export const ProgrammingLanguageManagement: React.FC = () => {
                 onClose={() => setShowImportDialog(false)}
                 onImport={handleImport}
                 isPending={importMutation.isPending}
-                importResult={importMutation.data ?? null}
+                importResult={(importMutation.data as ImportResult) ?? null}
+                onSuccess={() => {
+                    loadTableData();
+                }}
+            />
+
+            <ExportModal
+                isOpen={showExportModal}
+                onClose={() => setShowExportModal(false)}
             />
         </MainLayout>
     );
 };
+
+export default ProgrammingLanguageManagement;
