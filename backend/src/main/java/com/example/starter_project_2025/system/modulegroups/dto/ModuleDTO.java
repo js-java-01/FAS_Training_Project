@@ -16,8 +16,6 @@ public class ModuleDTO {
     @NotNull(message = "Module group ID is required")
     private UUID moduleGroupsId;
 
-    private UUID parentId;
-
     @NotBlank(message = "Title is required")
     private String title;
 

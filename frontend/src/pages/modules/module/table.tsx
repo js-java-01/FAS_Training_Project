@@ -61,8 +61,8 @@ export default function ModulesTable() {
 
     return (
         <>
-            <DataTable<MenuItem, unknown>
-                columns={columns as ColumnDef<MenuItem, unknown>[]}
+            <DataTable<Module, unknown>
+                columns={columns as ColumnDef<Module, unknown>[]}
                 data={data}
                 isSearch={true}
                 searchPlaceholder={"module name or description"}

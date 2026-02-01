@@ -1,4 +1,4 @@
-// File: `backend/src/main/java/com/example/starter_project_2025/system/modulegroups/entity/ModuleGroup.java`
+// File: `backend/src/main/java/com/example/starter_project_2025/system/modulegroups/entity/ModuleGroupResponse.java`
 package com.example.starter_project_2025.system.modulegroups.entity;
 
 import jakarta.persistence.*;

@@ -1,21 +1,21 @@
 package com.example.starter_project_2025.system.modulegroups.controller;
 
-import com.example.starter_project_2025.system.modulegroups.dto.ModuleDTO;
+import com.example.starter_project_2025.system.modulegroups.dto.request.CreateModuleRequest;
+import com.example.starter_project_2025.system.modulegroups.dto.request.UpdateModuleRequest;
+import com.example.starter_project_2025.system.modulegroups.dto.response.CreateModuleResponse;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleDetail;
+import com.example.starter_project_2025.system.modulegroups.dto.response.UpdateModuleResponse;
 import com.example.starter_project_2025.system.modulegroups.service.ModuleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,86 +25,47 @@ import java.util.UUID;
 @SecurityRequirement(name = "bearerAuth")
 public class ModuleController {
 
-        private final ModuleService moduleService;
+    private final ModuleService moduleService;
 
-        @GetMapping
-        @Operation(summary = "Get all modules")
-        public ResponseEntity<Page<ModuleDTO>> getAllModules(
-                        @RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "20") int size,
-                        @RequestParam(defaultValue = "displayOrder,asc") String[] sort) {
+    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
+    @GetMapping("/{id}")
+    @Operation(summary = "View module details")
+    public ResponseEntity<ModuleDetail> viewModule(
+            @PathVariable UUID id) {
 
-                Sort.Direction direction = Sort.Direction.fromString(sort[1]);
-                Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
+        return ResponseEntity.ok(
+                moduleService.getModuleDetail(id)
+        );
+    }
 
-                return ResponseEntity.ok(
-                                moduleService.getAllModules(pageable));
-        }
+    @PostMapping
+    @PreAuthorize("hasAuthority('MENU_ITEM_CREATE')")
+    @Operation(summary = "Create module")
+    public ResponseEntity<CreateModuleResponse> createModule(
+            @Valid @RequestBody CreateModuleRequest request) {
 
-        @GetMapping("/group/{moduleGroupId}")
-        @Operation(summary = "Get modules by module group")
-        public ResponseEntity<List<ModuleDTO>> getModulesByGroup(
-                        @PathVariable UUID moduleGroupId) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(moduleService.createModule(request));
+    }
 
-                return ResponseEntity.ok(
-                                moduleService.getModulesByMenu(moduleGroupId));
-        }
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('MENU_ITEM_UPDATE')")
+    public ResponseEntity<UpdateModuleResponse> updateModule(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateModuleRequest request
+    ) {
+        UpdateModuleResponse response = moduleService.updateModule(id, request);
+        return ResponseEntity.ok(response);
+    }
 
-        @GetMapping("/group/{moduleGroupId}/root")
-        @Operation(summary = "Get root modules")
-        public ResponseEntity<List<ModuleDTO>> getRootModules(
-                        @PathVariable UUID moduleGroupId) {
 
-                return ResponseEntity.ok(
-                                moduleService.getRootModules(moduleGroupId));
-        }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @Operation(summary = "Delete module (soft delete)")
+    public ResponseEntity<Void> deleteModule(@PathVariable UUID id) {
+        moduleService.deleteModule(id);
+        return ResponseEntity.noContent().build();
+    }
 
-        @GetMapping("/parent/{parentId}")
-        @Operation(summary = "Get child modules")
-        public ResponseEntity<List<ModuleDTO>> getChildModules(
-                        @PathVariable UUID parentId) {
-
-                return ResponseEntity.ok(
-                                moduleService.getChildModules(parentId));
-        }
-
-        @GetMapping("/{id}")
-        @Operation(summary = "Get module by ID")
-        public ResponseEntity<ModuleDTO> getModuleById(@PathVariable UUID id) {
-                return ResponseEntity.ok(
-                                moduleService.getModuleById(id));
-        }
-
-        @PostMapping
-        @Operation(summary = "Create module")
-        public ResponseEntity<ModuleDTO> createModule(
-                        @Valid @RequestBody ModuleDTO dto) {
-
-                return ResponseEntity.status(HttpStatus.CREATED)
-                                .body(moduleService.createModule(dto));
-        }
-
-        @PutMapping("/{id}")
-        @Operation(summary = "Update module")
-        public ResponseEntity<ModuleDTO> updateModule(
-                        @PathVariable UUID id,
-                        @Valid @RequestBody ModuleDTO dto) {
-
-                return ResponseEntity.ok(
-                                moduleService.updateModule(id, dto));
-        }
-
-        @DeleteMapping("/{id}")
-        @Operation(summary = "Delete module")
-        public ResponseEntity<Void> deleteModule(@PathVariable UUID id) {
-                moduleService.deleteModule(id);
-                return ResponseEntity.noContent().build();
-        }
-
-        @PostMapping("/{id}/toggle-status")
-        @Operation(summary = "Toggle module status")
-        public ResponseEntity<ModuleDTO> toggleModuleStatus(@PathVariable UUID id) {
-                return ResponseEntity.ok(
-                                moduleService.toggleModuleStatus(id));
-        }
 }
