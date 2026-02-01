@@ -6,6 +6,7 @@ import { usePermissions } from "@/hooks/usePermissions"
 import { canAccessUI } from "@/utils/permission.utils"
 import { moduleGroupApi } from "@/api/moduleApi"
 import { iconMap } from "@/constants/iconMap"
+import {mockMenus} from "@/mocks/mockMenus.mock.ts";
 
 /* ------------------------------------------ */
 export function useSidebarMenus() {
@@ -30,7 +31,7 @@ export function useSidebarMenus() {
             .then(setModuleGroups)
             .catch(() => {
                 console.warn("You don't have permission to access modules")
-
+                setModuleGroups(mockMenus)
             })
     }, [])
     console.log("Module Groups:", moduleGroups)

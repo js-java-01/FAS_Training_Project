@@ -124,7 +124,7 @@ export default function ModuleGroupsTable() {
   };
   
   return (
-    <div className="relative space-y-4">
+    <div className="relative space-y-4 h-full flex-1">
       {/* toast */}
       {toast && (
         <div

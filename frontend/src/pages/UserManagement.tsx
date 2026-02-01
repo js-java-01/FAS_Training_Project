@@ -5,7 +5,6 @@ import type { User, CreateUserRequest } from '../types/auth';
 import type { Role } from '../types/role';
 import { PermissionGate } from '../components/PermissionGate';
 import { MainLayout } from '../components/layout/MainLayout.tsx';
-import DynamicBreadcrumbs from "@/components/layout/DynamicBreadcrumbs.tsx";
 
 export const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -80,7 +79,7 @@ export const UserManagement: React.FC = () => {
   }
 
   return (
-      <MainLayout breadcrumb={<DynamicBreadcrumbs pathTitles={{users: "User Management"}}/>}>
+      <MainLayout pathName={{ users: "User Management" }}>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
         <PermissionGate permission="USER_CREATE">
