@@ -26,3 +26,14 @@ export interface UpdateLocationRequest {
   communeId?: string;
   status?: LocationStatus;
 }
+
+export interface LocationImportError {
+  message: string;
+}
+
+export interface LocationImportResult {
+  total: number;
+  success: number;
+  errors: LocationImportError[];
+}
+

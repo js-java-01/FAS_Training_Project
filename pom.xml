@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.3</version> <!-- ✅ use stable version -->
+		<version>3.3.3</version> <!--  use stable version -->
 		<relativePath/>
 	</parent>
 
@@ -83,7 +83,7 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.5.0</version> <!-- ✅ stable for Spring Boot 3.x -->
+			<version>2.5.0</version> <!--  stable for Spring Boot 3.x -->
 		</dependency>
 
 		<!-- Tests -->
@@ -92,6 +92,13 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.5</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

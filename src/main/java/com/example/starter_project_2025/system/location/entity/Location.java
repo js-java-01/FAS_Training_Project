@@ -37,4 +37,5 @@ public class Location {
         if (id == null) id = UUID.randomUUID();
         if (locationStatus == null) locationStatus = LocationStatus.ACTIVE;
     }
+
 }
