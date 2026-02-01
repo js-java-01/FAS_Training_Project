@@ -42,7 +42,6 @@ export interface AuthContextType {
   hasAnyPermission: (permissions: string[]) => boolean;
   hasAllPermissions: (permissions: string[]) => boolean;
   isAuthenticated: boolean;
-  isLoading: boolean;
   setGoogleUser: (user: LoginResponse) => void;
 }
 

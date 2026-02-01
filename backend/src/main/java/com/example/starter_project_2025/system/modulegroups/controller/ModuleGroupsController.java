@@ -52,16 +52,16 @@ public class ModuleGroupsController {
     }
 
 
-    @GetMapping
+    @GetMapping({"/list"})
     @Operation (summary = "Get all module groups")
     @PreAuthorize("hasAuthority('MENU_READ')")
     public ResponseEntity<List<ModuleGroupDetailResponse>> getAllModuleGroups() {
-        return ResponseEntity.ok(
-                moduleGroupsService.getAll()
-        );
+        return ResponseEntity.ok(moduleGroupsService.getAll());
     }
 
+
     @GetMapping("/details")
+    @Operation (summary = "Get all module group details for admin panel/sidebar")
     @PreAuthorize("hasAuthority('MENU_READ')")
     public ResponseEntity<List<ModuleGroupDetailResponse>> getAllModuleGroupDetails() {
         return ResponseEntity.ok(
@@ -88,6 +88,7 @@ public class ModuleGroupsController {
                 moduleGroupsService.getDetailById(id)
         );
     }
+
 
     @PostMapping
     @PreAuthorize("hasAuthority('MENU_CREATE')")

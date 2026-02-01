@@ -11,7 +11,7 @@ export const mockMenus: ModuleGroup[] = [
         displayOrder: 1,
         createdAt: now,
         updatedAt: now,
-        modules: [
+        module: [
             {
                 id: "mi-users",
                 moduleGroupId: "menu-systems",
@@ -135,7 +135,7 @@ export const mockMenus: ModuleGroup[] = [
         displayOrder: 2,
         createdAt: now,
         updatedAt: now,
-        modules: [
+        module: [
             {
                 id: "mi-courses",
                 moduleGroupId: "menu-training",
@@ -175,7 +175,7 @@ export const mockMenus: ModuleGroup[] = [
         displayOrder: 3,
         createdAt: now,
         updatedAt: now,
-        modules: [
+        module: [
             {
                 id: "mi-assessments",
                 moduleGroupId: "menu-assessments",
@@ -201,7 +201,7 @@ export const mockMenus: ModuleGroup[] = [
         displayOrder: 4,
         createdAt: now,
         updatedAt: now,
-        modules: [
+        module: [
             {
                 id: "mi-classes",
                 moduleGroupId: "menu-training-classes",
@@ -227,7 +227,7 @@ export const mockMenus: ModuleGroup[] = [
         displayOrder: 5,
         createdAt: now,
         updatedAt: now,
-        modules: [
+        module: [
             {
                 id: "mi-learning-hub",
                 moduleGroupId: "menu-learning-hub",

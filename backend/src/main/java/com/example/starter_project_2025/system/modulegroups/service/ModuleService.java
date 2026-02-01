@@ -8,11 +8,14 @@ import com.example.starter_project_2025.system.modulegroups.dto.response.UpdateM
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ModuleService {
 
     ModuleDetail getModuleDetail(UUID id);
+
+    List<ModuleDetail> getModulesByGroupId(UUID groupId);
 
     CreateModuleResponse createModule(CreateModuleRequest request);
 
