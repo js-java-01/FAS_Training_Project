@@ -13,7 +13,7 @@ import { RoleManagement } from "./pages/RoleManagement";
 import { UserManagement } from "./pages/UserManagement";
 import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import Register from "./pages/auth/Register";
+
 // import { SidebarProvider } from "./components/ui/sidebar";
 
 function App() {
@@ -37,7 +37,7 @@ function App() {
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route
             path="/dashboard"
             element={

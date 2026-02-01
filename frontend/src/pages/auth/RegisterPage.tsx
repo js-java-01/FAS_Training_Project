@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { authApi } from '@/api/authApi';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { RegisterRequest, VerifyRequest } from '@/types/auth';
 import { RegisterForm } from '@/components/auth/RegisterForm';
 import { VerifyForm } from '@/components/auth/OTPForm';
@@ -53,6 +53,9 @@ export default function RegisterPage() {
                         onBack={() => setIsVerifyStep(false)}
                     />
                 )}
+                <div className='text-center mb-6'>
+                    Forgot Password? <Link to="/forgot-password" className="text-blue-600 hover:underline">Reset here</Link>
+                </div>
             </div>
         </div>
     );
