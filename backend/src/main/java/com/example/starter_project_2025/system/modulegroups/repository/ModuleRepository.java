@@ -21,20 +21,18 @@ public interface ModuleRepository extends JpaRepository<Module, UUID> {
     List<Module> findByIsActive(Boolean isActive);
 
     @Query("""
-        SELECT m FROM Module m
-        WHERE
-            (
-                :keyword IS NULL
-                OR LOWER(m.title) LIKE :keyword
-                OR LOWER(m.url) LIKE :keyword
-            )
-        AND (:isActive IS NULL OR m.isActive = :isActive)
-        AND (:moduleGroupId IS NULL OR m.moduleGroup.id = :moduleGroupId)
-    """)
+    SELECT m
+    FROM Module m
+    WHERE (:keyword IS NULL OR
+          LOWER(m.title) LIKE :keyword OR
+          LOWER(m.url) LIKE :keyword)
+      AND (:moduleGroupId IS NULL OR m.moduleGroup.id = :moduleGroupId)
+      AND (:isActive IS NULL OR m.isActive = :isActive)
+""")
     Page<Module> search(
             @Param("keyword") String keyword,
-            @Param("isActive") Boolean isActive,
             @Param("moduleGroupId") UUID moduleGroupId,
+            @Param("isActive") Boolean isActive,
             Pageable pageable
     );
 }
