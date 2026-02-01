@@ -2,6 +2,7 @@ package com.example.starter_project_2025.system.assessment.controller;
 
 import com.example.starter_project_2025.system.assessment.dto.AssessmentDTO;
 import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentRequest;
+import com.example.starter_project_2025.system.assessment.dto.ImportResultDTO;
 import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.service.AssessmentService;
 import jakarta.validation.Valid;
@@ -72,17 +73,16 @@ public class AssessmentController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate toDate,
 
-            @PageableDefault(size = 10, sort = "createdAt")
+            @PageableDefault(size = 20, sort = "createdAt")
             Pageable pageable
     ) {
         return ResponseEntity.ok(assessService.search(name, keyword, fromDate, toDate, pageable)
         );
     }
 
-    @PostMapping(value = "/import",consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<List<AssessmentDTO>> importAssessments(
-            @RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ImportResultDTO> importAssessments(@RequestParam("file") MultipartFile file) {
+
         return ResponseEntity.ok(assessService.importAssessments(file));
     }
 

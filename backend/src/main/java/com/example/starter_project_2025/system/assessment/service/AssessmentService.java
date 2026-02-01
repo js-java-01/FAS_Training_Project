@@ -1,17 +1,13 @@
 package com.example.starter_project_2025.system.assessment.service;
 
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
-import com.example.starter_project_2025.system.assessment.dto.AssessmentDTO;
-import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentRequest;
-import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRequest;
+import com.example.starter_project_2025.system.assessment.dto.*;
 import com.example.starter_project_2025.system.assessment.entity.Assessment;
 import com.example.starter_project_2025.system.assessment.mapper.AssessmentMapper;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
 import com.example.starter_project_2025.system.assessment.spec.AssessmentSpecification;
 import jakarta.transaction.Transactional;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -46,7 +42,6 @@ public class AssessmentService {
         return assessmentMapper.toDto(assessment);
     }
 
-    // ==================== CREATE ====================
     @PreAuthorize("hasAuthority('ASSESSMENT_CREATE')")
     public AssessmentDTO create(CreateAssessmentRequest request) {
 
@@ -58,7 +53,6 @@ public class AssessmentService {
         return assessmentMapper.toDto(assessRepo.save(assessment));
     }
 
-    // ==================== UPDATE ====================
     @PreAuthorize("hasAuthority('ASSESSMENT_UPDATE')")
     public AssessmentDTO update(String id, UpdateAssessmentRequest request) {
 
@@ -68,7 +62,6 @@ public class AssessmentService {
         return assessmentMapper.toDto(assessRepo.save(assessment));
     }
 
-    // ==================== DELETE ====================
     @PreAuthorize("hasAuthority('ASSESSMENT_DELETE')")
     public void delete(String id) {
 
@@ -77,7 +70,6 @@ public class AssessmentService {
         assessRepo.delete(assessment);
     }
 
-    // ==================== SEARCH + PAGINATION ====================
     @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
     public Page<AssessmentDTO> search(String name, String keyword, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
         Specification<Assessment> spec = Specification.where(AssessmentSpecification.nameContains(name)).and(AssessmentSpecification.keyword(keyword))
@@ -87,74 +79,71 @@ public class AssessmentService {
         return assessRepo.findAll(spec, pageable).map(assessmentMapper::toDto);
     }
 
-    @PreAuthorize("hasAuthority('ASSESSMENT_CREATE')")
     @Transactional
-    public List<AssessmentDTO> importAssessments(MultipartFile file) {
+    @PreAuthorize("hasAuthority('ASSESSMENT_CREATE')")
+    public ImportResultDTO importAssessments(MultipartFile file) {
+
         if (file.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
         }
 
-        String fileName = file.getOriginalFilename();
-        List<Assessment> assessmentsImported = new ArrayList<>();
+        List<Assessment> toSave = new ArrayList<>();
+        List<ImportErrorDTO> errors = new ArrayList<>();
 
-        try {
-            if (fileName != null && (fileName.endsWith(".xlsx") || fileName.endsWith(".xls"))) {
-                try (InputStream is = file.getInputStream();
-                        Workbook workbook = new XSSFWorkbook(is)) {
-                    Sheet sheet = workbook.getSheetAt(0);
-                    boolean isHeader = true;
-                    for (Row row : sheet) {
-                        if (isHeader) {
-                            isHeader = false;
-                            continue;
-                        }
-                        String name = row.getCell(0) != null ? row.getCell(0).toString().trim() : "";
-                        String description = row.getCell(1) != null ? row.getCell(1).toString().trim() : null;
+        int totalRows = 0;
 
-                        if (!name.isEmpty() && !assessRepo.existsByName(name)) {
-                            Assessment a = new Assessment();
-                            a.setName(name);
-                            a.setDescription(description);
-                            assessmentsImported.add(a);
-                        }
-                    }
-                }
-            } else {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-                    String line;
-                    boolean isHeader = true;
-                    while ((line = reader.readLine()) != null) {
-                        if (isHeader) {
-                            isHeader = false;
-                            continue;
-                        }
-                        String[] columns = line.split(",");
-                        if (columns.length < 1)
-                            continue;
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
 
-                        String name = columns[0].trim();
-                        String description = columns.length > 1 ? columns[1].trim() : null;
+            Sheet sheet = workbook.getSheetAt(0);
 
-                        if (!name.isEmpty() && !assessRepo.existsByName(name)) {
-                            Assessment a = new Assessment();
-                            a.setName(name);
-                            a.setDescription(description);
-                            assessmentsImported.add(a);
-                        }
-                    }
-                }
+            Row header = sheet.getRow(0);
+            if (header == null
+                    || !"Name".equalsIgnoreCase(header.getCell(0).getStringCellValue().trim())
+                    || !"Description".equalsIgnoreCase(header.getCell(1).getStringCellValue().trim())) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Invalid template format"
+                );
             }
 
-            if (assessmentsImported.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No new valid assessments found to import");
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                totalRows++;
+                Row row = sheet.getRow(i);
+
+                if (row == null) continue;
+
+                String name = getCellValue(row.getCell(0));
+                String description = getCellValue(row.getCell(1));
+
+                if (name.isBlank()) {
+                    errors.add(new ImportErrorDTO(i + 1, "Name is required"));
+                    continue;
+                }
+
+                if (assessRepo.existsByName(name)) {
+                    errors.add(new ImportErrorDTO(i + 1, "Name already exists"));
+                    continue;
+                }
+
+                Assessment a = new Assessment();
+                a.setName(name);
+                a.setDescription(description);
+
+                toSave.add(a);
             }
 
-            List<Assessment> saved = assessRepo.saveAll(assessmentsImported);
-            return assessmentMapper.toDto(saved);
+            assessRepo.saveAll(toSave);
 
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error reading file: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot read file");
         }
+
+        return new ImportResultDTO(
+                totalRows,
+                toSave.size(),
+                errors.size(),
+                errors
+        );
     }
 
     @PreAuthorize("hasAnyAuthority('ASSESSMENT_READ')")
@@ -184,6 +173,12 @@ public class AssessmentService {
         workbook.close();
 
         return new ByteArrayInputStream(out.toByteArray());
+    }
+
+    private String getCellValue(Cell cell) {
+        if (cell == null) return "";
+        cell.setCellType(CellType.STRING);
+        return cell.getStringCellValue().trim();
     }
 
 }
