@@ -94,7 +94,7 @@ export const ModuleGroupForm: React.FC<{
         const res = await moduleGroupApi.updateModuleGroup(initial.id, {
           name: data.name,
           description: data.description,
-          displayOrder: data.displayOrder,
+          totalModules: data.displayOrder,
           isActive: data.isActive,
         });
         saved = res; 
@@ -113,7 +113,7 @@ export const ModuleGroupForm: React.FC<{
         id: saved.id,
         name: saved.name,
         description: saved.description,
-        displayOrder: saved.displayOrder,
+        displayOrder: saved.totalModules,
         isActive: saved.isActive,
       };
 

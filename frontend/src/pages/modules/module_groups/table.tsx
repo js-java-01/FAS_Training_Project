@@ -2,10 +2,7 @@ import { DataTable } from "@/components/data_table/DataTable";
 import { getColumns } from "@/pages/modules/module_groups/column";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ComponentType, SVGProps, ReactNode } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
-import { useNavigate } from "react-router-dom";
 import type {ColumnDef, SortingState} from "@tanstack/react-table";
-import { encodeBase64 } from "@/utils/base64.utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -68,7 +65,6 @@ const DetailRow = ({
 );
 
 export default function ModuleGroupsTable() {
-  const navigate = useNavigate();
   const [data, setData] = useState<ModuleGroup[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -156,7 +152,7 @@ export default function ModuleGroupsTable() {
             id: group.id,
             name: group.name,
             description: group.description ?? "",
-            displayOrder: group.displayOrder,
+            displayOrder: group.totalModules,
             isActive: group.isActive,
           });
           setOpenForm(true);
@@ -176,7 +172,7 @@ export default function ModuleGroupsTable() {
         await moduleGroupApi.updateModuleGroup(saved.id, {
           name: saved.name,
           description: saved.description,
-          displayOrder: saved.displayOrder,
+          totalModules: saved.displayOrder,
           isActive: saved.isActive,
         });
         showToast("Updated successfully");
@@ -288,7 +284,7 @@ export default function ModuleGroupsTable() {
               <DetailRow icon={Network} label="Module Group Name" value={viewingGroup?.name} />
               <DetailRow icon={FileText} label="Description" value={viewingGroup?.description} />
               <div className="grid grid-cols-2 gap-5">
-                <DetailRow icon={Layers} label="Display Order" value={viewingGroup?.displayOrder} />
+                <DetailRow icon={Layers} label="Display Order" value={viewingGroup?.totalModules} />
                 <DetailRow icon={ToggleLeft} label="Status" value={viewingGroup?.isActive} isBadge />
               </div>
             </div>

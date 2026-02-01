@@ -85,43 +85,48 @@ export const getColumns = (actions?: TableActions) => {
             cell: (info) => (
                 <span className="block text-center">
           {info.getValue()}
-        </div>
+        </span>
       ),
       meta: { title: "Display Order" },
     }),
 
-        /* ================= STATUS ================= */
+        /* ================= STATUS (Xanh lá) ================= */
         columnHelper.accessor("isActive", {
-            id: "isActive",
-            header: ({ column }) => (
-                <FilterHeader
-                    column={column}
-                    title="Status"
-                    selectedValue={column.getFilterValue() as string}
-                    onFilterChange={(value) => column.setFilterValue(value || undefined)}
-                />
-            ),
-            size: 120,
-            cell: (info) => (
-                <Badge
-                    variant={info.getValue() ? "outline" : "destructive"}
-                >
-          {info.getValue() ? "ACTIVE" : "INACTIVE"}
-        </Badge>
-            ),
-            meta: {
-                filterOptions: ["ACTIVE", "INACTIVE"],
-                labelOptions: {
-                    ACTIVE: "Active",
-                    INACTIVE: "Inactive",
-                },
-                title: "Status",
+        id: "isActive",
+        header: ({ column }) => (
+            <FilterHeader
+            column={column}
+            title="Status"
+            selectedValue={column.getFilterValue() as string}
+            onFilterChange={(value) => column.setFilterValue(value || undefined)}
+            />
+        ),
+        size: 120,
+        cell: (info) => (
+            <Badge
+            className={
+                info.getValue()
+                ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none" // Style xanh lá
+                : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none" // Style đỏ (hoặc giữ variant="destructive")
+            }
+            >
+            {info.getValue() ? "ACTIVE" : "INACTIVE"}
+            </Badge>
+        ),
+        meta: {
+            filterOptions: ["ACTIVE", "INACTIVE"],
+            labelOptions: {
+            ACTIVE: "Active",
+            INACTIVE: "Inactive",
             },
-            filterFn: (row, columnId, filterValue) => {
-                if (!filterValue) return true;
-                return row.getValue(columnId) === filterValue;
-            },
-            enableSorting: false,
+            title: "Status",
+        },
+        filterFn: (row, columnId, filterValue) => {
+            if (!filterValue) return true;
+            const cellValue = row.getValue(columnId) ? "ACTIVE" : "INACTIVE";
+            return cellValue === filterValue;
+        },
+        enableSorting: false,
         }),
 
         /* ================= CREATED AT ================= */
