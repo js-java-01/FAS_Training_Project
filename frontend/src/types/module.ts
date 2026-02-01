@@ -23,7 +23,7 @@ export interface ModuleGroup {
     name: string;
     description?: string;
     isActive: boolean;
-    totalModules: number;
+    displayOrder: number;
     modules: Module[];
     createdAt: string;
     updatedAt: string;

@@ -79,7 +79,7 @@ export const getColumns = (actions?: TableActions) => {
     }),
 
         /* ================= DISPLAY ORDER ================= */
-        columnHelper.accessor("totalModules", {
+        columnHelper.accessor("displayOrder", {
             header: (info) => <SortHeader title="Total Modules" info={info} />,
             size: 80,
             cell: (info) => (

@@ -5,24 +5,24 @@ import type {
     CreateModuleGroupRequest,
     CreateModuleRequest,
 } from '../types/module';
+import type {PageResponse} from "@/types/pagination.ts";
 
 /* =========================
    MODULE GROUP API
 ========================= */
 
 export const moduleGroupApi = {
-    getAllModuleGroups: async (
-        page = 0,
-        size = 20,
-        sort = 'displayOrder,asc'
-    ) => {
-        const response = await axiosInstance.get<{
-            content: ModuleGroup[];
-            totalElements: number;
-            totalPages: number;
-        }>(`/module-groups?page=${page}&size=${size}&sort=${sort}`);
-
-        return response.data;
+    getAllModuleGroups: async (params: {
+        page: number;
+        size: number;
+        sort: string;
+        keyword?: string;
+    }) => {
+        const res = await axiosInstance.get<PageResponse<ModuleGroup>>(
+            "/module-groups",
+            { params }
+        );
+        return res.data;
     },
 
     getAllModuleGroupsList: async (): Promise<ModuleGroup[]> => {

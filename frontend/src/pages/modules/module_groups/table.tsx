@@ -31,6 +31,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {useGetAllModuleGroups} from "@/pages/modules/module_groups/queries";
+import { useDebounce } from "@uidotdev/usehooks";
 
 // --- Component DetailRow ---
 const DetailRow = ({
@@ -152,7 +154,7 @@ export default function ModuleGroupsTable() {
             id: group.id,
             name: group.name,
             description: group.description ?? "",
-            displayOrder: group.totalModules,
+            displayOrder: group.displayOrder,
             isActive: group.isActive,
           });
           setOpenForm(true);
@@ -172,7 +174,7 @@ export default function ModuleGroupsTable() {
         await moduleGroupApi.updateModuleGroup(saved.id, {
           name: saved.name,
           description: saved.description,
-          totalModules: saved.displayOrder,
+          displayOrder : saved.displayOrder,
           isActive: saved.isActive,
         });
         showToast("Updated successfully");
@@ -209,8 +211,40 @@ export default function ModuleGroupsTable() {
       setDeleting(null);
     }
   };
+    /* ================= TABLE DATA FETCHING ================= */
+  const sortParam = useMemo(() => {
+    if (!sorting || sorting.length === 0) {
+      return "displayOrder,asc"; // default sort
+    }
 
-  console.log("Rendering ModuleGroupsTable", data);
+    const { id, desc } = sorting[0];
+    return `${id},${desc ? "desc" : "asc"}`;
+  }, [sorting]);
+
+  const [pageIndex, setPageIndex] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchValue, setSearchValue] = useState("");
+  const debouncedSearch = useDebounce(searchValue, 300);
+  const {
+    data: tableData,
+    isLoading,
+    isFetching
+  } = useGetAllModuleGroups({
+    page: pageIndex,
+    pageSize,
+    sort: sortParam,
+    keyword: debouncedSearch,
+  });
+
+  const safeTableData = useMemo(() => {
+    return tableData ?? {
+      content: [],
+      number: 0,
+      size: pageSize,
+      totalPages: 1,
+      totalElements: 0,
+    };
+  }, [tableData, pageSize]);
 
   return (
     <div className="relative space-y-4 h-full flex-1">
@@ -224,14 +258,22 @@ export default function ModuleGroupsTable() {
       {/* Main Table */}
       <DataTable<ModuleGroup, unknown>
         columns={columns as ColumnDef<ModuleGroup, unknown>[]}
-        data={data}
+        data={safeTableData.content}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        manualPagination
+        pageIndex={safeTableData.number ?? 1}
+        pageSize={safeTableData.size ?? 10}
+        totalPage={safeTableData.totalPages ?? 1}
+        onPageChange={(newPage) => setPageIndex(newPage)}
+        onPageSizeChange={setPageSize}
         isSearch
-        isLoading={loading}
+        manualSearch
         searchPlaceholder={"module group name"}
-        searchValue={["name"]}
+        onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}
-        manualSorting={false}
+        manualSorting
         headerActions={
           <Button
             onClick={() => {
@@ -284,7 +326,7 @@ export default function ModuleGroupsTable() {
               <DetailRow icon={Network} label="Module Group Name" value={viewingGroup?.name} />
               <DetailRow icon={FileText} label="Description" value={viewingGroup?.description} />
               <div className="grid grid-cols-2 gap-5">
-                <DetailRow icon={Layers} label="Display Order" value={viewingGroup?.totalModules} />
+                <DetailRow icon={Layers} label="Display Order" value={viewingGroup?.displayOrder} />
                 <DetailRow icon={ToggleLeft} label="Status" value={viewingGroup?.isActive} isBadge />
               </div>
             </div>

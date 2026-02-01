@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import { Role, CreateRoleRequest, UpdateRoleRequest } from '../types/role';
+import type { Role, CreateRoleRequest, UpdateRoleRequest } from '../types/role';
 
 export const roleApi = {
   getAllRoles: async (page = 0, size = 20, sort = 'name,asc') => {
