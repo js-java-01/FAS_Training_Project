@@ -21,5 +21,7 @@ public interface ModuleGroupsService {
     List<ModuleGroupDetailResponse> getAll();
 
     List<ModuleGroupDetailResponse> getAllDetails(); // sidebar (with modules)
+    List<ModuleGroupDetailResponse> getActiveGroupsWithActiveModules();
+
 
 }
