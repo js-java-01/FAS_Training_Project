@@ -29,14 +29,6 @@ public class Module {
     @JoinColumn(name = "module_group_id", nullable = false)
     private ModuleGroups moduleGroup;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private Module parent;
-
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SUBSELECT)
-    private List<Module> children = new ArrayList<>();
-
     @Column(nullable = false, length = 100)
     private String title;
 

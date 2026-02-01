@@ -2,19 +2,20 @@ package com.example.starter_project_2025.system.modulegroups.service;
 
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
-import com.example.starter_project_2025.system.modulegroups.dto.ModuleGroupsDTO;
+import com.example.starter_project_2025.system.modulegroups.dto.request.CreateModuleGroup;
+import com.example.starter_project_2025.system.modulegroups.dto.request.UpdateModuleGroup;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleGroupDetailResponse;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleGroupResponse;
 import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
+import com.example.starter_project_2025.system.modulegroups.mapper.ModuleGroupMapper;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,118 +23,110 @@ import java.util.stream.Collectors;
 public class ModuleGroupServiceImpl implements ModuleGroupsService {
 
     private final ModuleGroupsRepository moduleGroupsRepository;
+    private final ModuleGroupMapper moduleGroupMapper;
 
     @Override
-    @PreAuthorize("hasAuthority('MENU_READ')")
-    public Page<ModuleGroupsDTO> getAll(Pageable pageable) {
-        return moduleGroupsRepository.findAll(pageable)
-                .map(this::toDTO);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('MENU_READ')")
-    public List<ModuleGroupsDTO> getAllList() {
+    public List<ModuleGroupDetailResponse> getAll() {
         return moduleGroupsRepository.findAllByOrderByDisplayOrderAsc()
                 .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+                .map(g -> moduleGroupMapper.toResponse(g, false))
+                .toList();
     }
 
+
     @Override
-    public List<ModuleGroupsDTO> getActive() {
-        return moduleGroupsRepository.findActiveModuleGroupsWithModules()
+    public List<ModuleGroupDetailResponse> getAllDetails() {
+        return moduleGroupsRepository.findAllByOrderByDisplayOrderAsc()
                 .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+                .map(g -> moduleGroupMapper.toResponse(g, true))
+                .toList();
     }
 
+
     @Override
-    @PreAuthorize("hasAuthority('MENU_READ')")
-    public ModuleGroupsDTO getById(UUID id) {
+    public ModuleGroupDetailResponse getDetailById(UUID id) {
+
         ModuleGroups group = moduleGroupsRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ModuleGroup", "id", id));
-        return toDTO(group);
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("ModuleGroupResponse", "id", id)
+                );
+
+        return moduleGroupMapper.toResponse(group, true);
     }
 
     @Override
-    @PreAuthorize("hasAuthority('MENU_CREATE')")
-    public ModuleGroupsDTO create(ModuleGroupsDTO dto) {
-        if (moduleGroupsRepository.existsByName(dto.getName())) {
-            throw new BadRequestException("Module group name already exists: " + dto.getName());
-        }
-        if (dto.getName() == null || dto.getName().trim().isEmpty()) {
-            throw new BadRequestException("Module group name is required");
+    public ModuleGroupResponse create(CreateModuleGroup req) {
+
+        if (moduleGroupsRepository.existsByName(req.getName())) {
+            throw new BadRequestException(
+                    "Module group name already exists: " + req.getName()
+            );
         }
 
-        ModuleGroups group = new ModuleGroups();
-        group.setName(dto.getName());
-        group.setDescription(dto.getDescription());
-        group.setDisplayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : 0);
-        group.setIsActive(true);
+        ModuleGroups entity = new ModuleGroups();
+        entity.setName(req.getName());
+        entity.setDescription(req.getDescription());
+        entity.setDisplayOrder(
+                req.getDisplayOrder() != null ? req.getDisplayOrder() : 0
+        );
+        entity.setIsActive(
+                req.getIsActive() != null ? req.getIsActive() : true
+        );
 
-        return toDTO(moduleGroupsRepository.save(group));
+        ModuleGroups saved = moduleGroupsRepository.save(entity);
+
+        return moduleGroupMapper.toResponse(saved);
     }
 
     @Override
-    @PreAuthorize("hasAuthority('MENU_UPDATE')")
-    public ModuleGroupsDTO update(UUID id, ModuleGroupsDTO dto) {
+    public ModuleGroupDetailResponse update(UUID id, UpdateModuleGroup req) {
+
         ModuleGroups group = moduleGroupsRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ModuleGroup", "id", id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("ModuleGroupResponse", "id", id)
+                );
 
-        if (dto.getName() != null && !dto.getName().equals(group.getName())) {
-            if (moduleGroupsRepository.existsByName(dto.getName())) {
-                throw new BadRequestException("Module group name already exists: " + dto.getName());
-            }
-            group.setName(dto.getName());
+        if (!group.getName().equals(req.getName())
+                && moduleGroupsRepository.existsByName(req.getName())) {
+            throw new BadRequestException(
+                    "Module group name already exists: " + req.getName()
+            );
         }
 
-        if (dto.getDescription() != null) {
-            group.setDescription(dto.getDescription());
-        }
+        group.setName(req.getName());
+        group.setDescription(req.getDescription());
+        group.setDisplayOrder(
+                req.getDisplayOrder() != null ? req.getDisplayOrder() : group.getDisplayOrder()
+        );
+        group.setIsActive(
+                req.getIsActive() != null ? req.getIsActive() : group.getIsActive()
+        );
 
-        if (dto.getDisplayOrder() != null) {
-            group.setDisplayOrder(dto.getDisplayOrder());
-        }
+        ModuleGroups saved = moduleGroupsRepository.save(group);
 
-        return toDTO(moduleGroupsRepository.save(group));
+        return moduleGroupMapper.toDetailResponse(saved);
     }
 
+
     @Override
+    @Transactional
     @PreAuthorize("hasAuthority('MENU_DELETE')")
     public void delete(UUID id) {
 
         ModuleGroups group = moduleGroupsRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ModuleGroup", "id", id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("ModuleGroup", "id", id));
 
-        if (group.getModules() != null && !group.getModules().isEmpty()) {
-            throw new BadRequestException(
-                    "Cannot delete module group because it still contains modules");
+        if (Boolean.FALSE.equals(group.getIsActive())) {
+            throw new BadRequestException("Module group is already inactive");
         }
 
-        moduleGroupsRepository.delete(group);
+        if (group.getModules() != null) {
+            group.getModules().forEach(module -> module.setIsActive(false));
+        }
+        group.setIsActive(false);
+
+        moduleGroupsRepository.save(group);
     }
 
-    @Override
-    @PreAuthorize("hasAuthority('MENU_UPDATE')")
-    public ModuleGroupsDTO toggleStatus(UUID id) {
-        ModuleGroups group = moduleGroupsRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ModuleGroup", "id", id));
-        group.setIsActive(!group.getIsActive());
-        return toDTO(moduleGroupsRepository.save(group));
-    }
-
-    private ModuleGroupsDTO toDTO(ModuleGroups group) {
-        ModuleGroupsDTO dto = new ModuleGroupsDTO();
-        dto.setId(group.getId());
-        dto.setName(group.getName());
-        dto.setDescription(group.getDescription());
-        dto.setDisplayOrder(group.getDisplayOrder());
-        dto.setTotalModules(
-                group.getModules() != null ? group.getModules().size() : 0);
-        dto.setIsActive(group.getIsActive());
-        dto.setCreatedAt(group.getCreatedAt());
-        dto.setUpdatedAt(group.getUpdatedAt());
-
-        return dto;
-    }
 }

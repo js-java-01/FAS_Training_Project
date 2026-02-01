@@ -140,7 +140,7 @@ public class DataInitializer implements CommandLineRunner {
         mainGroup.setDisplayOrder(1);
         mainGroup = moduleGroupsRepository.save(mainGroup);
 
-        Module dashboard = createModule(mainGroup, null, "Dashboard", "/dashboard", "dashboard", 1, null);
+        Module dashboard = createModule(mainGroup, "Dashboard", "/dashboard", "dashboard", 1, null);
         moduleRepository.save(dashboard);
 
         ModuleGroups adminGroup = new ModuleGroups();
@@ -150,20 +150,19 @@ public class DataInitializer implements CommandLineRunner {
         adminGroup.setDisplayOrder(2);
         adminGroup = moduleGroupsRepository.save(adminGroup);
 
-        Module userManagement = createModule(adminGroup, null, "User Management", "/users", "people", 1,
+        Module userManagement = createModule(adminGroup, "User Management", "/users", "people", 1,
                 "USER_READ");
-        Module roleManagement = createModule(adminGroup, null, "Role Management", "/roles", "security", 2,
+        Module roleManagement = createModule(adminGroup,  "Role Management", "/roles", "security", 2,
                 "ROLE_READ");
         moduleRepository.saveAll(Arrays.asList(userManagement, roleManagement));
 
         log.info("Initialized 2 module groups with modules");
     }
 
-    private Module createModule(ModuleGroups moduleGroup, Module parent, String title, String url, String icon, int order,
+    private Module createModule(ModuleGroups moduleGroup, String title, String url, String icon, int order,
                                 String permission) {
         Module m = new Module();
         m.setModuleGroup(moduleGroup);
-        m.setParent(parent);
         m.setTitle(title);
         m.setUrl(url);
         m.setIcon(icon);
