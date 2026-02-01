@@ -5,7 +5,6 @@ import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Login } from "./pages/auth/Login";
 import { Unauthorized } from "./pages/Unauthorized";
 import RegisterPage from "./pages/auth/RegisterPage";
-import ModuleDetail from "./pages/modules/module/ModuleDetail";
 import ModulesManagement from "./pages/modules/module/ModulesManagement";
 import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -72,7 +71,6 @@ function App() {
             }
           />
           <Route path="/modules" element={<ModulesManagement />} />
-          <Route path="/modules/:id" element={<ModuleDetail />} />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
