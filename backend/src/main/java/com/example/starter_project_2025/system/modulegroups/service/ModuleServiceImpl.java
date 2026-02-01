@@ -32,6 +32,22 @@ public class ModuleServiceImpl implements ModuleService {
     private final ModuleGroupsRepository moduleGroupsRepository;
     private final ModuleMapper moduleMapper;
 
+    @Override
+    public Page<ModuleDetail> searchModules(
+            String keyword,
+            Boolean isActive,
+            UUID moduleGroupId,
+            Pageable pageable
+    ) {
+        Page<Module> page = moduleRepository.search(
+                keyword,
+                isActive,
+                moduleGroupId,
+                pageable
+        );
+
+        return page.map(moduleMapper::toDetailResponse);
+    }
 
 
     @Override
@@ -89,6 +105,20 @@ public class ModuleServiceImpl implements ModuleService {
         moduleRepository.save(module);
 
         return moduleMapper.toUpdateResponse(module);
+    }
+
+    @Override
+    public List<ModuleDetail> getModulesByGroupId(UUID groupId) {
+        // Optional: Verify if the group exists
+        if (!moduleGroupsRepository.existsById(groupId)) {
+            throw new ResourceNotFoundException("ModuleGroup", "id", groupId);
+        }
+
+        // Use the existing repository method to find modules by group ID
+        return moduleRepository.findByModuleGroupIdOrderByDisplayOrderAsc(groupId)
+                .stream()
+                .map(moduleMapper::toDetailResponse) // Convert Entity to DTO
+                .toList();
     }
 
     @Transactional

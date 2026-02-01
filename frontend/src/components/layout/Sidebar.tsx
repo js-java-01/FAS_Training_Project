@@ -21,9 +21,11 @@ export function SidebarMenu() {
 
       {/* Content */}
       <SidebarContent>
-        {navGroups.map((group) => (
-          <NavMain key={group.id} title={group.name} items={group.items} />
-        ))}
+        {navGroups.map((group) =>
+          group ? (
+            <NavMain key={group.id} title={group.name} items={group.items} />
+          ) : null
+        )}
       </SidebarContent>
 
       {/* Footer */}

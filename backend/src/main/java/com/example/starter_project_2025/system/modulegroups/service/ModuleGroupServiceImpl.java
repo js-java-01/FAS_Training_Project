@@ -10,7 +10,8 @@ import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
 import com.example.starter_project_2025.system.modulegroups.mapper.ModuleGroupMapper;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,23 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
 
     private final ModuleGroupsRepository moduleGroupsRepository;
     private final ModuleGroupMapper moduleGroupMapper;
+
+
+    @Override
+    public Page<ModuleGroupDetailResponse> searchModuleGroups(
+            String keyword,
+            Boolean isActive,
+            Pageable pageable
+    ) {
+        String kw = keyword == null
+                ? null
+                : "%" + keyword.toLowerCase() + "%";
+
+        Page<ModuleGroups> page =
+                moduleGroupsRepository.search(kw, isActive, pageable);
+
+        return page.map(moduleGroupMapper::toDetailResponse);
+    }
 
     @Override
     public List<ModuleGroupDetailResponse> getAll() {

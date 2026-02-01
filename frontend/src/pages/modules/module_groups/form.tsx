@@ -1,8 +1,30 @@
-import React, { useState, useEffect } from "react";
-import { Modal } from "@/components/ui/modal";
+import React, { useEffect, useState } from "react";
+import { useForm, type Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { moduleGroupApi } from "@/api/moduleApi";
-import { motion } from "framer-motion";
-import { easeOut } from "framer-motion";
+
+// Zod Schema
+const formSchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters" })
+    .nonempty({ message: "Name is required" }),
+  description: z.string().optional(),
+  displayOrder: z.coerce.number().min(0, { message: "Order must be >= 0" }),
+  isActive: z.boolean().default(true),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export type ModuleGroupDto = {
   id?: string;
@@ -18,85 +40,84 @@ export const ModuleGroupForm: React.FC<{
   initial?: ModuleGroupDto | null;
   onSaved?: (saved: ModuleGroupDto) => void;
 }> = ({ open, onClose, initial = null, onSaved }) => {
-  const [form, setForm] = useState<ModuleGroupDto>({
-    name: "",
-    description: "",
-    displayOrder: 1,
-    isActive: true,
-  });
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [serverError, setServerError] = useState<string | null>(null);
 
+  // Setup React Hook Form với Zod Resolver
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema) as Resolver<FormValues>,
+    defaultValues: {
+      name: "",
+      description: "",
+      displayOrder: 1,
+      isActive: true,
+    },
+  });
+
+  // Reset form khi mở modal hoặc thay đổi dữ liệu initial (Edit mode)
   useEffect(() => {
-    if (initial) {
-      setForm({
-        id: initial.id,
-        name: initial.name || "",
-        description: initial.description || "",
-        displayOrder: initial.displayOrder ?? 1,
-        isActive: initial.isActive ?? true,
-      });
-    } else {
-      setForm({
-        name: "",
-        description: "",
-        displayOrder: 1,
-        isActive: true,
-      });
+    if (open) {
+      setServerError(null);
+      if (initial) {
+        reset({
+          name: initial.name || "",
+          description: initial.description || "",
+          displayOrder: initial.displayOrder ?? 1,
+          isActive: initial.isActive ?? true,
+        });
+      } else {
+        reset({
+          name: "",
+          description: "",
+          displayOrder: 1,
+          isActive: true, 
+        });
+      }
     }
-    setErrors({});
-  }, [initial, open]);
+  }, [initial, open, reset]);
 
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!form.name || form.name.trim().length < 2)
-      e.name = "Name must be at least 2 characters";
-    if (form.displayOrder !== undefined && form.displayOrder < 0)
-      e.displayOrder = "Order must be >= 0";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleSave = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!validate()) return;
-
+  // Submit
+  const onSubmit = async (data: FormValues) => {
     setSaving(true);
+    setServerError(null);
+
     try {
       let saved;
-
-      if (form.id) {
-        const res = await moduleGroupApi.updateModuleGroup(form.id, {
-          name: form.name,
-          description: form.description,
-          displayOrder: form.displayOrder,
-          isActive: form.isActive,
+      if (initial?.id) {
+        // Update
+        const res = await moduleGroupApi.updateModuleGroup(initial.id, {
+          name: data.name,
+          description: data.description,
+          totalModules: data.displayOrder,
+          isActive: data.isActive,
         });
-
-        saved = {
-          id: res.id,
-          name: res.name,
-          description: res.description,
-          displayOrder: res.displayOrder,
-          isActive: res.isActive,
-        };
+        saved = res; 
       } else {
+        // Create
         const res = await moduleGroupApi.createModuleGroup({
-          name: form.name,
-          description: form.description,
-          displayOrder: form.displayOrder,
+          name: data.name,
+          description: data.description,
+          displayOrder: data.displayOrder,
         });
-
-        saved = {
-          id: res.id,
-          name: res.name,
-          description: res.description,
-          displayOrder: res.displayOrder,
-          isActive: res.isActive,
-        };
+        saved = res;
       }
 
-      onSaved?.(saved);
+      // Mapping 
+      const mappedSaved: ModuleGroupDto = {
+        id: saved.id,
+        name: saved.name,
+        description: saved.description,
+        displayOrder: saved.totalModules,
+        isActive: saved.isActive,
+      };
+
+      onSaved?.(mappedSaved);
       onClose();
     } catch (err: unknown) {
       console.error("Save error", err);
@@ -104,145 +125,128 @@ export const ModuleGroupForm: React.FC<{
         (err as { body?: { message?: string }; message?: string })?.body
           ?.message ||
         (err as { message?: string })?.message ||
-        "Error saving";
-      setErrors({ form: msg });
+        "Error saving data";
+      setServerError(msg);
     } finally {
       setSaving(false);
     }
   };
 
-  // animation form
-  const contentVariants = {
-    hidden: { opacity: 0, y: 8 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.2, ease: easeOut },
-    },
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) onClose();
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={form.id ? "Edit Module Group" : "Add Module Group"}
-      size="md"
-    >
-      <motion.form
-        onSubmit={handleSave}
-        className="space-y-6"
-        initial="hidden"
-        animate="visible"
-        exit="hidden"
-        variants={contentVariants}
-      >
-        {errors.form && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
-            {errors.form}
-          </div>
-        )}
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <DialogHeader>
+            <DialogTitle>
+              {initial?.id ? "Edit Module Group" : "Add Module Group"}
+            </DialogTitle>
+            <DialogDescription>
+              {initial?.id
+                ? "Make changes to your module group here."
+                : "Fill in the details to create a new module group."}
+            </DialogDescription>
+          </DialogHeader>
 
-        {/* Name */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">Name</label>
-          <input
-            value={form.name}
-            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-            className="w-full px-3 py-2 border rounded-md outline-none
-                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                       transition"
-            placeholder="Enter module group name"
-          />
-          {errors.name && (
-            <p className="text-xs text-red-600">{errors.name}</p>
-          )}
-        </div>
-
-        {/* Description */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">
-            Description
-          </label>
-          <textarea
-            rows={3}
-            value={form.description}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, description: e.target.value }))
-            }
-            className="w-full px-3 py-2 border rounded-md outline-none
-                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                       transition resize-none"
-            placeholder="Short description..."
-          />
-        </div>
-
-        {/* Order + Status */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Order</label>
-            <input
-              type="number"
-              value={form.displayOrder}
-              onChange={(e) =>
-                setForm((p) => ({
-                  ...p,
-                  displayOrder: Number(e.target.value),
-                }))
-              }
-              className="w-full px-3 py-2 border rounded-md outline-none
-                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                         transition"
-            />
-            {errors.displayOrder && (
-              <p className="text-xs text-red-600">{errors.displayOrder}</p>
+          <div className="grid gap-4 py-4">
+            {serverError && (
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+                {serverError}
+              </div>
             )}
-          </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">
-              Status
-            </label>
-            <select
-              value={form.isActive ? "active" : "inactive"}
-              onChange={(e) =>
-                setForm((p) => ({
-                  ...p,
-                  isActive: e.target.value === "active",
-                }))
-              }
-              className="w-full px-3 py-2 border rounded-md outline-none
+            {/* Name */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Name</label>
+              <input
+                {...register("name")} 
+                className={`w-full px-3 py-2 border rounded-md outline-none transition
+                  ${errors.name 
+                    ? "border-red-500 focus:ring-red-200" 
+                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
+                placeholder="Enter module group name"
+              />
+              {errors.name && (
+                <p className="text-xs text-red-600">{errors.name.message}</p>
+              )}
+            </div>
+
+            {/* Description */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">
+                Description
+              </label>
+              <textarea
+                {...register("description")}
+                rows={3}
+                className="w-full px-3 py-2 border rounded-md outline-none
                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                         transition bg-white"
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+                         transition resize-none"
+                placeholder="Short description..."
+              />
+            </div>
+
+            {/* Order + Status */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className={initial?.id ? "col-span-1 space-y-1" : "col-span-2 space-y-1"}>
+                <label className="text-sm font-medium text-gray-700">Order</label>
+                <input
+                  type="number"
+                  {...register("displayOrder")}
+                  className={`w-full px-3 py-2 border rounded-md outline-none transition
+                    ${errors.displayOrder 
+                      ? "border-red-500 focus:ring-red-200" 
+                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
+                />
+                {errors.displayOrder && (
+                  <p className="text-xs text-red-600">
+                    {errors.displayOrder.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Chỉ hiện Status khi Edit */}
+              {initial?.id && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-700">
+                    Status
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md outline-none
+                             focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                             transition bg-white"
+                    defaultValue={initial.isActive ? "active" : "inactive"}
+                    onChange={(e) => {
+                      // Cập nhật giá trị boolean vào form
+                      setValue("isActive", e.target.value === "active");
+                    }}
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Actions */}
-        <div className="flex justify-end gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-md border bg-white
-                       hover:bg-gray-100 transition"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-5 py-2 rounded-md text-white font-medium
-                       bg-blue-600 hover:bg-blue-700
-                       disabled:opacity-60 disabled:cursor-not-allowed
-                       transition active:scale-95"
-          >
-            {saving ? "Saving..." : form.id ? "Save changes" : "Create"}
-          </button>
-        </div>
-      </motion.form>
-    </Modal>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving..." : initial?.id ? "Save changes" : "Create"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -12,6 +12,8 @@ public class ModuleGroupDetailResponse {
     private UUID id;
     private String name;
     private String description;
+    private Boolean isActive;
+    private Integer displayOrder;
     private Integer totalModules;
     private List<ModuleDetail> modules;
     private LocalDateTime createdAt;

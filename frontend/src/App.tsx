@@ -7,7 +7,6 @@ import { Unauthorized } from "./pages/Unauthorized";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ModuleDetail from "./pages/modules/module/ModuleDetail";
 import ModulesManagement from "./pages/modules/module/ModulesManagement";
-import ModuleGroupDetail from "./pages/modules/module_groups/ModuleGroupDetail";
 import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { RoleManagement } from "./pages/RoleManagement";
@@ -72,7 +71,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/moduleGroups/:id" element={<ModuleGroupDetail />} />
           <Route path="/modules" element={<ModulesManagement />} />
           <Route path="/modules/:id" element={<ModuleDetail />} />
 
