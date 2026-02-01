@@ -32,6 +32,22 @@ public class ModuleServiceImpl implements ModuleService {
     private final ModuleGroupsRepository moduleGroupsRepository;
     private final ModuleMapper moduleMapper;
 
+    @Override
+    public Page<ModuleDetail> searchModules(
+            String keyword,
+            Boolean isActive,
+            UUID moduleGroupId,
+            Pageable pageable
+    ) {
+        Page<Module> page = moduleRepository.search(
+                keyword,
+                isActive,
+                moduleGroupId,
+                pageable
+        );
+
+        return page.map(moduleMapper::toDetailResponse);
+    }
 
 
     @Override

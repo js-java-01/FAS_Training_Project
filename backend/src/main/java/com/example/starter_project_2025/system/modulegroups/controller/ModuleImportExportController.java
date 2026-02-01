@@ -1,8 +1,7 @@
 package com.example.starter_project_2025.system.modulegroups.controller;
 
 import com.example.starter_project_2025.system.modulegroups.dto.response.ImportResultResponse;
-import com.example.starter_project_2025.system.modulegroups.service.ModuleGroupImportExportService;
-import io.swagger.v3.oas.annotations.Operation;
+import com.example.starter_project_2025.system.modulegroups.service.ModuleImportExportService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -12,35 +11,28 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/module-groups")
+@RequestMapping("/api/modules")
 @RequiredArgsConstructor
-@Tag(name = "Module Group Import/Export")
+@Tag(name = "Module Import/Export")
 @SecurityRequirement(name = "bearerAuth")
+public class ModuleImportExportController {
 
-public class ModuleGroupImportExportController {
-
-    private final ModuleGroupImportExportService service;
+    private final ModuleImportExportService service;
 
     @GetMapping("/template")
-    @Operation(summary = "Download module group import template")
     public ResponseEntity<byte[]> downloadTemplate() {
         return service.downloadTemplate();
     }
 
-    @PostMapping(
-            value = "/import",
-            consumes = "multipart/form-data"
-    )
-    @Operation(summary = "Import module groups from Excel")
-    public ResponseEntity<ImportResultResponse> importModuleGroups(
+    @PostMapping("/import")
+    public ResponseEntity<ImportResultResponse> importModules(
             @RequestParam("file") MultipartFile file
     ) {
         return ResponseEntity.ok(service.importExcel(file));
     }
 
     @GetMapping("/export")
-    @Operation(summary = "Export module groups to Excel")
-    public ResponseEntity<byte[]> exportModuleGroups() {
+    public ResponseEntity<byte[]> exportModules() {
         return service.exportExcel();
     }
 }
