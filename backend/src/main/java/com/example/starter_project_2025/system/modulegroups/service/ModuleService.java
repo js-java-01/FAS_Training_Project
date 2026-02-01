@@ -1,29 +1,22 @@
 package com.example.starter_project_2025.system.modulegroups.service;
 
-import com.example.starter_project_2025.system.modulegroups.dto.ModuleDTO;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.example.starter_project_2025.system.modulegroups.dto.request.CreateModuleRequest;
+import com.example.starter_project_2025.system.modulegroups.dto.request.UpdateModuleRequest;
+import com.example.starter_project_2025.system.modulegroups.dto.response.CreateModuleResponse;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleDetail;
+import com.example.starter_project_2025.system.modulegroups.dto.response.UpdateModuleResponse;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface ModuleService {
 
-    Page<ModuleDTO> getAllModules(Pageable pageable);
+    ModuleDetail getModuleDetail(UUID id);
 
-    List<ModuleDTO> getModulesByMenu(UUID menuId);
+    CreateModuleResponse createModule(CreateModuleRequest request);
 
-    List<ModuleDTO> getRootModules(UUID menuId);
-
-    List<ModuleDTO> getChildModules(UUID parentId);
-
-    ModuleDTO getModuleById(UUID id);
-
-    ModuleDTO createModule(ModuleDTO dto);
-
-    ModuleDTO updateModule(UUID id, ModuleDTO dto);
+    UpdateModuleResponse updateModule(UUID id, UpdateModuleRequest req);
 
     void deleteModule(UUID id);
 
-    ModuleDTO toggleModuleStatus(UUID id);
+
 }

@@ -14,21 +14,8 @@ public interface ModuleRepository extends JpaRepository<Module, UUID> {
 
     List<Module> findByModuleGroupIdOrderByDisplayOrderAsc(UUID moduleGroupId);
 
-    List<Module> findByParentIdOrderByDisplayOrderAsc(UUID parentId);
-
-    List<Module> findByIsActive(Boolean isActive);
-
-    @Query("""
-                SELECT m
-                FROM Module m
-                WHERE m.moduleGroup.id = :moduleGroupId
-                  AND m.parent IS NULL
-                ORDER BY m.displayOrder
-            """)
-    List<Module> findRootModulesByModuleGroupId(
-            @Param("moduleGroupId") UUID moduleGroupId
-    );
-
     boolean existsByModuleGroupIdAndTitle(UUID moduleGroupId, String title);
 
+    List<Module> findByIsActive(Boolean isActive);
 }
+

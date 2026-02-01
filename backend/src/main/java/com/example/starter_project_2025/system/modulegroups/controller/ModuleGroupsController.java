@@ -1,17 +1,18 @@
 package com.example.starter_project_2025.system.modulegroups.controller;
 
-import com.example.starter_project_2025.system.modulegroups.dto.ModuleGroupsDTO;
+import com.example.starter_project_2025.system.modulegroups.dto.request.CreateModuleGroup;
+import com.example.starter_project_2025.system.modulegroups.dto.request.UpdateModuleGroup;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleGroupDetailResponse;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleGroupResponse;
 import com.example.starter_project_2025.system.modulegroups.service.ModuleGroupsService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,57 +28,70 @@ public class ModuleGroupsController {
     private final ModuleGroupsService moduleGroupsService;
 
     @GetMapping
-    public ResponseEntity<Page<ModuleGroupsDTO>> getAllModuleGroups(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "displayOrder,asc") String[] sort) {
-
-        Sort.Direction direction = Sort.Direction.fromString(sort[1]);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
-
-        return ResponseEntity.ok(moduleGroupsService.getAll(pageable));
+    @Operation (summary = "Get all module groups for admin panel")
+    @PreAuthorize("hasAuthority('MENU_READ')")
+    public ResponseEntity<List<ModuleGroupDetailResponse>> getAllModuleGroups() {
+        return ResponseEntity.ok(moduleGroupsService.getAll());
     }
 
-    @GetMapping("/list")
-    public ResponseEntity<List<ModuleGroupsDTO>> getAllModuleGroupsList() {
-        return ResponseEntity.ok(moduleGroupsService.getAllList());
+
+    @GetMapping("/details")
+    @Operation (summary = "Get all module group details for admin panel/sidebar")
+    @PreAuthorize("hasAuthority('MENU_READ')")
+    public ResponseEntity<List<ModuleGroupDetailResponse>> getAllModuleGroupDetails() {
+        return ResponseEntity.ok(moduleGroupsService.getAllDetails());
     }
 
-    @GetMapping("/active")
-    public ResponseEntity<List<ModuleGroupsDTO>> getActiveModuleGroups() {
-        return ResponseEntity.ok(moduleGroupsService.getActive());
-    }
+//    @GetMapping("/active")
+//    public ResponseEntity<List<ModuleGroupsDTO>> getActiveModuleGroups() {
+//        return ResponseEntity.ok(moduleGroupsService.getActive());
+//    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ModuleGroupsDTO> getModuleGroupById(@PathVariable UUID id) {
-        return ResponseEntity.ok(moduleGroupsService.getById(id));
+    @Operation (summary = "View module group details by ID")
+    @PreAuthorize("hasAuthority('MENU_READ')")
+    public ResponseEntity<ModuleGroupDetailResponse> viewModuleGroup(
+            @PathVariable UUID id) {
+
+        return ResponseEntity.ok(
+                moduleGroupsService.getDetailById(id)
+        );
     }
 
+
     @PostMapping
-    public ResponseEntity<ModuleGroupsDTO> createModuleGroup(
-            @Valid @RequestBody ModuleGroupsDTO dto) {
+    @PreAuthorize("hasAuthority('MENU_CREATE')")
+    public ResponseEntity<ModuleGroupResponse> createModuleGroup(
+            @Valid @RequestBody CreateModuleGroup request) {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(moduleGroupsService.create(dto));
+                .body(moduleGroupsService.create(request));
     }
+
 
     @PutMapping("/{id}")
-    public ResponseEntity<ModuleGroupsDTO> updateModuleGroup(
+    @PreAuthorize("hasAuthority('MENU_UPDATE')")
+    public ResponseEntity<ModuleGroupDetailResponse> updateModuleGroup(
             @PathVariable UUID id,
-            @Valid @RequestBody ModuleGroupsDTO dto) {
+            @Valid @RequestBody UpdateModuleGroup request) {
 
-        return ResponseEntity.ok(moduleGroupsService.update(id, dto));
+        return ResponseEntity.ok(
+                moduleGroupsService.update(id, request)
+        );
     }
+
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('MENU_DELETE')")
     public ResponseEntity<Void> deleteModuleGroup(@PathVariable UUID id) {
+
         moduleGroupsService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build(); // 204
     }
 
-    @PostMapping("/{id}/toggle-status")
-    public ResponseEntity<ModuleGroupsDTO> toggleModuleGroupStatus(@PathVariable UUID id) {
-        return ResponseEntity.ok(moduleGroupsService.toggleStatus(id));
-    }
+//    @PostMapping("/{id}/toggle-status")
+//    public ResponseEntity<ModuleGroupsDTO> toggleModuleGroupStatus(@PathVariable UUID id) {
+//        return ResponseEntity.ok(moduleGroupsService.toggleStatus(id));
+//    }
 }
