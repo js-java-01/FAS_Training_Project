@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { programmingLanguageApi } from '../api/programmingLanguageApi';
-import { toast } from '../lib/toast';
+import { useToast } from './use-toast';
 import type { SearchParams } from '../types/programmingLanguage';
 
 // Query keys for cache management
@@ -21,6 +21,7 @@ export const useProgrammingLanguagesQuery = (params: SearchParams) => {
 // Mutations hook - handles all server mutations
 export const useProgrammingLanguageMutations = () => {
     const queryClient = useQueryClient();
+    const { toast } = useToast();
 
     const invalidate = () => {
         queryClient.invalidateQueries({ queryKey: programmingLanguageKeys.lists() });
@@ -30,10 +31,18 @@ export const useProgrammingLanguageMutations = () => {
         mutationFn: programmingLanguageApi.create,
         onSuccess: () => {
             invalidate();
-            toast.success('Programming language created successfully!');
+            toast({
+                variant: "success",
+                title: "Success",
+                description: "Programming language created successfully!",
+            });
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Error creating programming language');
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.response?.data?.message || 'Error creating programming language',
+            });
         },
     });
 
@@ -41,10 +50,18 @@ export const useProgrammingLanguageMutations = () => {
         mutationFn: ({ id, data }: { id: number; data: any }) => programmingLanguageApi.update(id, data),
         onSuccess: () => {
             invalidate();
-            toast.success('Programming language updated successfully!');
+            toast({
+                variant: "success",
+                title: "Success",
+                description: "Programming language updated successfully!",
+            });
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Error updating programming language');
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.response?.data?.message || 'Error updating programming language',
+            });
         },
     });
 
@@ -52,21 +69,37 @@ export const useProgrammingLanguageMutations = () => {
         mutationFn: programmingLanguageApi.delete,
         onSuccess: () => {
             invalidate();
-            toast.success('Programming language deleted successfully!');
+            toast({
+                variant: "success",
+                title: "Success",
+                description: "Programming language deleted successfully!",
+            });
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Error deleting programming language');
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.response?.data?.message || 'Error deleting programming language',
+            });
         },
     });
 
     const importMutation = useMutation({
         mutationFn: programmingLanguageApi.import,
-        onSuccess: (result) => {
+        onSuccess: () => {
             invalidate();
-            toast.success(`Import completed: ${result.successCount} successful, ${result.failureCount} failed`);
+            // Toast messages are now handled by the ImportLanguageDialog component
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Error importing programming languages');
+            // Only show toast for network/server errors, not validation errors
+            const errorMessage = error.response?.data?.message;
+            if (!errorMessage || !errorMessage.includes('Missing required column')) {
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: errorMessage || 'Error importing programming languages',
+                });
+            }
         },
     });
 
@@ -74,24 +107,40 @@ export const useProgrammingLanguageMutations = () => {
 };
 
 // Export utilities (not mutations - just download helpers)
-export const downloadExport = async () => {
+export const downloadExport = async (toast: any) => {
     try {
         const blob = await programmingLanguageApi.export();
         const today = new Date().toISOString().split('T')[0];
         downloadBlob(blob, `programming-languages-${today}.xlsx`);
-        toast.success('Programming languages exported successfully!');
+        toast({
+            variant: "success",
+            title: "Success",
+            description: "Programming languages exported successfully!",
+        });
     } catch (error: any) {
-        toast.error(error.response?.data?.message || 'Error exporting programming languages');
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: error.response?.data?.message || 'Error exporting programming languages',
+        });
     }
 };
 
-export const downloadTemplate = async () => {
+export const downloadTemplate = async (toast: any) => {
     try {
         const blob = await programmingLanguageApi.downloadTemplate();
         downloadBlob(blob, 'programming-languages-template.xlsx');
-        toast.success('Template downloaded successfully!');
+        toast({
+            variant: "success",
+            title: "Success",
+            description: "Template downloaded successfully!",
+        });
     } catch (error: any) {
-        toast.error(error.response?.data?.message || 'Error downloading template');
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: error.response?.data?.message || 'Error downloading template',
+        });
     }
 };
 

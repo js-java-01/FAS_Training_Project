@@ -1,5 +1,10 @@
 import axiosInstance from './axiosInstance';
-import { type ProgrammingLanguage, type ProgrammingLanguageRequest } from '../types/programmingLanguage';
+import { 
+  type ProgrammingLanguage, 
+  type ProgrammingLanguageRequest,
+  type ExportRequest,
+  type ExportPreviewResponse 
+} from '../types/programmingLanguage';
 
 export const programmingLanguageApi = {
   getAll: async (params?: {
@@ -84,6 +89,29 @@ export const programmingLanguageApi = {
 
   downloadTemplate: async (): Promise<Blob> => {
     const response = await axiosInstance.get('/programming-languages/import-template', {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+
+  // ==================== Export Preview & Download ====================
+
+  /**
+   * Get paginated preview data for export.
+   */
+  getExportPreview: async (request: ExportRequest): Promise<ExportPreviewResponse> => {
+    const response = await axiosInstance.post<ExportPreviewResponse>(
+      '/programming-languages/export/preview',
+      request
+    );
+    return response.data;
+  },
+
+  /**
+   * Download export file with selected fields and format.
+   */
+  downloadExport: async (request: ExportRequest): Promise<Blob> => {
+    const response = await axiosInstance.post('/programming-languages/export', request, {
       responseType: 'blob'
     });
     return response.data;
