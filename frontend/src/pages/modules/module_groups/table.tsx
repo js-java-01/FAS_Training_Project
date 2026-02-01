@@ -5,14 +5,59 @@ import { toast } from "sonner";
 
 import { DataTable } from "@/components/data_table/DataTable";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Plus,
+  Package,
+  Network,
+  FileText,
+  Layers,
+  ToggleLeft,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Box
+} from "lucide-react";
+import type { ModuleGroup, Module } from "@/types/module";
+import { moduleGroupApi, moduleApi } from "@/api/moduleApi";
+
+import { ModuleGroupForm } from "./form";
+import type { ModuleGroupDto } from "./form";
 import ConfirmDialog from "@/components/ui/confirmdialog";
+import {useGetAllModuleGroups} from "@/pages/modules/module_groups/queries";
+import { useDebounce } from "@uidotdev/usehooks";
 
-import { moduleGroupApi } from "@/api/moduleApi";
-import type { ModuleGroup } from "@/types/module";
-
-import { getColumns } from "@/pages/modules/module_groups/column";
-import { ModuleGroupForm, type ModuleGroupDto } from "./form";
-import { ModuleGroupDetailDialog } from "./DetailDialog"; 
+// --- Component DetailRow ---
+const DetailRow = ({
+  icon: Icon,
+  label,
+  value,
+  isBadge = false,
+}: {
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
+  label: string;
+  value?: ReactNode;
+  isBadge?: boolean;
+}) => (
+  <div className="space-y-1.5">
+    <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
+      <Icon className="w-4 h-4 text-gray-500" /> {label}
+    </label>
+    <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 min-h-[42px] flex items-center">
+      {isBadge ? (
+        value ? (
+          <Badge className="bg-green-100 text-green-700 border-green-200 shadow-none hover:bg-green-200">
+            Active
+          </Badge>
+        ) : (
+          <Badge variant="destructive">Inactive</Badge>
+        )
+      ) : (
+        value || <span className="text-gray-400 italic">No data</span>
+      )}
+    </div>
+  </div>
+);
 
 export default function ModuleGroupsTable() {
   const [data, setData] = useState<ModuleGroup[]>([]);
@@ -22,6 +67,7 @@ export default function ModuleGroupsTable() {
   const [openForm, setOpenForm] = useState(false);
   const [editing, setEditing] = useState<ModuleGroupDto | null>(null);
   const [deleting, setDeleting] = useState<ModuleGroup | null>(null);
+
   const [viewingGroup, setViewingGroup] = useState<ModuleGroup | null>(null);
 
   /* ---------- load / reload ---------- */
@@ -54,7 +100,7 @@ export default function ModuleGroupsTable() {
             id: group.id,
             name: group.name,
             description: group.description ?? "",
-            displayOrder: group.totalModules,
+            displayOrder: group.displayOrder,
             isActive: group.isActive,
           });
           setOpenForm(true);
@@ -74,7 +120,7 @@ export default function ModuleGroupsTable() {
         await moduleGroupApi.updateModuleGroup(saved.id, {
           name: saved.name,
           description: saved.description,
-          totalModules: saved.displayOrder,
+          displayOrder : saved.displayOrder,
           isActive: saved.isActive,
         });
         toast.success("Updated successfully");
@@ -111,20 +157,62 @@ export default function ModuleGroupsTable() {
       setDeleting(null);
     }
   };
+    /* ================= TABLE DATA FETCHING ================= */
+  const sortParam = useMemo(() => {
+    if (!sorting || sorting.length === 0) {
+      return "displayOrder,asc"; // default sort
+    }
+
+    const { id, desc } = sorting[0];
+    return `${id},${desc ? "desc" : "asc"}`;
+  }, [sorting]);
+
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchValue, setSearchValue] = useState("");
+  const debouncedSearch = useDebounce(searchValue, 300);
+  const {
+    data: tableData,
+    isLoading,
+    isFetching
+  } = useGetAllModuleGroups({
+    page: pageIndex,
+    pageSize,
+    sort: sortParam,
+    keyword: debouncedSearch,
+  });
+
+  const safeTableData = useMemo(() => {
+    return {
+      items: tableData?.items ?? [],
+      page: tableData?.pagination?.page ?? pageIndex + 1,
+      pageSize: tableData?.pagination?.pageSize ?? pageSize,
+      totalPages: tableData?.pagination?.totalPages ?? 0,
+      totalElements: tableData?.pagination?.totalElements ?? 0,
+    };
+  }, [tableData, pageIndex, pageSize]);
 
   return (
     <div className="relative space-y-4 h-full flex-1">
       {/* Main Table */}
       <DataTable<ModuleGroup, unknown>
-        columns={columns as ColumnDef<ModuleGroup, unknown>[]}
-        data={data}
-        isSearch
-        isLoading={loading}
-        searchPlaceholder={"module group name"}
-        searchValue={["name"]}
-        sorting={sorting}
-        onSortingChange={setSorting}
-        manualSorting={false}
+          columns={columns as ColumnDef<ModuleGroup, unknown>[]}
+          data={safeTableData.items}
+          isLoading={isLoading}
+          isFetching={isFetching}
+          manualPagination
+          pageIndex={safeTableData.page - 1}
+          pageSize={safeTableData.pageSize}
+          totalPage={safeTableData.totalPages}
+          onPageChange={(page) => setPageIndex(page)}
+          onPageSizeChange={setPageSize}
+          isSearch
+          manualSearch
+          searchPlaceholder="module group name"
+          onSearchChange={setSearchValue}
+          sorting={sorting}
+          onSortingChange={setSorting}
+          manualSorting
         headerActions={
           <Button
             onClick={() => {
