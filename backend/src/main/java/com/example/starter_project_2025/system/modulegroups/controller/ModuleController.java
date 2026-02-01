@@ -70,7 +70,7 @@ public class ModuleController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('MENU_ITEM_DELETE')") // <--- Sửa thành dấu gạch dưới (_)
     @Operation(summary = "Delete module (soft delete)")
     public ResponseEntity<Void> deleteModule(@PathVariable UUID id) {
         moduleService.deleteModule(id);
