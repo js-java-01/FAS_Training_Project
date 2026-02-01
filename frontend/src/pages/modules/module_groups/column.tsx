@@ -4,6 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { EditIcon, EyeIcon, Trash } from "lucide-react";
+import dayjs from "dayjs";
+import SortHeader from "@/components/data_table/SortHeader.tsx";
+import FilterHeader from "@/components/data_table/FilterHeader.tsx";
 
 export type TableActions = {
     onView?: (row: ModuleGroup) => void;
@@ -59,7 +62,7 @@ export const getColumns = (
 
         /* ================= NAME ================= */
         columnHelper.accessor("name", {
-            header: "Name",
+            header: (info) => <SortHeader title="Name" info={info} />,
             size: 200,
             cell: (info) => (
                 <span className="font-medium">{info.getValue()}</span>
@@ -71,7 +74,7 @@ export const getColumns = (
 
         /* ================= DESCRIPTION ================= */
         columnHelper.accessor("description", {
-            header: "Description",
+            header: (info) => <SortHeader title="Description" info={info} />,
             size: 300,
             cell: (info) => (
                 <span className="text-muted-foreground line-clamp-2">
@@ -84,8 +87,8 @@ export const getColumns = (
         }),
 
         /* ================= DISPLAY ORDER ================= */
-        columnHelper.accessor("displayOrder", {
-            header: "Order",
+        columnHelper.accessor("totalModules", {
+            header: (info) => <SortHeader title="Total Modules" info={info} />,
             size: 80,
             cell: (info) => (
                 <span className="block text-center">
@@ -99,26 +102,45 @@ export const getColumns = (
 
         /* ================= STATUS ================= */
         columnHelper.accessor("isActive", {
-            header: "Status",
-            size: 100,
-            cell: (info) =>
-                info.getValue() ? (
-                    <Badge variant="outline">Active</Badge>
-                ) : (
-                    <Badge variant="destructive">Inactive</Badge>
-                ),
+            id: "isActive",
+            header: ({ column }) => (
+                <FilterHeader
+                    column={column}
+                    title="Status"
+                    selectedValue={column.getFilterValue() as string}
+                    onFilterChange={(value) => column.setFilterValue(value || undefined)}
+                />
+            ),
+            size: 120,
+            cell: (info) => (
+                <Badge
+                    variant={info.getValue() ? "outline" : "destructive"}
+                >
+          {info.getValue() ? "ACTIVE" : "INACTIVE"}
+        </Badge>
+            ),
             meta: {
+                filterOptions: ["ACTIVE", "INACTIVE"],
+                labelOptions: {
+                    ACTIVE: "Active",
+                    INACTIVE: "Inactive",
+                },
                 title: "Status",
-            }
+            },
+            filterFn: (row, columnId, filterValue) => {
+                if (!filterValue) return true;
+                return row.getValue(columnId) === filterValue;
+            },
+            enableSorting: false,
         }),
 
         /* ================= CREATED AT ================= */
         columnHelper.accessor("createdAt", {
-            header: "Created At",
+            header: (info) => <SortHeader title="Created At" info={info} />,
             size: 160,
             cell: (info) =>
-                new Date(info.getValue()).toLocaleDateString(),
-        meta: {
+                dayjs(info.getValue()).format("HH:mm DD-MM-YYYY"),
+            meta: {
                 title: "Created At",
             }
         }),

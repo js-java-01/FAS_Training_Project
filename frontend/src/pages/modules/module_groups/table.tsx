@@ -2,7 +2,7 @@ import { DataTable } from "@/components/data_table/DataTable";
 import { getColumns } from "@/pages/modules/module_groups/column";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { ColumnDef } from "@tanstack/react-table";
+import type {ColumnDef, SortingState} from "@tanstack/react-table";
 import { encodeBase64 } from "@/utils/base64.utils";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -16,7 +16,6 @@ import ConfirmDialog from "@/components/ui/confirmdialog";
 
 export default function ModuleGroupsTable() {
   const navigate = useNavigate();
-
   const [data, setData] = useState<ModuleGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [openForm, setOpenForm] = useState(false);
@@ -28,6 +27,7 @@ export default function ModuleGroupsTable() {
     const t = setTimeout(() => setToast(null), 2000);
     return () => clearTimeout(t);
   }, []);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   /* ---------- load / reload ---------- */
   const reload = useCallback(async () => {
@@ -65,7 +65,7 @@ export default function ModuleGroupsTable() {
             id: group.id,
             name: group.name,
             description: group.description ?? "",
-            displayOrder: group.displayOrder,
+            displayOrder: group.totalModules,
             isActive: group.isActive,
           });
           setOpenForm(true);
@@ -85,7 +85,7 @@ export default function ModuleGroupsTable() {
         await moduleGroupApi.updateModuleGroup(saved.id, {
           name: saved.name,
           description: saved.description,
-          displayOrder: saved.displayOrder,
+          totalModules: saved.displayOrder,
           isActive: saved.isActive,
         });
         showToast("Updated");
@@ -122,6 +122,8 @@ export default function ModuleGroupsTable() {
       setDeleting(null);
     }
   };
+
+  console.log("Rendering ModuleGroupsTable", data);
   
   return (
     <div className="relative space-y-4 h-full flex-1">
@@ -138,9 +140,13 @@ export default function ModuleGroupsTable() {
       <DataTable<ModuleGroup, unknown>
         columns={columns as ColumnDef<ModuleGroup, unknown>[]}
         data={data}
-        isSearch={true}
+        isSearch
         isLoading={loading}
-        searchPlaceholder={"module group name or description"}
+        searchPlaceholder={"module group name"}
+        searchValue={["name"]}
+        sorting={sorting}
+        onSortingChange={setSorting}
+        manualSorting={false}
         headerActions={
           <Button
             onClick={() => {

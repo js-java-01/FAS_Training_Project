@@ -1,5 +1,4 @@
 import { MainLayout } from "@/components/layout/MainLayout";
-import DynamicBreadcrumbs from "@/components/layout/DynamicBreadcrumbs";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { b64DecodeUnicode } from "@/utils/base64.utils";
@@ -64,8 +63,8 @@ export default function ModuleGroupDetail() {
         moduleGroup?.description ?? "Không đủ dữ liệu để xác minh";
 
     const order =
-        typeof moduleGroup?.displayOrder === "number"
-            ? moduleGroup.displayOrder
+        typeof moduleGroup?.totalModules === "number"
+            ? moduleGroup.totalModules
             : "Không đủ dữ liệu để xác minh";
 
     const status =
@@ -82,14 +81,10 @@ export default function ModuleGroupDetail() {
 
     return (
         <MainLayout
-            breadcrumb={
-                <DynamicBreadcrumbs
-                    pathTitles={{
-                        moduleGroups: "Module Groups",
-                        ...(moduleGroup && id ? { [id]: moduleGroup.name } : {}),
-                    }}
-                />
-            }
+            pathName={{
+                moduleGroups: "Module Groups",
+                ...(moduleGroup && id ? { [id]: moduleGroup.name } : {}),
+            }}
         >
             <div className="grid grid-cols-1 gap-4">
                 {/* Header */}

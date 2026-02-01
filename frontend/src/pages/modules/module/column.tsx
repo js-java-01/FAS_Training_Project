@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import {EditIcon, EyeIcon, Trash} from "lucide-react";
 import {iconMap} from "@/constants/iconMap.ts";
+import dayjs from "dayjs";
 
 export type TableActions = {
     onView?: (row: Module) => void;
@@ -113,7 +114,7 @@ export const getColumns = (
             header: "Created At",
             size: 160,
             cell: (info) =>
-                new Date(info.getValue()).toLocaleDateString(),
+                dayjs(info.getValue()).format("YYYY-MM-DD HH:mm"),
             meta: {
                 title: "Created At",
             }

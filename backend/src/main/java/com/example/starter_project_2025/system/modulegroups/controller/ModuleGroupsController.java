@@ -42,10 +42,16 @@ public class ModuleGroupsController {
         return ResponseEntity.ok(moduleGroupsService.getAllDetails());
     }
 
-//    @GetMapping("/active")
-//    public ResponseEntity<List<ModuleGroupsDTO>> getActiveModuleGroups() {
-//        return ResponseEntity.ok(moduleGroupsService.getActive());
-//    }
+    @GetMapping("/active")
+    @Operation(summary = "Get active module groups with active modules (for sidebar)")
+    @PreAuthorize("hasAuthority('MENU_READ')")
+    public ResponseEntity<List<ModuleGroupDetailResponse>> getActiveModuleGroups() {
+
+        return ResponseEntity.ok(
+                moduleGroupsService.getActiveGroupsWithActiveModules()
+        );
+    }
+
 
     @GetMapping("/{id}")
     @Operation (summary = "View module group details by ID")

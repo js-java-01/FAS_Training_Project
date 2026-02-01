@@ -23,8 +23,8 @@ export interface ModuleGroup {
     name: string;
     description?: string;
     isActive: boolean;
-    displayOrder: number;
-    module: Module[];
+    totalModules: number;
+    modules: Module[];
     createdAt: string;
     updatedAt: string;
 }

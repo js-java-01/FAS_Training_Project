@@ -2,7 +2,6 @@ package com.example.starter_project_2025.system.modulegroups.service;
 
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
-import com.example.starter_project_2025.system.modulegroups.dto.ModuleDTO;
 import com.example.starter_project_2025.system.modulegroups.dto.request.CreateModuleRequest;
 import com.example.starter_project_2025.system.modulegroups.dto.request.UpdateModuleRequest;
 import com.example.starter_project_2025.system.modulegroups.dto.response.CreateModuleResponse;
@@ -33,39 +32,7 @@ public class ModuleServiceImpl implements ModuleService {
     private final ModuleGroupsRepository moduleGroupsRepository;
     private final ModuleMapper moduleMapper;
 
-//    @Override
-//    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
-//    public Page<ModuleDTO> getAllModules(Pageable pageable) {
-//        return moduleRepository.findAll(pageable)
-//                .map(this::convertToDTO);
-//    }
 
-//    @Override
-//    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
-//    public List<ModuleDTO> getModulesByMenu(UUID menuId) {
-//        return moduleRepository.findByModuleGroupIdOrderByDisplayOrderAsc(menuId)
-//                .stream()
-//                .map(this::convertToDTO)
-//                .collect(Collectors.toList());
-//    }
-
-//    @Override
-//    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
-//    public List<ModuleDTO> getRootModules(UUID menuId) {
-//        return moduleRepository.findRootModulesByModuleGroupId(menuId)
-//                .stream()
-//                .map(this::convertToDTO)
-//                .collect(Collectors.toList());
-//    }
-
-//    @Override
-//    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
-//    public List<ModuleDTO> getChildModules(UUID parentId) {
-//        return moduleRepository.findByParentIdOrderByDisplayOrderAsc(parentId)
-//                .stream()
-//                .map(this::convertToDTO)
-//                .collect(Collectors.toList());
-//    }
 
     @Override
     public ModuleDetail getModuleDetail(UUID id) {
