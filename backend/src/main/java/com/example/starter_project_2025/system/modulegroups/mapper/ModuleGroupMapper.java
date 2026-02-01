@@ -35,6 +35,8 @@ public class ModuleGroupMapper {
         res.setId(group.getId());
         res.setName(group.getName());
         res.setDescription(group.getDescription());
+        res.setIsActive(group.getIsActive());
+        res.setDisplayOrder(group.getDisplayOrder());
         res.setTotalModules(
                 group.getModules() != null ? group.getModules().size() : 0
         );
@@ -50,6 +52,8 @@ public class ModuleGroupMapper {
         res.setId(group.getId());
         res.setName(group.getName());
         res.setDescription(group.getDescription());
+        res.setIsActive(group.getIsActive());
+        res.setDisplayOrder(group.getDisplayOrder());
         res.setTotalModules(
                 group.getModules() != null ? group.getModules().size() : 0
         );

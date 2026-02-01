@@ -15,7 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -59,6 +59,12 @@ public class ModuleController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/module-group/{id}")
+    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
+    @Operation(summary = "Get all modules by Module Group ID")
+    public ResponseEntity<List<ModuleDetail>> getModulesByGroup(@PathVariable UUID id) {
+        return ResponseEntity.ok(moduleService.getModulesByGroupId(id));
+    }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('SUPER_ADMIN')")

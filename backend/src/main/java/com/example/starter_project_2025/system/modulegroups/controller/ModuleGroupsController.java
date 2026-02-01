@@ -27,7 +27,7 @@ public class ModuleGroupsController {
 
     private final ModuleGroupsService moduleGroupsService;
 
-    @GetMapping
+    @GetMapping({"/list"})
     @Operation (summary = "Get all module groups for admin panel")
     @PreAuthorize("hasAuthority('MENU_READ')")
     public ResponseEntity<List<ModuleGroupDetailResponse>> getAllModuleGroups() {

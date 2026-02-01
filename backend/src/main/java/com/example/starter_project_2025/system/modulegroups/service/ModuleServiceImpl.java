@@ -124,6 +124,20 @@ public class ModuleServiceImpl implements ModuleService {
         return moduleMapper.toUpdateResponse(module);
     }
 
+    @Override
+    public List<ModuleDetail> getModulesByGroupId(UUID groupId) {
+        // Optional: Verify if the group exists
+        if (!moduleGroupsRepository.existsById(groupId)) {
+            throw new ResourceNotFoundException("ModuleGroup", "id", groupId);
+        }
+
+        // Use the existing repository method to find modules by group ID
+        return moduleRepository.findByModuleGroupIdOrderByDisplayOrderAsc(groupId)
+                .stream()
+                .map(moduleMapper::toDetailResponse) // Convert Entity to DTO
+                .toList();
+    }
+
     @Transactional
     public void deleteModule(UUID id) {
         Module module = moduleRepository.findById(id)
