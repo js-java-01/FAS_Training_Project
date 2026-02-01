@@ -14,7 +14,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./docker-config/init.sql:/docker-entrypoint-initdb.d/init.sql
+      # - ./docker-config/init.sql:/docker-entrypoint-initdb.d/init.sql
       - mysql_data:/var/lib/mysql
 
   # Container Redis
