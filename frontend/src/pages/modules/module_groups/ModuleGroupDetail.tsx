@@ -1,120 +1,168 @@
-import { MainLayout } from "@/components/layout/MainLayout.tsx";
-import DynamicBreadcrumbs from "@/components/layout/DynamicBreadcrumbs.tsx";
+import { MainLayout } from "@/components/layout/MainLayout";
+import DynamicBreadcrumbs from "@/components/layout/DynamicBreadcrumbs";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { b64DecodeUnicode } from "@/utils/base64.utils.ts";
-import type { Menu } from "@/types/menu.ts";
+import { b64DecodeUnicode } from "@/utils/base64.utils";
+import type { ModuleGroup } from "@/types/module";
 import { FolderOpen } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card.tsx";
-import { mockMenus } from "@/mocks/mockMenus.mock.ts";
-import { motion, easeOut } from "framer-motion";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+
+import { moduleGroupApi } from "@/api/moduleApi";
 
 export default function ModuleGroupDetail() {
-  const { id } = useParams<{ id: string }>();
-  const [moduleGroup, setModuleGroup] = useState<Menu | null>(null);
+    const { id } = useParams<{ id: string }>();
 
-  const parentId = id ? b64DecodeUnicode(id) : null;
+    const [moduleGroup, setModuleGroup] = useState<ModuleGroup | null>(null);
+    const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!parentId) return;
+    const moduleGroupId = id ? b64DecodeUnicode(id) : null;
 
-    const found = mockMenus.find((m) => m.id === parentId);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setModuleGroup(found ?? null);
-  }, [parentId]);
+    /* -------- LOAD MODULE GROUP DETAIL -------- */
+    useEffect(() => {
+        if (!moduleGroupId) return;
 
-  // motion variants
-  const containerVariants = {
-    hidden: { opacity: 0, y: 8 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.22, ease: easeOut } },
-  };
+        let mounted = true;
 
-  const cardVariants = {
-    hidden: { opacity: 0, scale: 0.995, y: 6 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: { duration: 0.26, ease: easeOut },
-    },
-  };
+        const fetchDetail = async () => {
+            setLoading(true);
+            try {
+                const res = await moduleGroupApi.getModuleGroupById(moduleGroupId);
+                if (mounted) {
+                    setModuleGroup(res);
+                }
+            } catch (err) {
+                console.error("Failed to load module group", err);
+                if (mounted) {
+                    setModuleGroup(null);
+                }
+            } finally {
+                if (mounted) {
+                    setLoading(false);
+                }
+            }
+        };
 
-  return (
-    <MainLayout
-      breadcrumb={
-        <DynamicBreadcrumbs
-          pathTitles={{
-            moduleGroups: "Module Groups",
-            ...(moduleGroup && id ? { [id]: moduleGroup.name } : {}),
-          }}
-        />
-      }
-    >
-      <motion.div className={"grid grid-cols-1 gap-4"} initial="hidden" animate="visible" variants={containerVariants}>
-        <div>
-          <div className={"flex flex-row gap-2 items-center"}>
-            <FolderOpen />
-            <h1 className={"font-semibold"}>Module Group Details</h1>
-          </div>
-          <p className={"text-gray-500 text-[15px]"}>Overview and update history for this module group</p>
-        </div>
+        fetchDetail();
 
-        <div className={"grid grid-cols-[auto_1fr] gap-4"}>
-          <motion.div variants={cardVariants} className="w-full">
-            <Card className={"grid bg-muted min-w-[500px]"}>
-              <CardHeader className={"flex flex-row gap-4 items-center"}>
-                <div className={"bg-gray-200 rounded-4xl p-4 w-fit border border-gray-300 text-gray-500"}>
-                  <FolderOpen />
-                </div>
+        return () => {
+            mounted = false;
+        };
+    }, [moduleGroupId]);
+    /* ----------------------------------------- */
+
+    const name =
+        loading
+            ? "Loading..."
+            : moduleGroup?.name ?? "Không đủ dữ liệu để xác minh";
+
+    const idText =
+        loading
+            ? "..."
+            : moduleGroup?.id ?? "Không đủ dữ liệu để xác minh";
+
+    const description =
+        moduleGroup?.description ?? "Không đủ dữ liệu để xác minh";
+
+    const order =
+        typeof moduleGroup?.displayOrder === "number"
+            ? moduleGroup.displayOrder
+            : "Không đủ dữ liệu để xác minh";
+
+    const status =
+        typeof moduleGroup?.isActive === "boolean"
+            ? moduleGroup.isActive
+                ? "Active"
+                : "Inactive"
+            : "Không đủ dữ liệu để xác minh";
+
+    const createdAt =
+        moduleGroup?.createdAt
+            ? new Date(moduleGroup.createdAt).toLocaleString()
+            : "Không đủ dữ liệu để xác minh";
+
+    return (
+        <MainLayout
+            breadcrumb={
+                <DynamicBreadcrumbs
+                    pathTitles={{
+                        moduleGroups: "Module Groups",
+                        ...(moduleGroup && id ? { [id]: moduleGroup.name } : {}),
+                    }}
+                />
+            }
+        >
+            <div className="grid grid-cols-1 gap-4">
+                {/* Header */}
                 <div>
-                  <h1 className={"font-semibold text-lg"}>
-                    {moduleGroup?.name ?? "Không đủ dữ liệu để xác minh"}
-                  </h1>
-                  <p className={"text-gray-500"}>ID: {moduleGroup?.id ?? "Không đủ dữ liệu để xác minh"}</p>
-                </div>
-              </CardHeader>
-
-              <CardContent>
-                {/* Description */}
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-700">Description</h4>
-                  <p className="text-sm text-gray-600">
-                    {moduleGroup?.description ?? "Không đủ dữ liệu để xác minh"}
-                  </p>
+                    <div className="flex flex-row gap-2 items-center">
+                        <FolderOpen />
+                        <h1 className="font-semibold">Module Group Details</h1>
+                    </div>
+                    <p className="text-gray-500 text-[15px]">
+                        Overview and basic information for this module group
+                    </p>
                 </div>
 
-                {/* Basic info row */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-600">Order</h5>
-                    <div className="text-sm text-gray-700">
-                      {moduleGroup?.displayOrder ?? "Không đủ dữ liệu để xác minh"}
-                    </div>
-                  </div>
+                {/* Detail card */}
+                <div className="grid grid-cols-[auto_1fr] gap-4">
+                    <Card className="grid bg-muted min-w-[500px]">
+                        <CardHeader className="flex flex-row gap-4 items-center">
+                            <div className="bg-gray-200 rounded-4xl p-4 w-fit border border-gray-300 text-gray-500">
+                                <FolderOpen />
+                            </div>
 
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-600">Status</h5>
-                    <div className="text-sm text-gray-700">
-                      {typeof moduleGroup?.isActive === "boolean"
-                        ? moduleGroup!.isActive
-                          ? "Active"
-                          : "Inactive"
-                        : "Không đủ dữ liệu để xác minh"}
-                    </div>
-                  </div>
+                            <div>
+                                <h2 className="font-semibold text-lg">
+                                    {name}
+                                </h2>
+                                <p className="text-gray-500">ID: {idText}</p>
+                            </div>
+                        </CardHeader>
 
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-600">Created At</h5>
-                    <div className="text-sm text-gray-700">
-                      {moduleGroup?.createdAt ? new Date(moduleGroup.createdAt).toLocaleString() : "Không đủ dữ liệu để xác minh"}
-                    </div>
-                  </div>
+                        <CardContent>
+                            {/* Description */}
+                            <div className="mb-4">
+                                <h4 className="text-sm font-medium text-gray-700">
+                                    Description
+                                </h4>
+                                <p className="text-sm text-gray-600">
+                                    {loading ? "Loading..." : description}
+                                </p>
+                            </div>
+
+                            {/* Basic info row */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                    <h5 className="text-xs font-medium text-gray-600">
+                                        Order
+                                    </h5>
+                                    <div className="text-sm text-gray-700">
+                                        {loading ? "..." : order}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h5 className="text-xs font-medium text-gray-600">
+                                        Status
+                                    </h5>
+                                    <div className="text-sm text-gray-700">
+                                        {loading ? "..." : status}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h5 className="text-xs font-medium text-gray-600">
+                                        Created At
+                                    </h5>
+                                    <div className="text-sm text-gray-700">
+                                        {loading ? "..." : createdAt}
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </motion.div>
-    </MainLayout>
-  );
+            </div>
+        </MainLayout>
+    );
 }
