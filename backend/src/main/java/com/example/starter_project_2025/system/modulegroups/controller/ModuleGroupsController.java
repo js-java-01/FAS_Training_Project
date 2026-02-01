@@ -95,16 +95,20 @@ public class ModuleGroupsController {
     public ResponseEntity<ApiResponse<PageResponse<ModuleGroupDetailResponse>>> searchModuleGroups(
             @RequestParam int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "asc") String sort,
+            @RequestParam(defaultValue = "displayOrder,asc") String[] sort,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean isActive
     ) {
-        Sort.Direction direction = Sort.Direction.fromString(sort);
+        String sortField = sort[0];
+        Sort.Direction direction =
+                sort.length > 1
+                        ? Sort.Direction.fromString(sort[1])
+                        : Sort.Direction.ASC;
 
         Pageable pageable = PageRequest.of(
                 page,
                 size,
-                Sort.by(direction, "displayOrder")
+                Sort.by(direction, sortField)
         );
 
         Page<ModuleGroupDetailResponse> pageResult =
@@ -117,5 +121,5 @@ public class ModuleGroupsController {
                 )
         );
     }
-
 }
+

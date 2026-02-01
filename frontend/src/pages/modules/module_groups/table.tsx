@@ -221,7 +221,7 @@ export default function ModuleGroupsTable() {
     return `${id},${desc ? "desc" : "asc"}`;
   }, [sorting]);
 
-  const [pageIndex, setPageIndex] = useState(1);
+  const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
@@ -237,14 +237,14 @@ export default function ModuleGroupsTable() {
   });
 
   const safeTableData = useMemo(() => {
-    return tableData ?? {
-      content: [],
-      number: 0,
-      size: pageSize,
-      totalPages: 1,
-      totalElements: 0,
+    return {
+      items: tableData?.items ?? [],
+      page: tableData?.pagination?.page ?? pageIndex + 1,
+      pageSize: tableData?.pagination?.pageSize ?? pageSize,
+      totalPages: tableData?.pagination?.totalPages ?? 0,
+      totalElements: tableData?.pagination?.totalElements ?? 0,
     };
-  }, [tableData, pageSize]);
+  }, [tableData, pageIndex, pageSize]);
 
   return (
     <div className="relative space-y-4 h-full flex-1">
@@ -257,23 +257,23 @@ export default function ModuleGroupsTable() {
 
       {/* Main Table */}
       <DataTable<ModuleGroup, unknown>
-        columns={columns as ColumnDef<ModuleGroup, unknown>[]}
-        data={safeTableData.content}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        manualPagination
-        pageIndex={safeTableData.number ?? 1}
-        pageSize={safeTableData.size ?? 10}
-        totalPage={safeTableData.totalPages ?? 1}
-        onPageChange={(newPage) => setPageIndex(newPage)}
-        onPageSizeChange={setPageSize}
-        isSearch
-        manualSearch
-        searchPlaceholder={"module group name"}
-        onSearchChange={setSearchValue}
-        sorting={sorting}
-        onSortingChange={setSorting}
-        manualSorting
+          columns={columns as ColumnDef<ModuleGroup, unknown>[]}
+          data={safeTableData.items}
+          isLoading={isLoading}
+          isFetching={isFetching}
+          manualPagination
+          pageIndex={safeTableData.page - 1}
+          pageSize={safeTableData.pageSize}
+          totalPage={safeTableData.totalPages}
+          onPageChange={(page) => setPageIndex(page)}
+          onPageSizeChange={setPageSize}
+          isSearch
+          manualSearch
+          searchPlaceholder="module group name"
+          onSearchChange={setSearchValue}
+          sorting={sorting}
+          onSortingChange={setSorting}
+          manualSorting
         headerActions={
           <Button
             onClick={() => {

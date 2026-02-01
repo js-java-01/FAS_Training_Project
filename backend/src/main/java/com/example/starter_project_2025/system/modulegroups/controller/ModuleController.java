@@ -84,16 +84,23 @@ public class ModuleController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) UUID moduleGroupId,
             @RequestParam(required = false) Boolean isActive,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "asc") String sort
+            @RequestParam(defaultValue = "displayOrder,asc") String[] sort
     ) {
-        Sort.Direction direction = Sort.Direction.fromString(sort);
+        // ---- page: convert 1-based -> 0-based ----
+        int pageIndex = Math.max(page - 1, 0);
+
+        String sortField = sort[0];
+        Sort.Direction direction =
+                sort.length > 1
+                        ? Sort.Direction.fromString(sort[1])
+                        : Sort.Direction.ASC;
 
         Pageable pageable = PageRequest.of(
-                page,
+                pageIndex,
                 size,
-                Sort.by(direction, "displayOrder")
+                Sort.by(direction, sortField)
         );
 
         Page<ModuleDetail> pageResult =

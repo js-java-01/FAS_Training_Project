@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { ModuleGroup } from "@/types/module";
 import { queryKeys } from "./keys";
 import { moduleGroupApi } from "@/api/moduleApi";
-import type {PageResponse} from "@/types/pagination.ts";
+import type {PagedData} from "@/types/response.ts";
 
 export const useGetAllModuleGroups = (params: {
     page: number;
@@ -10,7 +10,7 @@ export const useGetAllModuleGroups = (params: {
     sort?: string;
     keyword?: string;
 }) => {
-    return useQuery<PageResponse<ModuleGroup>>({
+    return useQuery<PagedData<ModuleGroup>>({
         queryKey: queryKeys.moduleGroups(params),
         queryFn: () =>
             moduleGroupApi.getAllModuleGroups({
@@ -20,7 +20,7 @@ export const useGetAllModuleGroups = (params: {
                 keyword: params.keyword,
             }),
 
-        placeholderData: (prev?: PageResponse<ModuleGroup>) => prev,
+        placeholderData: (prev?: PagedData<ModuleGroup>) => prev,
         staleTime: 5 * 60 * 1000,
     });
 };
