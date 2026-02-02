@@ -85,7 +85,7 @@ public class MenuController {
     }
 
     @PostMapping("/{id}/toggle-status")
-    @Operation(summary = "Toggle menu status", description = "Activate or deactivate a menu")
+    @Operation(summary = "Toggle menu locationStatus", description = "Activate or deactivate a menu")
     public ResponseEntity<MenuDTO> toggleMenuStatus(@PathVariable UUID id) {
         MenuDTO menu = menuService.toggleMenuStatus(id);
         return ResponseEntity.ok(menu);
