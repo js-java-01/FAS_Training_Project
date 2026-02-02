@@ -123,4 +123,17 @@ public class RoleController {
         roleService.importRoles(file);
         return ResponseEntity.ok().build();
     }
+    @GetMapping("/export")
+    @Operation(summary = "Export roles", description = "Export all roles to Excel file")
+    public ResponseEntity<InputStreamResource> exportRoles() throws IOException, java.io.IOException {
+        ByteArrayInputStream in = roleService.exportRoles();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=roles_export.xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
+    }
 }

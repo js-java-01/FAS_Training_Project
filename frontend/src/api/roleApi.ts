@@ -59,4 +59,10 @@ export const roleApi = {
       },
     });
   },
+  exportRoles: async (): Promise<Blob> => {
+    const response = await axiosInstance.get('/roles/export', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };
