@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.util;
 
-import com.example.starter_project_2025.system.auth.dto.PermissionDTO;
-import com.example.starter_project_2025.system.auth.dto.RoleDTO;
+import com.example.starter_project_2025.system.auth.dto.permission.PermissionDTO;
+import com.example.starter_project_2025.system.auth.dto.role.RoleDTO;
 import com.example.starter_project_2025.system.user.dto.UserDTO;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +50,7 @@ public class CsvUtil {
             csv.append(escapeSpecialCharacters(user.getFirstName())).append(CSV_SEPARATOR);
             csv.append(escapeSpecialCharacters(user.getLastName())).append(CSV_SEPARATOR);
             csv.append(escapeSpecialCharacters(user.getRoleName())).append(CSV_SEPARATOR);
-            csv.append(user.getIsActive()).append(CSV_SEPARATOR);
+            csv.append(user.isActive()).append(CSV_SEPARATOR);
             csv.append(user.getCreatedAt() != null ? user.getCreatedAt().format(DATE_FORMATTER) : "").append(CSV_SEPARATOR);
             csv.append(user.getUpdatedAt() != null ? user.getUpdatedAt().format(DATE_FORMATTER) : "");
             csv.append("\n");

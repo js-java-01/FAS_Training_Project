@@ -15,7 +15,7 @@ import {
     ArrowDown,
     Loader2
 } from 'lucide-react';
-import { MainLayout } from '../components/MainLayout';
+import { MainLayout } from '../components/layout/MainLayout';
 import { PermissionGate } from '../components/PermissionGate';
 import { useToast } from '../hooks/use-toast';
 import {
