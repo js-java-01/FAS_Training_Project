@@ -58,8 +58,11 @@ public class AssessmentTypeController {
 
     @GetMapping
     public ResponseEntity<Page<AssessmentTypeDTO>> search(
-            @RequestParam(required = false) String name,
             @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 20, sort = "createdAt")
+            Pageable pageable,
+
+            @RequestParam(required = false) String name,
 
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -67,13 +70,9 @@ public class AssessmentTypeController {
 
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate toDate,
-
-            @PageableDefault(size = 20, sort = "createdAt")
-            Pageable pageable
+            LocalDate toDate
     ) {
-        return ResponseEntity.ok(assessService.search(name, keyword, fromDate, toDate, pageable)
-        );
+        return ResponseEntity.ok(assessService.search(keyword, pageable, name, fromDate, toDate));
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
