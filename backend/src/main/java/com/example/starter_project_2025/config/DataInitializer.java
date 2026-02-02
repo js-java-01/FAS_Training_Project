@@ -220,7 +220,6 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void ensureProgrammingLanguagePermissions() {
-        // Check if programming language permissions exist
         boolean hasProgLangPerms = permissionRepository.existsByName("PROGRAMMING_LANGUAGE_READ");
 
         if (!hasProgLangPerms) {
