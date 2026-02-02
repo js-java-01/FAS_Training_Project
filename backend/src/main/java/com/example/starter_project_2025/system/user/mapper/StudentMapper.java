@@ -10,17 +10,13 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface StudentMapper {
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "passwordHash", ignore = true)
-    @Mapping(target = "role", ignore = true)
-    @Mapping(target = "isActive", constant = "true")
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
     Student toEntity(CreateStudentRequest request);
 
-    @Mapping(target = "roleId", source = "role.id")
-    @Mapping(target = "roleName", source = "role.name")
-    StudentDTO toResponse(Student user);
+    StudentDTO toResponse(Student student);
 
-    void update(@MappingTarget Student user, StudentDTO dto);
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "role", ignore = true)
+    void update(@MappingTarget Student student, StudentDTO dto);
 }
