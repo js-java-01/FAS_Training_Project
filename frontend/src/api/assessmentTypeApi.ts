@@ -10,12 +10,12 @@ export const assessmentTypeApi = {
     sortBy?: string;
     sortDir?: 'asc' | 'desc';
   }): Promise<PaginatedResponse<AssessmentType>> => {
-    const response = await axiosInstance.get<PaginatedResponse<AssessmentType>>('/assessments', { params });
+    const response = await axiosInstance.get<PaginatedResponse<AssessmentType>>('/assessment-type', { params });
     return response.data;
   },
 
   getById: async (id: string): Promise<AssessmentType> => {
-    const response = await axiosInstance.get<AssessmentType>(`/assessments/${id}`);
+    const response = await axiosInstance.get<AssessmentType>(`/assessment-type/${id}`);
     return response.data;
   },
 
@@ -23,7 +23,7 @@ export const assessmentTypeApi = {
     data: AssessmentTypeRequest
   ): Promise<AssessmentType> => {
     const response = await axiosInstance.post<AssessmentType>(
-      '/assessments',
+      '/assessment-type',
       data
     );
     return response.data;
@@ -34,19 +34,19 @@ export const assessmentTypeApi = {
     data: AssessmentTypeRequest
   ): Promise<AssessmentType> => {
     const response = await axiosInstance.put<AssessmentType>(
-      `/assessments/${id}`,
+      `/assessment-type/${id}`,
       data
     );
     return response.data;
   },
 
   delete: async (id: string): Promise<void> => {
-    await axiosInstance.delete(`/assessments/${id}`);
+    await axiosInstance.delete(`/assessment-type/${id}`);
   },
 
   searchByName: async (name: string): Promise<AssessmentType[]> => {
     const response = await axiosInstance.get<AssessmentType[]>(
-      '/assessments/search/name',
+      '/assessment-type/search/name',
       {
         params: { name },
       }
@@ -54,7 +54,7 @@ export const assessmentTypeApi = {
     return response.data;
   },
 
-  importAssessments: async (file: File): Promise<{
+  importAssessment: async (file: File): Promise<{
     totalRows: number;
     successCount: number;
     errorCount: number;
@@ -63,7 +63,7 @@ export const assessmentTypeApi = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await axiosInstance.post('/assessments/import',
+    const response = await axiosInstance.post('/assessment-type/import',
       formData,
       {
         headers: {
@@ -75,8 +75,8 @@ export const assessmentTypeApi = {
     return response.data;
   },
 
-  exportAssessments: async (): Promise<void> => {
-    const response = await axiosInstance.get('/assessments/export', {
+  exportAssessment: async (): Promise<void> => {
+    const response = await axiosInstance.get('/assessment-type/export', {
       responseType: 'blob',
     });
 
@@ -85,7 +85,7 @@ export const assessmentTypeApi = {
 
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'assessments.xlsx';
+    link.download = 'assessment.xlsx';
     document.body.appendChild(link);
     link.click();
 
@@ -94,7 +94,7 @@ export const assessmentTypeApi = {
   },
 
   downloadTemplate: async (): Promise<Blob> => {
-    const response = await axiosInstance.get('/assessments/template', {
+    const response = await axiosInstance.get('/assessment-type/template', {
       responseType: 'blob'
     });
     return response.data;

@@ -176,7 +176,7 @@ public class DataInitializer implements CommandLineRunner {
 
         MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1, "USER_READ");
         MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2, "ROLE_READ");
-        MenuItem assessmentTypeManagement = createMenuItem(adminMenu, null, "Assessment Type Management", "/assessments", "security", 3, "ASSESSMENT_READ");
+        MenuItem assessmentTypeManagement = createMenuItem(adminMenu, null, "Assessment Type Management", "/assessment-type", "security", 3, "ASSESSMENT_READ");
         MenuItem programmingLanguageManagement = createMenuItem(adminMenu, null, "Programming Languages", "/programming-languages", "school", 3, "PROGRAMMING_LANGUAGE_READ");
         menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, assessmentTypeManagement, programmingLanguageManagement));
 
