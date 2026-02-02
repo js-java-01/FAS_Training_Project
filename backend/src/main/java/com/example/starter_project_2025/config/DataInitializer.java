@@ -89,8 +89,10 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("LOCATION_CREATE", "Create new locations", "LOCATION", "CREATE"),
                 createPermission("LOCATION_READ", "View locations", "LOCATION", "READ"),
                 createPermission("LOCATION_UPDATE", "Update existing locations", "LOCATION", "UPDATE"),
-                createPermission("LOCATION_DELETE", "Delete locations", "LOCATION", "DELETE")
-        );
+                createPermission("LOCATION_DELETE", "Delete locations", "LOCATION", "DELETE"),
+                createPermission("LOCATION_IMPORT", "Import locations", "LOCATION", "IMPORT"),
+                createPermission("LOCATION_EXPORT", "Export locations", "LOCATION", "EXPORT")
+                );
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }
@@ -108,14 +110,14 @@ public class DataInitializer implements CommandLineRunner {
         Role adminRole = new Role();
         adminRole.setName("ADMIN");
         adminRole.setDescription("Administrator with full system access");
-        adminRole.setHierarchyLevel(1);
+//        adminRole.setHierarchyLevel(1);
         adminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
         roleRepository.save(adminRole);
 
         Role studentRole = new Role();
         studentRole.setName("STUDENT");
         studentRole.setDescription("Student with limited access to educational resources");
-        studentRole.setHierarchyLevel(2);
+//        studentRole.setHierarchyLevel(2);
         studentRole.setPermissions(new HashSet<>(permissionRepository.findByAction("READ")));
         roleRepository.save(studentRole);
 

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.*;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -50,4 +51,11 @@ public class LocationController {
     public void deactivate(@PathVariable UUID id) {
         locationService.deactivate(id);
     }
+
+    @DeleteMapping("/{id}/permanent")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteLocationPermanently(@PathVariable UUID id) {
+        locationService.deletePermanently(id);
+    }
+
 }

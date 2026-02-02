@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import { Location, CreateLocationRequest, UpdateLocationRequest, LocationStatus } from '../types/location';
+import { Location, CreateLocationRequest, UpdateLocationRequest, LocationStatus,LocationImportResult } from '../types/location';
 
 export const locationApi = {
   searchLocations: async (
@@ -40,4 +40,51 @@ export const locationApi = {
   deleteLocation: async (id: string): Promise<void> => {
     await axiosInstance.delete(`/locations/${id}`);
   },
+
+  deleteLocationPermanently: async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/locations/${id}/permanent`);
+
+},
+
+exportLocations: async (format: 'csv' | 'xlsx' = 'xlsx'): Promise<Blob> => {
+    const response = await axiosInstance.get(
+      `/locations/export?format=${format}`,
+      {
+        responseType: 'blob',
+      }
+    );
+    return response.data;
+  },
+
+  importLocations: async (
+    file: File
+  ): Promise<LocationImportResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await axiosInstance.post<LocationImportResult>(
+      '/locations/import',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    return response.data;
+  },
+
+  downloadLocationImportTemplate: async (): Promise<Blob> => {
+  const response = await axiosInstance.get(
+    '/locations/import/template',
+    {
+      responseType: 'blob',
+    }
+  );
+
+  return response.data;
+},
+
+
 };

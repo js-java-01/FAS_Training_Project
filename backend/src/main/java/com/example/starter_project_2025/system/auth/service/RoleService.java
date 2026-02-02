@@ -18,6 +18,15 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +57,7 @@ public class RoleService {
         Role role = new Role();
         role.setName(roleDTO.getName());
         role.setDescription(roleDTO.getDescription());
-        role.setHierarchyLevel(roleDTO.getHierarchyLevel() != null ? roleDTO.getHierarchyLevel() : 0);
+//        role.setHierarchyLevel(roleDTO.getHierarchyLevel() != null ? roleDTO.getHierarchyLevel() : 0);
         role.setIsActive(true);
 
         if (roleDTO.getPermissionIds() != null && !roleDTO.getPermissionIds().isEmpty()) {
@@ -78,9 +87,9 @@ public class RoleService {
             role.setDescription(roleDTO.getDescription());
         }
 
-        if (roleDTO.getHierarchyLevel() != null) {
-            role.setHierarchyLevel(roleDTO.getHierarchyLevel());
-        }
+//        if (roleDTO.getHierarchyLevel() != null) {
+//            role.setHierarchyLevel(roleDTO.getHierarchyLevel());
+//        }
 
         if (roleDTO.getPermissionIds() != null) {
             Set<Permission> permissions = new HashSet<>(
@@ -131,13 +140,47 @@ public class RoleService {
         Role updatedRole = roleRepository.save(role);
         return convertToDTO(updatedRole);
     }
+    //EXPORT ROLE RA FILE EXCEL
+    @PreAuthorize("hasAuthority('ROLE_READ')")
+    public ByteArrayInputStream exportRoles() throws IOException {
+    // 1. Khai báo 5 cột
+    String[] columns = {"ID", "Role Name", "Description", "Status", "Permissions"};
+
+    List<Role> roles = roleRepository.findAll();
+
+    try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+        Sheet sheet = workbook.createSheet("Roles Data");
+        
+        // ... (Code tạo Header giữ nguyên) ...
+
+        int rowIdx = 1;
+        for (Role role : roles) {
+            Row row = sheet.createRow(rowIdx++);
+
+            // 2. Đổ dữ liệu đúng 5 cột (0 -> 4)
+            row.createCell(0).setCellValue(role.getId().toString());
+            row.createCell(1).setCellValue(role.getName());
+            row.createCell(2).setCellValue(role.getDescription() != null ? role.getDescription() : "");
+            // Cột 3 là Status (Level đã bị xóa)
+            row.createCell(3).setCellValue(role.getIsActive() ? "Active" : "Inactive");
+            // Cột 4 là Permissions
+            String perms = role.getPermissions().stream()
+                    .map(Permission::getName)
+                    .collect(Collectors.joining(", "));
+            row.createCell(4).setCellValue(perms);
+        }
+        // ...
+        workbook.write(out);
+        return new ByteArrayInputStream(out.toByteArray());
+    }
+}
 
     private RoleDTO convertToDTO(Role role) {
         RoleDTO dto = new RoleDTO();
         dto.setId(role.getId());
         dto.setName(role.getName());
         dto.setDescription(role.getDescription());
-        dto.setHierarchyLevel(role.getHierarchyLevel());
+//        dto.setHierarchyLevel(role.getHierarchyLevel());
         dto.setIsActive(role.getIsActive());
         dto.setCreatedAt(role.getCreatedAt());
         dto.setUpdatedAt(role.getUpdatedAt());
@@ -156,5 +199,98 @@ public class RoleService {
         }
 
         return dto;
+    }
+    public ByteArrayInputStream downloadTemplate() throws IOException {
+        String[] columns = {"Role Name", "Description", "Modules (Permissions)"};
+
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Roles Template");
+
+            // Tạo Header Style
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            CellStyle headerCellStyle = workbook.createCellStyle();
+            headerCellStyle.setFont(headerFont);
+
+            // Tạo hàng Header
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < columns.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columns[i]);
+                cell.setCellStyle(headerCellStyle);
+            }
+
+            // Tạo hàng mẫu (Example Row)
+            Row sampleRow = sheet.createRow(1);
+            sampleRow.createCell(0).setCellValue("MANAGER");
+            sampleRow.createCell(1).setCellValue("Quản lý bộ phận");
+            sampleRow.createCell(2).setCellValue("USER_READ, USER_CREATE, REPORT_VIEW"); // Ví dụ các quyền cách nhau dấu phẩy
+
+            // Auto-size cột
+            for (int i = 0; i < columns.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(out);
+            return new ByteArrayInputStream(out.toByteArray());
+        }
+    }
+
+    // 2. IMPORT ROLE TỪ FILE
+    @PreAuthorize("hasAuthority('ROLE_CREATE')") // Chỉ Admin/Người có quyền tạo mới được import
+    public void importRoles(MultipartFile file) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+            
+            // Bỏ qua dòng Header (index 0), bắt đầu từ dòng 1
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                // Cột 0: Name
+                String name = getCellValue(row.getCell(0));
+                if (name == null || name.isEmpty()) continue; // Bỏ qua nếu không có tên
+
+                // Validate: Nếu Role đã tồn tại thì bỏ qua (hoặc update tùy logic của bạn)
+                if (roleRepository.existsByName(name)) {
+                    continue; 
+                }
+
+                // Cột 1: Description
+                String description = getCellValue(row.getCell(1));
+
+                // Cột 2: Permissions (String chuỗi: "A, B, C")
+                String permString = getCellValue(row.getCell(2));
+                Set<Permission> permissions = new HashSet<>();
+
+                if (permString != null && !permString.isEmpty()) {
+                    String[] permNames = permString.split(",");
+                    for (String pName : permNames) {
+                        // Tìm Permission theo tên (trim khoảng trắng)
+                        permissionRepository.findByName(pName.trim())
+                                .ifPresent(permissions::add);
+                    }
+                }
+
+                // Tạo Role mới
+                Role role = new Role();
+                role.setName(name);
+                role.setDescription(description);
+                role.setIsActive(true);
+                role.setPermissions(permissions);
+
+                roleRepository.save(role);
+            }
+        }
+    }
+
+    // Helper lấy giá trị từ Cell an toàn
+    private String getCellValue(Cell cell) {
+        if (cell == null) return "";
+        switch (cell.getCellType()) {
+            case STRING: return cell.getStringCellValue();
+            case NUMERIC: return String.valueOf((int) cell.getNumericCellValue());
+            default: return "";
+        }
     }
 }
