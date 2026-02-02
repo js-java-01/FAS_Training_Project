@@ -1,0 +1,298 @@
+Folder PATH listing for volume New Volume
+Volume serial number is AA8D-9161
+E:.
+│   .env
+│   .gitattributes
+│   .gitignore
+│   backend.env.example
+│   mvnw
+│   mvnw.cmd
+│   pom.xml
+│   structure.txt
+│   
+├───.idea
+│       .gitignore
+│       compiler.xml
+│       copilot.data.migration.agent.xml
+│       copilot.data.migration.ask.xml
+│       copilot.data.migration.ask2agent.xml
+│       copilot.data.migration.edit.xml
+│       encodings.xml
+│       jarRepositories.xml
+│       misc.xml
+│       vcs.xml
+│       workspace.xml
+│       
+├───src
+│   ├───main
+│   │   ├───java
+│   │   │   └───com
+│   │   │       └───example
+│   │   │           └───starter_project_2025
+│   │   │               │   StarterProject2025Application.java
+│   │   │               │   
+│   │   │               ├───config
+│   │   │               │       DataInitializer.java
+│   │   │               │       OpenApiConfig.java
+│   │   │               │       SecurityConfig.java
+│   │   │               │       
+│   │   │               ├───exception
+│   │   │               │       BadRequestException.java
+│   │   │               │       GlobalExceptionHandler.java
+│   │   │               │       ResourceNotFoundException.java
+│   │   │               │       
+│   │   │               ├───security
+│   │   │               │       JwtAuthenticationFilter.java
+│   │   │               │       JwtUtil.java
+│   │   │               │       UserDetailsImpl.java
+│   │   │               │       UserDetailsServiceImpl.java
+│   │   │               │       
+│   │   │               ├───system
+│   │   │               │   ├───audit
+│   │   │               │   │   └───entity
+│   │   │               │   │           AuditLog.java
+│   │   │               │   │           
+│   │   │               │   ├───auth
+│   │   │               │   │   ├───controller
+│   │   │               │   │   │       AuthController.java
+│   │   │               │   │   │       PermissionController.java
+│   │   │               │   │   │       RoleController.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───dto
+│   │   │               │   │   │       LoginRequest.java
+│   │   │               │   │   │       LoginResponse.java
+│   │   │               │   │   │       PermissionDTO.java
+│   │   │               │   │   │       RoleDTO.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───entity
+│   │   │               │   │   │       Permission.java
+│   │   │               │   │   │       Role.java
+│   │   │               │   │   │       RoleHierarchy.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───repository
+│   │   │               │   │   │       PermissionRepository.java
+│   │   │               │   │   │       RoleRepository.java
+│   │   │               │   │   │       
+│   │   │               │   │   └───service
+│   │   │               │   │           AuthService.java
+│   │   │               │   │           PermissionService.java
+│   │   │               │   │           RoleService.java
+│   │   │               │   │           
+│   │   │               │   ├───dashboard
+│   │   │               │   │   ├───controller
+│   │   │               │   │   │       DashboardController.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───dto
+│   │   │               │   │   │       DashboardStatsDTO.java
+│   │   │               │   │   │       
+│   │   │               │   │   └───service
+│   │   │               │   │           DashboardService.java
+│   │   │               │   │           
+│   │   │               │   ├───menu
+│   │   │               │   │   ├───controller
+│   │   │               │   │   │       MenuController.java
+│   │   │               │   │   │       MenuItemController.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───dto
+│   │   │               │   │   │       MenuDTO.java
+│   │   │               │   │   │       MenuItemDTO.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───entity
+│   │   │               │   │   │       Menu.java
+│   │   │               │   │   │       MenuItem.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───repository
+│   │   │               │   │   │       MenuItemRepository.java
+│   │   │               │   │   │       MenuRepository.java
+│   │   │               │   │   │       
+│   │   │               │   │   └───service
+│   │   │               │   │           MenuItemService.java
+│   │   │               │   │           MenuService.java
+│   │   │               │   │           
+│   │   │               │   ├───programminglanguage
+│   │   │               │   │   ├───controller
+│   │   │               │   │   │       ProgrammingLanguageController.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───dto
+│   │   │               │   │   │       ProgrammingLanguageCreateRequest.java
+│   │   │               │   │   │       ProgrammingLanguageResponse.java
+│   │   │               │   │   │       ProgrammingLanguageUpdateRequest.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───entity
+│   │   │               │   │   │       ProgrammingLanguage.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───mapper
+│   │   │               │   │   │       ProgrammingLanguageMapper.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───repository
+│   │   │               │   │   │       ProgrammingLanguageRepository.java
+│   │   │               │   │   │       
+│   │   │               │   │   └───service
+│   │   │               │   │           ProgrammingLanguageService.java
+│   │   │               │   │           
+│   │   │               │   └───user
+│   │   │               │       ├───controller
+│   │   │               │       │       UserController.java
+│   │   │               │       │       
+│   │   │               │       ├───dto
+│   │   │               │       │       CreateUserRequest.java
+│   │   │               │       │       UserDTO.java
+│   │   │               │       │       
+│   │   │               │       ├───entity
+│   │   │               │       │       User.java
+│   │   │               │       │       
+│   │   │               │       ├───repository
+│   │   │               │       │       UserRepository.java
+│   │   │               │       │       
+│   │   │               │       └───service
+│   │   │               │               UserService.java
+│   │   │               │               
+│   │   │               └───util
+│   │   │                       CsvUtil.java
+│   │   │                       
+│   │   └───resources
+│   │           application.properties
+│   │           
+│   └───test
+│       └───java
+│           └───com
+│               └───example
+│                   └───starter_project_2025
+│                           StarterProject2025ApplicationTests.java
+│                           
+└───target
+    ├───classes
+    │   │   application.properties
+    │   │   
+    │   └───com
+    │       └───example
+    │           └───starter_project_2025
+    │               │   StarterProject2025Application.class
+    │               │   
+    │               ├───config
+    │               │       DataInitializer.class
+    │               │       OpenApiConfig.class
+    │               │       SecurityConfig.class
+    │               │       
+    │               ├───exception
+    │               │       BadRequestException.class
+    │               │       GlobalExceptionHandler$ErrorResponse.class
+    │               │       GlobalExceptionHandler.class
+    │               │       ResourceNotFoundException.class
+    │               │       
+    │               ├───security
+    │               │       JwtAuthenticationFilter.class
+    │               │       JwtUtil.class
+    │               │       UserDetailsImpl.class
+    │               │       UserDetailsServiceImpl.class
+    │               │       
+    │               ├───system
+    │               │   ├───audit
+    │               │   │   └───entity
+    │               │   │           AuditLog.class
+    │               │   │           
+    │               │   ├───auth
+    │               │   │   ├───controller
+    │               │   │   │       AuthController.class
+    │               │   │   │       PermissionController.class
+    │               │   │   │       RoleController.class
+    │               │   │   │       
+    │               │   │   ├───dto
+    │               │   │   │       LoginRequest.class
+    │               │   │   │       LoginResponse.class
+    │               │   │   │       PermissionDTO.class
+    │               │   │   │       RoleDTO.class
+    │               │   │   │       
+    │               │   │   ├───entity
+    │               │   │   │       Permission.class
+    │               │   │   │       Role.class
+    │               │   │   │       RoleHierarchy.class
+    │               │   │   │       
+    │               │   │   ├───repository
+    │               │   │   │       PermissionRepository.class
+    │               │   │   │       RoleRepository.class
+    │               │   │   │       
+    │               │   │   └───service
+    │               │   │           AuthService.class
+    │               │   │           PermissionService.class
+    │               │   │           RoleService.class
+    │               │   │           
+    │               │   ├───dashboard
+    │               │   │   ├───controller
+    │               │   │   │       DashboardController.class
+    │               │   │   │       
+    │               │   │   ├───dto
+    │               │   │   │       DashboardStatsDTO.class
+    │               │   │   │       
+    │               │   │   └───service
+    │               │   │           DashboardService.class
+    │               │   │           
+    │               │   ├───menu
+    │               │   │   ├───controller
+    │               │   │   │       MenuController.class
+    │               │   │   │       MenuItemController.class
+    │               │   │   │       
+    │               │   │   ├───dto
+    │               │   │   │       MenuDTO.class
+    │               │   │   │       MenuItemDTO.class
+    │               │   │   │       
+    │               │   │   ├───entity
+    │               │   │   │       Menu.class
+    │               │   │   │       MenuItem.class
+    │               │   │   │       
+    │               │   │   ├───repository
+    │               │   │   │       MenuItemRepository.class
+    │               │   │   │       MenuRepository.class
+    │               │   │   │       
+    │               │   │   └───service
+    │               │   │           MenuItemService.class
+    │               │   │           MenuService.class
+    │               │   │           
+    │               │   ├───programminglanguage
+    │               │   │   ├───controller
+    │               │   │   │       ProgrammingLanguageController.class
+    │               │   │   │       
+    │               │   │   ├───dto
+    │               │   │   │       ProgrammingLanguageCreateRequest.class
+    │               │   │   │       ProgrammingLanguageResponse.class
+    │               │   │   │       ProgrammingLanguageUpdateRequest.class
+    │               │   │   │       
+    │               │   │   ├───entity
+    │               │   │   │       ProgrammingLanguage.class
+    │               │   │   │       
+    │               │   │   ├───repository
+    │               │   │   │       ProgrammingLanguageRepository.class
+    │               │   │   │       
+    │               │   │   └───service
+    │               │   │           ProgrammingLanguageService.class
+    │               │   │           
+    │               │   └───user
+    │               │       ├───controller
+    │               │       │       UserController.class
+    │               │       │       
+    │               │       ├───dto
+    │               │       │       CreateUserRequest.class
+    │               │       │       UserDTO.class
+    │               │       │       
+    │               │       ├───entity
+    │               │       │       User.class
+    │               │       │       
+    │               │       ├───repository
+    │               │       │       UserRepository.class
+    │               │       │       
+    │               │       └───service
+    │               │               UserService.class
+    │               │               
+    │               └───util
+    │                       CsvUtil.class
+    │                       
+    ├───generated-sources
+    │   └───annotations
+    ├───generated-test-sources
+    │   └───test-annotations
+    └───test-classes
+        └───com
+            └───example
+                └───starter_project_2025
+                        StarterProject2025ApplicationTests.class
+                        

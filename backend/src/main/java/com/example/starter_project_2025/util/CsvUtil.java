@@ -50,7 +50,7 @@ public class CsvUtil {
             csv.append(escapeSpecialCharacters(user.getFirstName())).append(CSV_SEPARATOR);
             csv.append(escapeSpecialCharacters(user.getLastName())).append(CSV_SEPARATOR);
             csv.append(escapeSpecialCharacters(user.getRoleName())).append(CSV_SEPARATOR);
-            csv.append(user.getIsActive()).append(CSV_SEPARATOR);
+            csv.append(user.isActive()).append(CSV_SEPARATOR);
             csv.append(user.getCreatedAt() != null ? user.getCreatedAt().format(DATE_FORMATTER) : "").append(CSV_SEPARATOR);
             csv.append(user.getUpdatedAt() != null ? user.getUpdatedAt().format(DATE_FORMATTER) : "");
             csv.append("\n");
