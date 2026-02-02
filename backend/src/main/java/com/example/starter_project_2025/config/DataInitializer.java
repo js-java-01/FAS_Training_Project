@@ -266,30 +266,4 @@ public class DataInitializer implements CommandLineRunner {
         ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
         return language;
     }
-
-    private void ensureProgrammingLanguagePermissions() {
-        // Check if programming language permissions exist
-        boolean hasProgLangPerms = permissionRepository.existsByName("PROGRAMMING_LANGUAGE_READ");
-        
-        if (!hasProgLangPerms) {
-            log.info("Programming language permissions not found, adding them...");
-            
-            List<Permission> progLangPermissions = Arrays.asList(
-                createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages", "PROGRAMMING_LANGUAGE", "CREATE"),
-                createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages", "PROGRAMMING_LANGUAGE", "READ"),
-                createPermission("PROGRAMMING_LANGUAGE_UPDATE", "Update existing programming languages", "PROGRAMMING_LANGUAGE", "UPDATE"),
-                createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages", "PROGRAMMING_LANGUAGE", "DELETE")
-            );
-            
-            permissionRepository.saveAll(progLangPermissions);
-            
-            // Add these permissions to the ADMIN role
-            Role adminRole = roleRepository.findByName("ADMIN").orElse(null);
-            if (adminRole != null) {
-                adminRole.getPermissions().addAll(progLangPermissions);
-                roleRepository.save(adminRole);
-                log.info("Added programming language permissions to ADMIN role");
-            }
-        }
-    }
 }
