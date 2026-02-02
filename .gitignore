@@ -1,46 +1,23 @@
-### Maven ###
-target/
-!.mvn/wrapper/maven-wrapper.jar
-.mvn/
-build/
-dependency-reduced-pom.xml
-release.properties
+# Database & Secrets
+.env
+.env.local
+docker-config/mysql_data/
 
-### IntelliJ IDEA ###
+# IDEs
 .idea/
-*.iws
-*.iml
-*.ipr
+.vscode/
+*.swp
+*.pws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build folders (Dành cho trường hợp máy ông có folder rác)
+target/
+bin/
 out/
 
-### Eclipse ###
-.classpath
-.project
-.settings/
-bin/
-
-### VS Code ###
-.vscode/
-
-### Logs and temp files ###
-*.log
-logs/
-tmp/
-*.tmp
-*.bak
-*.swp
-.DS_Store
-
-### OS-specific ###
-Thumbs.db
-ehthumbs.db
-*.stackdump
-$RECYCLE.BIN/
-
-### Environment files ###
-.env
-*.env
-
-### Node (if frontend included) ###
+# Node/Frontend (Nếu ông chưa có .gitignore bên trong folder frontend)
 node_modules/
 dist/

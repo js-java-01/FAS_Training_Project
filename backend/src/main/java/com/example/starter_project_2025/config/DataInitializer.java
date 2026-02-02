@@ -1,9 +1,15 @@
 package com.example.starter_project_2025.config;
 
+<<<<<<< HEAD
+=======
+import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
+>>>>>>> G1-develop
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+<<<<<<< HEAD
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
 import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
@@ -20,10 +26,24 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
+=======
+import com.example.starter_project_2025.system.modulegroups.entity.Module;
+import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
+import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
+import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
+import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
+import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
+import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
+>>>>>>> G1-develop
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+<<<<<<< HEAD
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -32,6 +52,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+=======
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+>>>>>>> G1-develop
 
 @Component
 @RequiredArgsConstructor
@@ -40,6 +65,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
+<<<<<<< HEAD
     private final UserRepository userRepository;
     private final MenuRepository menuRepository;
     private final MenuItemRepository menuItemRepository;
@@ -47,6 +73,14 @@ public class DataInitializer implements CommandLineRunner {
     private final CommuneRepository communeRepository;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
+=======
+    private final ModuleGroupsRepository moduleGroupsRepository;
+    private final ModuleRepository moduleRepository;
+    private final ProgrammingLanguageRepository programmingLanguageRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AssessmentTypeRepository assessmentTypeRepository;
+>>>>>>> G1-develop
 
     @Override
     @Transactional
@@ -57,6 +91,7 @@ public class DataInitializer implements CommandLineRunner {
             initializePermissions();
             initializeRoles();
             initializeUsers();
+<<<<<<< HEAD
             initializeMenus();
         } else {
             log.info("Database already initialized, skipping core data initialization.");
@@ -64,6 +99,17 @@ public class DataInitializer implements CommandLineRunner {
 
         initializeLocationData();
         log.info("Database initialization completed successfully!");
+=======
+            initializeModuleGroups();
+            log.info("Database initialization completed successfully!");
+        } else {
+            log.info("Database already initialized, checking for missing permissions...");
+            // Check if programming language permissions exist, if not, add them
+            ensureProgrammingLanguagePermissions();
+            // Always check and initialize programming languages if they don't exist
+            initializeProgrammingLanguages();
+        }
+>>>>>>> G1-develop
     }
 
     private void initializePermissions() {
@@ -85,6 +131,7 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
+<<<<<<< HEAD
                 createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"),
                 createPermission("LOCATION_CREATE", "Create new locations", "LOCATION", "CREATE"),
                 createPermission("LOCATION_READ", "View locations", "LOCATION", "READ"),
@@ -93,6 +140,10 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("LOCATION_IMPORT", "Import locations", "LOCATION", "IMPORT"),
                 createPermission("LOCATION_EXPORT", "Export locations", "LOCATION", "EXPORT")
                 );
+=======
+                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN")
+        );
+>>>>>>> G1-develop
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }
@@ -110,14 +161,20 @@ public class DataInitializer implements CommandLineRunner {
         Role adminRole = new Role();
         adminRole.setName("ADMIN");
         adminRole.setDescription("Administrator with full system access");
+<<<<<<< HEAD
 //        adminRole.setHierarchyLevel(1);
+=======
+>>>>>>> G1-develop
         adminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
         roleRepository.save(adminRole);
 
         Role studentRole = new Role();
         studentRole.setName("STUDENT");
         studentRole.setDescription("Student with limited access to educational resources");
+<<<<<<< HEAD
 //        studentRole.setHierarchyLevel(2);
+=======
+>>>>>>> G1-develop
         studentRole.setPermissions(new HashSet<>(permissionRepository.findByAction("READ")));
         roleRepository.save(studentRole);
 
@@ -158,6 +215,7 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized 3 users (admin@example.com, student@example.com, jane.smith@example.com)");
     }
 
+<<<<<<< HEAD
     private void initializeMenus() {
         Menu mainMenu = new Menu();
         mainMenu.setName("Main Menu");
@@ -233,4 +291,143 @@ public class DataInitializer implements CommandLineRunner {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record CommuneJson(String idProvince, String idCommune, String name) { }
+=======
+    private void initializeModuleGroups() {
+        // 1. Nhóm: Main Menu
+        ModuleGroups mainGroup = new ModuleGroups();
+        mainGroup.setName("Main Menu");
+        mainGroup.setDescription("Main navigation menu of the application");
+        mainGroup.setDisplayOrder(1);
+        mainGroup.setIsActive(true);
+        mainGroup = moduleGroupsRepository.save(mainGroup); // Lưu để lấy ID tự sinh
+
+        moduleRepository.save(createModule(mainGroup, "Dashboard", "/dashboard", "home", 1, "MENU_READ",
+                "System dashboard overview"));
+
+        // 2. Nhóm: User Management
+        ModuleGroups userGroup = new ModuleGroups();
+        userGroup.setName("User Management");
+        userGroup.setDescription("Manage user accounts, roles, and permissions");
+        userGroup.setDisplayOrder(2);
+        userGroup.setIsActive(true);
+        userGroup = moduleGroupsRepository.save(userGroup);
+
+        moduleRepository.save(
+                createModule(userGroup, "User Management", "/users", "users", 1, "USER_READ", "Manage system users"));
+
+        // 3. Nhóm: Role Management
+        ModuleGroups roleGroup = new ModuleGroups();
+        roleGroup.setName("Role Management");
+        roleGroup.setDescription("Manage roles and role-based access control");
+        roleGroup.setDisplayOrder(3);
+        roleGroup.setIsActive(true);
+        roleGroup = moduleGroupsRepository.save(roleGroup);
+
+        moduleRepository.save(createModule(roleGroup, "Role Management", "/roles", "shield", 2, "ROLE_READ",
+                "Manage roles and permissions"));
+
+        // 4. Nhóm: System Management
+        ModuleGroups systemGroup = new ModuleGroups();
+        systemGroup.setName("System Management");
+        systemGroup.setDescription("System configuration and administration");
+        systemGroup.setDisplayOrder(4);
+        systemGroup.setIsActive(true);
+        systemGroup = moduleGroupsRepository.save(systemGroup);
+
+        // Nhóm này có 2 module con
+        Module moduleGroupsSub = createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 1, "MENU_READ",
+                "Manage module groups");
+        Module modulesSub = createModule(systemGroup, "Modules", "/modules", "menu", 2, "MENU_READ",
+                "Manage system modules");
+
+        moduleRepository.saveAll(Arrays.asList(moduleGroupsSub, modulesSub));
+
+        log.info("Initialized 4 module groups and their respective modules.");
+    }
+
+    private Module createModule(ModuleGroups group, String title, String url, String icon,
+            int order, String permission, String description) {
+        Module module = new Module();
+        module.setModuleGroup(group); // Gán quan hệ group_id
+        module.setTitle(title);
+        module.setUrl(url);
+        module.setIcon(icon);
+        module.setDisplayOrder(order);
+        module.setRequiredPermission(permission);
+        module.setDescription(description);
+        module.setIsActive(true);
+        return module;
+    }
+
+    private void initializeAssessments() {
+
+        if (assessmentTypeRepository.count() > 0) {
+            return;
+        }
+
+        AssessmentType a1 = new AssessmentType();
+        a1.setName("Entrance Quiz");
+        a1.setDescription("Assessment for entrance examination");
+
+        AssessmentType a2 = new AssessmentType();
+        a2.setName("Midterm Test");
+        a2.setDescription("Midterm evaluation assessment");
+
+        AssessmentType a3 = new AssessmentType();
+        a3.setName("Final Exam");
+        a3.setDescription("Final assessment of the course");
+
+        assessmentTypeRepository.saveAll(List.of(a1, a2, a3));
+
+        log.info("Initialized {} assessments", 3);
+    }
+
+    private void ensureProgrammingLanguagePermissions() {
+        boolean hasProgLangPerms = permissionRepository.existsByName("PROGRAMMING_LANGUAGE_READ");
+
+        if (!hasProgLangPerms) {
+            log.info("Programming language permissions not found, adding them...");
+
+            List<Permission> progLangPermissions = Arrays.asList(
+                    createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages", "PROGRAMMING_LANGUAGE", "CREATE"),
+                    createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages", "PROGRAMMING_LANGUAGE", "READ"),
+                    createPermission("PROGRAMMING_LANGUAGE_UPDATE", "Update existing programming languages", "PROGRAMMING_LANGUAGE", "UPDATE"),
+                    createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages", "PROGRAMMING_LANGUAGE", "DELETE")
+            );
+
+            permissionRepository.saveAll(progLangPermissions);
+
+            // Add these permissions to the ADMIN role
+            Role adminRole = roleRepository.findByName("ADMIN").orElse(null);
+            if (adminRole != null) {
+                adminRole.getPermissions().addAll(progLangPermissions);
+                roleRepository.save(adminRole);
+                log.info("Added programming language permissions to ADMIN role");
+            }
+        }
+    }
+
+
+    private void initializeProgrammingLanguages() {
+        // Only initialize if no programming languages exist
+        if (programmingLanguageRepository.count() == 0) {
+            ProgrammingLanguage java = createProgrammingLanguage("Java", "17", "Object-oriented programming language widely used for enterprise applications", true);
+            ProgrammingLanguage python = createProgrammingLanguage("Python", "3.11", "High-level interpreted language popular for data science and web development", true);
+            ProgrammingLanguage javascript = createProgrammingLanguage("JavaScript", "ES2023", "Dynamic programming language essential for web development", true);
+            ProgrammingLanguage csharp = createProgrammingLanguage("C#", "11.0", "Modern object-oriented language developed by Microsoft", true);
+            ProgrammingLanguage cpp = createProgrammingLanguage("C++", "20", "General-purpose programming language with low-level control", true);
+            ProgrammingLanguage go = createProgrammingLanguage("Go", "1.21", "Fast, statically typed language designed for modern software development", false);
+
+            programmingLanguageRepository.saveAll(Arrays.asList(java, python, javascript, csharp, cpp, go));
+            log.info("Initialized 6 programming languages");
+        } else {
+            log.info("Programming languages already exist, skipping initialization");
+        }
+    }
+
+    private ProgrammingLanguage createProgrammingLanguage(String name, String version, String description, boolean isSupported) {
+        ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
+        return language;
+    }
+>>>>>>> G1-develop
 }
