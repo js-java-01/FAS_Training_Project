@@ -4,22 +4,37 @@ import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.system.department.Department;
+import com.example.starter_project_2025.system.department.repository.DepartmentRepository;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
 import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
 import com.example.starter_project_2025.system.menu.repository.MenuRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
+import com.example.starter_project_2025.system.location.data.entity.Commune;
+import com.example.starter_project_2025.system.location.data.entity.Province;
+import com.example.starter_project_2025.system.location.data.repository.CommuneRepository;
+import com.example.starter_project_2025.system.location.data.repository.ProvinceRepository;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.querydsl.ListQuerydslPredicateExecutor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +46,11 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final MenuRepository menuRepository;
     private final MenuItemRepository menuItemRepository;
+    private final ProvinceRepository provinceRepository;
+    private final CommuneRepository communeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ObjectMapper objectMapper;
+    private final DepartmentRepository departmentRepository;
 
     @Override
     @Transactional
@@ -43,10 +62,13 @@ public class DataInitializer implements CommandLineRunner {
             initializeRoles();
             initializeUsers();
             initializeMenus();
-            log.info("Database initialization completed successfully!");
         } else {
-            log.info("Database already initialized, skipping data initialization.");
+            log.info("Database already initialized, skipping core data initialization.");
         }
+
+        initializeLocationData();
+        log.info("Database initialization completed successfully!");
+
     }
 
     private void initializePermissions() {
@@ -68,7 +90,15 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
-                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN")
+                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"),
+                createPermission("LOCATION_CREATE", "Create new locations", "LOCATION", "CREATE"),
+                createPermission("LOCATION_READ", "View locations", "LOCATION", "READ"),
+                createPermission("LOCATION_UPDATE", "Update existing locations", "LOCATION", "UPDATE"),
+                createPermission("LOCATION_DELETE", "Delete locations", "LOCATION", "DELETE"),
+                createPermission("DEPARTMENT_READ", "View departments", "DEPARTMENT", "READ"),
+                createPermission("DEPARTMENT_CREATE", "Create new departments", "DEPARTMENT", "CREATE"),
+                createPermission("DEPARTMENT_UPDATE", "Update existing departments", "DEPARTMENT", "UPDATE"),
+                createPermission("DEPARTMENT_DELETE", "Delete departments", "DEPARTMENT", "DELETE")
         );
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
@@ -155,7 +185,9 @@ public class DataInitializer implements CommandLineRunner {
 
         MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1, "USER_READ");
         MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2, "ROLE_READ");
-        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement));
+        MenuItem locationManagement = createMenuItem(adminMenu, null, "Location Management", "/locations", "location", 3, "LOCATION_READ");
+        MenuItem departmentManagement = createMenuItem(adminMenu, null, "Department Management", "/departments", "department", 4, "DEPARTMENT_READ");
+        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, locationManagement, departmentManagement));
 
         log.info("Initialized 2 menus with menu items");
     }
@@ -172,4 +204,41 @@ public class DataInitializer implements CommandLineRunner {
         item.setRequiredPermission(permission);
         return item;
     }
+
+    private void initializeLocationData() {
+        if (provinceRepository.count() > 0 || communeRepository.count() > 0) {
+            log.info("Location data already initialized, skipping location data import.");
+            return;
+        }
+
+        try (InputStream inputStream = new ClassPathResource("LocationData.json").getInputStream()) {
+            LocationDataJson locationData = objectMapper.readValue(inputStream, LocationDataJson.class);
+
+            List<Province> provinces = locationData.province().stream()
+                    .map(p -> new Province(p.idProvince(), p.name()))
+                    .toList();
+            provinceRepository.saveAll(provinces);
+
+            Map<String, Province> provinceById = provinces.stream()
+                    .collect(Collectors.toMap(Province::getId, Function.identity()));
+
+            List<Commune> communes = locationData.commune().stream()
+                    .map(c -> new Commune(c.idCommune(), c.name(), provinceById.get(c.idProvince())))
+                    .toList();
+            communeRepository.saveAll(communes);
+
+            log.info("Initialized {} provinces and {} communes", provinces.size(), communes.size());
+        } catch (IOException e) {
+            log.error("Failed to import location data from LocationData.json", e);
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record LocationDataJson(List<ProvinceJson> province, List<CommuneJson> commune) { }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record ProvinceJson(String idProvince, String name) { }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record CommuneJson(String idProvince, String idCommune, String name) { }
 }

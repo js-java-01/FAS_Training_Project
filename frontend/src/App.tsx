@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -7,6 +6,7 @@ import { Dashboard } from './pages/Dashboard';
 import { UserManagement } from './pages/UserManagement';
 import { RoleManagement } from './pages/RoleManagement';
 import { Unauthorized } from './pages/Unauthorized';
+import DepartmentManagement from './pages/DepartmentManagement';
 
 function App() {
   return (
@@ -41,6 +41,15 @@ function App() {
                 <RoleManagement />
               </ProtectedRoute>
             }
+          />
+
+          <Route
+            path="/departments"
+            element={
+              <ProtectedRoute requiredPermission="DEPARTMENT_READ">
+                  <DepartmentManagement />
+              </ProtectedRoute>
+             }
           />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

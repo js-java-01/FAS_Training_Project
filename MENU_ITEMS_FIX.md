@@ -136,6 +136,7 @@ Main Menu
 Administration
   👥 User Management
   🔐 Role Management
+  🏬 Department Management
 ```
 
 ## Testing Steps

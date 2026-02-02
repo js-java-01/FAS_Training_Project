@@ -226,6 +226,7 @@ Admin Menu
   🔐 Role Management → /admin/roles
   📋 Menu Management → /admin/menus
   ⚙️ System Settings → /admin/settings
+  🏬 Department Management -> /admin/roles
 
 Student Menu
   🎓 Courses → /student/courses

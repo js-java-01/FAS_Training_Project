@@ -14,6 +14,9 @@ const iconMap: { [key: string]: string } = {
   school: '🎓',
   assignment: '📝',
   grade: '📈',
+  location: '📍',
+  place: '📍',
+  department: '🏢'
 };
 
 export const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {

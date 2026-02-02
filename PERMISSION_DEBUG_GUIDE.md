@@ -82,6 +82,7 @@ The sidebar should now show all 3 menu items:
 - 📊 Dashboard
 - 🔐 Role Management
 - 👥 User Management
+- 🏬 Department Management 
 
 ## Troubleshooting
 
