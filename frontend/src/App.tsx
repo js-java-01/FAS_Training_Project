@@ -12,6 +12,8 @@ import { RoleManagement } from "./pages/RoleManagement";
 import { UserManagement } from "./pages/UserManagement";
 import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import { Logout } from "./pages/auth/Logout";
+import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 
 // import { SidebarProvider } from "./components/ui/sidebar";
 
@@ -31,8 +33,10 @@ function App() {
          
         </SidebarProvider> */}
         <Routes>
+          <Route path="*" element={<NotFoundRedirect />} />
           <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/logout" element={<Logout />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
