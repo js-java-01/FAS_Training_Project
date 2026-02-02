@@ -4,6 +4,7 @@ import com.example.starter_project_2025.system.user.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -11,7 +12,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
-@Builder
+@SuperBuilder
 @Table(name = "students")
 @DiscriminatorValue("STUDENT")
 @NoArgsConstructor
