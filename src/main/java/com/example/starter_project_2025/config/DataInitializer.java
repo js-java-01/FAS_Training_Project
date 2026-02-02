@@ -4,18 +4,18 @@ import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
-import com.example.starter_project_2025.system.department.Department;
 import com.example.starter_project_2025.system.department.repository.DepartmentRepository;
+import com.example.starter_project_2025.system.location.data.entity.Commune;
+import com.example.starter_project_2025.system.location.data.entity.Province;
+import com.example.starter_project_2025.system.location.data.repository.CommuneRepository;
+import com.example.starter_project_2025.system.location.data.repository.ProvinceRepository;
+import com.example.starter_project_2025.system.department.Department;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
 import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
 import com.example.starter_project_2025.system.menu.repository.MenuRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
-import com.example.starter_project_2025.system.location.data.entity.Commune;
-import com.example.starter_project_2025.system.location.data.entity.Province;
-import com.example.starter_project_2025.system.location.data.repository.CommuneRepository;
-import com.example.starter_project_2025.system.location.data.repository.ProvinceRepository;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +50,6 @@ public class DataInitializer implements CommandLineRunner {
     private final CommuneRepository communeRepository;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
-    private final DepartmentRepository departmentRepository;
 
     @Override
     @Transactional

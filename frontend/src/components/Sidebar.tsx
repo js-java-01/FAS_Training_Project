@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { menuApi } from '../api/menuApi';
-import { Menu } from '../types/menu';
-import { usePermissions } from '../hooks/usePermissions';
+import React, {useEffect, useState} from 'react';
+import {Link, useLocation} from 'react-router-dom';
+import {menuApi} from '../api/menuApi';
+import {Menu} from '../types/menu';
+import {usePermissions} from '../hooks/usePermissions';
 
 const iconMap: { [key: string]: string } = {
   dashboard: '📊',
