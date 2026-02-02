@@ -13,9 +13,11 @@ import java.util.UUID;
 @Data
 @Entity
 @Builder
-@Table(name = "users")
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "users")
+@DiscriminatorColumn(name = "user_type")
+@Inheritance(strategy = InheritanceType.JOINED)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
 

@@ -1,45 +1,40 @@
-package com.example.starter_project_2025.system.user.entity; 
+package com.example.starter_project_2025.system.user.entity;
 
+import com.example.starter_project_2025.system.user.enums.Gender;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@Getter
+@Setter
 @Entity
+@Builder
 @Table(name = "students")
-@PrimaryKeyJoinColumn(name = "user_id")
-@Data
+@DiscriminatorValue("STUDENT")
 @NoArgsConstructor
 @AllArgsConstructor
-public class Student extends User { 
-    @Column(name = "dob")
-    private LocalDate dob;
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Student extends User {
 
-    @Column(name = "gender")
-    private String gender;
+    @Column(nullable = false, unique = true, length = 20)
+    String studentCode;
 
-    @Column(name = "phone")
-    private String phone;
+    @Column(nullable = false)
+    LocalDate dob;
 
-    @Column(name = "address")
-    private String address;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    Gender gender;
 
-    @Column(name = "student_code", unique = true)
-    private String studentCode;
+    @Column(nullable = false, unique = true, length = 15)
+    String phone;
 
-    @Column(name = "major")
-    private String major;
+    @Column(nullable = false, length = 255)
+    String address;
 
-    @Column(name = "school")
-    private String school;
-
-    @Column(name = "gpa")
-    private Double gpa;
-
-    @Column(name = "joined_date")
-    private LocalDate joinedDate;
-    
-    @Column(name = "fa_account")
-    private String faAccount;
+    @Column(precision = 3, scale = 2)
+    BigDecimal gpa;
 }

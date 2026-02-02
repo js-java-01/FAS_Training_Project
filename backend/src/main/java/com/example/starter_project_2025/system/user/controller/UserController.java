@@ -38,6 +38,7 @@ public class UserController {
             @RequestParam(required = false) UUID roleId,
             @RequestParam(required = false) LocalDateTime createFrom,
             @RequestParam(required = false) LocalDateTime createTo,
+            @RequestParam(required = false) Boolean isActive,
             @PageableDefault(size = 10) Pageable pageable
     ) {
         return ResponseEntity.ok(userService.getAllUsers(
@@ -45,6 +46,7 @@ public class UserController {
                 roleId,
                 createFrom,
                 createTo,
+                isActive,
                 pageable
         ));
     }

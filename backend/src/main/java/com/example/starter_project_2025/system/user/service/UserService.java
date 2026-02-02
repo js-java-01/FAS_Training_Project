@@ -15,6 +15,7 @@ public interface UserService {
             UUID roleId,
             LocalDateTime createFrom,
             LocalDateTime createTo,
+            Boolean isActive,
             Pageable pageable
     );
 

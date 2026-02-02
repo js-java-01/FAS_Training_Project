@@ -15,9 +15,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,17 +42,20 @@ public class UserServiceImpl implements UserService {
             UUID roleId,
             LocalDateTime createFrom,
             LocalDateTime createTo,
+            Boolean isActive,
             Pageable pageable
     ) {
         Specification<User> spec = Specification
-                .where(UserSpecification.keyword(searchContent))
+                .where(UserSpecification.hasUserKeyword(searchContent))
                 .and(UserSpecification.hasRoleId(roleId))
                 .and(UserSpecification.createdAfter(createFrom))
-                .and(UserSpecification.createdBefore(createTo));
+                .and(UserSpecification.createdBefore(createTo))
+                .and(UserSpecification.isActive(isActive));
 
         return userRepository.findAll(spec, pageable).map(userMapper::toResponse);
     }
 
+    @Override
     @PreAuthorize("hasAuthority('USER_READ')")
     public UserDTO getUserById(UUID id) {
 
@@ -64,6 +65,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.toResponse(user);
     }
 
+    @Override
     @PreAuthorize("hasAuthority('USER_CREATE')")
     public UserDTO createUser(CreateUserRequest request) {
 
@@ -82,6 +84,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.toResponse(userRepository.save(user));
     }
 
+    @Override
     @PreAuthorize("hasAuthority('USER_UPDATE')")
     public UserDTO updateUser(UUID id, UserDTO request) {
 
@@ -106,6 +109,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.toResponse(userRepository.save(user));
     }
 
+    @Override
     @PreAuthorize("hasAuthority('USER_DELETE')")
     public void deleteUser(UUID id) {
 
@@ -115,6 +119,7 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(user);
     }
 
+    @Override
     @PreAuthorize("hasAuthority('USER_ACTIVATE')")
     public UserDTO toggleUserStatus(UUID id) {
 
@@ -126,6 +131,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.toResponse(userRepository.save(user));
     }
 
+    @Override
     @PreAuthorize("hasAuthority('ROLE_ASSIGN')")
     public UserDTO assignRole(UUID userId, UUID roleId) {
 
