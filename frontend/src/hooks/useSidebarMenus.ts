@@ -8,7 +8,7 @@ import { moduleGroupApi } from "@/api/moduleApi"
 import { iconMap } from "@/constants/iconMap"
 
 /* ================= QUERY (LOCAL) ================= */
-const useActiveModuleGroups = () => {
+export const useActiveModuleGroups = () => {
     return useQuery<ModuleGroup[]>({
         queryKey: ["module-groups", "active"],
         queryFn: moduleGroupApi.getActiveModuleGroups,
