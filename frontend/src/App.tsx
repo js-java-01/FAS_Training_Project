@@ -5,7 +5,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
 import { RoleManagement } from "./pages/RoleManagement";
-import { AssessmentManagement } from "./pages/AssessmentManagement";
+import AssessmentManagement from "./pages/AssessmentManagement";
 import { UserManagement } from "./pages/UserManagement";
 import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";

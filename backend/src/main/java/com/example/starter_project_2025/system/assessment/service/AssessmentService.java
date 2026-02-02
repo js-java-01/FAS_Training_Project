@@ -36,8 +36,7 @@ public class AssessmentService {
     @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
     public AssessmentTypeDTO findById(String id) {
         AssessmentType assessmentType = assessRepo.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Assessment", "id", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
 
         return assessmentTypeMapper.toDto(assessmentType);
     }
@@ -56,7 +55,8 @@ public class AssessmentService {
     @PreAuthorize("hasAuthority('ASSESSMENT_UPDATE')")
     public AssessmentTypeDTO update(String id, UpdateAssessmentRequest request) {
 
-        AssessmentType assessmentType = assessRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
+        AssessmentType assessmentType = assessRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
 
         assessmentTypeMapper.updateEntityFromRequest(request, assessmentType);
         return assessmentTypeMapper.toDto(assessRepo.save(assessmentType));
@@ -65,14 +65,17 @@ public class AssessmentService {
     @PreAuthorize("hasAuthority('ASSESSMENT_DELETE')")
     public void delete(String id) {
 
-        AssessmentType assessmentType = assessRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
+        AssessmentType assessmentType = assessRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
 
         assessRepo.delete(assessmentType);
     }
 
     @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
-    public Page<AssessmentTypeDTO> search(String name, String keyword, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
-        Specification<AssessmentType> spec = Specification.where(AssessmentTypeSpecification.nameContains(name)).and(AssessmentTypeSpecification.keyword(keyword))
+    public Page<AssessmentTypeDTO> search(String name, String keyword, LocalDate fromDate, LocalDate toDate,
+            Pageable pageable) {
+        Specification<AssessmentType> spec = Specification.where(AssessmentTypeSpecification.nameContains(name))
+                .and(AssessmentTypeSpecification.keyword(keyword))
                 .and(AssessmentTypeSpecification.createdAfter(fromDate))
                 .and(AssessmentTypeSpecification.createdBefore(toDate));
 
@@ -102,21 +105,32 @@ public class AssessmentService {
                     || !"Description".equalsIgnoreCase(header.getCell(1).getStringCellValue().trim())) {
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
-                        "Invalid template format"
-                );
+                        "Invalid template format");
             }
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 totalRows++;
                 Row row = sheet.getRow(i);
 
-                if (row == null) continue;
+                if (row == null)
+                    continue;
 
                 String name = getCellValue(row.getCell(0));
                 String description = getCellValue(row.getCell(1));
 
                 if (name.isBlank()) {
                     errors.add(new ImportErrorDTO(i + 1, "Name is required"));
+                    continue;
+                }
+
+                if (name.length() < 5 || name.length() > 255) {
+                    errors.add(new ImportErrorDTO(i + 1, "Name must be between 5 and 255 characters"));
+                    continue;
+                }
+
+                if (description != null && !description.isBlank()
+                        && (description.length() < 10 || description.length() > 250)) {
+                    errors.add(new ImportErrorDTO(i + 1, "Description must be between 10 and 250 characters"));
                     continue;
                 }
 
@@ -142,8 +156,7 @@ public class AssessmentService {
                 totalRows,
                 toSave.size(),
                 errors.size(),
-                errors
-        );
+                errors);
     }
 
     @PreAuthorize("hasAnyAuthority('ASSESSMENT_READ')")
@@ -192,7 +205,6 @@ public class AssessmentService {
         exampleRow2.createCell(0).setCellValue("Final Exam");
         exampleRow2.createCell(1).setCellValue("End of course final assessment");
 
-
         sheet.autoSizeColumn(0);
         sheet.autoSizeColumn(1);
 
@@ -203,9 +215,9 @@ public class AssessmentService {
         return new ByteArrayInputStream(out.toByteArray());
     }
 
-
     private String getCellValue(Cell cell) {
-        if (cell == null) return "";
+        if (cell == null)
+            return "";
         cell.setCellType(CellType.STRING);
         return cell.getStringCellValue().trim();
     }

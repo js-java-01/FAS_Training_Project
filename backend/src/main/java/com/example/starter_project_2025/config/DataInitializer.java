@@ -49,6 +49,7 @@ public class DataInitializer implements CommandLineRunner {
             initializeRoles();
             initializeUsers();
             initializeModuleGroups();
+            initializeAssessments();
             log.info("Database initialization completed successfully!");
         } else {
             log.info("Database already initialized, checking for missing permissions...");
@@ -78,7 +79,12 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
-                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN")
+                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"),
+                createPermission("ASSESSMENT_READ", "View assessment types", "ASSESSMENT_TYPE", "READ"),
+                createPermission("ASSESSMENT_UPDATE", "Update existing assessment types", "ASSESSMENT_TYPE", "UPDATE"),
+                createPermission("ASSESSMENT_DELETE", "Delete assessment types", "ASSESSMENT_TYPE", "DELETE"),
+                createPermission("ASSESSMENT_CREATE", "Assign assessment types", "ASSESSMENT_TYPE", "ASSIGN")
+
         );
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
@@ -193,7 +199,25 @@ public class DataInitializer implements CommandLineRunner {
 
         moduleRepository.saveAll(Arrays.asList(moduleGroupsSub, modulesSub));
 
-        log.info("Initialized 4 module groups and their respective modules.");
+        //
+        ModuleGroups assessmentTypeGroup = new ModuleGroups();
+        assessmentTypeGroup.setName("Assessment Type Management");
+        assessmentTypeGroup.setDescription("Manage assessment types and related permissions");
+        assessmentTypeGroup.setDisplayOrder(3);
+        assessmentTypeGroup.setIsActive(true);
+        assessmentTypeGroup = moduleGroupsRepository.save(assessmentTypeGroup);
+
+        moduleRepository.save(
+                createModule(
+                        assessmentTypeGroup,
+                        "Assessment Type Management",
+                        "/assessment-type",
+                        "shield", // icon (you can change if you want)
+                        2,
+                        "ASSESSMENT_READ",
+                        "Manage assessment types"));
+
+        log.info("Initialized 5 module groups and their respective modules.");
     }
 
     private Module createModule(ModuleGroups group, String title, String url, String icon,
@@ -240,11 +264,14 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Programming language permissions not found, adding them...");
 
             List<Permission> progLangPermissions = Arrays.asList(
-                    createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages", "PROGRAMMING_LANGUAGE", "CREATE"),
-                    createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages", "PROGRAMMING_LANGUAGE", "READ"),
-                    createPermission("PROGRAMMING_LANGUAGE_UPDATE", "Update existing programming languages", "PROGRAMMING_LANGUAGE", "UPDATE"),
-                    createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages", "PROGRAMMING_LANGUAGE", "DELETE")
-            );
+                    createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages",
+                            "PROGRAMMING_LANGUAGE", "CREATE"),
+                    createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages", "PROGRAMMING_LANGUAGE",
+                            "READ"),
+                    createPermission("PROGRAMMING_LANGUAGE_UPDATE", "Update existing programming languages",
+                            "PROGRAMMING_LANGUAGE", "UPDATE"),
+                    createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages",
+                            "PROGRAMMING_LANGUAGE", "DELETE"));
 
             permissionRepository.saveAll(progLangPermissions);
 
@@ -258,16 +285,21 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-
     private void initializeProgrammingLanguages() {
         // Only initialize if no programming languages exist
         if (programmingLanguageRepository.count() == 0) {
-            ProgrammingLanguage java = createProgrammingLanguage("Java", "17", "Object-oriented programming language widely used for enterprise applications", true);
-            ProgrammingLanguage python = createProgrammingLanguage("Python", "3.11", "High-level interpreted language popular for data science and web development", true);
-            ProgrammingLanguage javascript = createProgrammingLanguage("JavaScript", "ES2023", "Dynamic programming language essential for web development", true);
-            ProgrammingLanguage csharp = createProgrammingLanguage("C#", "11.0", "Modern object-oriented language developed by Microsoft", true);
-            ProgrammingLanguage cpp = createProgrammingLanguage("C++", "20", "General-purpose programming language with low-level control", true);
-            ProgrammingLanguage go = createProgrammingLanguage("Go", "1.21", "Fast, statically typed language designed for modern software development", false);
+            ProgrammingLanguage java = createProgrammingLanguage("Java", "17",
+                    "Object-oriented programming language widely used for enterprise applications", true);
+            ProgrammingLanguage python = createProgrammingLanguage("Python", "3.11",
+                    "High-level interpreted language popular for data science and web development", true);
+            ProgrammingLanguage javascript = createProgrammingLanguage("JavaScript", "ES2023",
+                    "Dynamic programming language essential for web development", true);
+            ProgrammingLanguage csharp = createProgrammingLanguage("C#", "11.0",
+                    "Modern object-oriented language developed by Microsoft", true);
+            ProgrammingLanguage cpp = createProgrammingLanguage("C++", "20",
+                    "General-purpose programming language with low-level control", true);
+            ProgrammingLanguage go = createProgrammingLanguage("Go", "1.21",
+                    "Fast, statically typed language designed for modern software development", false);
 
             programmingLanguageRepository.saveAll(Arrays.asList(java, python, javascript, csharp, cpp, go));
             log.info("Initialized 6 programming languages");
@@ -276,7 +308,8 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private ProgrammingLanguage createProgrammingLanguage(String name, String version, String description, boolean isSupported) {
+    private ProgrammingLanguage createProgrammingLanguage(String name, String version, String description,
+            boolean isSupported) {
         ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
         return language;
     }
