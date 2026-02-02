@@ -50,6 +50,7 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
+  confirmPassword: string;
 }
 export interface VerifyRequest {
   email: string;
