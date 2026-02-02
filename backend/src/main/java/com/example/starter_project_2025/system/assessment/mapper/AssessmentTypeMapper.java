@@ -1,10 +1,10 @@
 package com.example.starter_project_2025.system.assessment.mapper;
 
-import com.example.starter_project_2025.system.assessment.dto.AssessmentDTO;
+import com.example.starter_project_2025.system.assessment.dto.AssessmentTypeDTO;
 import com.example.starter_project_2025.system.assessment.dto.AssessmentImportRequest;
 import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRequest;
-import com.example.starter_project_2025.system.assessment.entity.Assessment;
+import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -12,22 +12,22 @@ import org.mapstruct.MappingTarget;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-public interface AssessmentMapper {
+public interface AssessmentTypeMapper {
 
-    AssessmentDTO toDto(Assessment assessment);
+    AssessmentTypeDTO toDto(AssessmentType assessmentType);
 
-    List<AssessmentDTO> toDto(List<Assessment> assessments);
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    Assessment toEntity(CreateAssessmentRequest request);
+    List<AssessmentTypeDTO> toDto(List<AssessmentType> assessmentTypes);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    void updateEntityFromRequest(UpdateAssessmentRequest request, @MappingTarget Assessment assessment);
+    AssessmentType toEntity(CreateAssessmentRequest request);
 
-    Assessment toEntity(AssessmentImportRequest request);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    void updateEntityFromRequest(UpdateAssessmentRequest request, @MappingTarget AssessmentType assessmentType);
+
+    AssessmentType toEntity(AssessmentImportRequest request);
 
 }

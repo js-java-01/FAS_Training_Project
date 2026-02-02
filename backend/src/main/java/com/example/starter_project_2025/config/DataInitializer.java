@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.config;
 
-import com.example.starter_project_2025.system.assessment.entity.Assessment;
-import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
+import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
@@ -34,7 +34,7 @@ public class DataInitializer implements CommandLineRunner {
     private final MenuRepository menuRepository;
     private final MenuItemRepository menuItemRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AssessmentRepository assessmentRepository;
+    private final AssessmentTypeRepository assessmentTypeRepository;
 
     @Override
     @Transactional
@@ -189,23 +189,23 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initializeAssessments() {
 
-        if (assessmentRepository.count() > 0) {
+        if (assessmentTypeRepository.count() > 0) {
             return;
         }
 
-        Assessment a1 = new Assessment();
+        AssessmentType a1 = new AssessmentType();
         a1.setName("Entrance Quiz");
         a1.setDescription("Assessment for entrance examination");
 
-        Assessment a2 = new Assessment();
+        AssessmentType a2 = new AssessmentType();
         a2.setName("Midterm Test");
         a2.setDescription("Midterm evaluation assessment");
 
-        Assessment a3 = new Assessment();
+        AssessmentType a3 = new AssessmentType();
         a3.setName("Final Exam");
         a3.setDescription("Final assessment of the course");
 
-        assessmentRepository.saveAll(List.of(a1, a2, a3));
+        assessmentTypeRepository.saveAll(List.of(a1, a2, a3));
 
         log.info("Initialized {} assessments", 3);
     }
