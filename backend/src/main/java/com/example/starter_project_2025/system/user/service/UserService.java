@@ -2,6 +2,7 @@ package com.example.starter_project_2025.system.user.service;
 
 import com.example.starter_project_2025.system.user.dto.CreateUserRequest;
 import com.example.starter_project_2025.system.user.dto.UserDTO;
+import com.example.starter_project_2025.system.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -30,4 +31,6 @@ public interface UserService {
     UserDTO toggleUserStatus(UUID id);
 
     UserDTO assignRole(UUID userId, UUID roleId);
+
+    User findByEmail(String email);
 }

@@ -1,31 +1,30 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    Eye,
-    SquarePen,
-    Trash2,
-    Search,
-    RotateCcw,
-    Download,
-    Upload,
-    Plus,
     ChevronLeft,
     ChevronRight,
-    Loader2
+    Download,
+    Eye,
+    Loader2,
+    Plus,
+    RotateCcw,
+    Search,
+    SquarePen,
+    Trash2,
+    Upload
 } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState } from 'react';
 
-import { PermissionGate } from '../components/PermissionGate';
-import { MainLayout } from '../components/MainLayout';
 import { assessmentTypeApi } from '../api/assessmentTypeApi';
+import { PermissionGate } from '../components/PermissionGate';
 import { useToast } from '../hooks/use-toast';
 import type { AssessmentType, AssessmentTypeRequest, ImportResult } from '../types/assessmentType';
-import type { PaginatedResponse } from '../types/programmingLanguage';
 
+import { MainLayout } from '@/components/layout/MainLayout';
 import { CreateAssessmentModal } from '../components/assessment/CreateAssessmentModal';
-import { UpdateAssessmentModal } from '../components/assessment/UpdateAssessmentModal';
-import { ViewAssessmentModal } from '../components/assessment/ViewAssessmentModal';
 import { DeleteAssessmentDialog } from '../components/assessment/DeleteAssessmentDialog';
 import { ImportAssessmentDialog } from '../components/assessment/ImportAssessmentDialog';
+import { UpdateAssessmentModal } from '../components/assessment/UpdateAssessmentModal';
+import { ViewAssessmentModal } from '../components/assessment/ViewAssessmentModal';
 
 export const AssessmentManagement: React.FC = () => {
     const { toast } = useToast();
@@ -105,7 +104,7 @@ export const AssessmentManagement: React.FC = () => {
     });
 
     const importMutation = useMutation({
-        mutationFn: assessmentTypeApi.importAssessments,
+        mutationFn: assessmentTypeApi.importAssessment,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['assessments'] });
         },
@@ -139,7 +138,7 @@ export const AssessmentManagement: React.FC = () => {
 
     const handleExport = async () => {
         try {
-            await assessmentTypeApi.exportAssessments();
+            await assessmentTypeApi.exportAssessment();
             toast({ variant: "success", title: "Success", description: "Export started" });
         } catch (error) {
             toast({ variant: "destructive", title: "Error", description: "Failed to export assessment types" });

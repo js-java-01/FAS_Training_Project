@@ -6,10 +6,10 @@ import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
-import com.example.starter_project_2025.system.menu.entity.Menu;
-import com.example.starter_project_2025.system.menu.entity.MenuItem;
-import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
-import com.example.starter_project_2025.system.menu.repository.MenuRepository;
+import com.example.starter_project_2025.system.modulegroups.entity.Module;
+import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
+import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
+import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
 import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
 import com.example.starter_project_2025.system.user.entity.User;
@@ -32,10 +32,10 @@ public class DataInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
-    private final UserRepository userRepository;
-    private final MenuRepository menuRepository;
-    private final MenuItemRepository menuItemRepository;
+    private final ModuleGroupsRepository moduleGroupsRepository;
+    private final ModuleRepository moduleRepository;
     private final ProgrammingLanguageRepository programmingLanguageRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AssessmentTypeRepository assessmentTypeRepository;
 
@@ -48,9 +48,7 @@ public class DataInitializer implements CommandLineRunner {
             initializePermissions();
             initializeRoles();
             initializeUsers();
-            initializeMenus();
-            initializeAssessments();
-            initializeProgrammingLanguages();
+            initializeModuleGroups();
             log.info("Database initialization completed successfully!");
         } else {
             log.info("Database already initialized, checking for missing permissions...");
@@ -80,17 +78,8 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
-                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"),
-                createPermission("ASSESSMENT_CREATE", "Create assessments", "ASSESSMENT", "CREATE"),
-                createPermission("ASSESSMENT_READ", "Read assessments", "ASSESSMENT", "READ"),
-                createPermission("ASSESSMENT_UPDATE", "Update assessments", "ASSESSMENT", "UPDATE"),
-                createPermission("ASSESSMENT_DELETE", "Delete assessments", "ASSESSMENT", "DELETE"),
-                createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages", "PROGRAMMING_LANGUAGE", "CREATE"),
-                createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages", "PROGRAMMING_LANGUAGE", "READ"),
-                createPermission("PROGRAMMING_LANGUAGE_UPDATE", "Update existing programming languages", "PROGRAMMING_LANGUAGE", "UPDATE"),
-                createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages", "PROGRAMMING_LANGUAGE", "DELETE")
-
-                );
+                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN")
+        );
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }
@@ -108,14 +97,12 @@ public class DataInitializer implements CommandLineRunner {
         Role adminRole = new Role();
         adminRole.setName("ADMIN");
         adminRole.setDescription("Administrator with full system access");
-        adminRole.setHierarchyLevel(1);
         adminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
         roleRepository.save(adminRole);
 
         Role studentRole = new Role();
         studentRole.setName("STUDENT");
         studentRole.setDescription("Student with limited access to educational resources");
-        studentRole.setHierarchyLevel(2);
         studentRole.setPermissions(new HashSet<>(permissionRepository.findByAction("READ")));
         roleRepository.save(studentRole);
 
@@ -156,44 +143,71 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized 3 users (admin@example.com, student@example.com, jane.smith@example.com)");
     }
 
-    private void initializeMenus() {
-        Menu mainMenu = new Menu();
-        mainMenu.setName("Main Menu");
-        mainMenu.setDescription("Primary navigation menu");
-        mainMenu.setIsActive(true);
-        mainMenu.setDisplayOrder(1);
-        mainMenu = menuRepository.save(mainMenu);
+    private void initializeModuleGroups() {
+        // 1. Nhóm: Main Menu
+        ModuleGroups mainGroup = new ModuleGroups();
+        mainGroup.setName("Main Menu");
+        mainGroup.setDescription("Main navigation menu of the application");
+        mainGroup.setDisplayOrder(1);
+        mainGroup.setIsActive(true);
+        mainGroup = moduleGroupsRepository.save(mainGroup); // Lưu để lấy ID tự sinh
 
-        MenuItem dashboard = createMenuItem(mainMenu, null, "Dashboard", "/dashboard", "dashboard", 1, null);
-        menuItemRepository.save(dashboard);
+        moduleRepository.save(createModule(mainGroup, "Dashboard", "/dashboard", "home", 1, "MENU_READ",
+                "System dashboard overview"));
 
-        Menu adminMenu = new Menu();
-        adminMenu.setName("Administration");
-        adminMenu.setDescription("Administrative functions menu");
-        adminMenu.setIsActive(true);
-        adminMenu.setDisplayOrder(2);
-        adminMenu = menuRepository.save(adminMenu);
+        // 2. Nhóm: User Management
+        ModuleGroups userGroup = new ModuleGroups();
+        userGroup.setName("User Management");
+        userGroup.setDescription("Manage user accounts, roles, and permissions");
+        userGroup.setDisplayOrder(2);
+        userGroup.setIsActive(true);
+        userGroup = moduleGroupsRepository.save(userGroup);
 
-        MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1, "USER_READ");
-        MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2, "ROLE_READ");
-        MenuItem assessmentTypeManagement = createMenuItem(adminMenu, null, "Assessment Type Management", "/assessments", "security", 3, "ASSESSMENT_READ");
-        MenuItem programmingLanguageManagement = createMenuItem(adminMenu, null, "Programming Languages", "/programming-languages", "school", 3, "PROGRAMMING_LANGUAGE_READ");
-        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, assessmentTypeManagement, programmingLanguageManagement));
+        moduleRepository.save(
+                createModule(userGroup, "User Management", "/users", "users", 1, "USER_READ", "Manage system users"));
 
-        log.info("Initialized 2 menus with menu items");
+        // 3. Nhóm: Role Management
+        ModuleGroups roleGroup = new ModuleGroups();
+        roleGroup.setName("Role Management");
+        roleGroup.setDescription("Manage roles and role-based access control");
+        roleGroup.setDisplayOrder(3);
+        roleGroup.setIsActive(true);
+        roleGroup = moduleGroupsRepository.save(roleGroup);
+
+        moduleRepository.save(createModule(roleGroup, "Role Management", "/roles", "shield", 2, "ROLE_READ",
+                "Manage roles and permissions"));
+
+        // 4. Nhóm: System Management
+        ModuleGroups systemGroup = new ModuleGroups();
+        systemGroup.setName("System Management");
+        systemGroup.setDescription("System configuration and administration");
+        systemGroup.setDisplayOrder(4);
+        systemGroup.setIsActive(true);
+        systemGroup = moduleGroupsRepository.save(systemGroup);
+
+        // Nhóm này có 2 module con
+        Module moduleGroupsSub = createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 1, "MENU_READ",
+                "Manage module groups");
+        Module modulesSub = createModule(systemGroup, "Modules", "/modules", "menu", 2, "MENU_READ",
+                "Manage system modules");
+
+        moduleRepository.saveAll(Arrays.asList(moduleGroupsSub, modulesSub));
+
+        log.info("Initialized 4 module groups and their respective modules.");
     }
 
-    private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order, String permission) {
-        MenuItem item = new MenuItem();
-        item.setMenu(menu);
-        item.setParent(parent);
-        item.setTitle(title);
-        item.setUrl(url);
-        item.setIcon(icon);
-        item.setDisplayOrder(order);
-        item.setIsActive(true);
-        item.setRequiredPermission(permission);
-        return item;
+    private Module createModule(ModuleGroups group, String title, String url, String icon,
+            int order, String permission, String description) {
+        Module module = new Module();
+        module.setModuleGroup(group); // Gán quan hệ group_id
+        module.setTitle(title);
+        module.setUrl(url);
+        module.setIcon(icon);
+        module.setDisplayOrder(order);
+        module.setRequiredPermission(permission);
+        module.setDescription(description);
+        module.setIsActive(true);
+        return module;
     }
 
     private void initializeAssessments() {
