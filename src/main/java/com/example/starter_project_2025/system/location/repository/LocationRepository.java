@@ -13,4 +13,6 @@ public interface LocationRepository
     boolean existsByNameIgnoreCase(String name);
 
     boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
+
+
 }

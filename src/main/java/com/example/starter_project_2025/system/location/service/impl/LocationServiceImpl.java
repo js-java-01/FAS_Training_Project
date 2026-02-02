@@ -23,7 +23,7 @@ public class LocationServiceImpl implements LocationService {
 
     private final LocationRepository locationRepository;
 
-    // ✅ Replace đúng commune service trong project bạn:
+    //  Replace đúng commune service trong project bạn:
     private final LocationDataService locationDataService;
 
     @Override
@@ -142,5 +142,29 @@ public class LocationServiceImpl implements LocationService {
                 .provinceName(provinceName)
                 .status(location.getLocationStatus())
                 .build();
+    }
+
+    @Override
+    public void deletePermanently(UUID id) {
+        // 1️ Check exist
+        Location location = locationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Location not found"));
+
+        // 2️ Dependency check
+        boolean hasDependency = checkLocationDependency(location);
+
+        if (hasDependency) {
+            throw new IllegalStateException(
+                    "Cannot delete location because it is currently in use"
+            );
+        }
+
+        // 3 delete permanently
+        locationRepository.delete(location);
+    }
+
+    private boolean checkLocationDependency(Location location) {
+        //implement when training/user modules are available
+        return false;
     }
 }

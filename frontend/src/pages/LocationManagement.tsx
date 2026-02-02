@@ -28,6 +28,14 @@ export const LocationManagement: React.FC = () => {
     communeId: '',
     status: undefined as any,
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [locationToDelete, setLocationToDelete] = useState<Location | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importResult, setImportResult] = useState<any>(null);
+  const [isImporting, setIsImporting] = useState(false);
+
+
 
   useEffect(() => {
     loadData();
@@ -118,7 +126,7 @@ export const LocationManagement: React.FC = () => {
   const handleEditLocation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedLocation) return;
-    
+
     try {
       await locationApi.updateLocation(selectedLocation.id, {
         name: selectedLocation.name,
@@ -148,7 +156,7 @@ export const LocationManagement: React.FC = () => {
   const openEditModal = async (location: Location) => {
     setSelectedLocation({ ...location });
     setShowEditModal(true);
-    
+
     // Find province for this commune
     try {
       const allProvinces = await locationDataApi.getAllProvinces();
@@ -180,19 +188,87 @@ export const LocationManagement: React.FC = () => {
     );
   }
 
+  const handleImport = async () => {
+    if (!importFile) return;
+
+    try {
+      setIsImporting(true);
+      const result = await locationApi.importLocations(importFile);
+      setImportResult(result);
+      loadData(); // refresh table
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Import failed');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const blob = await locationApi.exportLocations();
+
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'locations.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      alert('Export failed');
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+  try {
+    const blob = await locationApi.downloadLocationImportTemplate();
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'location_import_template.xlsx';
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    alert('Download template failed');
+  }
+};
+
+
   return (
     <MainLayout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Location Management</h1>
-          <PermissionGate permission="LOCATION_CREATE">
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Create Location
-            </button>
-          </PermissionGate>
+          <div className="flex gap-2">
+            <PermissionGate permission="LOCATION_IMPORT">
+              <button
+                onClick={() => setShowImportModal(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+              >
+                Import
+              </button>
+            </PermissionGate>
+
+            <PermissionGate permission="LOCATION_EXPORT">
+              <button
+                onClick={handleExport}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              >
+                Export
+              </button>
+            </PermissionGate>
+
+            <PermissionGate permission="LOCATION_CREATE">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Create Location
+              </button>
+            </PermissionGate>
+          </div>
         </div>
 
         {/* Search and Filter */}
@@ -261,11 +337,10 @@ export const LocationManagement: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 py-1 text-xs rounded-full ${
-                        location.status === LocationStatus.ACTIVE
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
+                      className={`px-2 py-1 text-xs rounded-full ${location.status === LocationStatus.ACTIVE
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                        }`}
                     >
                       {location.status}
                     </span>
@@ -281,11 +356,15 @@ export const LocationManagement: React.FC = () => {
                     </PermissionGate>
                     <PermissionGate permission="LOCATION_DELETE">
                       <button
-                        onClick={() => handleDeleteLocation(location.id)}
+                        onClick={() => {
+                          setLocationToDelete(location);
+                          setShowDeleteModal(true);
+                        }}
                         className="text-red-600 hover:text-red-900"
                       >
                         Delete
                       </button>
+
                     </PermissionGate>
                   </td>
                 </tr>
@@ -513,6 +592,128 @@ export const LocationManagement: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Delete Permanently Confirmation Modal */}
+      {showDeleteModal && locationToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h2 className="text-lg font-bold text-red-600 mb-3">
+              Delete location?
+            </h2>
+
+            <p className="text-sm text-gray-700 mb-6">
+              You are about to permanently delete{' '}
+              <strong>{locationToDelete.name}</strong> from your organization.
+              <br />
+              <span className="font-semibold text-red-600">
+                This action cannot be undone.
+              </span>
+            </p>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setLocationToDelete(null);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={async () => {
+                  try {
+                    await locationApi.deleteLocationPermanently(locationToDelete.id);
+                    setShowDeleteModal(false);
+                    setLocationToDelete(null);
+                    loadData();
+                  } catch (error) {
+                    alert('Error deleting location permanently');
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Import and Export Modal */}
+      {showImportModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 max-w-md w-full">
+      <h2 className="text-xl font-bold mb-1">Import Locations</h2>
+      <p className="text-sm text-gray-500 mb-4">
+        Upload an Excel file to import locations. Download the template first to see the required format.
+      </p>
+
+      {/* Step 1 */}
+      <div className="mb-4">
+        <p className="text-sm font-semibold mb-2">Step 1: Download Template</p>
+        <button
+          onClick={handleDownloadTemplate}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 border rounded-md hover:bg-gray-50"
+        >
+          ⬇️ Download Template
+        </button>
+      </div>
+
+      {/* Step 2 */}
+      <div className="mb-4">
+        <p className="text-sm font-semibold mb-2">Step 2: Upload File</p>
+
+        <input
+          type="file"
+          accept=".csv,.xlsx"
+          onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+          className="w-full"
+        />
+      </div>
+
+      {/* Result */}
+      {importResult && (
+        <div className="mb-4 text-sm border rounded p-3 bg-gray-50">
+          <p>Total: {importResult.total}</p>
+          <p className="text-green-600">Success: {importResult.success}</p>
+
+          {importResult.errors?.length > 0 && (
+            <ul className="text-red-600 list-disc pl-5 mt-2 max-h-32 overflow-auto">
+              {importResult.errors.map((err: any, index: number) => (
+                <li key={index}>{err}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => {
+            setShowImportModal(false);
+            setImportFile(null);
+            setImportResult(null);
+          }}
+          className="px-4 py-2 border rounded-md"
+        >
+          Cancel
+        </button>
+
+        <button
+          disabled={!importFile || isImporting}
+          onClick={handleImport}
+          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+        >
+          {isImporting ? 'Importing...' : 'Import'}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
     </MainLayout>
   );
 };
