@@ -7,6 +7,8 @@ import { MainLayout } from "../../components/MainLayout";
 import { PermissionGate } from "../../components/PermissionGate";
 import { FiPlus } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { RoleImportModal } from "./components/RoleImportModal";
+import { FiUploadCloud } from "react-icons/fi"; // Icon Import
 
 
 import { RoleCard } from "./components/RoleCard";
@@ -23,6 +25,7 @@ export const RoleManagement: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [showImport, setShowImport] = useState(false);
 
   const [roleForm, setRoleForm] = useState<CreateRoleRequest>({
     name: "",
@@ -91,16 +94,30 @@ export const RoleManagement: React.FC = () => {
   return (
     <MainLayout>
       {/* HEADER */}
+     
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Role Management</h1>
-        <PermissionGate permission="ROLE_CREATE">
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md"
-          >
-            <FiPlus /> Create Role
-          </button>
-        </PermissionGate>
+        <div className="flex gap-2"> {/* Gom nút Import và Create vào group */}
+            
+            {/* Nút Import - Chỉ hiện nếu có quyền ROLE_CREATE */}
+            <PermissionGate permission="ROLE_CREATE">
+                <button
+                    onClick={() => setShowImport(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                >
+                    <FiUploadCloud /> Import
+                </button>
+            </PermissionGate>
+
+            <PermissionGate permission="ROLE_CREATE">
+            <button
+                onClick={openCreate}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md"
+            >
+                <FiPlus /> Create Role
+            </button>
+            </PermissionGate>
+            </div>
       </div>
 
       <RoleCard
@@ -134,7 +151,12 @@ export const RoleManagement: React.FC = () => {
           }
         }}
       />
-
+      <RoleImportModal 
+                open={showImport} 
+                onClose={() => setShowImport(false)}
+                onSuccess={() => loadData()} 
+            />
+      
       <RoleFormModal
         open={showForm}
         isEditMode={isEditMode}
