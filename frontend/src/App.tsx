@@ -1,5 +1,4 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { Toaster } from "./components/ui";
 import { AuthProvider } from "./contexts/AuthContext";
 import ModulesManagement from "./pages/modules/module/ModulesManagement";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -14,18 +13,19 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import { Unauthorized } from "./pages/Unauthorized";
 import { Login } from "./pages/auth/Login";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
+import { Toaster } from "sonner";
 
 function App() {
   return (
     <BrowserRouter>
-      <Toaster
+      {/* <Toaster
         duration={1500}
         position="top-right"
         richColors
         toastOptions={{
           className: "p-4",
         }}
-      />
+      /> */}
       <AuthProvider>
         {/* <SidebarProvider>
          
