@@ -12,6 +12,7 @@ import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
 import com.example.starter_project_2025.system.modulegroups.mapper.ModuleMapper;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
+import com.example.starter_project_2025.system.modulegroups.util.StringNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -70,31 +71,77 @@ public class ModuleServiceImpl implements ModuleService {
                                 "ModuleGroupResponse", "id", req.getModuleGroupId()
                         )
                 );
+
+        String title = StringNormalizer.normalize(req.getTitle());
+        String url;
+        try {
+            url = StringNormalizer.normalizeUrl(req.getUrl());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e.getMessage());
+        }
+
         if (moduleRepository.existsByModuleGroupIdAndTitle(
-                req.getModuleGroupId(), req.getTitle()
+                req.getModuleGroupId(), title
         )) {
             throw new BadRequestException(
                     "Module name already exists in this module group"
             );
         }
-        Module module = moduleMapper.toEntity(req, group);
-        Module saved = moduleRepository.saveAndFlush(module);
 
+        if (moduleRepository.existsByModuleGroupIdAndUrl(
+                req.getModuleGroupId(), url
+        )) {
+            throw new BadRequestException(
+                    "Module URL already exists in this module group"
+            );
+        }
+
+        Module module = moduleMapper.toEntity(req, group);
+        module.setTitle(title);
+        module.setUrl(url);
+
+        Module saved = moduleRepository.saveAndFlush(module);
         return moduleMapper.toCreateResponse(saved);
     }
 
 
-
-    @Transactional
+    @Override
     public UpdateModuleResponse updateModule(UUID moduleId, UpdateModuleRequest req) {
 
         Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Module not found"));
+
         ModuleGroups group = moduleGroupsRepository.findById(req.getModuleGroupId())
                 .orElseThrow(() -> new ResourceNotFoundException("Module Group not found"));
 
-        module.setTitle(req.getTitle());
-        module.setUrl(req.getUrl());
+        String title = StringNormalizer.normalize(req.getTitle());
+        String url;
+        try {
+            url = StringNormalizer.normalizeUrl(req.getUrl());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e.getMessage());
+        }
+
+        if (!module.getTitle().equals(title)
+                && moduleRepository.existsByModuleGroupIdAndTitle(
+                req.getModuleGroupId(), title
+        )) {
+            throw new BadRequestException(
+                    "Module name already exists in this module group"
+            );
+        }
+
+        if (!module.getUrl().equals(url)
+                && moduleRepository.existsByModuleGroupIdAndUrl(
+                req.getModuleGroupId(), url
+        )) {
+            throw new BadRequestException(
+                    "Module URL already exists in this module group"
+            );
+        }
+
+        module.setTitle(title);
+        module.setUrl(url);
         module.setIcon(req.getIcon());
         module.setDescription(req.getDescription());
         module.setModuleGroup(group);
@@ -103,9 +150,9 @@ public class ModuleServiceImpl implements ModuleService {
         module.setRequiredPermission(req.getRequiredPermission());
 
         moduleRepository.save(module);
-
         return moduleMapper.toUpdateResponse(module);
     }
+
 
     @Override
     public List<ModuleDetail> getModulesByGroupId(UUID groupId) {
@@ -133,5 +180,6 @@ public class ModuleServiceImpl implements ModuleService {
         module.setIsActive(false);
         moduleRepository.save(module);
     }
+
 
 }

@@ -9,6 +9,7 @@ import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleG
 import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
 import com.example.starter_project_2025.system.modulegroups.mapper.ModuleGroupMapper;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
+import com.example.starter_project_2025.system.modulegroups.util.StringNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -75,14 +76,16 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
     @Override
     public ModuleGroupResponse create(CreateModuleGroup req) {
 
-        if (moduleGroupsRepository.existsByName(req.getName())) {
+        String name = StringNormalizer.normalize(req.getName());
+
+        if (moduleGroupsRepository.existsByName(name)) {
             throw new BadRequestException(
-                    "Module group name already exists: " + req.getName()
+                    "Module group name already exists: " + name
             );
         }
 
         ModuleGroups entity = new ModuleGroups();
-        entity.setName(req.getName());
+        entity.setName(name);
         entity.setDescription(req.getDescription());
         entity.setDisplayOrder(
                 req.getDisplayOrder() != null ? req.getDisplayOrder() : 0
@@ -92,7 +95,6 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
         );
 
         ModuleGroups saved = moduleGroupsRepository.save(entity);
-
         return moduleGroupMapper.toResponse(saved);
     }
 
@@ -104,24 +106,29 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
                         new ResourceNotFoundException("ModuleGroupResponse", "id", id)
                 );
 
-        if (!group.getName().equals(req.getName())
-                && moduleGroupsRepository.existsByName(req.getName())) {
+        String name = StringNormalizer.normalize(req.getName());
+
+        if (!group.getName().equals(name)
+                && moduleGroupsRepository.existsByName(name)) {
             throw new BadRequestException(
-                    "Module group name already exists: " + req.getName()
+                    "Module group name already exists: " + name
             );
         }
 
-        group.setName(req.getName());
+        group.setName(name);
         group.setDescription(req.getDescription());
         group.setDisplayOrder(
-                req.getDisplayOrder() != null ? req.getDisplayOrder() : group.getDisplayOrder()
+                req.getDisplayOrder() != null
+                        ? req.getDisplayOrder()
+                        : group.getDisplayOrder()
         );
         group.setIsActive(
-                req.getIsActive() != null ? req.getIsActive() : group.getIsActive()
+                req.getIsActive() != null
+                        ? req.getIsActive()
+                        : group.getIsActive()
         );
 
         ModuleGroups saved = moduleGroupsRepository.save(group);
-
         return moduleGroupMapper.toDetailResponse(saved);
     }
 
