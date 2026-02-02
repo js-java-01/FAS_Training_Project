@@ -15,6 +15,16 @@ public class ProgrammingLanguageCreateRequest
     @Size(max = 1000, message = "Description must be at most 1000 characters")
     private String description;
 
+    private Boolean isSupported;
+
+    public Boolean getSupported() {
+        return isSupported;
+    }
+
+    public void setSupported(Boolean isSupported) {
+        this.isSupported = isSupported;
+    }
+
     public String getName() {
         return name;
     }
