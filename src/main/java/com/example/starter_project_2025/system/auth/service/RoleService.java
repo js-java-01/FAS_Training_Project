@@ -143,61 +143,37 @@ public class RoleService {
     //EXPORT ROLE RA FILE EXCEL
     @PreAuthorize("hasAuthority('ROLE_READ')")
     public ByteArrayInputStream exportRoles() throws IOException {
-        // Bước 1: Xóa "Level" khỏi danh sách cột
-        String[] columns = {"ID", "Role Name", "Description", "Status", "Permissions"};
+    // 1. Khai báo 5 cột
+    String[] columns = {"ID", "Role Name", "Description", "Status", "Permissions"};
 
-        List<Role> roles = roleRepository.findAll();
+    List<Role> roles = roleRepository.findAll();
 
-        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            Sheet sheet = workbook.createSheet("Roles Data");
+    try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+        Sheet sheet = workbook.createSheet("Roles Data");
+        
+        // ... (Code tạo Header giữ nguyên) ...
 
-            // Tạo Header Style (Giữ nguyên)
-            Font headerFont = workbook.createFont();
-            headerFont.setBold(true);
-            CellStyle headerCellStyle = workbook.createCellStyle();
-            headerCellStyle.setFont(headerFont);
+        int rowIdx = 1;
+        for (Role role : roles) {
+            Row row = sheet.createRow(rowIdx++);
 
-            // Tạo hàng Header
-            Row headerRow = sheet.createRow(0);
-            for (int i = 0; i < columns.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(columns[i]);
-                cell.setCellStyle(headerCellStyle);
-            }
-
-            // Đổ dữ liệu
-            int rowIdx = 1;
-            for (Role role : roles) {
-                Row row = sheet.createRow(rowIdx++);
-
-                // Cột 0: ID
-                row.createCell(0).setCellValue(role.getId().toString());
-                
-                // Cột 1: Name
-                row.createCell(1).setCellValue(role.getName());
-                
-                // Cột 2: Description
-                row.createCell(2).setCellValue(role.getDescription() != null ? role.getDescription() : "");
-                
-                // Cột 3: Status 
-                row.createCell(3).setCellValue(role.getIsActive() ? "Active" : "Inactive");
-
-                // Cột 4: Permissions
-                String perms = role.getPermissions().stream()
-                        .map(Permission::getName)
-                        .collect(Collectors.joining(", "));
-                row.createCell(4).setCellValue(perms);
-            }
-
-            // Auto-size các cột
-            for (int i = 0; i < columns.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-
-            workbook.write(out);
-            return new ByteArrayInputStream(out.toByteArray());
+            // 2. Đổ dữ liệu đúng 5 cột (0 -> 4)
+            row.createCell(0).setCellValue(role.getId().toString());
+            row.createCell(1).setCellValue(role.getName());
+            row.createCell(2).setCellValue(role.getDescription() != null ? role.getDescription() : "");
+            // Cột 3 là Status (Level đã bị xóa)
+            row.createCell(3).setCellValue(role.getIsActive() ? "Active" : "Inactive");
+            // Cột 4 là Permissions
+            String perms = role.getPermissions().stream()
+                    .map(Permission::getName)
+                    .collect(Collectors.joining(", "));
+            row.createCell(4).setCellValue(perms);
         }
+        // ...
+        workbook.write(out);
+        return new ByteArrayInputStream(out.toByteArray());
     }
+}
 
     private RoleDTO convertToDTO(Role role) {
         RoleDTO dto = new RoleDTO();
