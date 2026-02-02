@@ -13,7 +13,7 @@ interface Props {
   onView: (r: Role) => void;
   onEdit: (r: Role) => void;
   onToggleStatus: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (role: Role) => void;
 }
 
 export const RoleCard = ({
@@ -61,7 +61,7 @@ export const RoleCard = ({
 
             <PermissionGate permission="ROLE_DELETE">
               <button
-                onClick={() => onDelete(r.id)}
+                onClick={() => onDelete(r)}
                 className="p-2 rounded-md bg-red-50 text-red-600 hover:bg-red-100"
               >
                 <FiTrash2 />

@@ -276,7 +276,6 @@ public class RoleService {
                 Role role = new Role();
                 role.setName(name);
                 role.setDescription(description);
-                role.setHierarchyLevel(1); // Default level
                 role.setIsActive(true);
                 role.setPermissions(permissions);
 
