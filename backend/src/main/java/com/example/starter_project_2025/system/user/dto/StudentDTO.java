@@ -1,20 +1,27 @@
 package com.example.starter_project_2025.system.user.dto;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
 import java.time.LocalDate;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class StudentDTO extends UserDTO {
-    private String studentCode;
-    private String major;
-    private String school;
-    private Double gpa;
-    private LocalDate dob;
-    private String gender;
-    private String phone;
-    private String address;
-    private String faAccount;
-    private LocalDate joinedDate;
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class StudentDTO {
+
+    String studentCode;
+
+    LocalDate dob;
+
+    String gender;
+
+    String phone;
+
+    String address;
+
+    Double gpa;
 }

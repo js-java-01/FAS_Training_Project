@@ -7,61 +7,70 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
-@RequiredArgsConstructor
-@Tag(name = "User Management", description = "APIs for managing users")
 @SecurityRequirement(name = "Bearer Authentication")
+@Tag(name = "User Management", description = "APIs for managing users")
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
 
-    private final UserService userService;
+    UserService userService;
 
     @GetMapping
     @Operation(summary = "Get all users", description = "Retrieve all users with pagination")
     public ResponseEntity<Page<UserDTO>> getAllUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt,desc") String[] sort) {
-
-        Sort.Direction direction = Sort.Direction.fromString(sort[1]);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
-        Page<UserDTO> users = userService.getAllUsers(pageable);
-        return ResponseEntity.ok(users);
+            @RequestParam(required = false) String searchContent,
+            @RequestParam(required = false) UUID roleId,
+            @RequestParam(required = false) LocalDateTime createFrom,
+            @RequestParam(required = false) LocalDateTime createTo,
+            @RequestParam(required = false) Boolean isActive,
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        return ResponseEntity.ok(userService.getAllUsers(
+                searchContent,
+                roleId,
+                createFrom,
+                createTo,
+                isActive,
+                pageable
+        ));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get user by ID", description = "Retrieve a specific user by ID")
     public ResponseEntity<UserDTO> getUserById(@PathVariable UUID id) {
-        UserDTO user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @PostMapping
     @Operation(summary = "Create user", description = "Create a new user")
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody CreateUserRequest request) {
-        UserDTO createdUser = userService.createUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(userService.createUser(request));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update user", description = "Update an existing user")
     public ResponseEntity<UserDTO> updateUser(
             @PathVariable UUID id,
-            @Valid @RequestBody UserDTO userDTO) {
-        UserDTO updatedUser = userService.updateUser(id, userDTO);
-        return ResponseEntity.ok(updatedUser);
+            @Valid @RequestBody UserDTO request
+    ) {
+        return ResponseEntity.ok(userService.updateUser(id, request));
     }
 
     @DeleteMapping("/{id}")
@@ -82,7 +91,8 @@ public class UserController {
     @Operation(summary = "Assign role to user", description = "Assign a role to a specific user")
     public ResponseEntity<UserDTO> assignRole(
             @PathVariable UUID userId,
-            @RequestBody Map<String, UUID> request) {
+            @RequestBody Map<String, UUID> request
+    ) {
         UUID roleId = request.get("roleId");
         UserDTO user = userService.assignRole(userId, roleId);
         return ResponseEntity.ok(user);
