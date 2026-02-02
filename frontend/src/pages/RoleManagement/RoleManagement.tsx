@@ -25,7 +25,7 @@ export const RoleManagement: React.FC = () => {
   const [roleForm, setRoleForm] = useState<CreateRoleRequest>({
     name: "",
     description: "",
-    hierarchyLevel: 1,
+    // hierarchyLevel: 1,
     permissionIds: [],
   });
 
@@ -48,7 +48,7 @@ export const RoleManagement: React.FC = () => {
     setRoleForm({
       name: "",
       description: "",
-      hierarchyLevel: 1,
+      // hierarchyLevel: 1,
       permissionIds: [],
     });
     setShowForm(true);
@@ -60,7 +60,7 @@ export const RoleManagement: React.FC = () => {
     setRoleForm({
       name: role.name,
       description: role.description || "",
-      hierarchyLevel: role.hierarchyLevel,
+      // hierarchyLevel: role.hierarchyLevel,
       permissionIds: role.permissionIds,
     });
     setShowForm(true);

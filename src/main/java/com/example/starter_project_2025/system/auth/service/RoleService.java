@@ -48,7 +48,7 @@ public class RoleService {
         Role role = new Role();
         role.setName(roleDTO.getName());
         role.setDescription(roleDTO.getDescription());
-        role.setHierarchyLevel(roleDTO.getHierarchyLevel() != null ? roleDTO.getHierarchyLevel() : 0);
+//        role.setHierarchyLevel(roleDTO.getHierarchyLevel() != null ? roleDTO.getHierarchyLevel() : 0);
         role.setIsActive(true);
 
         if (roleDTO.getPermissionIds() != null && !roleDTO.getPermissionIds().isEmpty()) {
@@ -78,9 +78,9 @@ public class RoleService {
             role.setDescription(roleDTO.getDescription());
         }
 
-        if (roleDTO.getHierarchyLevel() != null) {
-            role.setHierarchyLevel(roleDTO.getHierarchyLevel());
-        }
+//        if (roleDTO.getHierarchyLevel() != null) {
+//            role.setHierarchyLevel(roleDTO.getHierarchyLevel());
+//        }
 
         if (roleDTO.getPermissionIds() != null) {
             Set<Permission> permissions = new HashSet<>(
@@ -137,7 +137,7 @@ public class RoleService {
         dto.setId(role.getId());
         dto.setName(role.getName());
         dto.setDescription(role.getDescription());
-        dto.setHierarchyLevel(role.getHierarchyLevel());
+//        dto.setHierarchyLevel(role.getHierarchyLevel());
         dto.setIsActive(role.getIsActive());
         dto.setCreatedAt(role.getCreatedAt());
         dto.setUpdatedAt(role.getUpdatedAt());
