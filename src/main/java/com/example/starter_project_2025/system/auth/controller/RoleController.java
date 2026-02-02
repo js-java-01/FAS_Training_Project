@@ -97,4 +97,39 @@ public class RoleController {
         RoleDTO role = roleService.removePermissionsFromRole(roleId, permissionIds);
         return ResponseEntity.ok(role);
     }
+<<<<<<< Updated upstream
+=======
+    @GetMapping("/template")
+    public ResponseEntity<InputStreamResource> downloadTemplate() throws IOException, java.io.IOException {
+        ByteArrayInputStream in = roleService.downloadTemplate();
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=roles_import_template.xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
+    }
+
+    // API Upload file Import
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> importRoles(@RequestParam("file") MultipartFile file) throws IOException, java.io.IOException {
+        roleService.importRoles(file);
+        return ResponseEntity.ok().build();
+    }
+    @GetMapping("/export")
+    @Operation(summary = "Export roles", description = "Export all roles to Excel file")
+    public ResponseEntity<InputStreamResource> exportRoles() throws IOException, java.io.IOException {
+        ByteArrayInputStream in = roleService.exportRoles();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=roles_export.xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
+    }
+>>>>>>> Stashed changes
 }
