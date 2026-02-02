@@ -2,6 +2,8 @@ package com.example.starter_project_2025.system.auth.controller;
 
 import com.example.starter_project_2025.system.auth.dto.RoleDTO;
 import com.example.starter_project_2025.system.auth.service.RoleService;
+
+import io.jsonwebtoken.io.IOException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,7 +16,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
+import java.io.ByteArrayInputStream;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -96,5 +103,37 @@ public class RoleController {
         Set<UUID> permissionIds = request.get("permissionIds");
         RoleDTO role = roleService.removePermissionsFromRole(roleId, permissionIds);
         return ResponseEntity.ok(role);
+    }
+    @GetMapping("/template")
+    public ResponseEntity<InputStreamResource> downloadTemplate() throws IOException, java.io.IOException {
+        ByteArrayInputStream in = roleService.downloadTemplate();
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=roles_import_template.xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
+    }
+
+    // API Upload file Import
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> importRoles(@RequestParam("file") MultipartFile file) throws IOException, java.io.IOException {
+        roleService.importRoles(file);
+        return ResponseEntity.ok().build();
+    }
+    @GetMapping("/export")
+    @Operation(summary = "Export roles", description = "Export all roles to Excel file")
+    public ResponseEntity<InputStreamResource> exportRoles() throws IOException, java.io.IOException {
+        ByteArrayInputStream in = roleService.exportRoles();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=roles_export.xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
     }
 }
