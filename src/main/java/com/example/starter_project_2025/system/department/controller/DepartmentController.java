@@ -1,14 +1,12 @@
 package com.example.starter_project_2025.system.department.controller;
 
-import com.example.starter_project_2025.system.department.dto.CreateDepartmentRequest;
 import com.example.starter_project_2025.system.department.entity.Department;
+import com.example.starter_project_2025.system.department.dto.DepartmentDTO;
 import com.example.starter_project_2025.system.department.service.DepartmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,41 +18,36 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/departments")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
 @Tag(name = "Department Management", description = "APIs for handling department records and operations")
 public class DepartmentController {
 
     private final DepartmentService departmentService;
 
-    @Autowired
-    public DepartmentController(DepartmentService departmentService) {
-        this.departmentService = departmentService;
-    }
-
-    @PostMapping
-    @Operation(
-            summary = "Create a new department",
-            description = "Submit department details including name, code, and location ID to create a new record."
-    )
-    public ResponseEntity<Department> createDepartment(@Valid @RequestBody CreateDepartmentRequest request) {
-        Department createdDepartment = departmentService.createDepartment(request);
-        return new ResponseEntity<>(createdDepartment, HttpStatus.CREATED);
-    }
-
+    //Vy
     @GetMapping
     @Operation(summary = "Get all departments")
-    public ResponseEntity<List<Department>> getAllDepartments() {
-        List<Department> departments = departmentService.getAllDepartments();
-        return ResponseEntity.ok(departments);
+    public List<DepartmentDTO> getAll() {
+        return departmentService.getAll();
+    }
+    //Vy
+    @PostMapping("/create")
+    @Operation(summary = "Create a new department")
+    public ResponseEntity<Department> create(@RequestBody DepartmentDTO dto) {
+        return ResponseEntity.ok(departmentService.create(dto));
     }
 
+//   ---thư---//
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a department")
-    public ResponseEntity<Void> deleteDepartment(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteDepartment(@PathVariable Long id) {
         departmentService.deleteDepartment(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/import-template")
+    @Operation(summary = "Download import template")
     public ResponseEntity<byte[]> downloadImportTemplate() throws IOException {
         byte[] templateData = departmentService.generateImportTemplate();
 
@@ -65,6 +58,7 @@ public class DepartmentController {
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Import departments from Excel")
     public ResponseEntity<String> importDepartments(@RequestParam("file") MultipartFile file) {
         try {
             departmentService.importDepartments(file);
@@ -76,8 +70,8 @@ public class DepartmentController {
         }
     }
 
-    @GetMapping("/export") //
-    // @PreAuthorize("hasAuthority('DEPARTMENT_VIEW')") // Bật nếu cần check quyền
+    @GetMapping("/export")
+    @Operation(summary = "Export departments to Excel")
     public ResponseEntity<byte[]> exportDepartments() throws IOException {
         byte[] data = departmentService.exportDepartments();
 

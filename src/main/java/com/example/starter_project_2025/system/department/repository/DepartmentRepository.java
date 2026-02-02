@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface DepartmentRepository extends JpaRepository<Department, UUID> {
+public interface DepartmentRepository extends JpaRepository<Department, Long> {
     // Custom query method to check for unique code (Business Rule)
     boolean existsByCode(String code);
 

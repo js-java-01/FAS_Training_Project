@@ -11,62 +11,63 @@ import { DepartmentManagement } from './pages/DepartmentManagement';
 import { Unauthorized } from './pages/Unauthorized';
 
 function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/unauthorized" element={<Unauthorized />} />
+    return (
+        <BrowserRouter>
+            <AuthProvider>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/unauthorized" element={<Unauthorized />} />
 
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute>
+                                <Dashboard />
+                            </ProtectedRoute>
+                        }
+                    />
 
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute requiredPermission="USER_READ">
-                <UserManagement />
-              </ProtectedRoute>
-            }
-          />
+                    <Route
+                        path="/users"
+                        element={
+                            <ProtectedRoute requiredPermission="USER_READ">
+                                <UserManagement />
+                            </ProtectedRoute>
+                        }
+                    />
 
-          <Route
-            path="/roles"
-            element={
-              <ProtectedRoute requiredPermission="ROLE_READ">
-                <RoleManagement />
-              </ProtectedRoute>
-            }
-          />
+                    <Route
+                        path="/roles"
+                        element={
+                            <ProtectedRoute requiredPermission="ROLE_READ">
+                                <RoleManagement />
+                            </ProtectedRoute>
+                        }
+                    />
 
-          <Route
-            path="/locations"
-            element={
-              <ProtectedRoute requiredPermission="LOCATION_READ">
-                <LocationManagement />
-              </ProtectedRoute>
-            }
-          />
-            <Route
-                path="/departments"
-                element={
-                    <ProtectedRoute requiredPermission="DEPARTMENT_READ">
-                        <DepartmentManagement />
-                    </ProtectedRoute>
-                }
-            />
+                    <Route
+                        path="/locations"
+                        element={
+                            <ProtectedRoute requiredPermission="LOCATION_READ">
+                                <LocationManagement />
+                            </ProtectedRoute>
+                        }
+                    />
 
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
-  );
+                    <Route
+                        path="/departments"
+                        element={
+                            <ProtectedRoute requiredPermission="DEPARTMENT_READ">
+                                <DepartmentManagement />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                </Routes>
+            </AuthProvider>
+        </BrowserRouter>
+    );
 }
 
 export default App;

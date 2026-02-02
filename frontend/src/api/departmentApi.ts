@@ -1,22 +1,28 @@
 // src/api/departmentApi.ts
 import axiosInstance from './axiosInstance';
-import { CreateDepartmentRequest, Department } from '../types/department';
+import axios from "axios";
+
+const API_URL = 'http://localhost:8080/api/departments';
+
+//Vy
+const getAuthConfig = () => ({
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+});
 
 export const departmentApi = {
     // Tạo mới department
-    createDepartment: async (data: CreateDepartmentRequest): Promise<Department> => {
-        const response = await axiosInstance.post<Department>('/departments', data);
+    //vy
+    getAll: async () => {
+        const response = await axios.get(API_URL, getAuthConfig());
+        return response.data;
+    },
+    //vy
+    create: async (data: any) => {
+        const response = await axios.post(`${API_URL}/create`, data, getAuthConfig());
         return response.data;
     },
 
-    // Lấy danh sách department (để hiển thị lên bảng sau này)
-    getAllDepartments: async () => {
-        // Giả sử endpoint trả về mảng, nếu trả về phân trang thì sửa lại giống locationApi
-        const response = await axiosInstance.get<Department[]>('/departments');
-        return response.data;
-    },
-
-    deleteDepartment: async (id: string): Promise<void> => {
+    deleteDepartment: async (id: number | string): Promise<void> => {
         await axiosInstance.delete(`/departments/${id}`);
     },
 

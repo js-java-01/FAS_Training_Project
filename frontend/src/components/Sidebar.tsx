@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { menuApi } from '../api/menuApi';
-import { Menu } from '../types/menu';
-import { usePermissions } from '../hooks/usePermissions';
+import React, {useEffect, useState} from 'react';
+import {Link, useLocation} from 'react-router-dom';
+import {menuApi} from '../api/menuApi';
+import {Menu} from '../types/menu';
+import {usePermissions} from '../hooks/usePermissions';
 
 const iconMap: { [key: string]: string } = {
   dashboard: '📊',
@@ -15,6 +15,7 @@ const iconMap: { [key: string]: string } = {
   assignment: '📝',
   grade: '📈',
   location: '📍',
+  place: '📍',
   department: '🏢'
 };
 
@@ -77,117 +78,117 @@ export const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ is
 
   if (isLoading) {
     return (
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform transition-transform duration-200 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 lg:static lg:inset-0`}
-      >
-        <div className="flex items-center justify-center h-full">
-          <div className="text-gray-400">Loading menu...</div>
-        </div>
-      </aside>
+        <aside
+            className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform transition-transform duration-200 ease-in-out ${
+                isOpen ? 'translate-x-0' : '-translate-x-full'
+            } lg:translate-x-0 lg:static lg:inset-0`}
+        >
+          <div className="flex items-center justify-center h-full">
+            <div className="text-gray-400">Loading menu...</div>
+          </div>
+        </aside>
     );
   }
 
   return (
-    <>
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={onClose}
-        />
-      )}
+      <>
+        {isOpen && (
+            <div
+                className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+                onClick={onClose}
+            />
+        )}
 
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform transition-transform duration-200 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 lg:static lg:inset-0 overflow-y-auto`}
-      >
-        <div className="flex items-center justify-between h-16 px-4 bg-gray-800 lg:hidden">
-          <span className="text-xl font-bold">Menu</span>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+        <aside
+            className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform transition-transform duration-200 ease-in-out ${
+                isOpen ? 'translate-x-0' : '-translate-x-full'
+            } lg:translate-x-0 lg:static lg:inset-0 overflow-y-auto`}
+        >
+          <div className="flex items-center justify-between h-16 px-4 bg-gray-800 lg:hidden">
+            <span className="text-xl font-bold">Menu</span>
+            <button onClick={onClose} className="text-gray-400 hover:text-white">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
-        <div className="py-4">
-          {menus.map((menu) => (
-            <div key={menu.id} className="mb-6">
-              <div className="px-4 mb-2">
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  {menu.name}
-                </h3>
-              </div>
+          <div className="py-4">
+            {menus.map((menu) => (
+                <div key={menu.id} className="mb-6">
+                  <div className="px-4 mb-2">
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      {menu.name}
+                    </h3>
+                  </div>
 
-              <nav className="space-y-1">
-                {menu.menuItems
-                  .filter((item) => !item.parentId && canAccessMenuItem(item.requiredPermission))
-                  .sort((a, b) => a.displayOrder - b.displayOrder)
-                  .map((item) => (
-                    <div key={item.id}>
-                      {item.url ? (
-                        <Link
-                          to={item.url}
-                          onClick={() => onClose()}
-                          className={`flex items-center px-4 py-3 text-sm font-medium transition-colors ${
-                            isActiveRoute(item.url)
-                              ? 'bg-gray-800 text-white border-l-4 border-blue-500'
-                              : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                          }`}
-                        >
+                  <nav className="space-y-1">
+                    {menu.menuItems
+                        .filter((item) => !item.parentId && canAccessMenuItem(item.requiredPermission))
+                        .sort((a, b) => a.displayOrder - b.displayOrder)
+                        .map((item) => (
+                            <div key={item.id}>
+                              {item.url ? (
+                                  <Link
+                                      to={item.url}
+                                      onClick={() => onClose()}
+                                      className={`flex items-center px-4 py-3 text-sm font-medium transition-colors ${
+                                          isActiveRoute(item.url)
+                                              ? 'bg-gray-800 text-white border-l-4 border-blue-500'
+                                              : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                      }`}
+                                  >
                           <span className="mr-3 text-lg">
                             {iconMap[item.icon || ''] || '📄'}
                           </span>
-                          <span>{item.title}</span>
-                        </Link>
-                      ) : (
-                        <div className="px-4 py-3 text-sm font-medium text-gray-400">
+                                    <span>{item.title}</span>
+                                  </Link>
+                              ) : (
+                                  <div className="px-4 py-3 text-sm font-medium text-gray-400">
                           <span className="mr-3 text-lg">
                             {iconMap[item.icon || ''] || '📄'}
                           </span>
-                          <span>{item.title}</span>
-                        </div>
-                      )}
+                                    <span>{item.title}</span>
+                                  </div>
+                              )}
 
-                      {item.children && item.children.length > 0 && (
-                        <div className="ml-4 space-y-1">
-                          {item.children
-                            .filter((child) => canAccessMenuItem(child.requiredPermission))
-                            .sort((a, b) => a.displayOrder - b.displayOrder)
-                            .map((child) => (
-                              <Link
-                                key={child.id}
-                                to={child.url || '#'}
-                                onClick={() => onClose()}
-                                className={`flex items-center px-4 py-2 text-sm transition-colors ${
-                                  isActiveRoute(child.url)
-                                    ? 'bg-gray-800 text-white'
-                                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                                }`}
-                              >
+                              {item.children && item.children.length > 0 && (
+                                  <div className="ml-4 space-y-1">
+                                    {item.children
+                                        .filter((child) => canAccessMenuItem(child.requiredPermission))
+                                        .sort((a, b) => a.displayOrder - b.displayOrder)
+                                        .map((child) => (
+                                            <Link
+                                                key={child.id}
+                                                to={child.url || '#'}
+                                                onClick={() => onClose()}
+                                                className={`flex items-center px-4 py-2 text-sm transition-colors ${
+                                                    isActiveRoute(child.url)
+                                                        ? 'bg-gray-800 text-white'
+                                                        : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                                                }`}
+                                            >
                                 <span className="mr-3 text-base">
                                   {iconMap[child.icon || ''] || '•'}
                                 </span>
-                                <span>{child.title}</span>
-                              </Link>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-              </nav>
-            </div>
-          ))}
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-800">
-          <div className="text-xs text-gray-400 text-center">
-            RBAC System v1.0
+                                              <span>{child.title}</span>
+                                            </Link>
+                                        ))}
+                                  </div>
+                              )}
+                            </div>
+                        ))}
+                  </nav>
+                </div>
+            ))}
           </div>
-        </div>
-      </aside>
-    </>
+
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-800">
+            <div className="text-xs text-gray-400 text-center">
+              RBAC System v1.0
+            </div>
+          </div>
+        </aside>
+      </>
   );
 };

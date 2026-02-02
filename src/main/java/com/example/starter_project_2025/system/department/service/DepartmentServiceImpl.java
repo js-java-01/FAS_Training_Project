@@ -1,12 +1,10 @@
 package com.example.starter_project_2025.system.department.service;
 
-import com.example.starter_project_2025.system.department.dto.CreateDepartmentRequest;
+import com.example.starter_project_2025.system.department.dto.DepartmentDTO;
 import com.example.starter_project_2025.system.department.entity.Department;
 import com.example.starter_project_2025.system.department.repository.DepartmentRepository;
-import com.example.starter_project_2025.system.department.service.DepartmentService;
 import com.example.starter_project_2025.system.location.entity.Location;
 import com.example.starter_project_2025.system.location.repository.LocationRepository;
-// import com.example.starter_project_2025.system.user.repository.UserRepository; // <--- Import nếu muốn check User
 
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
@@ -21,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,35 +28,45 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     private final DepartmentRepository departmentRepository;
     private final LocationRepository locationRepository;
-    // private final UserRepository userRepository; // <--- Uncomment nếu muốn check User
 
+    //Vy
     @Override
-    @Transactional(readOnly = true)
-    public List<Department> getAllDepartments() {
-        return departmentRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
-    }
+    @Transactional
+    public Department create(DepartmentDTO dto) {
+        Department dept = new Department();
+        dept.setName(dto.getName());
+        dept.setCode(dto.getCode());
+        dept.setDescription(dto.getDescription());
 
-    @Override
-    public Department createDepartment(CreateDepartmentRequest request) {
-        if (departmentRepository.existsByCode(request.getCode())) {
-            throw new IllegalArgumentException("Department Code already exists: " + request.getCode());
+        if (dto.getLocationId() != null && !dto.getLocationId().isEmpty()) {
+            Location location = locationRepository.findById(UUID.fromString(dto.getLocationId()))
+                    .orElseThrow(() -> new RuntimeException("Location does not exist!"));
+            dept.setLocation(location);
         }
 
-        Location location = locationRepository.findById(UUID.fromString(String.valueOf(request.getLocationId())))
-                .orElseThrow(() -> new IllegalArgumentException("Location not found with ID: " + request.getLocationId()));
+        return departmentRepository.save(dept);
+    }
 
-        Department department = Department.builder()
-                .name(request.getName())
-                .code(request.getCode())
-                .description(request.getDescription())
-                .location(location)
-                .build();
+    //Vy
+    @Override
+    public List<DepartmentDTO> getAll() {
+        return departmentRepository.findAll().stream().map(dept -> {
+            DepartmentDTO dto = new DepartmentDTO();
+            dto.setId(dept.getId());
+            dto.setName(dept.getName());
+            dto.setCode(dept.getCode());
+            dto.setDescription(dept.getDescription());
 
-        return departmentRepository.save(department);
+            if (dept.getLocation() != null) {
+                dto.setLocationId(dept.getLocation().getId().toString());
+                dto.setLocationName(dept.getLocation().getName());
+            }
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     @Override
-    public void deleteDepartment(UUID id) {
+    public void deleteDepartment(Long id) {
         // 1. Kiểm tra tồn tại
         if (!departmentRepository.existsById(id)) {
             throw new IllegalArgumentException("Department not found with ID: " + id);

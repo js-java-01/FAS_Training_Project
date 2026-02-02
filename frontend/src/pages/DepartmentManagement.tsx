@@ -40,7 +40,7 @@ export const DepartmentManagement: React.FC = () => {
         try {
             setIsLoading(true);
             const [deptData, locList] = await Promise.all([
-                departmentApi.getAllDepartments(),
+                departmentApi.getAll(),
                 locationApi.getAllLocations()
             ]);
             const finalDeptList = Array.isArray(deptData) ? deptData : (deptData as any).content || [];
@@ -77,7 +77,7 @@ export const DepartmentManagement: React.FC = () => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            await departmentApi.createDepartment(newDepartment);
+            await departmentApi.create(newDepartment);
             alert('Department created successfully!');
             setShowCreateModal(false);
             setNewDepartment({ name: '', code: '', description: '', locationId: '' });
@@ -180,7 +180,7 @@ export const DepartmentManagement: React.FC = () => {
                                 </td>
                                 <td className="px-6 py-4 text-gray-500 max-w-xs truncate">{dept.description}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                    {dept.location?.name || <span className="text-gray-400 italic">N/A</span>}
+                                    {dept.locationName || <span className="text-gray-400 italic">N/A</span>}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <PermissionGate permission="DEPARTMENT_DELETE">

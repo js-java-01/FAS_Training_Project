@@ -123,6 +123,18 @@ export const Dashboard: React.FC = () => {
           </Link>
         </PermissionGate>
 
+        <PermissionGate permission="DEPARTMENT_READ">
+          <Link
+              to="/departments"
+              className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">Department Management</h3>
+            </div>
+            <p className="text-gray-600">Manage organizational departments and locations</p>
+          </Link>
+        </PermissionGate>
+
         <PermissionGate permission="MENU_READ">
           <Link
             to="/menus"
