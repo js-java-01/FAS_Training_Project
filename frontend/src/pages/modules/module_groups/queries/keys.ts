@@ -6,5 +6,12 @@ export const queryKeys = {
         keyword?: string;
     }) => ['module-groups', params] as const,
 
-    moduleGroup: (id: string) => ['module-groups', id] as const,
+    moduleGroup: (id: string) => ['module-group', id] as const,
+
+    modules: (params: {
+        page?: number;
+        pageSize?: number;
+        sort?: string;
+        keyword?: string;
+    }) => ['modules', params] as const,
 };

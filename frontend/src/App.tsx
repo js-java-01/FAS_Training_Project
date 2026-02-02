@@ -70,8 +70,15 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/modules" element={<ModulesManagement />} />
 
+            <Route
+                path="/modules"
+                element={
+                    <ProtectedRoute requiredPermission="ROLE_READ">
+                        <ModulesManagement />
+                    </ProtectedRoute>
+                }
+            />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </AuthProvider>
