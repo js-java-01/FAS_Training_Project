@@ -78,7 +78,12 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
-                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN")
+                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"),
+                createPermission("ASSESSMENT_READ", "View assessment types", "ASSESSMENT_TYPE", "READ"),
+                createPermission("ASSESSMENT_UPDATE", "Update existing assessment types", "ASSESSMENT_TYPE", "UPDATE"),
+                createPermission("ASSESSMENT_DELETE", "Delete assessment types", "ASSESSMENT_TYPE", "DELETE"),
+                createPermission("ASSESSMENT_CREATE", "Assign assessment types", "ASSESSMENT_TYPE", "ASSIGN")
+
         );
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
@@ -193,7 +198,31 @@ public class DataInitializer implements CommandLineRunner {
 
         moduleRepository.saveAll(Arrays.asList(moduleGroupsSub, modulesSub));
 
-        log.info("Initialized 4 module groups and their respective modules.");
+
+
+
+
+        //
+        ModuleGroups assessmentTypeGroup = new ModuleGroups();
+        assessmentTypeGroup.setName("Assessment Type Management");
+        assessmentTypeGroup.setDescription("Manage assessment types and related permissions");
+        assessmentTypeGroup.setDisplayOrder(3);
+        assessmentTypeGroup.setIsActive(true);
+        assessmentTypeGroup = moduleGroupsRepository.save(assessmentTypeGroup);
+
+        moduleRepository.save(
+                createModule(
+                        assessmentTypeGroup,
+                        "Assessment Type Management",
+                        "/assessment-type",
+                        "shield",              // icon (you can change if you want)
+                        2,
+                        "ASSESSMENT_READ",
+                        "Manage assessment types"
+                )
+        );
+
+        log.info("Initialized 5 module groups and their respective modules.");
     }
 
     private Module createModule(ModuleGroups group, String title, String url, String icon,
