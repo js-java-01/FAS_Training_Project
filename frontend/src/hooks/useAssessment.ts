@@ -161,3 +161,30 @@ export const useAssessment = () => {
         reload: loadData,
     };
 };
+
+export const downloadTemplate = async (toast: any) => {
+    try {
+        const blob = await assessmentTypeApi.downloadTemplate();
+        downloadBlob(blob, 'assessment-types-template.xlsx');
+        toast({
+            variant: "success",
+            title: "Success",
+            description: "Template downloaded successfully!",
+        });
+    } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: error.response?.data?.message || 'Error downloading template',
+        });
+    }
+};
+
+const downloadBlob = (blob: Blob, filename: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+};

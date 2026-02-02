@@ -1,9 +1,16 @@
 import axiosInstance from './axiosInstance';
 import { type AssessmentType, type AssessmentTypeRequest } from '../types/assessmentType';
+import { type PaginatedResponse } from '../types/assessmentType';
 
 export const assessmentTypeApi = {
-  getAll: async (): Promise<AssessmentType[]> => {
-    const response = await axiosInstance.get<AssessmentType[]>('/assessments');
+  getAll: async (params?: {
+    page?: number;
+    size?: number;
+    keyword?: string;
+    sortBy?: string;
+    sortDir?: 'asc' | 'desc';
+  }): Promise<PaginatedResponse<AssessmentType>> => {
+    const response = await axiosInstance.get<PaginatedResponse<AssessmentType>>('/assessments', { params });
     return response.data;
   },
 
@@ -47,12 +54,16 @@ export const assessmentTypeApi = {
     return response.data;
   },
 
-  importAssessments: async (file: File): Promise<AssessmentType[]> => {
+  importAssessments: async (file: File): Promise<{
+    totalRows: number;
+    successCount: number;
+    errorCount: number;
+    errors?: { row: number; message: string }[];
+  }> => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await axiosInstance.post<AssessmentType[]>(
-      '/assessments/import',
+    const response = await axiosInstance.post('/assessments/import',
       formData,
       {
         headers: {
@@ -80,6 +91,13 @@ export const assessmentTypeApi = {
 
     link.remove();
     window.URL.revokeObjectURL(url);
+  },
+
+  downloadTemplate: async (): Promise<Blob> => {
+    const response = await axiosInstance.get('/assessments/template', {
+      responseType: 'blob'
+    });
+    return response.data;
   },
 
 

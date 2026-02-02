@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Eye,
     SquarePen,
@@ -8,65 +8,151 @@ import {
     Download,
     Upload,
     Plus,
+    ChevronLeft,
+    ChevronRight,
+    Loader2
 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { PermissionGate } from '../components/PermissionGate';
 import { MainLayout } from '../components/MainLayout';
-import { useAssessment } from '../hooks/useAssessment';
+import { assessmentTypeApi } from '../api/assessmentTypeApi';
+import { useToast } from '../hooks/use-toast';
+import type { AssessmentType, AssessmentTypeRequest, ImportResult } from '../types/assessmentType';
+import type { PaginatedResponse } from '../types/programmingLanguage';
+
+import { CreateAssessmentModal } from '../components/assessment/CreateAssessmentModal';
+import { UpdateAssessmentModal } from '../components/assessment/UpdateAssessmentModal';
+import { ViewAssessmentModal } from '../components/assessment/ViewAssessmentModal';
+import { DeleteAssessmentDialog } from '../components/assessment/DeleteAssessmentDialog';
+import { ImportAssessmentDialog } from '../components/assessment/ImportAssessmentDialog';
 
 export const AssessmentManagement: React.FC = () => {
-    const {
-        assessments,
-        isLoading,
-        searchTerm,
-        showCreateModal,
-        isEditMode,
-        newAssessment,
-        setShowCreateModal,
-        setNewAssessment,
-        search,
-        createAssessment,
-        updateAssessment,
-        openCreateModal,
-        openEditModal,
-        deleteAssessment,
-        reload,
-        setSearchTerm,
-        handleImport,
-        handleExport,
-    } = useAssessment();
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
 
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    // ========================================
+    // State: Table Configuration
+    // ========================================
+    const [keyword, setKeyword] = useState('');
+    const [sortBy, setSortBy] = useState('createdAt');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+    const [page, setPage] = useState(0);
+    const [size, setSize] = useState(10);
 
-    const onImportClick = () => {
-        if (window.confirm('Are you sure you want to import assessment types?')) {
-            fileInputRef.current?.click();
+    // ========================================
+    // State: Modal Controls
+    // ========================================
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [showImportDialog, setShowImportDialog] = useState(false);
+    const [selectedAssessment, setSelectedAssessment] = useState<AssessmentType | null>(null);
+
+    // ========================================
+    // Data Loading (Queries)
+    // ========================================
+    const { data: tableData, isLoading, refetch } = useQuery({
+        queryKey: ['assessments', page, size, sortBy, sortDir, keyword],
+        queryFn: () => assessmentTypeApi.getAll({
+            page,
+            size,
+            sortBy,
+            sortDir,
+            keyword: keyword || undefined
+        })
+    });
+
+    // ========================================
+    // CRUD Mutations
+    // ========================================
+    const createMutation = useMutation({
+        mutationFn: assessmentTypeApi.create,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['assessments'] });
+            setShowCreateModal(false);
+            toast({ variant: "success", title: "Success", description: "Assessment type created successfully" });
+        },
+        onError: (error: any) => {
+            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to create assessment type" });
         }
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: string; data: AssessmentTypeRequest }) =>
+            assessmentTypeApi.update(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['assessments'] });
+            setShowUpdateModal(false);
+            toast({ variant: "success", title: "Success", description: "Assessment type updated successfully" });
+        },
+        onError: (error: any) => {
+            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to update assessment type" });
+        }
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: assessmentTypeApi.delete,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['assessments'] });
+            setShowDeleteDialog(false);
+            toast({ variant: "success", title: "Success", description: "Assessment type deleted successfully" });
+        },
+        onError: (error: any) => {
+            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to delete assessment type" });
+        }
+    });
+
+    const importMutation = useMutation({
+        mutationFn: assessmentTypeApi.importAssessments,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['assessments'] });
+        },
+        onError: (error: any) => {
+            // Only show toast for network/server errors, not validation errors
+            const errorMessage = error.response?.data?.message;
+            if (!errorMessage || !errorMessage.includes('Missing required column')) {
+                toast({
+                    variant: "destructive",
+                    title: "Import Failed",
+                    description: errorMessage || "An error occurred during import",
+                });
+            }
+        }
+    });
+
+    // ========================================
+    // Handlers
+    // ========================================
+    const handleSearch = () => {
+        setPage(0);
+        refetch();
     };
 
-    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            handleImport(file);
-            // Reset input so searching the same file again triggers change event
-            e.target.value = '';
+    const handleReset = () => {
+        setKeyword('');
+        setPage(0);
+        setSortBy('createdAt');
+        setSortDir('desc');
+    };
+
+    const handleExport = async () => {
+        try {
+            await assessmentTypeApi.exportAssessments();
+            toast({ variant: "success", title: "Success", description: "Export started" });
+        } catch (error) {
+            toast({ variant: "destructive", title: "Error", description: "Failed to export assessment types" });
         }
     };
 
     const getBadgeStyle = (name: string) => {
         const lowerName = name.toLowerCase();
-        if (lowerName.includes('test'))
-            return 'bg-blue-50 text-blue-600 border-blue-100';
-        if (lowerName.includes('assignment'))
-            return 'bg-green-50 text-green-600 border-green-100';
-        if (lowerName.includes('challenge'))
-            return 'bg-cyan-50 text-cyan-600 border-cyan-100';
-        if (lowerName.includes('interview'))
-            return 'bg-gray-50 text-gray-600 border-gray-100';
-        if (lowerName.includes('exam'))
-            return 'bg-red-50 text-red-600 border-red-100';
-        if (lowerName.includes('check'))
-            return 'bg-purple-50 text-purple-600 border-purple-100';
+        if (lowerName.includes('test')) return 'bg-blue-50 text-blue-600 border-blue-100';
+        if (lowerName.includes('assignment')) return 'bg-green-50 text-green-600 border-green-100';
+        if (lowerName.includes('challenge')) return 'bg-cyan-50 text-cyan-600 border-cyan-100';
+        if (lowerName.includes('interview')) return 'bg-gray-50 text-gray-600 border-gray-100';
+        if (lowerName.includes('exam')) return 'bg-red-50 text-red-600 border-red-100';
         return 'bg-blue-50 text-blue-600 border-blue-100';
     };
 
@@ -79,253 +165,242 @@ export const AssessmentManagement: React.FC = () => {
         });
     };
 
-    if (isLoading) {
-        return (
-            <MainLayout>
-                <div className="p-8">Loading...</div>
-            </MainLayout>
-        );
-    }
-
     return (
         <MainLayout>
-            {/* Header */}
-            <div className="mb-6">
-                <div className="flex justify-between items-center mb-6">
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            Assessment Types
-                        </h1>
-                        <p className="text-sm text-gray-500">
-                            Manage assessment type definitions
-                        </p>
+                        <h1 className="text-2xl font-bold text-gray-900">Assessment Types</h1>
+                        <p className="text-sm text-gray-500">Manage assessment type definitions</p>
                     </div>
 
-                    <div className="flex space-x-2">
+                    <div className="flex gap-2">
                         <button
                             onClick={handleExport}
-                            className="flex items-center space-x-2 px-3 py-1.5 border rounded-md text-sm
-                            hover:bg-gray-100 hover:border-gray-400 transition">
+                            className="flex items-center gap-2 px-3 py-1.5 border rounded-md text-sm hover:bg-gray-50 transition"
+                        >
                             <Download size={16} />
                             <span>Export</span>
                         </button>
 
                         <button
-                            onClick={onImportClick}
-                            className="flex items-center space-x-2 px-3 py-1.5 border rounded-md text-sm
-                            hover:bg-gray-100 hover:border-gray-400 transition"
+                            onClick={() => setShowImportDialog(true)}
+                            className="flex items-center gap-2 px-3 py-1.5 border rounded-md text-sm hover:bg-gray-50 transition"
                         >
                             <Upload size={16} />
                             <span>Import</span>
                         </button>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={onFileChange}
-                            className="hidden"
-                            accept=".xlsx,.xls,.csv"
-                        />
 
                         <PermissionGate permission="ASSESSMENT_CREATE">
                             <button
-                                onClick={openCreateModal}
-                                className="flex items-center space-x-2 px-4 py-1.5 bg-blue-600 text-white rounded-md
-                                    hover:bg-blue-700 hover:shadow transition"
+                                onClick={() => setShowCreateModal(true)}
+                                className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition shadow-sm"
                             >
                                 <Plus size={16} />
-                                <span>Add</span>
+                                <span>Add Assessment</span>
                             </button>
                         </PermissionGate>
                     </div>
                 </div>
 
-                {/* Search */}
-                <div className="flex items-center space-x-2">
+                {/* Search & Filters */}
+                <div className="flex items-center gap-2">
                     <div className="relative flex-1 max-w-sm">
-                        <Search
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                            size={15}
-                        />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
                         <input
-                            value={searchTerm}
-                            onChange={(e) => search(e.target.value)}
+                            value={keyword}
+                            onChange={(e) => setKeyword(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                             placeholder="Search by name..."
-                            className="pl-10 pr-4 py-2 w-full border rounded-md
-                                focus:ring-2 focus:ring-blue-500 transition"
+                            className="pl-10 pr-4 py-2 w-full border rounded-md focus:ring-2 focus:ring-blue-500 transition outline-none text-sm"
                         />
                     </div>
 
                     <button
-                        onClick={() => {
-                            setSearchTerm('');
-                            reload();
-                        }}
-                        className="p-2 border rounded-md
-                            hover:bg-gray-100 hover:border-gray-400 transition"
+                        onClick={handleSearch}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition"
+                    >
+                        Search
+                    </button>
+
+                    <button
+                        onClick={handleReset}
+                        className="p-2 border rounded-md hover:bg-gray-50 transition"
                         title="Reset"
                     >
                         <RotateCcw size={15} />
                     </button>
                 </div>
-            </div>
 
-            {/* Table */}
-            <div className="bg-white shadow rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-bold">#</th>
-                            <th className="px-6 py-3 text-left text-xs font-bold">Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-bold">
-                                Description
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-bold">
-                                Created Date
-                            </th>
-                            <th className="px-6 py-3 ml-4 text-left text-xs font-bold">
-                                <div className="ml-6">
-                                    Actions
-                                </div>
-                            </th>
-                        </tr>
-                    </thead>
+                {/* Table */}
+                <div className="bg-white shadow rounded-lg overflow-hidden border">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-16">#</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Description</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Created Date</th>
+                                    <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-32">Actions</th>
+                                </tr>
+                            </thead>
 
-                    <tbody>
-                        {assessments.map((assessment, index) => (
-                            <tr
-                                key={assessment.id}
-                                className="hover:bg-gray-50 transition-colors"
-                            >
-                                <td className="px-6 py-4 text-sm">
-                                    {index + 1}
-                                </td>
+                            <tbody className="bg-white divide-y divide-gray-200 relative">
+                                {isLoading ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-12 text-center">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                                                <span className="text-sm text-gray-500 font-medium">Loading assessments...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : tableData?.content && tableData.content.length > 0 ? (
+                                    tableData.content.map((assessment, index) => (
+                                        <tr key={assessment.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-6 py-4 text-sm text-gray-600">
+                                                {page * size + index + 1}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2.5 py-1 rounded inline-flex text-xs font-semibold border ${getBadgeStyle(assessment.name)}`}>
+                                                    {assessment.name}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                                                {assessment.description || '-'}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-500">
+                                                {formatDate(assessment.createdAt)}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex justify-center gap-2">
+                                                    <button
+                                                        onClick={() => { setSelectedAssessment(assessment); setShowViewModal(true); }}
+                                                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                        title="View"
+                                                    >
+                                                        <Eye size={16} />
+                                                    </button>
 
-                                <td className="px-6 py-4">
-                                    <span
-                                        className={`px-3 py-1 rounded-md text-sm border ${getBadgeStyle(
-                                            assessment.name
-                                        )}`}
-                                    >
-                                        {assessment.name}
-                                    </span>
-                                </td>
+                                                    <PermissionGate permission="ASSESSMENT_UPDATE">
+                                                        <button
+                                                            onClick={() => { setSelectedAssessment(assessment); setShowUpdateModal(true); }}
+                                                            className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                                                            title="Edit"
+                                                        >
+                                                            <SquarePen size={16} />
+                                                        </button>
+                                                    </PermissionGate>
 
-                                <td className="px-6 py-4 text-sm text-gray-500">
-                                    {assessment.description || '-'}
-                                </td>
-
-
-                                <td className="px-6 py-4 text-sm text-gray-500">
-                                    {formatDate(assessment.createdAt)}
-                                </td>
-
-
-
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex space-x-3">
-                                        <button
-                                            className="p-1 rounded hover:bg-gray-100 hover:text-blue-600 transition"
-                                            title="View"
-                                        >
-                                            <Eye size={15} />
-                                        </button>
-
-                                        <PermissionGate permission="ASSESSMENT_UPDATE">
-                                            <button
-                                                onClick={() => openEditModal(assessment)}
-                                                className="p-1 rounded hover:bg-gray-100 hover:text-yellow-600 transition"
-                                                title="Edit"
-                                            >
-                                                <SquarePen size={15} />
-                                            </button>
-                                        </PermissionGate>
-
-                                        <PermissionGate permission="ASSESSMENT_DELETE">
-                                            <button
-                                                onClick={() =>
-                                                    deleteAssessment(assessment.id)
-                                                }
-                                                className="p-1 rounded hover:bg-red-50 hover:text-red-600 transition"
-                                                title="Delete"
-                                            >
-                                                <Trash2 size={15} />
-                                            </button>
-                                        </PermissionGate>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {showCreateModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="bg-white rounded-lg p-8 w-full max-w-md">
-                        <h2 className="text-xl font-bold mb-4">
-                            {isEditMode ? 'Update Assessment' : 'Create New Assessment'}
-                        </h2>
-
-                        <form
-
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                if (isEditMode)
-                                    updateAssessment();
-                                else
-                                    createAssessment();
-                            }}
-                            className="space-y-4"
-                        >
-                            <input
-                                required
-                                value={newAssessment.name}
-                                onChange={(e) =>
-                                    setNewAssessment({
-                                        ...newAssessment,
-                                        name: e.target.value,
-                                    })
-                                }
-                                className="w-full border px-3 py-2 rounded-md
-                                    focus:ring-2 focus:ring-blue-500 transition"
-                                placeholder="Name"
-                            />
-
-                            <textarea
-                                required
-                                value={newAssessment.description}
-                                onChange={(e) =>
-                                    setNewAssessment({
-                                        ...newAssessment,
-                                        description: e.target.value,
-                                    })
-                                }
-                                className="w-full border px-3 py-2 rounded-md
-                                    focus:ring-2 focus:ring-blue-500 transition"
-                                placeholder="Description"
-                            />
-
-                            <div className="flex justify-end space-x-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowCreateModal(false)}
-                                    className="px-4 py-2 border rounded-md
-                                        hover:bg-gray-100 transition"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md
-                                        hover:bg-blue-700 hover:shadow transition"
-                                >
-                                    {isEditMode ? 'Update' : 'Create'}
-                                </button>
-                            </div>
-                        </form>
+                                                    <PermissionGate permission="ASSESSMENT_DELETE">
+                                                        <button
+                                                            onClick={() => { setSelectedAssessment(assessment); setShowDeleteDialog(true); }}
+                                                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </PermissionGate>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic">
+                                            No assessment types found
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
+
+                    {/* Pagination */}
+                    {tableData && tableData.totalPages > 0 && (
+                        <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t">
+                            <div className="text-sm text-gray-600">
+                                Showing <span className="font-medium">{page * size + 1}</span> to{' '}
+                                <span className="font-medium">
+                                    {Math.min((page + 1) * size, tableData.totalElements)}
+                                </span>{' '}
+                                of <span className="font-medium">{tableData.totalElements}</span> results
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={size}
+                                    onChange={(e) => { setSize(Number(e.target.value)); setPage(0); }}
+                                    className="border rounded px-2 py-1 text-sm bg-white outline-none"
+                                >
+                                    <option value={5}>5 / page</option>
+                                    <option value={10}>10 / page</option>
+                                    <option value={20}>20 / page</option>
+                                </select>
+                                <div className="flex gap-1">
+                                    <button
+                                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                                        disabled={page === 0}
+                                        className="p-2 border rounded bg-white hover:bg-gray-50 disabled:opacity-50 transition"
+                                    >
+                                        <ChevronLeft size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => setPage(p => p + 1)}
+                                        disabled={page >= tableData.totalPages - 1}
+                                        className="p-2 border rounded bg-white hover:bg-gray-50 disabled:opacity-50 transition"
+                                    >
+                                        <ChevronRight size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            )}
+            </div>
+
+            {/* Modals */}
+            <CreateAssessmentModal
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                onSubmit={(data) => createMutation.mutate(data)}
+                isPending={createMutation.isPending}
+            />
+
+            <UpdateAssessmentModal
+                isOpen={showUpdateModal}
+                onClose={() => setShowUpdateModal(false)}
+                assessment={selectedAssessment}
+                onSubmit={(id, data) => updateMutation.mutate({ id, data })}
+                isPending={updateMutation.isPending}
+            />
+
+            <ViewAssessmentModal
+                isOpen={showViewModal}
+                onClose={() => setShowViewModal(false)}
+                assessment={selectedAssessment}
+            />
+
+            <DeleteAssessmentDialog
+                isOpen={showDeleteDialog}
+                onClose={() => setShowDeleteDialog(false)}
+                assessment={selectedAssessment}
+                onConfirm={() => selectedAssessment && deleteMutation.mutate(selectedAssessment.id)}
+                isPending={deleteMutation.isPending}
+            />
+
+            <ImportAssessmentDialog
+                isOpen={showImportDialog}
+                onClose={() => {
+                    setShowImportDialog(false);
+                    importMutation.reset();
+                }}
+                onImport={(file) => importMutation.mutate(file)}
+                isPending={importMutation.isPending}
+                importResult={importMutation.data as ImportResult ?? null}
+                onSuccess={() => queryClient.invalidateQueries({ queryKey: ['assessments'] })}
+            />
         </MainLayout>
     );
 };
