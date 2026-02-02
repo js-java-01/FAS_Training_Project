@@ -17,8 +17,11 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration}")
+    @Value("${jwt.at.expiration}")
     private long jwtExpiration;
+
+    @Value("${jwt.rt.expiration}")
+    private long refreshTokenExpiration;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
@@ -26,6 +29,10 @@ public class JwtUtil {
 
     public String generateToken(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        return generateToken(userDetails);
+    }
+
+    public String generateToken(UserDetailsImpl userDetails) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
@@ -40,6 +47,38 @@ public class JwtUtil {
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
+    }
+
+    public String generateRtToken(UserDetailsImpl userDetails) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
+
+        return Jwts.builder()
+                .setSubject(userDetails.getEmail())
+                .claim("userId", userDetails.getId().toString())
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    public UserDetailsImpl getUserDetailsFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        
+        return new UserDetailsImpl(
+                java.util.UUID.fromString(claims.get("userId").toString()),
+                claims.getSubject(),
+                null, // password not stored in token
+                null, // firstName not stored in token
+                null, // lastName not stored in token
+                claims.get("role").toString(),
+                null, // permissions handled separately if needed
+                true  // assume active if token is valid
+        );
     }
 
     public String getEmailFromToken(String token) {

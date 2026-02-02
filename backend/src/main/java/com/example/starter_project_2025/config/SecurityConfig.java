@@ -68,9 +68,6 @@ public class SecurityConfig
                         .requestMatchers("/api/users/**").hasAnyAuthority("USER_READ", "USER_CREATE", "USER_UPDATE", "USER_DELETE")
                         .requestMatchers("/api/roles/**").hasAnyAuthority("ROLE_READ", "ROLE_CREATE", "ROLE_UPDATE", "ROLE_DELETE")
                         .requestMatchers("/api/permissions/**").hasAnyAuthority("ROLE_READ", "ROLE_CREATE")
-<<<<<<< HEAD
-                        .requestMatchers("/api/locations/**").hasAnyAuthority("ROLE_READ", "ROLE_CREATE")
-=======
                         
                         // Programming Language endpoints - specific paths first
                         .requestMatchers(HttpMethod.GET, "/api/programming-languages/search").hasAuthority("PROGRAMMING_LANGUAGE_READ")
@@ -82,7 +79,6 @@ public class SecurityConfig
                         .requestMatchers(HttpMethod.DELETE, "/api/programming-languages/**").hasAuthority("PROGRAMMING_LANGUAGE_DELETE")
                         .requestMatchers(HttpMethod.GET, "/api/programming-languages/**").hasAuthority("PROGRAMMING_LANGUAGE_READ")
                         
->>>>>>> G1-develop
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

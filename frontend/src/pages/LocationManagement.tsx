@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { locationApi } from '../api/locationApi';
-import { locationDataApi, Province, Commune } from '../api/locationDataApi';
-import { Location, CreateLocationRequest, LocationStatus } from '../types/location';
+import { locationDataApi, type Commune, type Province } from '../api/locationDataApi';
+
+import { type Location, type CreateLocationRequest, LocationStatus } from '../types/location';
 import { PermissionGate } from '../components/PermissionGate';
-import { MainLayout } from '../components/MainLayout';
+import { MainLayout } from '../components/layout/MainLayout';
 import { useDebounce } from '../hooks/useDebounce';
 
 export const LocationManagement: React.FC = () => {

@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.auth.controller;
 
-import com.example.starter_project_2025.system.auth.dto.PermissionDTO;
+import com.example.starter_project_2025.system.auth.dto.permission.PermissionDTO;
 import com.example.starter_project_2025.system.auth.service.PermissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

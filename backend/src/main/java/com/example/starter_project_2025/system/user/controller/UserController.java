@@ -82,14 +82,9 @@ public class UserController {
     }
 
     @PostMapping("/{id}/toggle-status")
-<<<<<<< HEAD
-    @Operation(summary = "Toggle user locationStatus", description = "Activate or deactivate a user")
-    public ResponseEntity<UserDTO> toggleUserStatus(@PathVariable UUID id) {
-=======
     @Operation(summary = "Toggle user status", description = "Activate or deactivate a user")
     public ResponseEntity<UserDTO> toggleUserStatus(@PathVariable UUID id)
     {
->>>>>>> G1-develop
         UserDTO user = userService.toggleUserStatus(id);
         return ResponseEntity.ok(user);
     }

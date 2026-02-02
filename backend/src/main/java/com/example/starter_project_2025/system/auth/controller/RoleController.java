@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.auth.controller;
 
-import com.example.starter_project_2025.system.auth.dto.RoleDTO;
+import com.example.starter_project_2025.system.auth.dto.role.RoleDTO;
 import com.example.starter_project_2025.system.auth.service.RoleService;
 
 import io.jsonwebtoken.io.IOException;

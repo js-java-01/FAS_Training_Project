@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.security;
 
 import com.example.starter_project_2025.constant.ErrorMessage;
-import com.example.starter_project_2025.util.JwtUtil;
+import com.example.starter_project_2025.security.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

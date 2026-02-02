@@ -17,7 +17,9 @@ export const useGetAllModuleGroups = (params: {
                 page: params.page,
                 size: params.pageSize,
                 sort: params.sort ?? "displayOrder,asc",
-                keyword: params.keyword,
+                ...(params.keyword?.trim()
+                    ? { keyword: params.keyword.trim() }
+                    : {}),
             }),
 
         placeholderData: (prev?: PagedData<ModuleGroup>) => prev,

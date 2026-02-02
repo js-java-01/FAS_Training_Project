@@ -17,7 +17,7 @@ import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import com.example.starter_project_2025.system.user.service.UserService;
 import com.example.starter_project_2025.util.CookieUtil;
-import com.example.starter_project_2025.util.JwtUtil;
+import com.example.starter_project_2025.security.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

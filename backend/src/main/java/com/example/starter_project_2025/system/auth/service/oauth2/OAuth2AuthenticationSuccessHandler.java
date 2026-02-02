@@ -5,7 +5,7 @@ import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.auth.service.refreshToken.RefreshTokenService;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import com.example.starter_project_2025.util.CookieUtil;
-import com.example.starter_project_2025.util.JwtUtil;
+import com.example.starter_project_2025.security.JwtUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

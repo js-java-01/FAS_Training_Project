@@ -17,6 +17,9 @@ import { AssessmentManagement } from "./pages/AssessmentManagement";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
+import { Logout } from "./pages/auth/Logout";
+import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
+
 
 
 function App() {
@@ -37,8 +40,10 @@ function App() {
         </SidebarProvider> */}
 
         <Routes>
+          <Route path="*" element={<NotFoundRedirect />} />
           <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/logout" element={<Logout />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -100,8 +105,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/modules" element={<ModulesManagement />} />
-
+            <Route
+                path="/modules"
+                element={
+                    <ProtectedRoute requiredPermission="ROLE_READ">
+                        <ModulesManagement />
+                    </ProtectedRoute>
+                }
+            />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>

@@ -10,20 +10,20 @@ import {
   FiLayers,
   FiClock,
 } from "react-icons/fi";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import { roleApi } from "../../api/roleApi";
 import { permissionApi } from "../../api/permissionApi";
-import { Role, CreateRoleRequest } from "../../types/role";
-import { Permission } from "../../types/permission";
+import { MainLayout } from "../../components/layout/MainLayout";
 
-import { MainLayout } from "../../components/MainLayout";
 import { PermissionGate } from "../../components/PermissionGate";
 import { ConfirmDeleteModal } from "../../components/ConfirmDeleteModal";
 
 import { RoleCard } from "./components/RoleCard";
 import { RoleFormModal } from "./components/RoleFormModal";
 import { RoleImportModal } from "./components/RoleImportModal";
+import type { CreateRoleRequest, Role } from "@/types/role";
+import type { Permission } from "@/types/permission";
 
 export const RoleManagement: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -39,10 +39,10 @@ export const RoleManagement: React.FC = () => {
   const [deleteRoleId, setDeleteRoleId] = useState<string | null>(null);
 
   const [expandPermissions, setExpandPermissions] = useState(false);
-
   const [roleForm, setRoleForm] = useState<CreateRoleRequest>({
     name: "",
     description: "",
+    hierarchyLevel: 1,
     permissionIds: [],
   });
 
@@ -68,6 +68,7 @@ export const RoleManagement: React.FC = () => {
     setRoleForm({
       name: "",
       description: "",
+      hierarchyLevel: 1,
       permissionIds: [],
     });
     setShowForm(true);
@@ -79,6 +80,7 @@ export const RoleManagement: React.FC = () => {
     setRoleForm({
       name: role.name,
       description: role.description || "",
+      hierarchyLevel: role.hierarchyLevel,
       permissionIds: role.permissionIds,
     });
     setShowForm(true);
@@ -105,7 +107,6 @@ export const RoleManagement: React.FC = () => {
 
   const handleExport = async () => {
     try {
-      toast.info("Đang xuất dữ liệu...", { autoClose: 1000 });
       const blob = await roleApi.exportRoles();
 
       const url = window.URL.createObjectURL(blob);

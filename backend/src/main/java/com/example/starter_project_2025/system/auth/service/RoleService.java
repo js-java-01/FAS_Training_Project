@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.auth.service;
 
-import com.example.starter_project_2025.system.auth.dto.RoleDTO;
+import com.example.starter_project_2025.system.auth.dto.role.RoleDTO;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.exception.BadRequestException;

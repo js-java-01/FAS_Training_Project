@@ -34,12 +34,6 @@ public class Role
     @Column(length = 500)
     private String description;
 
-<<<<<<< HEAD
-//    @Column(nullable = false)
-//    private Integer hierarchyLevel = 0;
-
-=======
->>>>>>> G1-develop
     @Column(nullable = false)
     private Boolean isActive = true;
 

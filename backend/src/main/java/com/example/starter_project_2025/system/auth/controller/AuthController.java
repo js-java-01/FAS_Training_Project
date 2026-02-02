@@ -1,14 +1,5 @@
 package com.example.starter_project_2025.system.auth.controller;
 
-<<<<<<< HEAD
-import com.example.starter_project_2025.system.auth.dto.LoginRequest;
-import com.example.starter_project_2025.system.auth.dto.LoginResponse;
-import com.example.starter_project_2025.system.auth.service.AuthService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-=======
 import com.example.starter_project_2025.constant.ErrorMessage;
 import com.example.starter_project_2025.constant.SuccessMessage;
 import com.example.starter_project_2025.exception.UnauthenticatedException;
@@ -26,7 +17,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
->>>>>>> G1-develop
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,12 +30,6 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-<<<<<<< HEAD
-    @Operation(summary = "Authenticate user", description = "Authenticates user credentials and returns JWT token")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-        LoginResponse response = authService.authenticateUser(loginRequest);
-        return ResponseEntity.ok(response);
-=======
     public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest reqLogin, HttpServletResponse response) {
         var res = authService.login(reqLogin, response);
@@ -94,6 +78,5 @@ public class AuthController {
         }
         var res = authService.refresh(rtToken);
         return ResponseEntity.ok(res);
->>>>>>> G1-develop
     }
 }

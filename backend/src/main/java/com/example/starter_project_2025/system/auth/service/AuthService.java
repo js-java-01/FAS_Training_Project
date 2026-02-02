@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.system.auth.service;
 
-import com.example.starter_project_2025.system.auth.dto.LoginRequest;
-import com.example.starter_project_2025.system.auth.dto.LoginResponse;
+import com.example.starter_project_2025.system.auth.dto.login.LoginRequest;
+import com.example.starter_project_2025.system.auth.dto.login.LoginResponse;
 import com.example.starter_project_2025.security.JwtUtil;
 import com.example.starter_project_2025.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;

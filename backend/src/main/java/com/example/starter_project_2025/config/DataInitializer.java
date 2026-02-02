@@ -1,15 +1,12 @@
 package com.example.starter_project_2025.config;
 
-<<<<<<< HEAD
-=======
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
->>>>>>> G1-develop
+
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
-<<<<<<< HEAD
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
 import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
@@ -26,24 +23,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
-=======
 import com.example.starter_project_2025.system.modulegroups.entity.Module;
 import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
 import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
->>>>>>> G1-develop
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-<<<<<<< HEAD
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -52,11 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-=======
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
->>>>>>> G1-develop
 
 @Component
 @RequiredArgsConstructor
@@ -65,22 +49,17 @@ public class DataInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
-<<<<<<< HEAD
-    private final UserRepository userRepository;
     private final MenuRepository menuRepository;
     private final MenuItemRepository menuItemRepository;
     private final ProvinceRepository provinceRepository;
     private final CommuneRepository communeRepository;
-    private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
-=======
     private final ModuleGroupsRepository moduleGroupsRepository;
     private final ModuleRepository moduleRepository;
     private final ProgrammingLanguageRepository programmingLanguageRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AssessmentTypeRepository assessmentTypeRepository;
->>>>>>> G1-develop
 
     @Override
     @Transactional
@@ -91,25 +70,14 @@ public class DataInitializer implements CommandLineRunner {
             initializePermissions();
             initializeRoles();
             initializeUsers();
-<<<<<<< HEAD
             initializeMenus();
+            initializeLocationData();
+            initializeModuleGroups();
+            ensureProgrammingLanguagePermissions();
+            initializeProgrammingLanguages();
         } else {
             log.info("Database already initialized, skipping core data initialization.");
         }
-
-        initializeLocationData();
-        log.info("Database initialization completed successfully!");
-=======
-            initializeModuleGroups();
-            log.info("Database initialization completed successfully!");
-        } else {
-            log.info("Database already initialized, checking for missing permissions...");
-            // Check if programming language permissions exist, if not, add them
-            ensureProgrammingLanguagePermissions();
-            // Always check and initialize programming languages if they don't exist
-            initializeProgrammingLanguages();
-        }
->>>>>>> G1-develop
     }
 
     private void initializePermissions() {
@@ -131,7 +99,6 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
-<<<<<<< HEAD
                 createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"),
                 createPermission("LOCATION_CREATE", "Create new locations", "LOCATION", "CREATE"),
                 createPermission("LOCATION_READ", "View locations", "LOCATION", "READ"),
@@ -140,10 +107,6 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("LOCATION_IMPORT", "Import locations", "LOCATION", "IMPORT"),
                 createPermission("LOCATION_EXPORT", "Export locations", "LOCATION", "EXPORT")
                 );
-=======
-                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN")
-        );
->>>>>>> G1-develop
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }
@@ -161,20 +124,14 @@ public class DataInitializer implements CommandLineRunner {
         Role adminRole = new Role();
         adminRole.setName("ADMIN");
         adminRole.setDescription("Administrator with full system access");
-<<<<<<< HEAD
 //        adminRole.setHierarchyLevel(1);
-=======
->>>>>>> G1-develop
         adminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
         roleRepository.save(adminRole);
 
         Role studentRole = new Role();
         studentRole.setName("STUDENT");
         studentRole.setDescription("Student with limited access to educational resources");
-<<<<<<< HEAD
 //        studentRole.setHierarchyLevel(2);
-=======
->>>>>>> G1-develop
         studentRole.setPermissions(new HashSet<>(permissionRepository.findByAction("READ")));
         roleRepository.save(studentRole);
 
@@ -215,7 +172,6 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized 3 users (admin@example.com, student@example.com, jane.smith@example.com)");
     }
 
-<<<<<<< HEAD
     private void initializeMenus() {
         Menu mainMenu = new Menu();
         mainMenu.setName("Main Menu");
@@ -291,7 +247,6 @@ public class DataInitializer implements CommandLineRunner {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record CommuneJson(String idProvince, String idCommune, String name) { }
-=======
     private void initializeModuleGroups() {
         // 1. Nhóm: Main Menu
         ModuleGroups mainGroup = new ModuleGroups();
@@ -429,5 +384,4 @@ public class DataInitializer implements CommandLineRunner {
         ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
         return language;
     }
->>>>>>> G1-develop
 }
