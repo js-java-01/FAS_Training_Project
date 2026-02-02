@@ -49,6 +49,7 @@ public class DataInitializer implements CommandLineRunner {
             initializeRoles();
             initializeUsers();
             initializeModuleGroups();
+            initializeAssessments();
             log.info("Database initialization completed successfully!");
         } else {
             log.info("Database already initialized, checking for missing permissions...");
