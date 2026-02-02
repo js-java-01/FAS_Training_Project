@@ -37,7 +37,7 @@ function App() {
           />
 
           <Route
-            path="/assessments"
+            path="/assessmentTypes"
             element={
               <ProtectedRoute requiredPermission="ASSESSMENT_READ">
                 <AssessmentManagement />

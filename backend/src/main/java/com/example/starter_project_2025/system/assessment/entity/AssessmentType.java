@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Assessment {
+public class AssessmentType {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;

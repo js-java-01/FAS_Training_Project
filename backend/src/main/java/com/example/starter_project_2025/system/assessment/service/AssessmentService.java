@@ -2,10 +2,10 @@ package com.example.starter_project_2025.system.assessment.service;
 
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.assessment.dto.*;
-import com.example.starter_project_2025.system.assessment.entity.Assessment;
-import com.example.starter_project_2025.system.assessment.mapper.AssessmentMapper;
-import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
-import com.example.starter_project_2025.system.assessment.spec.AssessmentSpecification;
+import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment.mapper.AssessmentTypeMapper;
+import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
+import com.example.starter_project_2025.system.assessment.spec.AssessmentTypeSpecification;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -28,55 +28,55 @@ import java.util.List;
 public class AssessmentService {
 
     @Autowired
-    private AssessmentMapper assessmentMapper;
+    private AssessmentTypeMapper assessmentTypeMapper;
 
     @Autowired
-    private AssessmentRepository assessRepo;
+    private AssessmentTypeRepository assessRepo;
 
     @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
-    public AssessmentDTO findById(String id) {
-        Assessment assessment = assessRepo.findById(id)
+    public AssessmentTypeDTO findById(String id) {
+        AssessmentType assessmentType = assessRepo.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Assessment", "id", id));
 
-        return assessmentMapper.toDto(assessment);
+        return assessmentTypeMapper.toDto(assessmentType);
     }
 
     @PreAuthorize("hasAuthority('ASSESSMENT_CREATE')")
-    public AssessmentDTO create(CreateAssessmentRequest request) {
+    public AssessmentTypeDTO create(CreateAssessmentRequest request) {
 
         if (assessRepo.existsByName(request.getName())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Assessment name already exists");
         }
 
-        Assessment assessment = assessmentMapper.toEntity(request);
-        return assessmentMapper.toDto(assessRepo.save(assessment));
+        AssessmentType assessmentType = assessmentTypeMapper.toEntity(request);
+        return assessmentTypeMapper.toDto(assessRepo.save(assessmentType));
     }
 
     @PreAuthorize("hasAuthority('ASSESSMENT_UPDATE')")
-    public AssessmentDTO update(String id, UpdateAssessmentRequest request) {
+    public AssessmentTypeDTO update(String id, UpdateAssessmentRequest request) {
 
-        Assessment assessment = assessRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
+        AssessmentType assessmentType = assessRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
 
-        assessmentMapper.updateEntityFromRequest(request, assessment);
-        return assessmentMapper.toDto(assessRepo.save(assessment));
+        assessmentTypeMapper.updateEntityFromRequest(request, assessmentType);
+        return assessmentTypeMapper.toDto(assessRepo.save(assessmentType));
     }
 
     @PreAuthorize("hasAuthority('ASSESSMENT_DELETE')")
     public void delete(String id) {
 
-        Assessment assessment = assessRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
+        AssessmentType assessmentType = assessRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
 
-        assessRepo.delete(assessment);
+        assessRepo.delete(assessmentType);
     }
 
     @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
-    public Page<AssessmentDTO> search(String name, String keyword, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
-        Specification<Assessment> spec = Specification.where(AssessmentSpecification.nameContains(name)).and(AssessmentSpecification.keyword(keyword))
-                .and(AssessmentSpecification.createdAfter(fromDate))
-                .and(AssessmentSpecification.createdBefore(toDate));
+    public Page<AssessmentTypeDTO> search(String name, String keyword, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
+        Specification<AssessmentType> spec = Specification.where(AssessmentTypeSpecification.nameContains(name)).and(AssessmentTypeSpecification.keyword(keyword))
+                .and(AssessmentTypeSpecification.createdAfter(fromDate))
+                .and(AssessmentTypeSpecification.createdBefore(toDate));
 
-        return assessRepo.findAll(spec, pageable).map(assessmentMapper::toDto);
+        return assessRepo.findAll(spec, pageable).map(assessmentTypeMapper::toDto);
     }
 
     @Transactional
@@ -87,7 +87,7 @@ public class AssessmentService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
         }
 
-        List<Assessment> toSave = new ArrayList<>();
+        List<AssessmentType> toSave = new ArrayList<>();
         List<ImportErrorDTO> errors = new ArrayList<>();
 
         int totalRows = 0;
@@ -125,7 +125,7 @@ public class AssessmentService {
                     continue;
                 }
 
-                Assessment a = new Assessment();
+                AssessmentType a = new AssessmentType();
                 a.setName(name);
                 a.setDescription(description);
 
@@ -149,7 +149,7 @@ public class AssessmentService {
     @PreAuthorize("hasAnyAuthority('ASSESSMENT_READ')")
     public ByteArrayInputStream exportAssessments() throws IOException {
 
-        List<Assessment> types = assessRepo.findAll();
+        List<AssessmentType> types = assessRepo.findAll();
 
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Assessment Types");
@@ -159,7 +159,7 @@ public class AssessmentService {
         header.createCell(1).setCellValue("description");
 
         int rowIdx = 1;
-        for (Assessment t : types) {
+        for (AssessmentType t : types) {
             Row row = sheet.createRow(rowIdx++);
             row.createCell(0).setCellValue(t.getName());
             row.createCell(1).setCellValue(t.getDescription());
