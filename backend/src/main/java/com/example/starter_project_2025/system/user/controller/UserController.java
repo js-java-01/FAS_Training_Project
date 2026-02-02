@@ -75,14 +75,16 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete user", description = "Delete a user by ID")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID id)
+    {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/toggle-status")
     @Operation(summary = "Toggle user status", description = "Activate or deactivate a user")
-    public ResponseEntity<UserDTO> toggleUserStatus(@PathVariable UUID id) {
+    public ResponseEntity<UserDTO> toggleUserStatus(@PathVariable UUID id)
+    {
         UserDTO user = userService.toggleUserStatus(id);
         return ResponseEntity.ok(user);
     }

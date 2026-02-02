@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import { User, CreateUserRequest } from '../types/auth';
+import type { User, CreateUserRequest } from '../types/auth';
 
 export const userApi = {
   getAllUsers: async (page = 0, size = 20, sort = 'createdAt,desc') => {

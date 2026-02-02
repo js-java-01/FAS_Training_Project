@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.user.service.impl;
 
+import com.example.starter_project_2025.constant.ErrorMessage;
 import com.example.starter_project_2025.system.user.dto.CreateUserRequest;
 import com.example.starter_project_2025.system.user.dto.UserDTO;
 import com.example.starter_project_2025.system.auth.entity.Role;
@@ -143,6 +144,12 @@ public class UserServiceImpl implements UserService {
         user.setRole(role);
 
         return userMapper.toResponse(userRepository.save(user));
+    }
+
+    @Override
+    public User findByEmail(String email)
+    {
+        return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.USER_NOT_FOUND));
     }
 
 }

@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.user.entity;
 
 import com.example.starter_project_2025.system.auth.entity.Role;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -39,6 +40,7 @@ public class User {
     String lastName;
 
     @ManyToOne(fetch = FetchType.EAGER)
+
     @JoinColumn(name = "role_id", nullable = false)
     Role role;
 
