@@ -2,50 +2,50 @@ package com.example.starter_project_2025.system.user.entity;
 
 import com.example.starter_project_2025.system.auth.entity.Role;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Entity
-@Table(name = "users")
-@Inheritance(strategy = InheritanceType.JOINED)
 @Data
+@Entity
+@Builder
+@Table(name = "users")
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    UUID id;
 
     @Column(unique = true, nullable = false, length = 255)
-    private String email;
+    String email;
 
     @Column(nullable = false)
-    private String passwordHash;
+    String passwordHash;
 
     @Column(nullable = false, length = 100)
-    private String firstName;
+    String firstName;
 
     @Column(nullable = false, length = 100)
-    private String lastName;
+    String lastName;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
+    Role role;
 
     @Column(nullable = false)
-    private Boolean isActive = true;
+    Boolean isActive = true;
 
     @CreationTimestamp
     @Column(updatable = false)
-    private LocalDateTime createdAt;
+    LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    LocalDateTime updatedAt;
 }
