@@ -1,17 +1,22 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, ArrowRight, Mail } from 'lucide-react';
+import { Loader2, ArrowRight, Mail, EyeOff, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import type { RegisterRequest } from '@/types/auth';
+import { useState } from "react";
 
 const registerSchema = z.object({
     firstName: z.string().min(1, "Required"),
     lastName: z.string().min(1, "Required"),
     email: z.string().email("Invalid email format"),
     password: z.string().min(6, "Min 6 characters"),
+    confirmPassword: z.string().min(6, "Min 6 characters"),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
 });
 
 interface RegisterFormProps {
@@ -20,9 +25,12 @@ interface RegisterFormProps {
 }
 
 export function RegisterForm({ onSubmit, loading }: RegisterFormProps) {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const form = useForm<RegisterRequest>({
         resolver: zodResolver(registerSchema),
-        defaultValues: { firstName: "", lastName: "", email: "", password: "" },
+        mode: "onChange",
+        defaultValues: { firstName: "", lastName: "", email: "", password: "", confirmPassword: "" },
     });
 
     return (
@@ -77,7 +85,28 @@ export function RegisterForm({ onSubmit, loading }: RegisterFormProps) {
                     name="password"
                     render={({ field }) => (
                         <FormItem>
-                            <FormControl><Input {...field} type="password" placeholder="Password" className="h-14 text-lg rounded-2xl" /></FormControl>
+                            <div className="relative">
+                                <FormControl>
+                                    <Input {...field} type={showPassword ? "text" : "password"} placeholder="Password" className="h-14 text-lg rounded-2xl" />
+                                </FormControl>
+                                <button className="absolute right-3 top-4" type="button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <Eye size={22}></Eye> : <EyeOff size={22}></EyeOff>}</button>
+                            </div>
+                            <FormMessage />
+
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                        <FormItem>
+                            <div className="relative">
+                                <FormControl>
+                                    <Input {...field} type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" className="h-14 text-lg rounded-2xl" />
+                                </FormControl>
+                                <button className="absolute right-3 top-4" type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>{showConfirmPassword ? <Eye size={22}></Eye> : <EyeOff size={22}></EyeOff>}</button>
+                            </div>
                             <FormMessage />
                         </FormItem>
                     )}

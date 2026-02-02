@@ -1,4 +1,4 @@
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Loader2, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from '../ui/form';
 import { Input } from '../ui/input';
@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import type { ResetPasswordData } from '@/types/auth';
 import { Button } from '../ui/button';
+import { useState } from 'react';
 
 const resetSchema = z.object({
     password: z.string().min(6, "Password must be at least 6 characters"),
@@ -23,6 +24,8 @@ interface ResetPasswordFormProps {
 }
 
 export const ResetPasswordForm = ({ onSubmit, loading }: ResetPasswordFormProps) => {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const form = useForm<ResetPasswordData>({
         resolver: zodResolver(resetSchema),
         defaultValues: { password: "", confirmPassword: "" },
@@ -42,22 +45,28 @@ export const ResetPasswordForm = ({ onSubmit, loading }: ResetPasswordFormProps)
                         name="password"
                         render={({ field }) => (
                             <FormItem>
-                                <FormControl>
-                                    <Input {...field} type="password" placeholder="New Password" className="h-14 text-lg rounded-2xl" />
-                                </FormControl>
+                                <div className="relative">
+                                    <FormControl>
+                                        <Input {...field} type={showPassword ? "text" : "password"} placeholder="Password" className="h-14 text-lg rounded-2xl" />
+                                    </FormControl>
+                                    <button className="absolute right-3 top-4" type="button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <Eye size={22}></Eye> : <EyeOff size={22}></EyeOff>}</button>
+                                </div>
                                 <FormMessage />
+
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="confirmPassword"
                         render={({ field }) => (
                             <FormItem>
-                                <FormControl>
-                                    <Input {...field} type="password" placeholder="Confirm Password" className="h-14 text-lg rounded-2xl" />
-                                </FormControl>
+                                <div className="relative">
+                                    <FormControl>
+                                        <Input {...field} type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" className="h-14 text-lg rounded-2xl" />
+                                    </FormControl>
+                                    <button className="absolute right-3 top-4" type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>{showConfirmPassword ? <Eye size={22}></Eye> : <EyeOff size={22}></EyeOff>}</button>
+                                </div>
                                 <FormMessage />
                             </FormItem>
                         )}
