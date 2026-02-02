@@ -1,8 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
+import { Toaster } from './components/ui/toaster';
 import { Dashboard } from './pages/Dashboard';
 import { Login } from './pages/Login';
+import { ProgrammingLanguageManagement } from './pages/ProgrammingLanguageManagement';
 import { RoleManagement } from './pages/RoleManagement';
 import { Unauthorized } from './pages/Unauthorized';
 import { UserManagement } from './pages/UserManagement';
@@ -53,8 +55,18 @@ function App() {
             }
           />
 
+          <Route
+            path="/programming-languages"
+            element={
+              <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
+                <ProgrammingLanguageManagement />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
+        <Toaster />
       </AuthProvider>
     </BrowserRouter>
   );
