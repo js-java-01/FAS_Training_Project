@@ -76,7 +76,11 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ASSESSMENT_CREATE", "Create assessments", "ASSESSMENT", "CREATE"),
                 createPermission("ASSESSMENT_READ", "Read assessments", "ASSESSMENT", "READ"),
                 createPermission("ASSESSMENT_UPDATE", "Update assessments", "ASSESSMENT", "UPDATE"),
-                createPermission("ASSESSMENT_DELETE", "Delete assessments", "ASSESSMENT", "DELETE")
+                createPermission("ASSESSMENT_DELETE", "Delete assessments", "ASSESSMENT", "DELETE"),
+                createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages", "PROGRAMMING_LANGUAGE", "CREATE"),
+                createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages", "PROGRAMMING_LANGUAGE", "READ"),
+                createPermission("PROGRAMMING_LANGUAGE_UPDATE", "Update existing programming languages", "PROGRAMMING_LANGUAGE", "UPDATE"),
+                createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages", "PROGRAMMING_LANGUAGE", "DELETE")
 
                 );
         permissionRepository.saveAll(permissions);
@@ -204,6 +208,32 @@ public class DataInitializer implements CommandLineRunner {
         assessmentRepository.saveAll(List.of(a1, a2, a3));
 
         log.info("Initialized {} assessments", 3);
+    }
+
+    private void ensureProgrammingLanguagePermissions() {
+        // Check if programming language permissions exist
+        boolean hasProgLangPerms = permissionRepository.existsByName("PROGRAMMING_LANGUAGE_READ");
+
+        if (!hasProgLangPerms) {
+            log.info("Programming language permissions not found, adding them...");
+
+            List<Permission> progLangPermissions = Arrays.asList(
+                    createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages", "PROGRAMMING_LANGUAGE", "CREATE"),
+                    createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages", "PROGRAMMING_LANGUAGE", "READ"),
+                    createPermission("PROGRAMMING_LANGUAGE_UPDATE", "Update existing programming languages", "PROGRAMMING_LANGUAGE", "UPDATE"),
+                    createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages", "PROGRAMMING_LANGUAGE", "DELETE")
+            );
+
+            permissionRepository.saveAll(progLangPermissions);
+
+            // Add these permissions to the ADMIN role
+            Role adminRole = roleRepository.findByName("ADMIN").orElse(null);
+            if (adminRole != null) {
+                adminRole.getPermissions().addAll(progLangPermissions);
+                roleRepository.save(adminRole);
+                log.info("Added programming language permissions to ADMIN role");
+            }
+        }
     }
 
 }
