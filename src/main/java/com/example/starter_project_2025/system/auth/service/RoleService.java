@@ -140,6 +140,64 @@ public class RoleService {
         Role updatedRole = roleRepository.save(role);
         return convertToDTO(updatedRole);
     }
+    //EXPORT ROLE RA FILE EXCEL
+    @PreAuthorize("hasAuthority('ROLE_READ')")
+    public ByteArrayInputStream exportRoles() throws IOException {
+        // Bước 1: Xóa "Level" khỏi danh sách cột
+        String[] columns = {"ID", "Role Name", "Description", "Status", "Permissions"};
+
+        List<Role> roles = roleRepository.findAll();
+
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Roles Data");
+
+            // Tạo Header Style (Giữ nguyên)
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            CellStyle headerCellStyle = workbook.createCellStyle();
+            headerCellStyle.setFont(headerFont);
+
+            // Tạo hàng Header
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < columns.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columns[i]);
+                cell.setCellStyle(headerCellStyle);
+            }
+
+            // Đổ dữ liệu
+            int rowIdx = 1;
+            for (Role role : roles) {
+                Row row = sheet.createRow(rowIdx++);
+
+                // Cột 0: ID
+                row.createCell(0).setCellValue(role.getId().toString());
+                
+                // Cột 1: Name
+                row.createCell(1).setCellValue(role.getName());
+                
+                // Cột 2: Description
+                row.createCell(2).setCellValue(role.getDescription() != null ? role.getDescription() : "");
+                
+                // Cột 3: Status 
+                row.createCell(3).setCellValue(role.getIsActive() ? "Active" : "Inactive");
+
+                // Cột 4: Permissions
+                String perms = role.getPermissions().stream()
+                        .map(Permission::getName)
+                        .collect(Collectors.joining(", "));
+                row.createCell(4).setCellValue(perms);
+            }
+
+            // Auto-size các cột
+            for (int i = 0; i < columns.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(out);
+            return new ByteArrayInputStream(out.toByteArray());
+        }
+    }
 
     private RoleDTO convertToDTO(Role role) {
         RoleDTO dto = new RoleDTO();
