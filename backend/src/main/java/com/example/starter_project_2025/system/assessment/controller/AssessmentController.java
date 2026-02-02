@@ -2,11 +2,16 @@ package com.example.starter_project_2025.system.assessment.controller;
 
 import com.example.starter_project_2025.system.assessment.dto.AssessmentDTO;
 import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentRequest;
+import com.example.starter_project_2025.system.assessment.dto.ImportResultDTO;
 import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.service.AssessmentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -25,48 +31,58 @@ public class AssessmentController {
     private AssessmentService assessService;
 
     @PostMapping
-    public ResponseEntity<AssessmentDTO> create(@Valid @RequestBody CreateAssessmentRequest re) {
+    public ResponseEntity<AssessmentDTO> create(
+            @Valid @RequestBody CreateAssessmentRequest request) {
 
-        AssessmentDTO saved = assessService.createAssessment(re);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(assessService.create(request));
     }
 
+    // ==================== UPDATE ====================
     @PutMapping("/{id}")
-    public ResponseEntity<AssessmentDTO> update(@PathVariable String id,@Valid @RequestBody UpdateAssessmentRequest re) {
+    public ResponseEntity<AssessmentDTO> update(
+            @PathVariable String id,
+            @Valid @RequestBody UpdateAssessmentRequest request) {
 
-        AssessmentDTO updated = assessService.updateAssessment(id, re);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(assessService.update(id, request));
     }
 
-    @GetMapping
-    public ResponseEntity<List<AssessmentDTO>> getAll() {
-        return ResponseEntity.ok(assessService.getAllAssessments());
+    // ==================== DELETE ====================
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        assessService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
+    // ==================== GET BY ID ====================
     @GetMapping("/{id}")
     public ResponseEntity<AssessmentDTO> getById(@PathVariable String id) {
         return ResponseEntity.ok(assessService.findById(id));
     }
 
-    @GetMapping("/search/name")
-    public ResponseEntity<List<AssessmentDTO>> searchByName(@RequestParam String name) {
+    // ==================== SEARCH + PAGINATION ====================
+    @GetMapping
+    public ResponseEntity<Page<AssessmentDTO>> search(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String keyword,
 
-        return ResponseEntity.ok(
-                assessService.findAssessmentByName(name)
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fromDate,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate toDate,
+
+            @PageableDefault(size = 20, sort = "createdAt")
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(assessService.search(name, keyword, fromDate, toDate, pageable)
         );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        assessService.deleteAssessment(id);
-        return ResponseEntity.noContent().build();
-    }
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ImportResultDTO> importAssessments(@RequestParam("file") MultipartFile file) {
 
-    @PostMapping(value = "/import",consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<List<AssessmentDTO>> importAssessments(
-            @RequestParam("file") MultipartFile file
-    ) {
         return ResponseEntity.ok(assessService.importAssessments(file));
     }
 
