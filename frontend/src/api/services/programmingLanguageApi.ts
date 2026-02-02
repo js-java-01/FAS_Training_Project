@@ -1,10 +1,10 @@
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../axiosInstance';
 import { 
   type ProgrammingLanguage, 
   type ProgrammingLanguageRequest,
   type ExportRequest,
   type ExportPreviewResponse 
-} from '../types/programmingLanguage';
+} from '../../types/programmingLanguage';
 
 export const programmingLanguageApi = {
   getAll: async (params?: {

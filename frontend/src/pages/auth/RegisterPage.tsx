@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { authApi } from '@/api/authApi';
+import { authApi } from '@/api/services/authApi';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import type { RegisterRequest, VerifyRequest } from '@/types/auth';

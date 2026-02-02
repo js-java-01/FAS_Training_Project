@@ -7,7 +7,7 @@ import { motion } from "motion/react";
 import { FcGoogle } from "react-icons/fc";
 import { useDispatch } from "react-redux";
 import { setLogin } from "@/store/slices/auth/authSlice";
-import { authApi } from "@/api/authApi";
+import { authApi } from "@/api/services/authApi";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 

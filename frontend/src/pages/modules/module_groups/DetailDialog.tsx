@@ -21,7 +21,7 @@ import {
   Loader2,
   Box,
 } from "lucide-react";
-import { moduleGroupApi, moduleApi } from "@/api/moduleApi";
+import { moduleGroupApi, moduleApi } from "@/api/services/moduleApi";
 import { iconMap } from "@/constants/iconMap";
 import type { ModuleGroup, Module } from "@/types/module";
 

@@ -39,15 +39,15 @@ public class UserServiceImpl implements UserService {
 
     @PreAuthorize("hasAuthority('USER_READ')")
     public Page<UserDTO> getAllUsers(
-            String searchContent,
+            String keyword,
+            Pageable pageable,
             UUID roleId,
             LocalDateTime createFrom,
             LocalDateTime createTo,
-            Boolean isActive,
-            Pageable pageable
+            Boolean isActive
     ) {
         Specification<User> spec = Specification
-                .where(UserSpecification.hasUserKeyword(searchContent))
+                .where(UserSpecification.hasUserKeyword(keyword))
                 .and(UserSpecification.hasRoleId(roleId))
                 .and(UserSpecification.createdAfter(createFrom))
                 .and(UserSpecification.createdBefore(createTo))

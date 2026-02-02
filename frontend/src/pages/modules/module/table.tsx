@@ -7,7 +7,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { Module, CreateModuleRequest } from "@/types/module";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { moduleApi } from "@/api/moduleApi";
+import { moduleApi } from "@/api/services/moduleApi";
 import { ModuleForm } from "./ModuleForm";
 import {
     Dialog,

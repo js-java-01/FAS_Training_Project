@@ -1,10 +1,10 @@
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../axiosInstance';
 import type {
     ModuleGroup,
     Module,
     CreateModuleGroupRequest,
     CreateModuleRequest,
-} from '../types/module';
+} from '../../types/module';
 import type { ApiResponse, PagedData} from "@/types/response.ts";
 
 /* =========================

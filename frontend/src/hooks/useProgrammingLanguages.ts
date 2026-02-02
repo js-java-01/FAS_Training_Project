@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { programmingLanguageApi } from '../api/programmingLanguageApi';
+import { programmingLanguageApi } from '../api/services/programmingLanguageApi';
 import { useToast } from './use-toast';
 import type { SearchParams } from '../types/programmingLanguage';
 

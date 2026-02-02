@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { moduleGroupApi } from "@/api/moduleApi";
+import { moduleGroupApi } from "@/api/services/moduleApi";
 
 // Zod Schema
 const formSchema = z.object({

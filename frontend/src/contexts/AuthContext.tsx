@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { type RootState } from "../store/store";
 import { setLogin, setLogout } from "../store/slices/auth/authSlice";
 import { type AuthContextType, type LoginRequest, type LoginResponse } from "../types/auth";
-import { authApi } from "../api/authApi";
+import { authApi } from "../api/services/authApi";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

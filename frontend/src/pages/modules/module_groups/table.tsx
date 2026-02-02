@@ -7,7 +7,7 @@ import { DataTable } from "@/components/data_table/DataTable";
 import { Button } from "@/components/ui/button";
 
 import type { ModuleGroup,  } from "@/types/module";
-import { moduleGroupApi,  } from "@/api/moduleApi";
+import { moduleGroupApi,  } from "@/api/services/moduleApi";
 
 import { ModuleGroupForm } from "./form";
 import type { ModuleGroupDto } from "./form";

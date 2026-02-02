@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { ModuleGroup } from "@/types/module";
 import { queryKeys } from "./keys";
-import { moduleGroupApi } from "@/api/moduleApi";
+import { moduleGroupApi } from "@/api/services/moduleApi";
 import type {PagedData} from "@/types/response.ts";
 
 export const useGetAllModuleGroups = (params: {

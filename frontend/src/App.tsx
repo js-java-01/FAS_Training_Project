@@ -6,7 +6,7 @@ import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsMa
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
 import { RoleManagement } from "./pages/RoleManagement";
 import { AssessmentManagement } from "./pages/AssessmentManagement";
-import { UserManagement } from "./pages/UserManagement";
+import { UserManagement } from "./pages/user/UserManagement";
 import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import RegisterPage from "./pages/auth/RegisterPage";

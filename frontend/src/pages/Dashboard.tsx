@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { PermissionGate } from "../components/PermissionGate";
 import { MainLayout } from "../components/layout/MainLayout";
-import { dashboardApi, type DashboardStats } from "../api/dashboardApi";
+import { dashboardApi, type DashboardStats } from "../api/services/dashboardApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 

@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Module, ModuleGroup, CreateModuleRequest } from "@/types/module";
-import { moduleGroupApi } from "@/api/moduleApi";
+import { moduleGroupApi } from "@/api/services/moduleApi";
 import { iconMap } from "@/constants/iconMap";
 
 // Định nghĩa kiểu cho các Key của Icon để TypeScript hiểu

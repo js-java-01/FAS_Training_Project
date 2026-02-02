@@ -34,20 +34,20 @@ public class UserController {
     @GetMapping
     @Operation(summary = "Get all users", description = "Retrieve all users with pagination")
     public ResponseEntity<Page<UserDTO>> getAllUsers(
-            @RequestParam(required = false) String searchContent,
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 10) Pageable pageable,
             @RequestParam(required = false) UUID roleId,
             @RequestParam(required = false) LocalDateTime createFrom,
             @RequestParam(required = false) LocalDateTime createTo,
-            @RequestParam(required = false) Boolean isActive,
-            @PageableDefault(size = 10) Pageable pageable
+            @RequestParam(required = false) Boolean isActive
     ) {
         return ResponseEntity.ok(userService.getAllUsers(
-                searchContent,
+                keyword,
+                pageable,
                 roleId,
                 createFrom,
                 createTo,
-                isActive,
-                pageable
+                isActive
         ));
     }
 

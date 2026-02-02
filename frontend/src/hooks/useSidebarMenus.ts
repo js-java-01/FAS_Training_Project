@@ -4,7 +4,7 @@ import type { ModuleGroup } from "@/types/module"
 
 import { usePermissions } from "@/hooks/usePermissions"
 import { canAccessMenuItem } from "@/utils/permission.utils"
-import { moduleGroupApi } from "@/api/moduleApi"
+import { moduleGroupApi } from "@/api/services/moduleApi"
 import { iconMap } from "@/constants/iconMap"
 
 /* ------------------------------------------ */

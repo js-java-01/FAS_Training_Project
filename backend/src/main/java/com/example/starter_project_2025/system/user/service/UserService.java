@@ -12,12 +12,12 @@ import java.util.UUID;
 public interface UserService {
 
     Page<UserDTO> getAllUsers(
-            String searchContent,
+            String keyword,
+            Pageable pageable,
             UUID roleId,
             LocalDateTime createFrom,
             LocalDateTime createTo,
-            Boolean isActive,
-            Pageable pageable
+            Boolean isActive
     );
 
     UserDTO getUserById(UUID id);

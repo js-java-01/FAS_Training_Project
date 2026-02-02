@@ -26,7 +26,7 @@ import {
     ImportLanguageDialog,
     ExportModal
 } from '../components/programming-language';
-import { programmingLanguageApi } from '../api/programmingLanguageApi';
+import { programmingLanguageApi } from '../api/services/programmingLanguageApi';
 import type { 
     ProgrammingLanguage,
     ProgrammingLanguageRequest,

@@ -1,4 +1,4 @@
-import { authApi } from '@/api/authApi';
+import { authApi } from '@/api/services/authApi';
 import { ForgotEmailForm } from '@/components/auth/ForgotEmailForm';
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm';
 import type { ForgotPasswordEmailRequest, ResetPasswordData } from '@/types/auth';

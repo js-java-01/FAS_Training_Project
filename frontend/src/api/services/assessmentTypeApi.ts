@@ -1,6 +1,6 @@
-import axiosInstance from './axiosInstance';
-import { type AssessmentType, type AssessmentTypeRequest } from '../types/assessmentType';
-import { type PaginatedResponse } from '../types/assessmentType';
+import type { AssessmentType, AssessmentTypeRequest } from "@/types/assessmentType";
+import type { PaginatedResponse } from "@/types/programmingLanguage";
+import axiosInstance from "../axiosInstance";
 
 export const assessmentTypeApi = {
   getAll: async (params?: {

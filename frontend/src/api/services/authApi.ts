@@ -1,4 +1,4 @@
-import axiosInstance from "./axiosInstance";
+import axiosInstance from "../axiosInstance";
 import {
   type ForgotPasswordEmailRequest,
   type ForgotPasswordRequest,
@@ -6,7 +6,7 @@ import {
   type LoginResponse,
   type RegisterRequest,
   type VerifyRequest,
-} from "../types/auth";
+} from "../../types/auth";
 
 export const authApi = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
