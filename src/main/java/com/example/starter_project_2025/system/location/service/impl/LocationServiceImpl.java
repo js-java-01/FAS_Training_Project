@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -142,5 +143,18 @@ public class LocationServiceImpl implements LocationService {
                 .provinceName(provinceName)
                 .status(location.getLocationStatus())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LocationResponse> findAll() {
+        // Lấy tất cả và sắp xếp theo tên (A->Z) để hiển thị Dropdown cho đẹp
+        Sort sort = Sort.by(Sort.Direction.ASC, "name");
+        List<Location> locations = locationRepository.findAll(sort);
+
+        // Map sang DTO bằng hàm toResponse đã có sẵn ở dưới
+        return locations.stream()
+                .map(this::toResponse)
+                .toList();
     }
 }

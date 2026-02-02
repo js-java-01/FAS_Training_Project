@@ -5,6 +5,7 @@ import com.example.starter_project_2025.system.location.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface LocationService {
@@ -23,4 +24,6 @@ public interface LocationService {
     LocationResponse update(UUID id, LocationRequest request);
 
     void deactivate(UUID id);
+
+    List<LocationResponse> findAll();
 }

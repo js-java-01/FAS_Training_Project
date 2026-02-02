@@ -9,6 +9,7 @@ import org.springframework.data.domain.*;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -50,4 +51,11 @@ public class LocationController {
     public void deactivate(@PathVariable UUID id) {
         locationService.deactivate(id);
     }
+
+
+    @GetMapping("/all") // API sẽ là: GET /api/locations/all
+    public List<LocationResponse> findAll() {
+        return locationService.findAll();
+    }
+
 }
