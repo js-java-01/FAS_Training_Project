@@ -175,6 +175,35 @@ public class AssessmentService {
         return new ByteArrayInputStream(out.toByteArray());
     }
 
+    @PreAuthorize("hasAuthority('ASSESSMENT_CREATE')")
+    public ByteArrayInputStream downloadAssessmentTemplate() throws IOException {
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Assessment Template");
+
+        Row header = sheet.createRow(0);
+        header.createCell(0).setCellValue("name");
+        header.createCell(1).setCellValue("description");
+
+        Row exampleRow1 = sheet.createRow(1);
+        exampleRow1.createCell(0).setCellValue("Entrance Quiz");
+        exampleRow1.createCell(1).setCellValue("Applied for entrance exams");
+        Row exampleRow2 = sheet.createRow(2);
+        exampleRow2.createCell(0).setCellValue("Final Exam");
+        exampleRow2.createCell(1).setCellValue("End of course final assessment");
+
+
+        sheet.autoSizeColumn(0);
+        sheet.autoSizeColumn(1);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        workbook.write(out);
+        workbook.close();
+
+        return new ByteArrayInputStream(out.toByteArray());
+    }
+
+
     private String getCellValue(Cell cell) {
         if (cell == null) return "";
         cell.setCellType(CellType.STRING);

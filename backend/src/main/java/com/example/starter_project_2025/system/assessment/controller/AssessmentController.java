@@ -101,6 +101,22 @@ public class AssessmentController {
                 .body(new InputStreamResource(in));
     }
 
+    @GetMapping("/template")
+    public ResponseEntity<InputStreamResource> downloadTemplate() throws IOException {
+
+        ByteArrayInputStream in = assessService.downloadAssessmentTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=assessment-template.xlsx");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(new InputStreamResource(in));
+    }
+
+
 
 
 }
