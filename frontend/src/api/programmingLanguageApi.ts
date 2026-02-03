@@ -32,8 +32,13 @@ export const programmingLanguageApi = {
   create: async (
     data: ProgrammingLanguageRequest
   ): Promise<ProgrammingLanguage> => {
-    // Ensure backend-required boolean is present (default to false)
-    const payload = { ...data, isSupported: (data as any).isSupported ?? false };
+    // Backend expects 'supported' field (Jackson maps to setSupported())
+    const payload = {
+      name: data.name,
+      version: data.version,
+      description: data.description,
+      supported: data.isSupported ?? false,
+    };
     const response = await axiosInstance.post<ProgrammingLanguage>(
       '/programming-languages',
       payload
@@ -45,9 +50,16 @@ export const programmingLanguageApi = {
     id: number,
     data: ProgrammingLanguageRequest
   ): Promise<ProgrammingLanguage> => {
+    // Backend expects 'supported' field (Jackson maps to setSupported())
+    const payload = {
+      name: data.name,
+      version: data.version,
+      description: data.description,
+      supported: data.isSupported,
+    };
     const response = await axiosInstance.put<ProgrammingLanguage>(
       `/programming-languages/${id}`,
-      data
+      payload
     );
     return response.data;
   },

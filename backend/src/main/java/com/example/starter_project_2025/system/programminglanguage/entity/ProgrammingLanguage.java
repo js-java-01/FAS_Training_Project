@@ -9,7 +9,6 @@ import jakarta.persistence.*;
             }
         )
 public class ProgrammingLanguage {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -78,17 +77,14 @@ public class ProgrammingLanguage {
         this.description = description;
     }
 
-    public Boolean setSupported() {
-        return isSupported;
-    }
-
     public void setSupported(Boolean supported) {
         isSupported = supported;
     }
 
-    public void updateDetails(String name, String version, String description) {
+    public void updateDetails(String name, String version, String description, Boolean supported) {
         this.name = name;
         this.version = version;
         this.description = description;
+        this.isSupported = supported;
     }
     }
