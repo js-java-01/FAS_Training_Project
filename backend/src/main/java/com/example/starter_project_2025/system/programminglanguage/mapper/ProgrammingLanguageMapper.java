@@ -15,6 +15,7 @@ public interface ProgrammingLanguageMapper {
     ProgrammingLanguageResponse toResponse(ProgrammingLanguage entity);
 
     // Create → Entity (POST)
+    @Mapping(target = "supported", defaultValue = "false")
     ProgrammingLanguage toEntity(ProgrammingLanguageCreateRequest request);
 
     // Update → Entity (PUT, partial update)

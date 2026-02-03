@@ -12,6 +12,7 @@ export interface ProgrammingLanguageRequest {
   name: string;
   version?: string;
   description?: string;
+  isSupported?: boolean;
 }
 
 export interface ProgrammingLanguageResponse {

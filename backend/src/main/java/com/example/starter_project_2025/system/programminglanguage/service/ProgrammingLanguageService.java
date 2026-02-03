@@ -160,7 +160,7 @@ public class ProgrammingLanguageService {
                 descCell.setCellStyle(dataStyle);
 
                 Cell supportedCell = row.createCell(4);
-                supportedCell.setCellValue(lang.isSupported() ? "Yes" : "No");
+                supportedCell.setCellValue(lang.getSupported() ? "Yes" : "No");
                 supportedCell.setCellStyle(dataStyle);
             }
 

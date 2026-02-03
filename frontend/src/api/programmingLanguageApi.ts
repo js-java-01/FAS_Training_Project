@@ -32,9 +32,11 @@ export const programmingLanguageApi = {
   create: async (
     data: ProgrammingLanguageRequest
   ): Promise<ProgrammingLanguage> => {
+    // Ensure backend-required boolean is present (default to false)
+    const payload = { ...data, isSupported: (data as any).isSupported ?? false };
     const response = await axiosInstance.post<ProgrammingLanguage>(
       '/programming-languages',
-      data
+      payload
     );
     return response.data;
   },
