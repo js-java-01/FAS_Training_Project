@@ -26,9 +26,9 @@ type NavItem = {
 }
 
 export function NavMain({
-                            title,
-                            items,
-                        }: {
+    title,
+    items,
+}: {
     title: string
     items: NavItem[]
 }) {
