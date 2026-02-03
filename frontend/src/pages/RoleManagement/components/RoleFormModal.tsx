@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  FiUser,
-  FiFileText,
-  FiLayers,
-  FiShield,
-  FiX,
-} from "react-icons/fi";
+import { FiUser, FiFileText, FiLayers, FiShield, FiX } from "react-icons/fi";
 import { Permission } from "../../../types/permission";
 import { CreateRoleRequest } from "../../../types/role";
 
@@ -66,9 +60,7 @@ export const RoleFormModal: React.FC<Props> = ({
             <input
               required
               value={roleForm.name}
-              onChange={(e) =>
-                onChange({ ...roleForm, name: e.target.value })
-              }
+              onChange={(e) => onChange({ ...roleForm, name: e.target.value })}
               className="mt-1 w-full border rounded-md px-3 py-1 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
@@ -90,7 +82,7 @@ export const RoleFormModal: React.FC<Props> = ({
           </div>
 
           {/* LEVEL */}
-          <div>
+          {/* <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
               <FiLayers /> Hierarchy Level
             </label>
@@ -106,7 +98,7 @@ export const RoleFormModal: React.FC<Props> = ({
               }
               className="mt-1 w-full border rounded-md px-3 py-1 focus:ring-2 focus:ring-blue-500 outline-none"
             />
-          </div>
+          </div> */}
 
           {/* MODULES */}
           <div>
@@ -130,9 +122,7 @@ export const RoleFormModal: React.FC<Props> = ({
                     <p className="text-sm font-medium text-gray-800">
                       {p.name}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      {p.description}
-                    </p>
+                    <p className="text-xs text-gray-500">{p.description}</p>
                   </div>
                 </label>
               ))}

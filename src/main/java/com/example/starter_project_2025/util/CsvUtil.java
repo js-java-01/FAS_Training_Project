@@ -27,7 +27,7 @@ public class CsvUtil {
             csv.append(escapeSpecialCharacters(role.getId().toString())).append(CSV_SEPARATOR);
             csv.append(escapeSpecialCharacters(role.getName())).append(CSV_SEPARATOR);
             csv.append(escapeSpecialCharacters(role.getDescription())).append(CSV_SEPARATOR);
-            csv.append(role.getHierarchyLevel()).append(CSV_SEPARATOR);
+//            csv.append(role.getHierarchyLevel()).append(CSV_SEPARATOR);
             csv.append(role.getIsActive()).append(CSV_SEPARATOR);
             csv.append(escapeSpecialCharacters(
                     role.getPermissionNames() != null ? String.join(";", role.getPermissionNames()) : ""

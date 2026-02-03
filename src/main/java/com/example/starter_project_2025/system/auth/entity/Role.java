@@ -29,8 +29,8 @@ public class Role {
     @Column(length = 500)
     private String description;
 
-    @Column(nullable = false)
-    private Integer hierarchyLevel = 0;
+//    @Column(nullable = false)
+//    private Integer hierarchyLevel = 0;
 
     @Column(nullable = false)
     private Boolean isActive = true;

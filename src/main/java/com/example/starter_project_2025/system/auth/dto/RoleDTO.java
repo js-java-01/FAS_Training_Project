@@ -16,7 +16,7 @@ public class RoleDTO {
     private String name;
 
     private String description;
-    private Integer hierarchyLevel = 0;
+//    private Integer hierarchyLevel = 0;
     private Boolean isActive = true;
     private Set<UUID> permissionIds = new HashSet<>();
     private Set<String> permissionNames = new HashSet<>();
