@@ -156,7 +156,7 @@ export const ModuleGroupDetailDialog = ({
               <DetailRow
                 icon={Layers}
                 label="Display Order"
-                value={detailGroup.totalModules}
+                value={detailGroup.displayOrder}
               />
               <DetailRow
                 icon={ToggleLeft}

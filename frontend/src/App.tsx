@@ -1,21 +1,23 @@
+import { useSelector } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { Toaster } from "./components/ui";
+import { useActiveModuleGroups } from "./hooks/useSidebarMenus";
+import type { RootState } from "./store/store";
+import { Toaster } from "sonner";
 import { AuthProvider } from "./contexts/AuthContext";
-import ModulesManagement from "./pages/modules/module/ModulesManagement";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
-import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
-import { RoleManagement } from "./pages/RoleManagement";
-import { AssessmentManagement } from "./pages/AssessmentManagement";
-import { UserManagement } from "./pages/UserManagement";
-import { Dashboard } from "./pages/Dashboard";
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import RegisterPage from "./pages/auth/RegisterPage";
-import { Unauthorized } from "./pages/Unauthorized";
-import { Login } from "./pages/auth/Login";
+import NotFoundPage from "./pages/NotFoundPage";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
+import { Login } from "./pages/auth/Login";
+import { Logout } from "./pages/auth/Logout";
+import { Unauthorized } from "./pages/Unauthorized";
+import RegisterPage from "./pages/auth/RegisterPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
+
 
 function App() {
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { data: moduleGroups = [] } = useActiveModuleGroups(isAuthenticated);
   return (
     <BrowserRouter>
       <Toaster
@@ -27,70 +29,35 @@ function App() {
         }}
       />
       <AuthProvider>
-        {/* <SidebarProvider>
-         
-        </SidebarProvider> */}
         <Routes>
+          <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />
           <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/logout" element={<Logout />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute requiredPermission="USER_READ">
-                <UserManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessment-type"
-            element={
-              <ProtectedRoute requiredPermission="ASSESSMENT_READ">
-                <AssessmentManagement />
-              </ProtectedRoute>
-            }
-          />
-
-
-          <Route
-            path="/roles"
-            element={
-              <ProtectedRoute requiredPermission="ROLE_READ">
-                <RoleManagement />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/programming-languages"
-            element={
-              <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
-                <ProgrammingLanguageManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/moduleGroups"
-            element={
-              <ProtectedRoute requiredPermission="ROLE_READ">
-                <ModuleGroupsManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/modules" element={<ModulesManagement />} />
-
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          {moduleGroups.flatMap((group) =>
+            group.modules.map((m) => {
+              if (!m.url) return null;
+              const Component = componentRegistry[m.url];
+              if (!Component || !m.url) return null;
+              return (
+                <Route
+                  key={m.id}
+                  path={m.url}
+                  element={
+                    <ProtectedRoute requiredPermission={m.requiredPermission}>
+                      <Component />
+                    </ProtectedRoute>
+                  }
+                />
+              );
+            })
+          )}
+          <Route path="*" element={<NotFoundRedirect />} />
         </Routes>
         <Toaster />
       </AuthProvider>

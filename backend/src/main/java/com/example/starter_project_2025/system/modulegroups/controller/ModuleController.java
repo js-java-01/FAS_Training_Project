@@ -69,7 +69,7 @@ public class ModuleController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('MENU_ITEM_DELETE')") // <-- Đổi thành hasAuthority
     @Operation(summary = "Delete module (soft delete)")
     public ResponseEntity<Void> deleteModule(@PathVariable UUID id) {
         moduleService.deleteModule(id);
@@ -83,13 +83,10 @@ public class ModuleController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) UUID moduleGroupId,
             @RequestParam(required = false) Boolean isActive,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam int page,
+            @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "displayOrder,asc") String[] sort
     ) {
-        // ---- page: convert 1-based -> 0-based ----
-        int pageIndex = Math.max(page - 1, 0);
-
         String sortField = sort[0];
         Sort.Direction direction =
                 sort.length > 1
@@ -97,7 +94,7 @@ public class ModuleController {
                         : Sort.Direction.ASC;
 
         Pageable pageable = PageRequest.of(
-                pageIndex,
+                page,
                 size,
                 Sort.by(direction, sortField)
         );

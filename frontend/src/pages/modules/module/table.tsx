@@ -1,126 +1,94 @@
 // src/pages/modules/module/table.tsx
 
-import { DataTable } from "@/components/data_table/DataTable";
-import { getColumns } from "@/pages/modules/module/column";
-import { useEffect, useMemo, useState, useCallback } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
-import type { Module, CreateModuleRequest } from "@/types/module";
-import { Button } from "@/components/ui/button";
+import { useMemo, useState } from "react";
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+
+import { DataTable } from "@/components/data_table/DataTable";
+import { getColumns } from "./column";
+import { Button } from "@/components/ui/button";
+import ConfirmDialog from "@/components/ui/confirmdialog";
+
 import { moduleApi } from "@/api/moduleApi";
+import type { Module, CreateModuleRequest } from "@/types/module";
 import { ModuleForm } from "./ModuleForm";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import {
-    FileCode,
-    Link as LinkIcon,
-    ToggleLeft,
-    Layers,
-    FileText,
-    Fingerprint,
-    Hash
-} from "lucide-react";
-import { iconMap } from "@/constants/iconMap";
-import type { ComponentType, SVGProps, ReactNode } from "react";
+import { useDebounce } from "@uidotdev/usehooks";
+import { useGetAllModules } from "./queries";
+import { ModuleDetailDialog } from "./DetailDialog";
 
-// --- Component DetailRow ---
-const DetailRow = ({
-   icon: Icon,
-   label,
-   value,
-   isBadge = false,
-}: {
-    icon: ComponentType<SVGProps<SVGSVGElement>>;
-    label: string;
-    value?: ReactNode;
-    isBadge?: boolean;
-}) => (
-    <div className="space-y-1.5">
-        <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-            <Icon className="w-4 h-4 text-gray-500" /> {label}
-        </label>
-        <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 min-h-[42px] flex items-center">
-            {isBadge ? (
-                value ? (
-                    <Badge className="bg-green-100 text-green-700 border-green-200 shadow-none hover:bg-green-200">
-                        Active
-                    </Badge>
-                ) : (
-                    <Badge variant="destructive">Inactive</Badge>
-                )
-            ) : (
-                value || <span className="text-gray-400 italic">No data</span>
-            )}
-        </div>
-    </div>
-);
-
+/* ===================== MAIN ===================== */
 export default function ModulesTable() {
-    const [data, setData] = useState<Module[]>([]);
-    const [loading, setLoading] = useState(false);
-
-    // State cho Modal Form
+    /* ---------- modal & view ---------- */
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingModule, setEditingModule] = useState<Module | null>(null);
-
-    // View Detail State
     const [viewingModule, setViewingModule] = useState<Module | null>(null);
+    const [deletingModule, setDeletingModule] = useState<Module | null>(null);
 
-    // --- HÀM FETCH DATA (QUAN TRỌNG NHẤT) ---
-    const fetchData = useCallback(async () => {
-        setLoading(true);
-        try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const res: any = await moduleApi.getAllModules(0, 100);
+    /* ---------- table state ---------- */
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
 
-            console.log("🔥 API Raw Response:", res);
+    const queryClient = useQueryClient();
 
-            // Logic mapping dữ liệu dựa trên ApiResponse và PageResponse của Backend
-            // Cấu trúc: { data: { items: [], pagination: {} }, ... }
+    /* ---------- search ---------- */
+    const [searchValue, setSearchValue] = useState("");
+    const debouncedSearch = useDebounce(searchValue, 300);
 
-            if (res.data && Array.isArray(res.data.items)) {
-                // Trường hợp chuẩn: res.data là PageResponse, bên trong có items
-                setData(res.data.items);
-            }
-            else if (res.items && Array.isArray(res.items)) {
-                // Trường hợp axios interceptor đã bóc lớp ngoài cùng
-                setData(res.items);
-            }
-            else if (Array.isArray(res)) {
-                // Trường hợp trả về List trực tiếp
-                setData(res);
-            }
-            else {
-                console.warn("⚠️ Không tìm thấy mảng 'items' trong response. Cấu trúc lạ:", res);
-                setData([]);
-            }
+    /* ---------- sort param (server side) ---------- */
+    const sortParam = useMemo(() => {
+        if (!sorting.length) return "displayOrder,asc";
+        const { id, desc } = sorting[0];
+        return `${id},${desc ? "desc" : "asc"}`;
+    }, [sorting]);
 
-        } catch (err) {
-            console.error("Failed to load modules", err);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-    // ------------------------------------------
+    /* ---------- query ---------- */
+    const {
+        data: tableData,
+        isLoading,
+        isFetching,
+        refetch: reload,
+    } = useGetAllModules({
+        page: pageIndex ,
+        pageSize,
+        sort: sortParam,
+        keyword: debouncedSearch,
+    });
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    const safeTableData = useMemo(
+        () => ({
+            items: tableData?.items ?? [],
+            page: tableData?.pagination?.page ?? pageIndex,
+            pageSize: tableData?.pagination?.pageSize ?? pageSize,
+            totalPages: tableData?.pagination?.totalPages ?? 0,
+            totalElements: tableData?.pagination?.totalElements ?? 0,
+        }),
+        [tableData, pageIndex, pageSize]
+    );
 
+    /* ---------- CRUD ---------- */
+    const invalidateModules = async () => {
+        await queryClient.invalidateQueries({
+            queryKey: ["modules"],
+        });
+    };
     const handleCreate = async (formData: Partial<Module>) => {
         try {
             await moduleApi.createModule(formData as CreateModuleRequest);
+            toast.success("Created successfully");
             setIsFormOpen(false);
-            fetchData();
+            await invalidateModules();
+            await reload();
         } catch (error) {
-            console.error("Create failed", error);
+            console.error(error);
+            if (error instanceof AxiosError && error.response?.data?.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Failed to create module");
+            }
         }
     };
 
@@ -128,69 +96,96 @@ export default function ModulesTable() {
         if (!editingModule?.id) return;
         try {
             await moduleApi.updateModule(editingModule.id, formData);
+            toast.success("Updated successfully");
             setIsFormOpen(false);
-            fetchData();
+            await invalidateModules();
+            await reload();
         } catch (error) {
-            console.error("Update failed", error);
+            console.error(error);
+            if (error instanceof AxiosError && error.response?.data?.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Failed to update module");
+            }
         }
     };
 
-    const handleDelete = useCallback(async (module: Module) => {
-        if (!confirm(`Are you sure you want to delete "${module.title}"?`)) return;
+    const handleDelete = async () => {
+        if (!deletingModule) return;
         try {
-            await moduleApi.deleteModule(module.id);
-            fetchData();
+            await moduleApi.deleteModule(deletingModule.id);
+            toast.success("Deleted successfully");
+            await invalidateModules();
+            await reload();
         } catch (error) {
-            console.error("Delete failed", error);
+            console.error(error);
+            toast.error("Failed to delete module");
+        } finally {
+            setDeletingModule(null);
         }
-    }, [fetchData]);
-
-    const openCreateModal = () => {
-        setEditingModule(null);
-        setIsFormOpen(true);
     };
 
-    const openEditModal = useCallback((module: Module) => {
-        setEditingModule(module);
-        setIsFormOpen(true);
-    }, []);
-
+    /* ---------- columns ---------- */
     const columns = useMemo(
         () =>
             getColumns({
-                onView: (module) => {
-                    setViewingModule(module);
+                onView: setViewingModule,
+                onEdit: (m) => {
+                    setEditingModule(m);
+                    setIsFormOpen(true);
                 },
-                onEdit: (module) => openEditModal(module),
-                onDelete: (module) => handleDelete(module),
+                onDelete: setDeletingModule,
             }),
-        [openEditModal, handleDelete]
+        [],
     );
 
-    const IconComponent = viewingModule && viewingModule.icon && (viewingModule.icon in iconMap)
-        ? iconMap[viewingModule.icon as keyof typeof iconMap]
-        : FileCode;
-
+    /* ===================== RENDER ===================== */
     return (
-        <>
+        <div className="relative space-y-4 h-full flex-1">
             <DataTable<Module, unknown>
                 columns={columns as ColumnDef<Module, unknown>[]}
-                data={data}
-                isSearch={true}
-                searchPlaceholder="Search module..."
-                isLoading={loading}
+                data={safeTableData.items}
+
+                /* Loading states */
+                isLoading={isLoading}        // initial load
+                isFetching={isFetching}      // background refetch
+
+                /* Pagination (manual) */
+                manualPagination
+                pageIndex={safeTableData.page} // DataTable dùng index-based
+                pageSize={safeTableData.pageSize}
+                totalPage={safeTableData.totalPages}
+                onPageChange={setPageIndex}
+                onPageSizeChange={setPageSize}
+
+                /* Search */
+                isSearch
+                manualSearch
+                searchPlaceholder="module name"
+                onSearchChange={setSearchValue}
+
+                /* Sorting */
+                sorting={sorting}
+                onSortingChange={setSorting}
+                manualSorting
+
+
+                /* Header */
                 headerActions={
                     <Button
-                        onClick={openCreateModal}
-                        className="bg-blue-600 text-white hover:bg-blue-700"
-                        size="sm"
+                        onClick={() => {
+                            setEditingModule(null);
+                            setIsFormOpen(true);
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
                     >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add New
+                        <Plus className="h-4 w-4" />
+                        Add New Module
                     </Button>
                 }
             />
 
+            {/* ===== Create / Update ===== */}
             <ModuleForm
                 open={isFormOpen}
                 onClose={() => setIsFormOpen(false)}
@@ -198,49 +193,20 @@ export default function ModulesTable() {
                 initialData={editingModule}
             />
 
-            {/* --- Dialog View Detail --- */}
-            <Dialog open={!!viewingModule} onOpenChange={(open) => !open && setViewingModule(null)}>
-                <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden gap-0">
-                    <DialogHeader className="p-6 pb-4 border-b bg-gray-50/50">
-                        <DialogTitle className="text-xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                             <div className="bg-blue-100 p-2 rounded-lg">
-                                <IconComponent className="w-5 h-5 text-blue-600" />
-                            </div>
-                            Module Details
-                        </DialogTitle>
-                        <DialogDescription>
-                            Information about <strong>{viewingModule?.title}</strong>.
-                        </DialogDescription>
-                    </DialogHeader>
+            {/* ===== View detail ===== */}
+            <ModuleDetailDialog
+                open={!!viewingModule}
+                module={viewingModule}
+                onClose={() => setViewingModule(null)}
+            />
 
-                    <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
-                        <div className="space-y-5">
-                            <DetailRow icon={FileText} label="Module Name" value={viewingModule?.title} />
-
-                            <DetailRow icon={Hash} label="Module ID" value={viewingModule?.id} />
-
-                            <DetailRow icon={FileText} label="Description" value={viewingModule?.description} />
-
-                            <div className="grid grid-cols-2 gap-5">
-                                <DetailRow icon={LinkIcon} label="URL / Path" value={viewingModule?.url} />
-                                <DetailRow icon={Fingerprint} label="Permission" value={viewingModule?.requiredPermission} />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-5">
-                                <DetailRow icon={Layers} label="Display Order" value={viewingModule?.displayOrder} />
-                                <DetailRow icon={ToggleLeft} label="Status" value={viewingModule?.isActive} isBadge />
-                            </div>
-                             <DetailRow icon={Layers} label="Module Group ID" value={viewingModule?.moduleGroupId} />
-                        </div>
-                    </div>
-
-                    <DialogFooter className="p-6 border-t bg-gray-50/50">
-                        <Button onClick={() => setViewingModule(null)} className="bg-blue-600 hover:bg-blue-700 text-white">
-                            Close
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </>
+            <ConfirmDialog
+                open={!!deletingModule}
+                title="Delete Module"
+                description={`Are you sure you want to delete "${deletingModule?.title}"?`}
+                onCancel={() => setDeletingModule(null)}
+                onConfirm={() => void handleDelete()}
+            />
+        </div>
     );
 }
