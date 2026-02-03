@@ -5,6 +5,7 @@ import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
 import { DataTable } from "@/components/data_table/DataTable";
 import { getColumns } from "./column";
@@ -84,7 +85,11 @@ export default function ModulesTable() {
             await reload();
         } catch (error) {
             console.error(error);
-            toast.error("Failed to create module");
+            if (error instanceof AxiosError && error.response?.data?.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Failed to create module");
+            }
         }
     };
 
@@ -98,7 +103,11 @@ export default function ModulesTable() {
             await reload();
         } catch (error) {
             console.error(error);
-            toast.error("Failed to update module");
+            if (error instanceof AxiosError && error.response?.data?.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Failed to update module");
+            }
         }
     };
 
