@@ -1,5 +1,6 @@
-package com.example.starter_project_2025.security;
+package com.example.starter_project_2025.util;
 
+import com.example.starter_project_2025.security.UserDetailsImpl;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
