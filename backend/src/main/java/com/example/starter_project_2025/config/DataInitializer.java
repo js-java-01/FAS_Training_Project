@@ -83,7 +83,13 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ASSESSMENT_READ", "View assessment types", "ASSESSMENT_TYPE", "READ"),
                 createPermission("ASSESSMENT_UPDATE", "Update existing assessment types", "ASSESSMENT_TYPE", "UPDATE"),
                 createPermission("ASSESSMENT_DELETE", "Delete assessment types", "ASSESSMENT_TYPE", "DELETE"),
-                createPermission("ASSESSMENT_CREATE", "Assign assessment types", "ASSESSMENT_TYPE", "ASSIGN")
+                createPermission("ASSESSMENT_CREATE", "Assign assessment types", "ASSESSMENT_TYPE", "ASSIGN"),
+                createPermission("STUDENT_CREATE", "Create new students", "STUDENT", "CREATE"),
+                createPermission("STUDENT_READ", "View students", "STUDENT", "READ"),
+                createPermission("STUDENT_UPDATE", "Update existing students", "STUDENT", "UPDATE"),
+                createPermission("STUDENT_DELETE", "Delete students", "STUDENT", "DELETE"),
+                createPermission("STUDENT_ASSIGN", "Assign students", "STUDENT", "ASSIGN")
+
 
         );
         permissionRepository.saveAll(permissions);
@@ -199,7 +205,7 @@ public class DataInitializer implements CommandLineRunner {
 
         moduleRepository.saveAll(Arrays.asList(moduleGroupsSub, modulesSub));
 
-        //
+        // 5. Nhóm: Assessment Type Management
         ModuleGroups assessmentTypeGroup = new ModuleGroups();
         assessmentTypeGroup.setName("Assessment Type Management");
         assessmentTypeGroup.setDescription("Manage assessment types and related permissions");
@@ -216,6 +222,25 @@ public class DataInitializer implements CommandLineRunner {
                         2,
                         "ASSESSMENT_READ",
                         "Manage assessment types"));
+
+
+        // 6. Nhóm: Student Management
+        ModuleGroups studentGroup = new ModuleGroups();
+        studentGroup.setName("Student Management");
+        studentGroup.setDescription("Manage students and related permissions");
+        studentGroup.setDisplayOrder(4); // next order after assessment type
+        studentGroup.setIsActive(true);
+        studentGroup = moduleGroupsRepository.save(studentGroup);
+
+        moduleRepository.save(
+                createModule(
+                        studentGroup,
+                        "Student Management",
+                        "/v1/student",
+                        "users", // icon, you can change
+                        1,
+                        "STUDENT_READ",
+                        "Manage students"));
 
         log.info("Initialized 5 module groups and their respective modules.");
     }

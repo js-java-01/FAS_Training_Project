@@ -12,6 +12,7 @@ import { RoleManagement } from "./pages/RoleManagement";
 import { UserManagement } from "./pages/UserManagement";
 import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import AssessmentManagement from "./pages/AssessmentManagement";
 
 // import { SidebarProvider } from "./components/ui/sidebar";
 
@@ -70,6 +71,16 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/assessment-type"
+            element={
+              <ProtectedRoute requiredPermission="ASSESSMENT_READ">
+                <AssessmentManagement />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/modules" element={<ModulesManagement />} />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
