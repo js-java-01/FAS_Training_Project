@@ -82,29 +82,42 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
             throw new BadRequestException(
                     "Module group name already exists: " + name
             );
+        if (moduleGroupsRepository.existsByName(req.getName())) {
+            throw new BadRequestException("Module group name already exists: " + req.getName());
         }
+
+        // Validate Order
+        long currentCount = moduleGroupsRepository.count();
+        int maxAllowed = (int) currentCount + 1;
+        int newOrder = (req.getDisplayOrder() != null) ? req.getDisplayOrder() : maxAllowed;
+
+        if (newOrder > maxAllowed) {
+            throw new BadRequestException("Display Order cannot exceed " + maxAllowed);
+        }
+        if (newOrder < 1) newOrder = 1;
+
+        // Create: Chèn vào -> Đôn tất cả những thằng sau nó lên 1
+        moduleGroupsRepository.shiftOrdersForInsert(newOrder);
 
         ModuleGroups entity = new ModuleGroups();
         entity.setName(name);
         entity.setDescription(req.getDescription());
-        entity.setDisplayOrder(
-                req.getDisplayOrder() != null ? req.getDisplayOrder() : 0
-        );
-        entity.setIsActive(
-                req.getIsActive() != null ? req.getIsActive() : true
-        );
+        entity.setDisplayOrder(newOrder);
+        entity.setIsActive(req.getIsActive() != null ? req.getIsActive() : true);
 
         ModuleGroups saved = moduleGroupsRepository.save(entity);
+
         return moduleGroupMapper.toResponse(saved);
     }
 
     @Override
     public ModuleGroupDetailResponse update(UUID id, UpdateModuleGroup req) {
-
         ModuleGroups group = moduleGroupsRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("ModuleGroupResponse", "id", id)
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("ModuleGroupResponse", "id", id));
+
+        if (!group.getName().equals(req.getName()) && moduleGroupsRepository.existsByName(req.getName())) {
+            throw new BadRequestException("Module group name already exists: " + req.getName());
+        }
 
         String name = StringNormalizer.normalize(req.getName());
 
@@ -113,22 +126,34 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
             throw new BadRequestException(
                     "Module group name already exists: " + name
             );
+        // --- REORDER ---
+        Integer oldOrder = group.getDisplayOrder();
+        Integer newOrder = (req.getDisplayOrder() != null) ? req.getDisplayOrder() : oldOrder;
+        long currentCount = moduleGroupsRepository.count();
+
+        // Validate Max
+        if (newOrder > currentCount) {
+            throw new BadRequestException("Display Order cannot exceed " + currentCount);
+        }
+        if (newOrder < 1) newOrder = 1;
+
+        if (!newOrder.equals(oldOrder)) {
+            if (newOrder < oldOrder) {
+                // CASE 1: Move UP (VD: 5 -> 2)
+                moduleGroupsRepository.shiftOrdersForMoveUp(newOrder, oldOrder);
+            } else {
+                // CASE 2: Move DOWN (VD: 1 -> 3)
+                moduleGroupsRepository.shiftOrdersForMoveDown(oldOrder, newOrder);
+            }
         }
 
         group.setName(name);
         group.setDescription(req.getDescription());
-        group.setDisplayOrder(
-                req.getDisplayOrder() != null
-                        ? req.getDisplayOrder()
-                        : group.getDisplayOrder()
-        );
-        group.setIsActive(
-                req.getIsActive() != null
-                        ? req.getIsActive()
-                        : group.getIsActive()
-        );
+        group.setDisplayOrder(newOrder);
+        group.setIsActive(req.getIsActive() != null ? req.getIsActive() : group.getIsActive());
 
         ModuleGroups saved = moduleGroupsRepository.save(group);
+
         return moduleGroupMapper.toDetailResponse(saved);
     }
 
@@ -138,8 +163,7 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
     public void delete(UUID id) {
 
         ModuleGroups group = moduleGroupsRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("ModuleGroup", "id", id));
+                .orElseThrow(() -> new ResourceNotFoundException("ModuleGroup", "id", id));
 
         if (Boolean.FALSE.equals(group.getIsActive())) {
             throw new BadRequestException("Module group is already inactive");

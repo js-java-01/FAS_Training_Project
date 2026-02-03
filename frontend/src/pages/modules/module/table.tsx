@@ -1,70 +1,23 @@
 // src/pages/modules/module/table.tsx
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
 import { DataTable } from "@/components/data_table/DataTable";
 import { getColumns } from "./column";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-} from "@/components/ui/dialog";
+import ConfirmDialog from "@/components/ui/confirmdialog";
 
 import { moduleApi } from "@/api/moduleApi";
 import type { Module, CreateModuleRequest } from "@/types/module";
 import { ModuleForm } from "./ModuleForm";
-import { iconMap } from "@/constants/iconMap";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useGetAllModules } from "./queries";
-
-import {
-    FileCode,
-    Link as LinkIcon,
-    ToggleLeft,
-    Layers,
-    FileText,
-    Fingerprint,
-    Hash,
-} from "lucide-react";
-import type { ComponentType, SVGProps, ReactNode } from "react";
-import {queryClient} from "@/main.tsx";
-
-/* ===================== DETAIL ROW ===================== */
-const DetailRow = ({
-                       icon: Icon,
-                       label,
-                       value,
-                       isBadge = false,
-                   }: {
-    icon: ComponentType<SVGProps<SVGSVGElement>>;
-    label: string;
-    value?: ReactNode;
-    isBadge?: boolean;
-}) => (
-    <div className="space-y-1.5">
-        <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-            <Icon className="w-4 h-4 text-gray-500" /> {label}
-        </label>
-        <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 min-h-[42px] flex items-center">
-            {isBadge ? (
-                value ? (
-                    <Badge className="bg-green-100 text-green-700">Active</Badge>
-                ) : (
-                    <Badge variant="destructive">Inactive</Badge>
-                )
-            ) : (
-                value || <span className="text-gray-400 italic">No data</span>
-            )}
-        </div>
-    </div>
-);
+import { ModuleDetailDialog } from "./DetailDialog";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
@@ -72,11 +25,14 @@ export default function ModulesTable() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingModule, setEditingModule] = useState<Module | null>(null);
     const [viewingModule, setViewingModule] = useState<Module | null>(null);
+    const [deletingModule, setDeletingModule] = useState<Module | null>(null);
 
     /* ---------- table state ---------- */
     const [sorting, setSorting] = useState<SortingState>([]);
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(10);
+
+    const queryClient = useQueryClient();
 
     /* ---------- search ---------- */
     const [searchValue, setSearchValue] = useState("");
@@ -94,7 +50,7 @@ export default function ModulesTable() {
         data: tableData,
         isLoading,
         isFetching,
-        refetch,
+        refetch: reload,
     } = useGetAllModules({
         page: pageIndex ,
         pageSize,
@@ -115,35 +71,60 @@ export default function ModulesTable() {
 
 
     /* ---------- CRUD ---------- */
-    const invalidateModuleGroups = async () => {
+    const invalidateModules = async () => {
         await queryClient.invalidateQueries({
-            queryKey: ["module-groups"],
+            queryKey: ["modules"],
         });
     };
     const handleCreate = async (formData: Partial<Module>) => {
-        await moduleApi.createModule(formData as CreateModuleRequest);
-        setIsFormOpen(false);
-        await refetch();
-        await invalidateModuleGroups();
+        try {
+            await moduleApi.createModule(formData as CreateModuleRequest);
+            toast.success("Created successfully");
+            setIsFormOpen(false);
+            await invalidateModules();
+            await reload();
+        } catch (error) {
+            console.error(error);
+            if (error instanceof AxiosError && error.response?.data?.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Failed to create module");
+            }
+        }
     };
 
     const handleUpdate = async (formData: Partial<Module>) => {
         if (!editingModule?.id) return;
-        await moduleApi.updateModule(editingModule.id, formData);
-        setIsFormOpen(false);
-        await refetch();
-        await invalidateModuleGroups();
+        try {
+            await moduleApi.updateModule(editingModule.id, formData);
+            toast.success("Updated successfully");
+            setIsFormOpen(false);
+            await invalidateModules();
+            await reload();
+        } catch (error) {
+            console.error(error);
+            if (error instanceof AxiosError && error.response?.data?.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Failed to update module");
+            }
+        }
     };
 
-    const handleDelete = useCallback(
-        async (module: Module) => {
-            if (!confirm(`Delete "${module.title}"?`)) return;
-            await moduleApi.deleteModule(module.id);
-            await refetch();
-            await invalidateModuleGroups();
-        },
-        [refetch],
-    );
+    const handleDelete = async () => {
+        if (!deletingModule) return;
+        try {
+            await moduleApi.deleteModule(deletingModule.id);
+            toast.success("Deleted successfully");
+            await invalidateModules();
+            await reload();
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to delete module");
+        } finally {
+            setDeletingModule(null);
+        }
+    };
 
     /* ---------- columns ---------- */
     const columns = useMemo(
@@ -154,19 +135,14 @@ export default function ModulesTable() {
                     setEditingModule(m);
                     setIsFormOpen(true);
                 },
-                onDelete: handleDelete,
+                onDelete: setDeletingModule,
             }),
-        [handleDelete],
+        [],
     );
-
-    const IconComponent =
-        viewingModule?.icon && viewingModule.icon in iconMap
-            ? iconMap[viewingModule.icon as keyof typeof iconMap]
-            : FileCode;
 
     /* ===================== RENDER ===================== */
     return (
-        <>
+        <div className="relative space-y-4 h-full flex-1">
             <DataTable<Module, unknown>
                 columns={columns as ColumnDef<Module, unknown>[]}
                 data={safeTableData.items}
@@ -186,7 +162,7 @@ export default function ModulesTable() {
                 /* Search */
                 isSearch
                 manualSearch
-                searchPlaceholder="module group name"
+                searchPlaceholder="module name"
                 onSearchChange={setSearchValue}
 
                 /* Sorting */
@@ -198,15 +174,14 @@ export default function ModulesTable() {
                 /* Header */
                 headerActions={
                     <Button
-                        size="sm"
-                        className="bg-blue-600 text-white hover:bg-blue-700"
                         onClick={() => {
                             setEditingModule(null);
                             setIsFormOpen(true);
                         }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
                     >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add New
+                        <Plus className="h-4 w-4" />
+                        Add New Module
                     </Button>
                 }
             />
@@ -220,32 +195,19 @@ export default function ModulesTable() {
             />
 
             {/* ===== View detail ===== */}
-            <Dialog open={!!viewingModule} onOpenChange={() => setViewingModule(null)}>
-                <DialogContent className="sm:max-w-[600px]">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <IconComponent className="w-5 h-5" />
-                            Module Details
-                        </DialogTitle>
-                        <DialogDescription>
-                            {viewingModule?.title}
-                        </DialogDescription>
-                    </DialogHeader>
+            <ModuleDetailDialog
+                open={!!viewingModule}
+                module={viewingModule}
+                onClose={() => setViewingModule(null)}
+            />
 
-                    <div className="space-y-4">
-                        <DetailRow icon={Hash} label="ID" value={viewingModule?.id} />
-                        <DetailRow icon={FileText} label="Description" value={viewingModule?.description} />
-                        <DetailRow icon={LinkIcon} label="URL" value={viewingModule?.url} />
-                        <DetailRow icon={Fingerprint} label="Permission" value={viewingModule?.requiredPermission} />
-                        <DetailRow icon={Layers} label="Display Order" value={viewingModule?.displayOrder} />
-                        <DetailRow icon={ToggleLeft} label="Status" value={viewingModule?.isActive} isBadge />
-                    </div>
-
-                    <DialogFooter>
-                        <Button onClick={() => setViewingModule(null)}>Close</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </>
+            <ConfirmDialog
+                open={!!deletingModule}
+                title="Delete Module"
+                description={`Are you sure you want to delete "${deletingModule?.title}"?`}
+                onCancel={() => setDeletingModule(null)}
+                onConfirm={() => void handleDelete()}
+            />
+        </div>
     );
 }

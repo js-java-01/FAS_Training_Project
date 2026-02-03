@@ -20,6 +20,12 @@ public interface ModuleRepository extends JpaRepository<Module, UUID> {
 
     boolean existsByModuleGroupIdAndUrl(UUID moduleGroupId, String url);
 
+    // Kiểm tra URL đã tồn tại chưa (dùng cho Create)
+    boolean existsByUrl(String url);
+
+    // Kiểm tra URL đã tồn tại ở record KHÁC id hiện tại chưa (dùng cho Update)
+    boolean existsByUrlAndIdNot(String url, UUID id);
+
     List<Module> findByIsActive(Boolean isActive);
 
     @Query("""
@@ -41,8 +47,5 @@ public interface ModuleRepository extends JpaRepository<Module, UUID> {
             @Param("isActive") Boolean isActive,
             Pageable pageable
     );
-
-
-
 }
 

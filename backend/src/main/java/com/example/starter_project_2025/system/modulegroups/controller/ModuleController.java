@@ -69,7 +69,7 @@ public class ModuleController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('MENU_ITEM_DELETE')")
+    @PreAuthorize("hasAuthority('MENU_ITEM_DELETE')") // <-- Đổi thành hasAuthority
     @Operation(summary = "Delete module (soft delete)")
     public ResponseEntity<Void> deleteModule(@PathVariable UUID id) {
         moduleService.deleteModule(id);

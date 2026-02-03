@@ -189,6 +189,7 @@ export default function ModuleGroupsTable() {
               setEditing(null);
             }}
             onSaved={handleSaved}
+            totalRecords={safeTableData.totalElements}
         />
 
         <ConfirmDialog

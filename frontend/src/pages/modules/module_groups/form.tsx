@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import React, { useEffect, useMemo, useState } from "react";
+import { useForm, type Resolver } from "react-hook-form"; 
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -13,19 +13,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { moduleGroupApi } from "@/api/moduleApi";
 
-// Zod Schema
-const formSchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: "Name must be at least 2 characters" })
-    .nonempty({ message: "Name is required" }),
-  description: z
-    .string()
-    .nonempty({ message: "Description is required" }),
-  isActive: z.boolean().default(true),
-});
+type FormValues = {
+  name: string;
+  description: string;
+  displayOrder: number;
+  isActive: boolean;
+};
 
-type FormValues = z.infer<typeof formSchema>;
+// Zod Schema
+const createSchema = (maxOrder: number) =>
+  z.object({
+    name: z
+      .string()
+      .min(2, { message: "Name must be at least 2 characters" })
+      .nonempty({ message: "Name is required" }),
+    description: z.string().nonempty({ message: "Description is required" }),
+    displayOrder: z.coerce
+      .number()
+      .min(1, { message: "Order must be at least 1" })
+      .max(maxOrder, { message: `Order cannot be greater than ${maxOrder}` })
+      .default(1),
+    isActive: z.boolean().default(true),
+  });
 
 export type ModuleGroupDto = {
   id?: string;
@@ -40,9 +49,19 @@ export const ModuleGroupForm: React.FC<{
   onClose: () => void;
   initial?: ModuleGroupDto | null;
   onSaved?: (saved: ModuleGroupDto) => void;
-}> = ({ open, onClose, initial = null, onSaved }) => {
+  totalRecords: number;
+}> = ({ open, onClose, initial = null, onSaved, totalRecords }) => {
   const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  /* ================= CALCULATE MAX ORDER ================= */
+  const maxAllowedOrder = initial ? totalRecords : totalRecords + 1;
+
+  // Tạo schema mới mỗi khi maxAllowedOrder thay đổi
+  const formSchema = useMemo(
+    () => createSchema(maxAllowedOrder),
+    [maxAllowedOrder]
+  );
 
   const {
     register,
@@ -51,10 +70,11 @@ export const ModuleGroupForm: React.FC<{
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as Resolver<FormValues>,
+    resolver: zodResolver(formSchema) as unknown as Resolver<FormValues>, 
     defaultValues: {
       name: "",
       description: "",
+      displayOrder: maxAllowedOrder,
       isActive: true,
     },
   });
@@ -67,17 +87,19 @@ export const ModuleGroupForm: React.FC<{
         reset({
           name: initial.name || "",
           description: initial.description || "",
+          displayOrder: initial.displayOrder ?? 1,
           isActive: initial.isActive ?? true,
         });
       } else {
         reset({
           name: "",
           description: "",
+          displayOrder: maxAllowedOrder,
           isActive: true,
         });
       }
     }
-  }, [initial, open, reset]);
+  }, [initial, open, reset, maxAllowedOrder]);
 
   const onSubmit = async (data: FormValues) => {
     setSaving(true);
@@ -90,6 +112,7 @@ export const ModuleGroupForm: React.FC<{
         const res = await moduleGroupApi.updateModuleGroup(initial.id, {
           name: data.name,
           description: data.description,
+          displayOrder: data.displayOrder,
           isActive: data.isActive,
         });
         saved = res;
@@ -98,17 +121,18 @@ export const ModuleGroupForm: React.FC<{
         const res = await moduleGroupApi.createModuleGroup({
           name: data.name,
           description: data.description,
+          displayOrder: data.displayOrder,
         });
         saved = res;
       }
 
-      // Mapping 
+      // Mapping
       const mappedSaved: ModuleGroupDto = {
         id: saved.id,
         name: saved.name,
         description: saved.description,
-        displayOrder: saved.totalModules,
-        isActive: saved.isActive,       
+        displayOrder: saved.displayOrder,
+        isActive: saved.isActive,
       };
 
       onSaved?.(mappedSaved);
@@ -116,7 +140,7 @@ export const ModuleGroupForm: React.FC<{
     } catch (err: unknown) {
       console.error("Save error", err);
       const msg =
-        (err as { body?: { message?: string }; message?: string })?.body
+        (err as { response?: { data?: { message?: string } } })?.response?.data
           ?.message ||
         (err as { message?: string })?.message ||
         "Error saving data";
@@ -161,8 +185,8 @@ export const ModuleGroupForm: React.FC<{
                 {...register("name")}
                 className={`w-full px-3 py-2 border rounded-md outline-none transition
                   ${errors.name
-                    ? "border-red-500 focus:ring-red-200"
-                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
+                      ? "border-red-500 focus:ring-red-200"
+                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
                 placeholder="Enter module group name"
               />
               {errors.name && (
@@ -179,36 +203,66 @@ export const ModuleGroupForm: React.FC<{
                 {...register("description")}
                 rows={3}
                 className={`w-full px-3 py-2 border rounded-md outline-none transition resize-none
-                  ${errors.description 
-                    ? "border-red-500 focus:ring-red-200" 
-                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
+                  ${errors.description
+                      ? "border-red-500 focus:ring-red-200"
+                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
                 placeholder="Short description..."
               />
               {errors.description && (
-                <p className="text-xs text-red-600">{errors.description.message}</p>
+                <p className="text-xs text-red-600">
+                  {errors.description.message}
+                </p>
               )}
             </div>
 
-            {/* Chỉ hiện Status khi Edit */}
-            {initial?.id && (
+            {/* Order + Status Row */}
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">
-                  Status
+                  Order <span className="text-red-500">*</span>
                 </label>
-                <select
-                  className="w-full px-3 py-2 border rounded-md outline-none
-                             focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                             transition bg-white"
-                  defaultValue={initial.isActive ? "active" : "inactive"}
-                  onChange={(e) => {
-                    setValue("isActive", e.target.value === "active");
-                  }}
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+                <input
+                  type="number"
+                  {...register("displayOrder")}
+                  className={`w-full px-3 py-2 border rounded-md outline-none transition
+                    ${
+                      errors.displayOrder
+                        ? "border-red-500 focus:ring-red-200"
+                        : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    }`}
+                  placeholder={`Max: ${maxAllowedOrder}`}
+                />
+                {errors.displayOrder && (
+                  <p className="text-xs text-red-600">
+                    {errors.displayOrder.message}
+                  </p>
+                )}
+                {!errors.displayOrder && (
+                  <p className="text-[10px] text-gray-400 text-right">
+                    Max allowed: {maxAllowedOrder}
+                  </p>
+                )}
               </div>
-            )}
+
+              {/* Status (Chỉ hiện khi Edit) */}
+              {initial?.id && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-700">
+                    Status
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    defaultValue={initial.isActive ? "active" : "inactive"}
+                    onChange={(e) =>
+                      setValue("isActive", e.target.value === "active")
+                    }
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
 
           <DialogFooter>
