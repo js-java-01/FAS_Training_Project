@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { roleApi } from '../api/roleApi';
 import { permissionApi } from '../api/permissionApi';
-import { Role, CreateRoleRequest } from '../types/role';
-import { Permission } from '../types/permission';
+import type { Role, CreateRoleRequest } from '../types/role';
+import type { Permission } from '../types/permission';
 import { PermissionGate } from '../components/PermissionGate';
-import { MainLayout } from '../components/MainLayout';
+import { MainLayout } from '../components/layout/MainLayout.tsx';
 
 export const RoleManagement: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -87,9 +87,9 @@ export const RoleManagement: React.FC = () => {
   }
 
   return (
-    <MainLayout>
+      <MainLayout pathName={{ roles: 'Role Management' }}>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Role Management</h1>
+        {/*<h1 className="text-2xl font-bold text-gray-900">Role Management</h1>*/}
         <PermissionGate permission="ROLE_CREATE">
           <button
             onClick={() => setShowCreateModal(true)}
