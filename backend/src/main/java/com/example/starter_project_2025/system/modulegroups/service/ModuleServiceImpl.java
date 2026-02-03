@@ -67,14 +67,16 @@ public class ModuleServiceImpl implements ModuleService {
             throw new BadRequestException("The URL '" + req.getUrl() + "' already exists in the system.");
         }
 
+        if (moduleGroupsRepository.existsByNameIgnoreCase(req.getTitle().trim())) {
+             throw new BadRequestException("Module name cannot be the same as an existing Module Group name: '" + req.getTitle() + "'");
+        }
+
         ModuleGroups group = moduleGroupsRepository.findById(req.getModuleGroupId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "ModuleGroupResponse", "id", req.getModuleGroupId()
                         )
                 );
-
-        validateModuleNameNotSameAsGroup(req.getTitle(), group.getName());
 
         if (moduleRepository.existsByModuleGroupIdAndTitle(
                 req.getModuleGroupId(), req.getTitle()
@@ -102,13 +104,15 @@ public class ModuleServiceImpl implements ModuleService {
             throw new BadRequestException("The URL '" + req.getUrl() + "' is already used by another module.");
         }
 
+        if (moduleGroupsRepository.existsByNameIgnoreCase(req.getTitle().trim())) {
+             throw new BadRequestException("Module name cannot be the same as an existing Module Group name: '" + req.getTitle() + "'");
+        }
+
         ModuleGroups group = module.getModuleGroup();
         if (!req.getModuleGroupId().equals(group.getId())) {
              group = moduleGroupsRepository.findById(req.getModuleGroupId())
                     .orElseThrow(() -> new ResourceNotFoundException("Module Group not found"));
         }
-
-        validateModuleNameNotSameAsGroup(req.getTitle(), group.getName());
 
         module.setTitle(req.getTitle());
         module.setUrl(req.getUrl());
@@ -149,11 +153,5 @@ public class ModuleServiceImpl implements ModuleService {
 
         module.setIsActive(false);
         moduleRepository.save(module);
-    }
-
-    private void validateModuleNameNotSameAsGroup(String moduleName, String groupName) {
-        if (moduleName != null && moduleName.trim().equalsIgnoreCase(groupName.trim())) {
-            throw new BadRequestException("Module name cannot be the same as Module Group name: " + groupName);
-        }
     }
 }
