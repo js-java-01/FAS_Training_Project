@@ -23,8 +23,7 @@ public class RefreshToken
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @Lob
-    @Column(nullable = false, unique = true, columnDefinition = "TEXT")
+    @Column(nullable = false, unique = true, length = 500)
     private String token;
 
     @Column(nullable = false)

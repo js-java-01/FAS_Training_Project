@@ -36,13 +36,18 @@ public class JwtUtil {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
+        var permissions = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        
+        System.out.println("token: " + userDetails.getEmail());
+        System.out.println("Permissions in token: " + permissions);
+
         return Jwts.builder()
                 .setSubject(userDetails.getEmail())
                 .claim("userId", userDetails.getId().toString())
                 .claim("role", userDetails.getRole())
-                .claim("permissions", userDetails.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList()))
+                .claim("permissions", permissions)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
@@ -69,6 +74,19 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
         
+        System.out.println("[DEBUG JWT] Parsing token for user: " + claims.getSubject());
+        System.out.println("[DEBUG JWT] All claims: " + claims);
+        System.out.println("[DEBUG JWT] Permissions claim: " + claims.get("permissions"));
+        
+        // Extract permissions from token claims
+        @SuppressWarnings("unchecked")
+        java.util.List<String> permissionsList = (java.util.List<String>) claims.get("permissions");
+        java.util.Set<String> permissions = permissionsList != null 
+            ? new java.util.HashSet<>(permissionsList) 
+            : new java.util.HashSet<>();
+        
+        System.out.println("[DEBUG JWT] Extracted permissions set: " + permissions);
+        
         return new UserDetailsImpl(
                 java.util.UUID.fromString(claims.get("userId").toString()),
                 claims.getSubject(),
@@ -76,7 +94,7 @@ public class JwtUtil {
                 null, // firstName not stored in token
                 null, // lastName not stored in token
                 claims.get("role").toString(),
-                null, // permissions handled separately if needed
+                permissions, // NOW we actually pass the permissions!
                 true  // assume active if token is valid
         );
     }

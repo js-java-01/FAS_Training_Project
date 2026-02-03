@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { locationApi } from '../api/locationApi';
 import { locationDataApi, type Commune, type Province } from '../api/locationDataApi';
-
-import { type Location, type CreateLocationRequest, LocationStatus } from '../types/location';
+import type { Location as LocationType, CreateLocationRequest } from '../types/location';
+import { LocationStatus } from '../types/location';
 import { PermissionGate } from '../components/PermissionGate';
 import { MainLayout } from '../components/layout/MainLayout';
 import { useDebounce } from '../hooks/useDebounce';
 
 export const LocationManagement: React.FC = () => {
-  const [locations, setLocations] = useState<Location[]>([]);
+  const [locations, setLocations] = useState<LocationType[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [communes, setCommunes] = useState<Commune[]>([]);
   const [editCommunes, setEditCommunes] = useState<Commune[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<LocationType | null>(null);
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedEditProvince, setSelectedEditProvince] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,7 +30,7 @@ export const LocationManagement: React.FC = () => {
     status: undefined as any,
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [locationToDelete, setLocationToDelete] = useState<Location | null>(null);
+  const [locationToDelete, setLocationToDelete] = useState<LocationType | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importResult, setImportResult] = useState<any>(null);
@@ -154,7 +154,7 @@ export const LocationManagement: React.FC = () => {
     }
   };
 
-  const openEditModal = async (location: Location) => {
+  const openEditModal = async (location: LocationType) => {
     setSelectedLocation({ ...location });
     setShowEditModal(true);
 

@@ -1,5 +1,6 @@
+import type { CreateLocationRequest, LocationImportResult, LocationStatus, UpdateLocationRequest } from '@/types/location';
 import axiosInstance from './axiosInstance';
-import { Location, CreateLocationRequest, UpdateLocationRequest, LocationStatus,LocationImportResult } from '../types/location';
+// import { Location, CreateLocationRequest, UpdateLocationRequest, LocationStatus,LocationImportResult } from '../types/location';
 
 export const locationApi = {
   searchLocations: async (
