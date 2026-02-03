@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.mapper;
+package com.example.starter_project_2025.system.auth.mapper;
 
 import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.auth.dto.login.LoginResponse;
