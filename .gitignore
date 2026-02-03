@@ -1,0 +1,23 @@
+# Database & Secrets
+.env
+.env.local
+docker-config/mysql_data/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.pws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build folders (Dành cho trường hợp máy ông có folder rác)
+target/
+bin/
+out/
+
+# Node/Frontend (Nếu ông chưa có .gitignore bên trong folder frontend)
+node_modules/
+dist/

@@ -1,0 +1,33 @@
+package com.example.starter_project_2025.system.assessment.mapper;
+
+import com.example.starter_project_2025.system.assessment.dto.AssessmentTypeDTO;
+import com.example.starter_project_2025.system.assessment.dto.AssessmentImportRequest;
+import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentRequest;
+import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRequest;
+import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+
+import java.util.List;
+
+@Mapper(componentModel = "spring")
+public interface AssessmentTypeMapper {
+
+    AssessmentTypeDTO toDto(AssessmentType assessmentType);
+
+    List<AssessmentTypeDTO> toDto(List<AssessmentType> assessmentTypes);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    AssessmentType toEntity(CreateAssessmentRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    void updateEntityFromRequest(UpdateAssessmentRequest request, @MappingTarget AssessmentType assessmentType);
+
+    AssessmentType toEntity(AssessmentImportRequest request);
+
+}

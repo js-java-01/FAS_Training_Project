@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import { Permission, CreatePermissionRequest } from '../types/permission';
+import type { Permission, CreatePermissionRequest } from '../types/permission';
 
 export const permissionApi = {
   getAllPermissions: async (page = 0, size = 100, sort = 'name,asc') => {
