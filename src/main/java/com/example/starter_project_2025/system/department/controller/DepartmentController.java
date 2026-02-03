@@ -31,6 +31,7 @@ public class DepartmentController {
     public List<DepartmentDTO> getAll() {
         return departmentService.getAll();
     }
+
     //Vy
     @PostMapping("/create")
     @Operation(summary = "Create a new department")
@@ -38,7 +39,7 @@ public class DepartmentController {
         return ResponseEntity.ok(departmentService.create(dto));
     }
 
-//   ---thư---//
+    //   ---thư---//
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a department")
     public ResponseEntity<Void> deleteDepartment(@PathVariable Long id) {

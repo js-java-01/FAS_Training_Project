@@ -10,6 +10,8 @@ import { LocationManagement } from "./pages/LocationManagement";
 import { Unauthorized } from "./pages/Unauthorized";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import {DepartmentManagement} from "./pages/DepartmentManagement.tsx";
+
 
 
 function App() {
@@ -56,6 +58,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+            <Route
+                path="/departments"
+                element={
+                    <ProtectedRoute requiredPermission="DEPARTMENT_READ">
+                        <DepartmentManagement />
+                    </ProtectedRoute>
+                }
+            />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
