@@ -18,6 +18,8 @@ public interface ModuleRepository extends JpaRepository<Module, UUID> {
 
     boolean existsByModuleGroupIdAndTitle(UUID moduleGroupId, String title);
 
+    boolean existsByModuleGroupIdAndUrl(UUID moduleGroupId, String url);
+
     // Kiểm tra URL đã tồn tại chưa (dùng cho Create)
     boolean existsByUrl(String url);
 
@@ -29,11 +31,15 @@ public interface ModuleRepository extends JpaRepository<Module, UUID> {
     @Query("""
     SELECT m
     FROM Module m
-    WHERE (:keyword IS NULL OR
-          LOWER(m.title) LIKE :keyword OR
-          LOWER(m.url) LIKE :keyword)
-      AND (:moduleGroupId IS NULL OR m.moduleGroup.id = :moduleGroupId)
-      AND (:isActive IS NULL OR m.isActive = :isActive)
+    WHERE
+        (
+            :keyword IS NULL OR
+            LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+            LOWER(m.url) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+            LOWER(m.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        )
+    AND (:moduleGroupId IS NULL OR m.moduleGroup.id = :moduleGroupId)
+    AND (:isActive IS NULL OR m.isActive = :isActive)
 """)
     Page<Module> search(
             @Param("keyword") String keyword,
@@ -42,3 +48,4 @@ public interface ModuleRepository extends JpaRepository<Module, UUID> {
             Pageable pageable
     );
 }
+
