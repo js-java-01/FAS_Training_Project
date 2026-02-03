@@ -72,14 +72,23 @@ public class AssessmentService {
     }
 
     @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
-    public Page<AssessmentTypeDTO> search(String name, String keyword, LocalDate fromDate, LocalDate toDate,
-            Pageable pageable) {
-        Specification<AssessmentType> spec = Specification.where(AssessmentTypeSpecification.nameContains(name))
-                .and(AssessmentTypeSpecification.keyword(keyword))
-                .and(AssessmentTypeSpecification.createdAfter(fromDate))
-                .and(AssessmentTypeSpecification.createdBefore(toDate));
+    public Page<AssessmentTypeDTO> search(
+            String searchContent,
+            Pageable pageable,
+            String name,
+            LocalDate createdFrom,
+            LocalDate createdTo
+    ) {
+        Specification<AssessmentType> spec = Specification
+                .where(AssessmentTypeSpecification.keyword(searchContent))
+                .and(AssessmentTypeSpecification.nameContains(name))
+                .and(AssessmentTypeSpecification.createdAfter(createdFrom))
+                .and(AssessmentTypeSpecification.createdBefore(createdTo));
 
-        return assessRepo.findAll(spec, pageable).map(assessmentTypeMapper::toDto);
+
+        return assessRepo
+                .findAll(spec, pageable)
+                .map(assessmentTypeMapper::toDto);
     }
 
     @Transactional

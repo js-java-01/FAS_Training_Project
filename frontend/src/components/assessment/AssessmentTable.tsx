@@ -57,7 +57,7 @@ export const AssessmentTable: React.FC = () => {
     // ========================================
     // Data Loading (Queries)
     // ========================================
-    const { data: tableData, isLoading } = useQuery({
+    const { data: tableData, isLoading, isFetching } = useQuery({
         queryKey: ['assessments', page, size, sorting, keyword],
         queryFn: () => assessmentTypeApi.getAll({
             page,
@@ -67,6 +67,15 @@ export const AssessmentTable: React.FC = () => {
             keyword: keyword || undefined
         })
     });
+
+    // Safe table data with defaults (similar to ModulesTable pattern)
+    const safeTableData = useMemo(() => ({
+        items: tableData?.content ?? [],
+        page: tableData?.number ?? page,
+        pageSize: tableData?.size ?? size,
+        totalPages: tableData?.totalPages ?? 0,
+        totalElements: tableData?.totalElements ?? 0,
+    }), [tableData, page, size]);
 
     // ========================================
     // CRUD Mutations
@@ -192,20 +201,21 @@ export const AssessmentTable: React.FC = () => {
         <div className="h-full flex flex-col">
             <DataTable<AssessmentType, unknown>
                 columns={columns as ColumnDef<AssessmentType, unknown>[]}
-                data={tableData?.content || []}
+                data={safeTableData.items}
                 isLoading={isLoading}
+                isFetching={isFetching}
 
                 // Pagination
-                manualPagination={true}
-                pageIndex={page}
-                pageSize={size}
-                totalPage={tableData?.totalPages || 0}
+                manualPagination
+                pageIndex={safeTableData.page}
+                pageSize={safeTableData.pageSize}
+                totalPage={safeTableData.totalPages}
                 onPageChange={setPage}
-                onPageSizeChange={(s) => { setSize(s); setPage(0); }}
+                onPageSizeChange={setSize}
 
                 // Search
-                isSearch={true}
-                manualSearch={true}
+                isSearch
+                manualSearch
                 searchPlaceholder="name"
                 onSearchChange={setKeyword}
 
