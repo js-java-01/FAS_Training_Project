@@ -8,13 +8,15 @@ import { moduleGroupApi } from "@/api/moduleApi"
 import { iconMap } from "@/constants/iconMap"
 
 /* ================= QUERY (LOCAL) ================= */
-const useActiveModuleGroups = () => {
+export const useActiveModuleGroups = (enabled = true) => {
     return useQuery<ModuleGroup[]>({
         queryKey: ["module-groups", "active"],
         queryFn: moduleGroupApi.getActiveModuleGroups,
+        enabled, 
         staleTime: 5 * 60 * 1000,
-    })
-}
+    });
+};
+
 
 /* ================= SIDEBAR HOOK ================= */
 export function useSidebarMenus() {

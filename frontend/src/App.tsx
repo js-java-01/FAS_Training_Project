@@ -5,19 +5,20 @@ import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Login } from "./pages/auth/Login";
 import { Unauthorized } from "./pages/Unauthorized";
 import RegisterPage from "./pages/auth/RegisterPage";
-import ModulesManagement from "./pages/modules/module/ModulesManagement";
-import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { RoleManagement } from "./pages/RoleManagement";
-import { UserManagement } from "./pages/UserManagement";
-import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { Logout } from "./pages/auth/Logout";
-import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
+import {componentRegistry} from "@/router/componentRegistry.ts";
+import {useActiveModuleGroups} from "@/hooks/useSidebarMenus.ts";
+import {useSelector} from "react-redux";
+import type {RootState} from "@/store/store.ts";
+import {NotFoundRedirect} from "@/pages/handler/NotFoundRedirect.tsx";
+import NotFoundPage from "@/pages/NotFoundPage.tsx";
 
-// import { SidebarProvider } from "./components/ui/sidebar";
 
 function App() {
+    const {isAuthenticated} = useSelector((state: RootState) => state.auth);
+    const {data: moduleGroups = []} = useActiveModuleGroups(isAuthenticated);
   return (
     <BrowserRouter>
       <Toaster
@@ -29,11 +30,8 @@ function App() {
         }}
       />
       <AuthProvider>
-        {/* <SidebarProvider>
-         
-        </SidebarProvider> */}
         <Routes>
-          <Route path="*" element={<NotFoundRedirect />} />
+            <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />
           <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
@@ -41,49 +39,26 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute requiredPermission="USER_READ">
-                <UserManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/roles"
-            element={
-              <ProtectedRoute requiredPermission="ROLE_READ">
-                <RoleManagement />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/moduleGroups"
-            element={
-              <ProtectedRoute requiredPermission="ROLE_READ">
-                <ModuleGroupsManagement />
-              </ProtectedRoute>
-            }
-          />
-
-            <Route
-                path="/modules"
-                element={
-                    <ProtectedRoute requiredPermission="ROLE_READ">
-                        <ModulesManagement />
-                    </ProtectedRoute>
-                }
-            />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {moduleGroups.flatMap((group) =>
+                group.modules.map((m) => {
+                    if (!m.url) return null;
+                    const Component = componentRegistry[m.url];
+                    if (!Component || !m.url) return null;
+                    return (
+                        <Route
+                            key={m.id}
+                            path={m.url}
+                            element={
+                                <ProtectedRoute requiredPermission={m.requiredPermission}>
+                                    <Component />
+                                </ProtectedRoute>
+                            }
+                        />
+                    );
+                })
+            )}
+            <Route path="*" element={<NotFoundRedirect />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
