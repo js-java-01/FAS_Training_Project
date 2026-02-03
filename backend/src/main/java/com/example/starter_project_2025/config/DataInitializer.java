@@ -33,6 +33,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -105,7 +106,13 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("LOCATION_UPDATE", "Update existing locations", "LOCATION", "UPDATE"),
                 createPermission("LOCATION_DELETE", "Delete locations", "LOCATION", "DELETE"),
                 createPermission("LOCATION_IMPORT", "Import locations", "LOCATION", "IMPORT"),
-                createPermission("LOCATION_EXPORT", "Export locations", "LOCATION", "EXPORT")
+                createPermission("LOCATION_EXPORT", "Export locations", "LOCATION", "EXPORT"),
+                createPermission("DEPARTMENT_READ", "View departments", "DEPARTMENT", "READ"),
+                createPermission("DEPARTMENT_CREATE", "Create new departments", "DEPARTMENT", "CREATE"),
+                createPermission("DEPARTMENT_UPDATE", "Update existing departments", "DEPARTMENT", "UPDATE"),
+                createPermission("DEPARTMENT_DELETE", "Delete departments", "DEPARTMENT", "DELETE"),
+                createPermission("DEPARTMENT_IMPORT", "Import departments", "DEPARTMENT", "IMPORT"),
+                createPermission("DEPARTMENT_EXPORT", "Export departments", "DEPARTMENT", "EXPORT")
                 );
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
@@ -193,7 +200,8 @@ public class DataInitializer implements CommandLineRunner {
         MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1, "USER_READ");
         MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2, "ROLE_READ");
         MenuItem locationManagement = createMenuItem(adminMenu, null, "Location Management", "/locations", "location", 3, "LOCATION_READ");
-        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, locationManagement));
+        MenuItem departmentManagement = createMenuItem(adminMenu, null, "Department Management", "/departments", "department", 4, "DEPARTMENT_READ");
+        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, locationManagement, departmentManagement));
 
         log.info("Initialized 2 menus with menu items");
     }

@@ -1,3 +1,4 @@
+// @ts-ignore
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -19,6 +20,9 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Logout } from "./pages/auth/Logout";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
+import DepartmentManagement from "@/pages/DepartmentManagement.tsx";
+
+
 
 
 
@@ -89,6 +93,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+            <Route
+                path="/departments"
+                element={
+                    <ProtectedRoute requiredPermission="DEPARTMENT_READ">
+                        <DepartmentManagement/>
+                    </ProtectedRoute>
+                }
+            />
           <Route
             path="/programming-languages"
             element={
