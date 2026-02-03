@@ -88,7 +88,7 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("STUDENT_READ", "View students", "STUDENT", "READ"),
                 createPermission("STUDENT_UPDATE", "Update existing students", "STUDENT", "UPDATE"),
                 createPermission("STUDENT_DELETE", "Delete students", "STUDENT", "DELETE"),
-                createPermission("STUDENT_ASSIGN", "Assign students", "STUDENT", "ASSIGN")
+                createPermission("STUDENT_ASSIGN", "Assign students", "STUDENT", "ASSIGN"),
 
                 // Programming Language permissions
                 createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages", "PROGRAMMING_LANGUAGE", "CREATE"),
