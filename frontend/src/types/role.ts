@@ -13,9 +13,9 @@ export interface Role {
 export interface CreateRoleRequest {
   name: string;
   description: string;
-  hierarchyLevel: number;
   permissionIds: string[];
 }
+
 
 export interface UpdateRoleRequest {
   name?: string;
