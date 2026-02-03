@@ -2,32 +2,33 @@ package com.example.starter_project_2025.config;
 
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
+
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
-import com.example.starter_project_2025.system.location.data.entity.Commune;
-import com.example.starter_project_2025.system.location.data.entity.Province;
-import com.example.starter_project_2025.system.location.data.repository.CommuneRepository;
-import com.example.starter_project_2025.system.location.data.repository.ProvinceRepository;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
 import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
 import com.example.starter_project_2025.system.menu.repository.MenuRepository;
-import com.example.starter_project_2025.system.modulegroups.entity.Module;
-import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
-import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
-import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
-import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
-import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
+import com.example.starter_project_2025.system.location.data.entity.Commune;
+import com.example.starter_project_2025.system.location.data.entity.Province;
+import com.example.starter_project_2025.system.location.data.repository.CommuneRepository;
+import com.example.starter_project_2025.system.location.data.repository.ProvinceRepository;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
+import com.example.starter_project_2025.system.modulegroups.entity.Module;
+import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
+import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
+import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
+import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
+import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,23 +49,16 @@ public class DataInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
-
     private final MenuRepository menuRepository;
     private final MenuItemRepository menuItemRepository;
-
     private final ProvinceRepository provinceRepository;
     private final CommuneRepository communeRepository;
-
     private final ObjectMapper objectMapper;
-
     private final ModuleGroupsRepository moduleGroupsRepository;
     private final ModuleRepository moduleRepository;
-
     private final ProgrammingLanguageRepository programmingLanguageRepository;
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
     private final AssessmentTypeRepository assessmentTypeRepository;
 
     @Override
@@ -73,24 +67,16 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initializing database with sample data...");
 
         if (roleRepository.count() == 0) {
-            // Ensure these perms exist before roles so ADMIN gets them immediately
-            ensureProgrammingLanguagePermissions();
-
             initializePermissions();
             initializeRoles();
             initializeUsers();
             initializeMenus();
             initializeLocationData();
             initializeModuleGroups();
+            ensureProgrammingLanguagePermissions();
             initializeProgrammingLanguages();
-            initializeAssessments();
-
-            log.info("Database initialization completed successfully!");
         } else {
             log.info("Database already initialized, skipping core data initialization.");
-
-            // Optional: still ensure these exist if you add new perms later
-            ensureProgrammingLanguagePermissions();
         }
     }
 
@@ -100,32 +86,27 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("MENU_READ", "View menus", "MENU", "READ"),
                 createPermission("MENU_UPDATE", "Update existing menus", "MENU", "UPDATE"),
                 createPermission("MENU_DELETE", "Delete menus", "MENU", "DELETE"),
-
                 createPermission("MENU_ITEM_CREATE", "Create new menu items", "MENU_ITEM", "CREATE"),
                 createPermission("MENU_ITEM_READ", "View menu items", "MENU_ITEM", "READ"),
                 createPermission("MENU_ITEM_UPDATE", "Update existing menu items", "MENU_ITEM", "UPDATE"),
                 createPermission("MENU_ITEM_DELETE", "Delete menu items", "MENU_ITEM", "DELETE"),
-
                 createPermission("USER_CREATE", "Create new users", "USER", "CREATE"),
                 createPermission("USER_READ", "View users", "USER", "READ"),
                 createPermission("USER_UPDATE", "Update existing users", "USER", "UPDATE"),
                 createPermission("USER_DELETE", "Delete users", "USER", "DELETE"),
                 createPermission("USER_ACTIVATE", "Activate/deactivate users", "USER", "ACTIVATE"),
-
                 createPermission("ROLE_CREATE", "Create new roles", "ROLE", "CREATE"),
                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
                 createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"),
-
                 createPermission("LOCATION_CREATE", "Create new locations", "LOCATION", "CREATE"),
                 createPermission("LOCATION_READ", "View locations", "LOCATION", "READ"),
                 createPermission("LOCATION_UPDATE", "Update existing locations", "LOCATION", "UPDATE"),
                 createPermission("LOCATION_DELETE", "Delete locations", "LOCATION", "DELETE"),
                 createPermission("LOCATION_IMPORT", "Import locations", "LOCATION", "IMPORT"),
                 createPermission("LOCATION_EXPORT", "Export locations", "LOCATION", "EXPORT")
-        );
-
+                );
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }
@@ -143,12 +124,14 @@ public class DataInitializer implements CommandLineRunner {
         Role adminRole = new Role();
         adminRole.setName("ADMIN");
         adminRole.setDescription("Administrator with full system access");
+//        adminRole.setHierarchyLevel(1);
         adminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
         roleRepository.save(adminRole);
 
         Role studentRole = new Role();
         studentRole.setName("STUDENT");
         studentRole.setDescription("Student with limited access to educational resources");
+//        studentRole.setHierarchyLevel(2);
         studentRole.setPermissions(new HashSet<>(permissionRepository.findByAction("READ")));
         roleRepository.save(studentRole);
 
@@ -210,7 +193,6 @@ public class DataInitializer implements CommandLineRunner {
         MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1, "USER_READ");
         MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2, "ROLE_READ");
         MenuItem locationManagement = createMenuItem(adminMenu, null, "Location Management", "/locations", "location", 3, "LOCATION_READ");
-
         menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, locationManagement));
 
         log.info("Initialized 2 menus with menu items");
@@ -265,18 +247,19 @@ public class DataInitializer implements CommandLineRunner {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record CommuneJson(String idProvince, String idCommune, String name) { }
-
     private void initializeModuleGroups() {
+        // 1. Nhóm: Main Menu
         ModuleGroups mainGroup = new ModuleGroups();
         mainGroup.setName("Main Menu");
         mainGroup.setDescription("Main navigation menu of the application");
         mainGroup.setDisplayOrder(1);
         mainGroup.setIsActive(true);
-        mainGroup = moduleGroupsRepository.save(mainGroup);
+        mainGroup = moduleGroupsRepository.save(mainGroup); // Lưu để lấy ID tự sinh
 
         moduleRepository.save(createModule(mainGroup, "Dashboard", "/dashboard", "home", 1, "MENU_READ",
                 "System dashboard overview"));
 
+        // 2. Nhóm: User Management
         ModuleGroups userGroup = new ModuleGroups();
         userGroup.setName("User Management");
         userGroup.setDescription("Manage user accounts, roles, and permissions");
@@ -284,19 +267,24 @@ public class DataInitializer implements CommandLineRunner {
         userGroup.setIsActive(true);
         userGroup = moduleGroupsRepository.save(userGroup);
 
-        // Bạn đang comment users/roles trong bản 1, nên mình giữ đúng hành vi: chỉ add Location ở group này
         moduleRepository.save(
-                createModule(userGroup, "Location Management", "/locations", "map-pin", 3, "LOCATION_READ",
-                        "Manage office locations"));
+                createModule(userGroup, "Users", "/users", "users", 1, "USER_READ", "Manage system users"));
+        moduleRepository.save(
+                createModule(userGroup, "Roles", "/roles", "shield", 2, "ROLE_READ", "Manage roles and permissions"));
+        moduleRepository.save(
+                createModule(userGroup, "Locations", "/locations", "map-pin", 3, "LOCATION_READ", "Manage office locations"));
 
+        // 3. Nhóm: Role Management (deprecated - kept for backward compatibility)
         ModuleGroups roleGroup = new ModuleGroups();
         roleGroup.setName("Role Management");
         roleGroup.setDescription("Manage roles and role-based access control");
         roleGroup.setDisplayOrder(3);
-        // Bản 1 để isActive=false vì roles moved, nên giữ theo bản 1
-        roleGroup.setIsActive(false);
-        moduleGroupsRepository.save(roleGroup);
+        roleGroup.setIsActive(false); // Disabled - modules moved to User Management
+        roleGroup = moduleGroupsRepository.save(roleGroup);
+        
+        // No modules in this group - all moved to User Management
 
+        // 4. Nhóm: System Management
         ModuleGroups systemGroup = new ModuleGroups();
         systemGroup.setName("System Management");
         systemGroup.setDescription("System configuration and administration");
@@ -304,6 +292,7 @@ public class DataInitializer implements CommandLineRunner {
         systemGroup.setIsActive(true);
         systemGroup = moduleGroupsRepository.save(systemGroup);
 
+        // Nhóm này có 2 module con
         Module moduleGroupsSub = createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 1, "MENU_READ",
                 "Manage module groups");
         Module modulesSub = createModule(systemGroup, "Modules", "/modules", "menu", 2, "MENU_READ",
@@ -311,13 +300,13 @@ public class DataInitializer implements CommandLineRunner {
 
         moduleRepository.saveAll(Arrays.asList(moduleGroupsSub, modulesSub));
 
-        log.info("Initialized module groups and their respective modules.");
+        log.info("Initialized 4 module groups and their respective modules.");
     }
 
     private Module createModule(ModuleGroups group, String title, String url, String icon,
-                                int order, String permission, String description) {
+            int order, String permission, String description) {
         Module module = new Module();
-        module.setModuleGroup(group);
+        module.setModuleGroup(group); // Gán quan hệ group_id
         module.setTitle(title);
         module.setUrl(url);
         module.setIcon(icon);
@@ -329,6 +318,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initializeAssessments() {
+
         if (assessmentTypeRepository.count() > 0) {
             return;
         }
@@ -346,6 +336,7 @@ public class DataInitializer implements CommandLineRunner {
         a3.setDescription("Final assessment of the course");
 
         assessmentTypeRepository.saveAll(List.of(a1, a2, a3));
+
         log.info("Initialized {} assessments", 3);
     }
 
@@ -364,6 +355,7 @@ public class DataInitializer implements CommandLineRunner {
 
             permissionRepository.saveAll(progLangPermissions);
 
+            // Add these permissions to the ADMIN role
             Role adminRole = roleRepository.findByName("ADMIN").orElse(null);
             if (adminRole != null) {
                 adminRole.getPermissions().addAll(progLangPermissions);
@@ -373,20 +365,16 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+
     private void initializeProgrammingLanguages() {
+        // Only initialize if no programming languages exist
         if (programmingLanguageRepository.count() == 0) {
-            ProgrammingLanguage java = createProgrammingLanguage("Java", "17",
-                    "Object-oriented programming language widely used for enterprise applications", true);
-            ProgrammingLanguage python = createProgrammingLanguage("Python", "3.11",
-                    "High-level interpreted language popular for data science and web development", true);
-            ProgrammingLanguage javascript = createProgrammingLanguage("JavaScript", "ES2023",
-                    "Dynamic programming language essential for web development", true);
-            ProgrammingLanguage csharp = createProgrammingLanguage("C#", "11.0",
-                    "Modern object-oriented language developed by Microsoft", true);
-            ProgrammingLanguage cpp = createProgrammingLanguage("C++", "20",
-                    "General-purpose programming language with low-level control", true);
-            ProgrammingLanguage go = createProgrammingLanguage("Go", "1.21",
-                    "Fast, statically typed language designed for modern software development", false);
+            ProgrammingLanguage java = createProgrammingLanguage("Java", "17", "Object-oriented programming language widely used for enterprise applications", true);
+            ProgrammingLanguage python = createProgrammingLanguage("Python", "3.11", "High-level interpreted language popular for data science and web development", true);
+            ProgrammingLanguage javascript = createProgrammingLanguage("JavaScript", "ES2023", "Dynamic programming language essential for web development", true);
+            ProgrammingLanguage csharp = createProgrammingLanguage("C#", "11.0", "Modern object-oriented language developed by Microsoft", true);
+            ProgrammingLanguage cpp = createProgrammingLanguage("C++", "20", "General-purpose programming language with low-level control", true);
+            ProgrammingLanguage go = createProgrammingLanguage("Go", "1.21", "Fast, statically typed language designed for modern software development", false);
 
             programmingLanguageRepository.saveAll(Arrays.asList(java, python, javascript, csharp, cpp, go));
             log.info("Initialized 6 programming languages");
@@ -396,6 +384,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private ProgrammingLanguage createProgrammingLanguage(String name, String version, String description, boolean isSupported) {
-        return new ProgrammingLanguage(name, version, description, isSupported);
+        ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
+        return language;
     }
 }
