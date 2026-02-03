@@ -38,26 +38,21 @@ public class ModuleServiceImpl implements ModuleService {
             String keyword,
             UUID moduleGroupId,
             Boolean isActive,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
         Page<Module> page = moduleRepository.search(
                 keyword,
                 moduleGroupId,
                 isActive,
-                pageable
-        );
+                pageable);
 
         return page.map(moduleMapper::toDetailResponse);
     }
-
 
     @Override
     public ModuleDetail getModuleDetail(UUID id) {
 
         Module module = moduleRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Module", "id", id)
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("Module", "id", id));
 
         return moduleMapper.toDetailResponse(module);
     }
@@ -69,18 +64,15 @@ public class ModuleServiceImpl implements ModuleService {
         }
 
         if (moduleGroupsRepository.existsByNameIgnoreCase(req.getTitle().trim())) {
-             throw new BadRequestException("Module name cannot be the same as an existing Module Group name: '" + req.getTitle() + "'");
+            throw new BadRequestException(
+                    "Module name cannot be the same as an existing Module Group name: '" + req.getTitle() + "'");
         }
 
         ModuleGroups group = moduleGroupsRepository.findById(req.getModuleGroupId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "ModuleGroupResponse", "id", req.getModuleGroupId()
-                        )
-                );
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "ModuleGroupResponse", "id", req.getModuleGroupId()));
 
         validateModuleNameNotSameAsGroup(req.getTitle(), group.getName());
-
 
         String title = StringNormalizer.normalize(req.getTitle());
         String url;
@@ -91,19 +83,15 @@ public class ModuleServiceImpl implements ModuleService {
         }
 
         if (moduleRepository.existsByModuleGroupIdAndTitle(
-                req.getModuleGroupId(), title
-        )) {
+                req.getModuleGroupId(), title)) {
             throw new BadRequestException(
-                    "Module name already exists in this module group"
-            );
+                    "Module name already exists in this module group");
         }
 
         if (moduleRepository.existsByModuleGroupIdAndUrl(
-                req.getModuleGroupId(), url
-        )) {
+                req.getModuleGroupId(), url)) {
             throw new BadRequestException(
-                    "Module URL already exists in this module group"
-            );
+                    "Module URL already exists in this module group");
         }
 
         Module module = moduleMapper.toEntity(req, group);
@@ -114,8 +102,6 @@ public class ModuleServiceImpl implements ModuleService {
 
         return moduleMapper.toCreateResponse(saved);
     }
-
-
 
     @Transactional
     public UpdateModuleResponse updateModule(UUID moduleId, UpdateModuleRequest req) {
@@ -129,12 +115,13 @@ public class ModuleServiceImpl implements ModuleService {
         }
 
         if (moduleGroupsRepository.existsByNameIgnoreCase(req.getTitle().trim())) {
-             throw new BadRequestException("Module name cannot be the same as an existing Module Group name: '" + req.getTitle() + "'");
+            throw new BadRequestException(
+                    "Module name cannot be the same as an existing Module Group name: '" + req.getTitle() + "'");
         }
 
         ModuleGroups group = module.getModuleGroup();
         if (!req.getModuleGroupId().equals(group.getId())) {
-             group = moduleGroupsRepository.findById(req.getModuleGroupId())
+            group = moduleGroupsRepository.findById(req.getModuleGroupId())
                     .orElseThrow(() -> new ResourceNotFoundException("Module Group not found"));
         }
 
@@ -150,20 +137,16 @@ public class ModuleServiceImpl implements ModuleService {
 
         if (!module.getTitle().equals(title)
                 && moduleRepository.existsByModuleGroupIdAndTitle(
-                req.getModuleGroupId(), title
-        )) {
+                        req.getModuleGroupId(), title)) {
             throw new BadRequestException(
-                    "Module name already exists in this module group"
-            );
+                    "Module name already exists in this module group");
         }
 
         if (!module.getUrl().equals(url)
                 && moduleRepository.existsByModuleGroupIdAndUrl(
-                req.getModuleGroupId(), url
-        )) {
+                        req.getModuleGroupId(), url)) {
             throw new BadRequestException(
-                    "Module URL already exists in this module group"
-            );
+                    "Module URL already exists in this module group");
         }
 
         module.setTitle(title);
@@ -205,5 +188,11 @@ public class ModuleServiceImpl implements ModuleService {
 
         module.setIsActive(false);
         moduleRepository.save(module);
+    }
+
+    private void validateModuleNameNotSameAsGroup(String moduleName, String groupName) {
+        if (moduleName != null && moduleName.trim().equalsIgnoreCase(groupName.trim())) {
+            throw new BadRequestException("Module name cannot be the same as Module Group name: " + groupName);
+        }
     }
 }
