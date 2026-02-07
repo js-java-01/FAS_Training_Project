@@ -121,3 +121,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+.theme-transition body,
+.theme-transition #root,
+.theme-transition [data-slot="table-container"] {
+  transition: background-color 120ms ease-out, color 120ms ease-out, border-color 120ms ease-out;
+}
+
+.theme-transition [data-slot="table-header"] {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-transition,
+  .theme-transition * {
+    transition: none !important;
+  }
+}

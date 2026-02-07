@@ -274,7 +274,7 @@ export function DataTable<TData, TValue>({
 
             {/* --- TABLE --- */}
             <div
-                className=" h-full rounded-md border flex flex-col overflow-x-auto w-full table-auto"
+                className="h-full rounded-md border bg-card text-foreground flex flex-col overflow-x-auto w-full table-auto"
                 ref={tableContainerRef}
             >
                 <Table>
