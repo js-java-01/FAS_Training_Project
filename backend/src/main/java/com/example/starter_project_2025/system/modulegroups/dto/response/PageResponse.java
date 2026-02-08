@@ -16,7 +16,7 @@ public class PageResponse<T> {
         return new PageResponse<>(
                 page.getContent(),
                 new Pagination(
-                        page.getNumber() + 1, // FE dùng page 1-based
+                        page.getNumber(),
                         page.getSize(),
                         page.getTotalElements(),
                         page.getTotalPages()

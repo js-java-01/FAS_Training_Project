@@ -14,6 +14,16 @@ public class ProgrammingLanguageUpdateRequest {
     @Size(max = 1000, message = "Description must be at most 1000 characters")
     private String description;
 
+    private boolean isSupported;
+
+    public boolean isSupported() {
+        return isSupported;
+    }
+
+    public void setSupported(boolean supported) {
+        isSupported = supported;
+    }
+
     public String getName() {
         return name;
     }
