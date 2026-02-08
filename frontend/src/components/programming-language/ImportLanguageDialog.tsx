@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Download, FileCheck, AlertCircle } from 'lucide-react';
-import { Modal } from '../../components/Modal';
-import { Button } from '../../components/ui/button';
+import { Modal } from '../Modal';
+import { Button } from '../ui/button';
 import { downloadTemplate } from '../../hooks/useProgrammingLanguages';
 import { useToast } from '../../hooks/use-toast';
 import type { ImportResult } from '../../types/programmingLanguage';

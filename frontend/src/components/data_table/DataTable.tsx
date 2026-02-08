@@ -1,5 +1,5 @@
-import { useState, useRef, useLayoutEffect, useEffect } from "react";
-import { useMemo } from "react";
+import {useState, useRef, useLayoutEffect} from "react";
+import {useMemo} from "react";
 import {
     flexRender,
     getCoreRowModel,
@@ -22,8 +22,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
 import {
     Search,
     ChevronDown,
@@ -38,7 +38,7 @@ import {
     PaginationItem,
     PaginationEllipsis,
 } from "@/components/ui/pagination";
-import { usePagination } from "@/hooks/usePagination";
+import {usePagination} from "@/hooks/usePagination";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -73,30 +73,30 @@ interface DataTableProps<TData, TValue> {
 }
 
 export function DataTable<TData, TValue>({
-    columns,
-    data,
-    isLoading,
-    isFetching,
-    //PAGINATION
-    pageIndex,
-    pageSize,
-    totalPage,
-    onPageChange,
-    onPageSizeChange,
-    manualPagination = false,
-    //SEARCH
-    isSearch = false,
-    searchValue = [],
-    searchPlaceholder,
-    onSearchChange,
-    manualSearch = false,
-    //SORTED
-    sorting,
-    onSortingChange,
-    manualSorting = false,
-    // ACTION
-    headerActions,
-}: DataTableProps<TData, TValue>) {
+                                             columns,
+                                             data,
+                                             isLoading,
+                                             isFetching,
+                                             //PAGINATION
+                                             pageIndex,
+                                             pageSize,
+                                             totalPage,
+                                             onPageChange,
+                                             onPageSizeChange,
+                                             manualPagination = false,
+                                             //SEARCH
+                                             isSearch = false,
+                                             searchValue = [],
+                                             searchPlaceholder,
+                                             onSearchChange,
+                                             manualSearch = false,
+                                             //SORTED
+                                             sorting,
+                                             onSortingChange,
+                                             manualSorting = false,
+                                             // ACTION
+                                             headerActions,
+                                         }: DataTableProps<TData, TValue>) {
     /** ------------------ SEARCH DATA ------------------ */
     const [searchText, setSearchText] = useState("");
     const filteredData = useMemo(() => {
@@ -116,15 +116,11 @@ export function DataTable<TData, TValue>({
     }, [data, searchText, manualSearch, searchValue]);
 
     /** ------------------ AUTO RESIZE PAGESIZE based on the container height ------------------ */
-    // Create a ref to access the table container DOM element
+        // Create a ref to access the table container DOM element
     const tableContainerRef = useRef<HTMLDivElement>(null);
 
     // Run after layout to measure the container element
-    // Only auto-resize when NOT using manual pagination
     useLayoutEffect(() => {
-        // Skip auto-resize when manual pagination is enabled
-        if (manualPagination) return;
-
         // Get the table container element
         const el = tableContainerRef.current;
         if (!el) return;
@@ -145,7 +141,7 @@ export function DataTable<TData, TValue>({
             // Update pagination state with new page size
             setPagination((prev) => {
                 if (prev.pageSize === newSize) return prev; // prevent re-render loop
-                return { ...prev, pageSize: newSize };
+                return {...prev, pageSize: newSize};
             });
             if (onPageSizeChange) onPageSizeChange(newSize);
         });
@@ -153,24 +149,13 @@ export function DataTable<TData, TValue>({
         observer.observe(el);
         // Cleanup: stop observing when the component unmounts to prevent memory leaks
         return () => observer.disconnect();
-    }, [onPageSizeChange, manualPagination]);
+    }, [onPageSizeChange]);
 
     /** ------------------ PAGINATION, FILTER, SELECTION, VISIBILITY STATE ------------------ */
     const [pagination, setPagination] = useState<PaginationState>({
         pageIndex: pageIndex ?? 0,
         pageSize: pageSize ?? 10,
     });
-
-    // Synchronize pagination state with props when manualPagination is enabled
-    useEffect(() => {
-        if (manualPagination) {
-            setPagination({
-                pageIndex: pageIndex ?? 0,
-                pageSize: pageSize ?? 10,
-            });
-        }
-    }, [manualPagination, pageIndex, pageSize]);
-
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [rowSelection, setRowSelection] = useState({});
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -206,7 +191,7 @@ export function DataTable<TData, TValue>({
             if (onSearchChange) onSearchChange(searchText);
         },
         // Handle sorting change - manualSorting = false
-        ...(manualSorting ? {} : { getSortedRowModel: getSortedRowModel() }),
+        ...(manualSorting ? {} : {getSortedRowModel: getSortedRowModel()}),
         manualSorting: manualSorting,
         onSortingChange: (updaterOrValue) => {
             if (!onSortingChange) return;
@@ -222,12 +207,12 @@ export function DataTable<TData, TValue>({
     // Search handler: update, reset page
     const handleSearchInput = (value: string) => {
         setSearchText(value);
-        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+        setPagination((prev) => ({...prev, pageIndex: 0}));
         if (onSearchChange) onSearchChange(value);
     };
 
     /* ---------- PAGINATION UI ---------- */
-    const { pages, showLeftEllipsis, showRightEllipsis } =
+    const {pages, showLeftEllipsis, showRightEllipsis} =
         usePagination({
             currentPage: table.getState().pagination.pageIndex + 1,
             totalPages: table.getPageCount(),
@@ -263,7 +248,7 @@ export function DataTable<TData, TValue>({
                                 variant="outline"
                                 className="w-full !outline-none lg:w-28"
                             >
-                                Columns <ChevronDown />
+                                Columns <ChevronDown/>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -301,7 +286,7 @@ export function DataTable<TData, TValue>({
                                     return (
                                         <TableHead
                                             key={header.id}
-                                            style={{ position: "relative", width: header.getSize() }}
+                                            style={{position: "relative", width: header.getSize()}}
                                         >
                                             {header.isPlaceholder
                                                 ? null
@@ -345,7 +330,7 @@ export function DataTable<TData, TValue>({
                         ) : isLoading || isFetching ? (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24">
-                                    <Loader className="animate-spin text-gray-500 mx-auto" />
+                                    <Loader className="animate-spin text-gray-500 mx-auto"/>
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -367,13 +352,13 @@ export function DataTable<TData, TValue>({
                 {/* LEFT: selected rows */}
                 {table.getAllColumns().some((col) => col.id === "select") && (
                     <div className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">
-                            {table.getSelectedRowModel().rows.length}
-                        </span>{" "}
+            <span className="font-medium text-foreground">
+                {table.getSelectedRowModel().rows.length}
+            </span>{" "}
                         of{" "}
                         <span className="font-medium text-foreground">
-                            {table.getFilteredRowModel().rows.length}
-                        </span>{" "}
+                {table.getFilteredRowModel().rows.length}
+            </span>{" "}
                         rows selected
                     </div>
                 )}
@@ -387,12 +372,12 @@ export function DataTable<TData, TValue>({
                     >
                         Page{" "}
                         <span className="font-medium text-foreground">
-                            {table.getState().pagination.pageIndex + 1}
-                        </span>{" "}
+                {table.getState().pagination.pageIndex + 1}
+            </span>{" "}
                         of{" "}
                         <span className="font-medium text-foreground">
-                            {table.getPageCount()}
-                        </span>
+                {table.getPageCount()}
+            </span>
                     </div>
 
                     {/* Pagination buttons */}
@@ -405,11 +390,11 @@ export function DataTable<TData, TValue>({
                                     onClick={() => table.previousPage()}
                                     disabled={!table.getCanPreviousPage()}
                                 >
-                                    <ChevronLeft />
+                                    <ChevronLeft/>
                                 </Button>
                             </PaginationItem>
 
-                            {showLeftEllipsis && <PaginationEllipsis />}
+                            {showLeftEllipsis && <PaginationEllipsis/>}
 
                             {pages.map((p) => (
                                 <PaginationItem key={p}>
@@ -427,7 +412,7 @@ export function DataTable<TData, TValue>({
                                 </PaginationItem>
                             ))}
 
-                            {showRightEllipsis && <PaginationEllipsis />}
+                            {showRightEllipsis && <PaginationEllipsis/>}
 
                             <PaginationItem>
                                 <Button
@@ -436,7 +421,7 @@ export function DataTable<TData, TValue>({
                                     onClick={() => table.nextPage()}
                                     disabled={!table.getCanNextPage()}
                                 >
-                                    <ChevronRight />
+                                    <ChevronRight/>
                                 </Button>
                             </PaginationItem>
                         </PaginationContent>
