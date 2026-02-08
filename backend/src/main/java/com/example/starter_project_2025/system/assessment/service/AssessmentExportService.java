@@ -6,7 +6,7 @@ import com.example.starter_project_2025.system.assessment.dto.ExportRequest;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.export.AssessmentFieldMapper;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
-import com.example.starter_project_2025.system.assessment.specification.AssessmentTypeSpecification;
+import com.example.starter_project_2025.system.assessment.spec.AssessmentTypeSpecification;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
