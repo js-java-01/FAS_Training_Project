@@ -7,6 +7,8 @@ import java.util.UUID;
 
 public final class UserSpecification {
 
+    private UserSpecification() {}
+
     public static Specification<User> hasRoleId(UUID roleId) {
         return (root, query, cb) ->
                 roleId == null ? null :
@@ -31,7 +33,7 @@ public final class UserSpecification {
                         cb.lessThanOrEqualTo(root.get("createdAt"), to);
     }
 
-    public static Specification<User> keyword(String keyword) {
+    public static Specification<User> hasUserKeyword(String keyword) {
         return (root, query, cb) -> {
             if (keyword == null || keyword.isBlank()) return null;
 

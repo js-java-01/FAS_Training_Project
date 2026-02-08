@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import { Link } from 'react-router-dom';
-import { PermissionGate } from '../components/PermissionGate';
-import { MainLayout } from '../components/MainLayout';
-import { dashboardApi, DashboardStats } from '../api/dashboardApi';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { PermissionGate } from "../components/PermissionGate";
+import { MainLayout } from "../components/layout/MainLayout";
+import { dashboardApi, type DashboardStats } from "../api/dashboardApi";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+import MainHeader from "@/components/layout/MainHeader.tsx";
 
 export const Dashboard: React.FC = () => {
-  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { permissions } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     loadStats();
@@ -19,7 +21,7 @@ export const Dashboard: React.FC = () => {
       const data = await dashboardApi.getStats();
       setStats(data);
     } catch (error) {
-      console.error('Error loading dashboard stats:', error);
+      console.error("Error loading dashboard stats:", error);
     } finally {
       setIsLoading(false);
     }
@@ -27,19 +29,15 @@ export const Dashboard: React.FC = () => {
 
   return (
     <MainLayout>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h2>
+      <MainHeader title={"Dashboard"}/>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Users</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {isLoading ? '...' : stats?.totalUsers || 0}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {stats?.activeUsers || 0} active
-              </p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{isLoading ? "..." : stats?.totalUsers || 0}</p>
+              <p className="text-sm text-gray-500 mt-1">{stats?.activeUsers || 0} active</p>
             </div>
             <div className="text-4xl">👥</div>
           </div>
@@ -49,12 +47,8 @@ export const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Roles</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {isLoading ? '...' : stats?.totalRoles || 0}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {stats?.activeRoles || 0} active
-              </p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{isLoading ? "..." : stats?.totalRoles || 0}</p>
+              <p className="text-sm text-gray-500 mt-1">{stats?.activeRoles || 0} active</p>
             </div>
             <div className="text-4xl">🔐</div>
           </div>
@@ -64,12 +58,8 @@ export const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Menus</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {isLoading ? '...' : stats?.totalMenus || 0}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {stats?.activeMenus || 0} active
-              </p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{isLoading ? "..." : stats?.totalMenus || 0}</p>
+              <p className="text-sm text-gray-500 mt-1">{stats?.activeMenus || 0} active</p>
             </div>
             <div className="text-4xl">📋</div>
           </div>
@@ -79,12 +69,8 @@ export const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Menu Items</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {isLoading ? '...' : stats?.totalMenuItems || 0}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Navigation items
-              </p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{isLoading ? "..." : stats?.totalMenuItems || 0}</p>
+              <p className="text-sm text-gray-500 mt-1">Navigation items</p>
             </div>
             <div className="text-4xl">📄</div>
           </div>
@@ -94,40 +80,28 @@ export const Dashboard: React.FC = () => {
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <PermissionGate permission="USER_READ">
-          <Link
-            to="/users"
-            className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
-          >
+          <Link to="/users" className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">User Management</h3>
             <p className="text-gray-600">Manage users, roles, and permissions</p>
           </Link>
         </PermissionGate>
 
         <PermissionGate permission="ROLE_READ">
-          <Link
-            to="/roles"
-            className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
-          >
+          <Link to="/roles" className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Role Management</h3>
             <p className="text-gray-600">Create and manage roles</p>
           </Link>
         </PermissionGate>
 
         <PermissionGate permission="ROLE_READ">
-          <Link
-            to="/permissions"
-            className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
-          >
+          <Link to="/permissions" className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Permission Management</h3>
             <p className="text-gray-600">View and manage permissions</p>
           </Link>
         </PermissionGate>
 
         <PermissionGate permission="MENU_READ">
-          <Link
-            to="/menus"
-            className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
-          >
+          <Link to="/menus" className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Menu Management</h3>
             <p className="text-gray-600">Configure application menus</p>
           </Link>
@@ -137,11 +111,8 @@ export const Dashboard: React.FC = () => {
       <div className="mt-8 bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Permissions</h3>
         <div className="flex flex-wrap gap-2">
-          {user?.permissions?.map((permission) => (
-            <span
-              key={permission}
-              className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-            >
+          {permissions.map((permission) => (
+            <span key={permission} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
               {permission}
             </span>
           ))}
