@@ -1,33 +1,31 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { Toaster } from "sonner";
 import { AuthProvider } from "./contexts/AuthContext";
-import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
-import { Login } from "./pages/auth/Login";
-import { Unauthorized } from "./pages/Unauthorized";
-import RegisterPage from "./pages/auth/RegisterPage";
 import ModulesManagement from "./pages/modules/module/ModulesManagement";
-import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
+import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
 import { RoleManagement } from "./pages/RoleManagement";
+import { AssessmentManagement } from "./pages/AssessmentManagement";
 import { UserManagement } from "./pages/UserManagement";
 import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import AssessmentManagement from "./pages/AssessmentManagement";
-import ProgrammingLanguageManagement from "./pages/programming-language/ProgrammingLanguageManagement";
-
-// import { SidebarProvider } from "./components/ui/sidebar";
+import RegisterPage from "./pages/auth/RegisterPage";
+import { Unauthorized } from "./pages/Unauthorized";
+import { Login } from "./pages/auth/Login";
+import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
+import { Toaster } from "sonner";
 
 function App() {
   return (
     <BrowserRouter>
-      <Toaster
+      {/* <Toaster
         duration={1500}
         position="top-right"
         richColors
         toastOptions={{
           className: "p-4",
         }}
-      />
+      /> */}
       <AuthProvider>
         {/* <SidebarProvider>
          
@@ -56,28 +54,20 @@ function App() {
             }
           />
           <Route
-            path="/roles"
-            element={
-              <ProtectedRoute requiredPermission="ROLE_READ">
-                <RoleManagement />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/moduleGroups"
-            element={
-              <ProtectedRoute requiredPermission="ROLE_READ">
-                <ModuleGroupsManagement />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
             path="/assessment-type"
             element={
               <ProtectedRoute requiredPermission="ASSESSMENT_READ">
                 <AssessmentManagement />
+              </ProtectedRoute>
+            }
+          />
+
+
+          <Route
+            path="/roles"
+            element={
+              <ProtectedRoute requiredPermission="ROLE_READ">
+                <RoleManagement />
               </ProtectedRoute>
             }
           />
@@ -90,11 +80,19 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path="/moduleGroups"
+            element={
+              <ProtectedRoute requiredPermission="ROLE_READ">
+                <ModuleGroupsManagement />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/modules" element={<ModulesManagement />} />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
+        <Toaster />
       </AuthProvider>
     </BrowserRouter>
   );

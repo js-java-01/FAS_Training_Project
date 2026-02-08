@@ -36,7 +36,7 @@ public class ProgrammingLanguageFieldMapper {
         FIELD_EXTRACTORS.put("name", ProgrammingLanguage::getName);
         FIELD_EXTRACTORS.put("version", ProgrammingLanguage::getVersion);
         FIELD_EXTRACTORS.put("description", ProgrammingLanguage::getDescription);
-        FIELD_EXTRACTORS.put("isSupported", ProgrammingLanguage::getSupported);
+        FIELD_EXTRACTORS.put("isSupported", ProgrammingLanguage::isSupported);
 
         // Define field metadata for UI
         AVAILABLE_FIELDS = List.of(
