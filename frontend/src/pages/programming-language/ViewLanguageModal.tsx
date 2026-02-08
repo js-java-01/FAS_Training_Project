@@ -1,25 +1,27 @@
 import React from 'react';
-import { Modal } from '../Modal';
-import type { AssessmentType } from '../../types/assessmentType';
+import { Modal } from '../../components/Modal';
+import type { ProgrammingLanguage } from '../../types/programmingLanguage';
 
-interface ViewAssessmentModalProps {
+interface ViewLanguageModalProps {
     isOpen: boolean;
     onClose: () => void;
-    assessment: AssessmentType | null;
+    language: ProgrammingLanguage | null;
 }
 
-export const ViewAssessmentModal: React.FC<ViewAssessmentModalProps> = ({
+export const ViewLanguageModal: React.FC<ViewLanguageModalProps> = ({
     isOpen,
     onClose,
-    assessment,
+    language,
 }) => {
-    if (!assessment) return null;
+    if (!language) return null;
 
     const formatDate = (date: string) => {
         return new Date(date).toLocaleString('en-GB', {
             day: '2-digit',
             month: '2-digit',
-            year: 'numeric'
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     };
 
@@ -27,7 +29,7 @@ export const ViewAssessmentModal: React.FC<ViewAssessmentModalProps> = ({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title="Assessment Type Details"
+            title="Programming Language Details"
             size="md"
             actions={
                 <button
@@ -42,25 +44,45 @@ export const ViewAssessmentModal: React.FC<ViewAssessmentModalProps> = ({
                 <div>
                     <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Name</h4>
                     <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg border">
-                        {assessment.name}
+                        {language.name}
+                    </p>
+                </div>
+
+                <div>
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Version</h4>
+                    <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg border">
+                        {language.version || 'Not specified'}
                     </p>
                 </div>
 
                 <div>
                     <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Description</h4>
                     <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg border whitespace-pre-wrap">
-                        {assessment.description || 'No description provided'}
+                        {language.description || 'No description provided'}
+                    </p>
+                </div>
+
+                <div>
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Support Status</h4>
+                    <p className="text-sm">
+                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${
+                            language.isSupported
+                                ? 'bg-green-50 text-green-700 border-green-200'
+                                : 'bg-red-50 text-red-700 border-red-200'
+                        }`}>
+                            {language.isSupported ? 'Supported' : 'Not Supported'}
+                        </span>
                     </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                     <div>
                         <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Created At</h4>
-                        <p className="text-sm text-gray-700">{formatDate(assessment.createdAt)}</p>
+                        <p className="text-sm text-gray-700">{formatDate(language.createdAt)}</p>
                     </div>
                     <div>
                         <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Last Updated</h4>
-                        <p className="text-sm text-gray-700">{formatDate(assessment.updatedAt)}</p>
+                        <p className="text-sm text-gray-700">{formatDate(language.updatedAt)}</p>
                     </div>
                 </div>
             </div>

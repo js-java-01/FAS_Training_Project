@@ -13,6 +13,7 @@ import { UserManagement } from "./pages/UserManagement";
 import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import AssessmentManagement from "./pages/AssessmentManagement";
+import ProgrammingLanguageManagement from "./pages/programming-language/ProgrammingLanguageManagement";
 
 // import { SidebarProvider } from "./components/ui/sidebar";
 
@@ -77,6 +78,15 @@ function App() {
             element={
               <ProtectedRoute requiredPermission="ASSESSMENT_READ">
                 <AssessmentManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/programming-languages"
+            element={
+              <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
+                <ProgrammingLanguageManagement />
               </ProtectedRoute>
             }
           />

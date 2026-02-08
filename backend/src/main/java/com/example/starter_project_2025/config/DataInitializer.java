@@ -88,8 +88,13 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("STUDENT_READ", "View students", "STUDENT", "READ"),
                 createPermission("STUDENT_UPDATE", "Update existing students", "STUDENT", "UPDATE"),
                 createPermission("STUDENT_DELETE", "Delete students", "STUDENT", "DELETE"),
-                createPermission("STUDENT_ASSIGN", "Assign students", "STUDENT", "ASSIGN")
+                createPermission("STUDENT_ASSIGN", "Assign students", "STUDENT", "ASSIGN"),
 
+                // Programming Language permissions
+                createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages", "PROGRAMMING_LANGUAGE", "CREATE"),
+                createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages", "PROGRAMMING_LANGUAGE", "READ"),
+                createPermission("PROGRAMMING_LANGUAGE_UPDATE", "Update existing programming languages", "PROGRAMMING_LANGUAGE", "UPDATE"),
+                createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages", "PROGRAMMING_LANGUAGE", "DELETE")
 
         );
         permissionRepository.saveAll(permissions);
@@ -243,6 +248,25 @@ public class DataInitializer implements CommandLineRunner {
                         "Manage students"));
 
         log.info("Initialized 5 module groups and their respective modules.");
+        // 6. Programming Language Management
+        ModuleGroups programmingLanguageGroup = new ModuleGroups();
+        programmingLanguageGroup.setName("Programming Language Management");
+        programmingLanguageGroup.setDescription("Manage programming languages and their configurations");
+        programmingLanguageGroup.setDisplayOrder(6);
+        programmingLanguageGroup.setIsActive(true);
+        programmingLanguageGroup = moduleGroupsRepository.save(programmingLanguageGroup);
+
+        moduleRepository.save(
+                createModule(
+                        programmingLanguageGroup,
+                        "Programming Languages",
+                        "/programming-languages",
+                        "code",
+                        1,
+                        "PROGRAMMING_LANGUAGE_READ",
+                        "Manage programming languages"));
+
+        log.info("Initialized 6 module groups and their respective modules.");
     }
 
     private Module createModule(ModuleGroups group, String title, String url, String icon,
