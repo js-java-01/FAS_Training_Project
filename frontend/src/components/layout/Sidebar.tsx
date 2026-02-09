@@ -1,4 +1,4 @@
-import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarTrigger } from "@/components/ui/sidebar";
 
 import { NavMain } from "@/components/layout/NavMain";
 import { useSidebarMenus } from "@/hooks/useSidebarMenus";
@@ -15,9 +15,19 @@ export function SidebarMenu() {
   const { navGroups } = useSidebarMenus();
   const navigate = useNavigate();
   return (
-    <Sidebar variant="inset">
+    <Sidebar variant="inset" collapsible="icon">
       {/* Header */}
-      <SidebarHeader className=" py-3 font-bold text-lg text-blue-800">RBAC System</SidebarHeader>
+      <SidebarHeader className="py-3">
+        <div className="flex min-w-0 items-center gap-2 overflow-hidden px-2 group-data-[collapsible=icon]:justify-center">
+          <SidebarTrigger className="size-8" />
+          <div className="flex min-w-0 items-center gap-2 transition-[opacity,transform] duration-150 group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:-translate-x-2 group-data-[collapsible=icon]:opacity-0">
+            <div className="flex size-8 items-center justify-center rounded-md bg-blue-800 text-sm font-semibold text-white">
+              RB
+            </div>
+            <span className="text-lg font-bold text-blue-800 whitespace-nowrap truncate">RBAC System</span>
+          </div>
+        </div>
+      </SidebarHeader>
 
       {/* Content */}
       <SidebarContent>
@@ -29,8 +39,8 @@ export function SidebarMenu() {
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="p-4 text-xs flex flex-row justify-between items-center text-muted-foreground">
-        RBAC System v1.0
+      <SidebarFooter className="p-4 text-xs flex flex-row items-center justify-between text-muted-foreground group-data-[collapsible=icon]:justify-center">
+        <span className="group-data-[collapsible=icon]:hidden">RBAC System v1.0</span>
         <TooltipWrapper content="Logout">
           <Button
             size="icon"
