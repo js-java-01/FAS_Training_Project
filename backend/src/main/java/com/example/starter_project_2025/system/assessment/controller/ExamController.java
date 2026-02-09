@@ -5,8 +5,8 @@ import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentRe
 import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.service.AssessmentService;
+import io.swagger.v3.oas.annotations.tags.Tag; // Thêm import này
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -19,9 +19,18 @@ import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/assessment")
-public class AssessmentController {
-    @Autowired
-    private AssessmentService assessmentService;
+@Tag(name = "Exam Controller", description = "API Quản lý bài kiểm tra (Đã đổi tên)") // Đánh dấu cho Swagger
+public class ExamController {
+
+    private final AssessmentService assessmentService;
+
+    // Dùng Constructor Injection thay cho @Autowired + Thêm LOG kiểm tra
+    public ExamController(AssessmentService assessmentService) {
+        this.assessmentService = assessmentService;
+        System.out.println("=================================================");
+        System.out.println("!!! DA KHOI DONG EXAM CONTROLLER THANH CONG !!!");
+        System.out.println("=================================================");
+    }
 
     @PostMapping
     public ResponseEntity<AssessmentDTO> create(@Valid @RequestBody CreateAssessmentRequest request) {
@@ -31,50 +40,26 @@ public class AssessmentController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AssessmentDTO> update(@PathVariable Long id, @Valid @RequestBody UpdateAssessmentRequest request
-    ) {
-        return ResponseEntity.ok(
-                assessmentService.update(id, request)
-        );
+    public ResponseEntity<AssessmentDTO> update(@PathVariable Long id, @Valid @RequestBody UpdateAssessmentRequest request) {
+        return ResponseEntity.ok(assessmentService.update(id, request));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<AssessmentDTO> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(
-                assessmentService.getById(id)
-        );
+        return ResponseEntity.ok(assessmentService.getById(id));
     }
 
     @GetMapping
     public ResponseEntity<Page<AssessmentDTO>> search(
             @RequestParam(required = false) String keyword,
-
-            @RequestParam(required = false)
-            AssessmentStatus status,
-
-            @RequestParam(required = false)
-            Long assessmentTypeId,
-
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate createdFrom,
-
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate createdTo,
-
-            @PageableDefault(size = 20, sort = "createdAt")
-            Pageable pageable
+            @RequestParam(required = false) AssessmentStatus status,
+            @RequestParam(required = false) Long assessmentTypeId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdTo,
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable
     ) {
         return ResponseEntity.ok(
-                assessmentService.search(
-                        keyword,
-                        status,
-                        assessmentTypeId,
-                        createdFrom,
-                        createdTo,
-                        pageable
-                )
+                assessmentService.search(keyword, status, assessmentTypeId, createdFrom, createdTo, pageable)
         );
     }
 
