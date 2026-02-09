@@ -1,6 +1,9 @@
 package com.example.starter_project_2025.config;
 
+import com.example.starter_project_2025.system.assessment.entity.Assessment;
+import com.example.starter_project_2025.system.assessment.entity.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
@@ -38,6 +41,7 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AssessmentTypeRepository assessmentTypeRepository;
+    private final AssessmentRepository assessmentRepository;
 
     @Override
     @Transactional
@@ -49,6 +53,7 @@ public class DataInitializer implements CommandLineRunner {
             initializeRoles();
             initializeUsers();
             initializeModuleGroups();
+            initializeAssessmentType();
             initializeAssessments();
             log.info("Database initialization completed successfully!");
         } else {
@@ -80,21 +85,26 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
                 createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"),
-                createPermission("ASSESSMENT_READ", "View assessment types", "ASSESSMENT_TYPE", "READ"),
-                createPermission("ASSESSMENT_UPDATE", "Update existing assessment types", "ASSESSMENT_TYPE", "UPDATE"),
-                createPermission("ASSESSMENT_DELETE", "Delete assessment types", "ASSESSMENT_TYPE", "DELETE"),
-                createPermission("ASSESSMENT_CREATE", "Assign assessment types", "ASSESSMENT_TYPE", "ASSIGN"),
+                createPermission("ASSESSMENTTYPE_READ", "View assessment types", "ASSESSMENT_TYPE", "READ"),
+                createPermission("ASSESSMENTTYPE_UPDATE", "Update existing assessment types", "ASSESSMENT_TYPE", "UPDATE"),
+                createPermission("ASSESSMENTTYPE_DELETE", "Delete assessment types", "ASSESSMENT_TYPE", "DELETE"),
+                createPermission("ASSESSMENTTYPE_CREATE", "Assign assessment types", "ASSESSMENT_TYPE", "ASSIGN"),
                 createPermission("STUDENT_CREATE", "Create new students", "STUDENT", "CREATE"),
                 createPermission("STUDENT_READ", "View students", "STUDENT", "READ"),
                 createPermission("STUDENT_UPDATE", "Update existing students", "STUDENT", "UPDATE"),
                 createPermission("STUDENT_DELETE", "Delete students", "STUDENT", "DELETE"),
                 createPermission("STUDENT_ASSIGN", "Assign students", "STUDENT", "ASSIGN"),
-
-                // Programming Language permissions
                 createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages", "PROGRAMMING_LANGUAGE", "CREATE"),
                 createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages", "PROGRAMMING_LANGUAGE", "READ"),
                 createPermission("PROGRAMMING_LANGUAGE_UPDATE", "Update existing programming languages", "PROGRAMMING_LANGUAGE", "UPDATE"),
-                createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages", "PROGRAMMING_LANGUAGE", "DELETE")
+                createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages", "PROGRAMMING_LANGUAGE", "DELETE"),
+                createPermission("ASSESSMENT_CREATE", "Create new assessments", "ASSESSMENT", "CREATE"),
+                createPermission("ASSESSMENT_READ", "View assessments", "ASSESSMENT", "READ"),
+                createPermission("ASSESSMENT_UPDATE", "Update existing assessments", "ASSESSMENT", "UPDATE"),
+                createPermission("ASSESSMENT_DELETE", "Delete assessments", "ASSESSMENT", "DELETE"),
+                createPermission("ASSESSMENT_ASSIGN", "Assign assessments to students or classes", "ASSESSMENT", "ASSIGN"),
+                createPermission("ASSESSMENT_PUBLISH", "Publish or unpublish assessments", "ASSESSMENT", "PUBLISH"),
+                createPermission("ASSESSMENT_SUBMIT", "Submit assessment attempts", "ASSESSMENT", "SUBMIT")
 
         );
         permissionRepository.saveAll(permissions);
@@ -159,6 +169,73 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info("Initialized 3 users (admin@example.com, student@example.com, jane.smith@example.com)");
     }
+
+    private void initializeAssessments() {
+
+        if (assessmentRepository.count() > 0) {
+            return;
+        }
+
+        AssessmentType entranceType = assessmentTypeRepository
+                .findByName("Entrance Quiz")
+                .orElseThrow(() -> new RuntimeException("AssessmentType 'Entrance Quiz' not found"));
+
+        AssessmentType midtermType = assessmentTypeRepository
+                .findByName("Midterm Test")
+                .orElseThrow(() -> new RuntimeException("AssessmentType 'Midterm Test' not found"));
+
+        AssessmentType finalType = assessmentTypeRepository
+                .findByName("Final Exam")
+                .orElseThrow(() -> new RuntimeException("AssessmentType 'Final Exam' not found"));
+
+        Assessment entranceAssessment = new Assessment();
+        entranceAssessment.setAssessmentType(entranceType);
+        entranceAssessment.setCode("JAVA_ENTRANCE_2025");
+        entranceAssessment.setTitle("Java Entrance Quiz 2025");
+        entranceAssessment.setDescription("Entrance assessment for Java trainees");
+        entranceAssessment.setTotalScore(100);
+        entranceAssessment.setPassScore(60);
+        entranceAssessment.setTimeLimitMinutes(60);
+        entranceAssessment.setAttemptLimit(1);
+        entranceAssessment.setIsShuffleQuestion(true);
+        entranceAssessment.setIsShuffleOption(true);
+        entranceAssessment.setStatus(AssessmentStatus.ACTIVE);
+
+        Assessment midtermAssessment = new Assessment();
+        midtermAssessment.setAssessmentType(midtermType);
+        midtermAssessment.setCode("JAVA_MIDTERM_2025");
+        midtermAssessment.setTitle("Java Midterm Test 2025");
+        midtermAssessment.setDescription("Midterm evaluation for Java course");
+        midtermAssessment.setTotalScore(100);
+        midtermAssessment.setPassScore(50);
+        midtermAssessment.setTimeLimitMinutes(90);
+        midtermAssessment.setAttemptLimit(1);
+        midtermAssessment.setIsShuffleQuestion(false);
+        midtermAssessment.setIsShuffleOption(false);
+        midtermAssessment.setStatus(AssessmentStatus.ACTIVE);
+
+        Assessment finalAssessment = new Assessment();
+        finalAssessment.setAssessmentType(finalType);
+        finalAssessment.setCode("JAVA_FINAL_2025");
+        finalAssessment.setTitle("Java Final Exam 2025");
+        finalAssessment.setDescription("Final assessment for Java course");
+        finalAssessment.setTotalScore(100);
+        finalAssessment.setPassScore(60);
+        finalAssessment.setTimeLimitMinutes(120);
+        finalAssessment.setAttemptLimit(1);
+        finalAssessment.setIsShuffleQuestion(false);
+        finalAssessment.setIsShuffleOption(false);
+        finalAssessment.setStatus(AssessmentStatus.ACTIVE);
+
+        assessmentRepository.saveAll(
+                List.of(entranceAssessment, midtermAssessment, finalAssessment)
+        );
+
+        log.info("Initialized {} assessments", 3);
+    }
+
+
+
 
     private void initializeModuleGroups() {
         // 1. Nhóm: Main Menu
@@ -283,7 +360,7 @@ public class DataInitializer implements CommandLineRunner {
         return module;
     }
 
-    private void initializeAssessments() {
+    private void initializeAssessmentType() {
 
         if (assessmentTypeRepository.count() > 0) {
             return;

@@ -1,10 +1,10 @@
 package com.example.starter_project_2025.system.assessment.controller;
 
 import com.example.starter_project_2025.system.assessment.dto.AssessmentTypeDTO;
-import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentRequest;
+import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentTypeRequest;
 import com.example.starter_project_2025.system.assessment.dto.ImportResultDTO;
-import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRequest;
-import com.example.starter_project_2025.system.assessment.service.AssessmentService;
+import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentTypeRequest;
+import com.example.starter_project_2025.system.assessment.service.AssessmentTypeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -27,11 +27,11 @@ import java.time.LocalDate;
 public class AssessmentTypeController {
 
     @Autowired
-    private AssessmentService assessService;
+    private AssessmentTypeService assessService;
 
     @PostMapping
     public ResponseEntity<AssessmentTypeDTO> create(
-            @Valid @RequestBody CreateAssessmentRequest request) {
+            @Valid @RequestBody CreateAssessmentTypeRequest request) {
 
         return ResponseEntity.ok(assessService.create(request));
     }
@@ -40,7 +40,7 @@ public class AssessmentTypeController {
     @PutMapping("/{id}")
     public ResponseEntity<AssessmentTypeDTO> update(
             @PathVariable String id,
-            @Valid @RequestBody UpdateAssessmentRequest request) {
+            @Valid @RequestBody UpdateAssessmentTypeRequest request) {
 
         return ResponseEntity.ok(assessService.update(id, request));
     }
