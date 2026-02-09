@@ -3,13 +3,17 @@ package com.example.starter_project_2025.system.assessment.dto;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentStatus;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
-public class UpdateAssessmentRequest {
+public class AssessmentDTO {
+    private Long id;
+
+    private String code;
+
     private String title;
 
     private String description;
-
-    private String assessmentTypeId;
 
     private Integer totalScore;
 
@@ -24,4 +28,12 @@ public class UpdateAssessmentRequest {
     private Boolean isShuffleOption;
 
     private AssessmentStatus status;
+
+    private String assessmentTypeId;
+
+    private String assessmentTypeName;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 }
