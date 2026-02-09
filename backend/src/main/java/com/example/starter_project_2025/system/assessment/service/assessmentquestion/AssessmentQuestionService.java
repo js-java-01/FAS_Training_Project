@@ -10,30 +10,39 @@ import com.example.starter_project_2025.system.assessment.repository.QuestionRep
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class AssessmentQuestionService {
 
-    private final AssessmentQuestionRepository aqRepo;
-    private final AssessmentRepository assessmentRepo; // Của thằng bạn ông
-    private final QuestionRepository questionRepo;     // Của ông
+    private final AssessmentQuestionRepository repo;
+    private final AssessmentRepository assessmentRepo;
+    private final QuestionRepository questionRepo;
 
     public AssessmentQuestion addQuestionToExam(AddQuestionToExamDTO dto) {
-        // 1. Tìm cái đề thi (Code của thằng bạn ông vừa merge về đó)
         Assessment assessment = assessmentRepo.findById(dto.getAssessmentId())
                 .orElseThrow(() -> new RuntimeException("Assessment not found"));
 
-        // 2. Tìm câu hỏi (Code của ông)
         Question question = questionRepo.findById(dto.getQuestionId())
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
-        // 3. Tạo mối liên kết
-        AssessmentQuestion link = new AssessmentQuestion();
-        link.setAssessment(assessment);
-        link.setQuestion(question);
-        link.setScore(dto.getScore());
-        link.setOrderIndex(dto.getOrderIndex());
+        AssessmentQuestion aq = new AssessmentQuestion();
+        aq.setAssessment(assessment);
+        aq.setQuestion(question);
+        aq.setScore(dto.getScore());
+        aq.setOrderIndex(dto.getOrderIndex());
 
-        return aqRepo.save(link);
+        return repo.save(aq);
+    }
+
+
+    public List<AssessmentQuestion> getAll() {
+        return repo.findAll();
+    }
+
+    public void deleteById(UUID id) {
+        repo.deleteById(id);
     }
 }
