@@ -176,7 +176,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose }) => 
             toast({
                 variant: "destructive",
                 title: "Export Failed",
-                description: error.response?.data?.message || 'Error exporting assessment types',
+                description: error.response?.data?.message || 'Error exporting assessment.ts types',
             });
         } finally {
             setIsExporting(false);

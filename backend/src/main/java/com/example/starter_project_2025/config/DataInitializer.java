@@ -1,10 +1,10 @@
 package com.example.starter_project_2025.config;
 
-import com.example.starter_project_2025.system.assessment.entity.Assessment;
-import com.example.starter_project_2025.system.assessment.entity.AssessmentStatus;
-import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment.entity.*;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
+import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
+import com.example.starter_project_2025.system.assessment.repository.QuestionRepository;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
@@ -24,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +43,8 @@ public class DataInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final AssessmentTypeRepository assessmentTypeRepository;
     private final AssessmentRepository assessmentRepository;
+    private final QuestionCategoryRepository questionCategoryRepository;
+    private final QuestionRepository questionRepository;
 
     @Override
     @Transactional
@@ -55,6 +58,9 @@ public class DataInitializer implements CommandLineRunner {
             initializeModuleGroups();
             initializeAssessmentType();
             initializeAssessments();
+            initializeQuestionCategories();
+            initializeQuestions();
+
             log.info("Database initialization completed successfully!");
         } else {
             log.info("Database already initialized, checking for missing permissions...");
@@ -104,7 +110,15 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ASSESSMENT_DELETE", "Delete assessments", "ASSESSMENT", "DELETE"),
                 createPermission("ASSESSMENT_ASSIGN", "Assign assessments to students or classes", "ASSESSMENT", "ASSIGN"),
                 createPermission("ASSESSMENT_PUBLISH", "Publish or unpublish assessments", "ASSESSMENT", "PUBLISH"),
-                createPermission("ASSESSMENT_SUBMIT", "Submit assessment attempts", "ASSESSMENT", "SUBMIT")
+                createPermission("ASSESSMENT_SUBMIT", "Submit assessment attempts", "ASSESSMENT", "SUBMIT"),
+                createPermission("QUESTION_CREATE", "Create new questions", "QUESTION", "CREATE"),
+                createPermission("QUESTION_READ", "View questions", "QUESTION", "READ"),
+                createPermission("QUESTION_UPDATE", "Update questions", "QUESTION", "UPDATE"),
+                createPermission("QUESTION_DELETE", "Delete questions", "QUESTION", "DELETE"),
+                createPermission("QUESTION_CATEGORY_CREATE", "Create question categories", "QUESTION_CATEGORY", "CREATE"),
+                createPermission("QUESTION_CATEGORY_READ", "View question categories", "QUESTION_CATEGORY", "READ"),
+                createPermission("QUESTION_CATEGORY_UPDATE", "Update question categories", "QUESTION_CATEGORY", "UPDATE"),
+                createPermission("QUESTION_CATEGORY_DELETE", "Delete question categories", "QUESTION_CATEGORY", "DELETE")
 
         );
         permissionRepository.saveAll(permissions);
@@ -233,6 +247,30 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info("Initialized {} assessments", 3);
     }
+
+    private void initializeQuestionCategories() {
+
+        if (questionCategoryRepository.count() > 0) {
+            return;
+        }
+
+        QuestionCategory javaCore = new QuestionCategory();
+        javaCore.setName("Java Core");
+        javaCore.setDescription("Core Java knowledge");
+
+        QuestionCategory oop = new QuestionCategory();
+        oop.setName("OOP");
+        oop.setDescription("Object-oriented programming concepts");
+
+        QuestionCategory sql = new QuestionCategory();
+        sql.setName("SQL");
+        sql.setDescription("Database and SQL knowledge");
+
+        questionCategoryRepository.saveAll(List.of(javaCore, oop, sql));
+
+        log.info("Initialized {} question categories", 3);
+    }
+
 
 
 
@@ -410,6 +448,49 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
     }
+
+
+    private void initializeQuestions() {
+
+        if (questionRepository.count() > 0) {
+            return;
+        }
+
+        QuestionCategory javaCore = questionCategoryRepository
+                .findByName("Java Core")
+                .orElseThrow(() -> new RuntimeException("Java Core category not found"));
+
+        // ===== QUESTION =====
+        Question q1 = new Question();
+        q1.setContent("Which keyword is used to inherit a class in Java?");
+        q1.setQuestionType("SINGLE");
+        q1.setCategory(javaCore);
+
+        // ===== OPTIONS =====
+        List<QuestionOption> options = new ArrayList<>();
+
+        QuestionOption o1 = new QuestionOption();
+        o1.setContent("extends");
+        o1.setCorrect(true);
+        o1.setOrderIndex(1);
+        o1.setQuestion(q1);
+        options.add(o1);
+
+        QuestionOption o2 = new QuestionOption();
+        o2.setContent("implements");
+        o2.setCorrect(false);
+        o2.setOrderIndex(2);
+        o2.setQuestion(q1);
+        options.add(o2);
+
+        q1.setOptions(options);
+
+        questionRepository.save(q1); // 🔥 cascade save options
+
+        log.info("Initialized 1 question with options");
+    }
+
+
 
     private void initializeProgrammingLanguages() {
         // Only initialize if no programming languages exist
