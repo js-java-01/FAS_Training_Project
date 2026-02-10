@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.assessment.submission.entity;
+package com.example.starter_project_2025.system.assessment.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

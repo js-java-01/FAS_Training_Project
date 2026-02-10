@@ -1,9 +1,9 @@
-package com.example.starter_project_2025.system.assessment.submission.service;
+package com.example.starter_project_2025.system.assessment.service;
 
-import com.example.starter_project_2025.system.assessment.submission.dto.request.StartSubmissionRequest;
-import com.example.starter_project_2025.system.assessment.submission.dto.request.SubmitAnswerRequest;
-import com.example.starter_project_2025.system.assessment.submission.dto.request.SubmitSubmissionRequest;
-import com.example.starter_project_2025.system.assessment.submission.entity.Submission;
+import com.example.starter_project_2025.system.assessment.dto.submission.request.StartSubmissionRequest;
+import com.example.starter_project_2025.system.assessment.dto.submission.request.SubmitAnswerRequest;
+import com.example.starter_project_2025.system.assessment.dto.submission.request.SubmitSubmissionRequest;
+import com.example.starter_project_2025.system.assessment.entity.Submission;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

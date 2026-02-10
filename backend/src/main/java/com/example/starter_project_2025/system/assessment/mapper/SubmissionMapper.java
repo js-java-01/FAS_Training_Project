@@ -1,10 +1,10 @@
-package com.example.starter_project_2025.system.assessment.submission.mapper;
+package com.example.starter_project_2025.system.assessment.mapper;
 
-import com.example.starter_project_2025.system.assessment.submission.dto.response.SubmissionQuestionResponse;
-import com.example.starter_project_2025.system.assessment.submission.dto.response.SubmissionResponse;
-import com.example.starter_project_2025.system.assessment.submission.dto.response.SubmissionResultResponse;
-import com.example.starter_project_2025.system.assessment.submission.entity.Submission;
-import com.example.starter_project_2025.system.assessment.submission.entity.SubmissionQuestion;
+import com.example.starter_project_2025.system.assessment.dto.submission.response.SubmissionQuestionResponse;
+import com.example.starter_project_2025.system.assessment.dto.submission.response.SubmissionResponse;
+import com.example.starter_project_2025.system.assessment.dto.submission.response.SubmissionResultResponse;
+import com.example.starter_project_2025.system.assessment.entity.Submission;
+import com.example.starter_project_2025.system.assessment.entity.SubmissionQuestion;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

@@ -1,7 +1,7 @@
-package com.example.starter_project_2025.system.assessment.submission.spec;
+package com.example.starter_project_2025.system.assessment.spec;
 
-import com.example.starter_project_2025.system.assessment.submission.entity.Submission;
-import com.example.starter_project_2025.system.assessment.submission.entity.SubmissionStatus;
+import com.example.starter_project_2025.system.assessment.entity.Submission;
+import com.example.starter_project_2025.system.assessment.enums.SubmissionStatus;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;

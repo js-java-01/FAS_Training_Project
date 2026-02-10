@@ -1,13 +1,13 @@
-package com.example.starter_project_2025.system.assessment.submission.controller;
+package com.example.starter_project_2025.system.assessment.controller;
 
-import com.example.starter_project_2025.system.assessment.submission.dto.request.StartSubmissionRequest;
-import com.example.starter_project_2025.system.assessment.submission.dto.request.SubmitAnswerRequest;
-import com.example.starter_project_2025.system.assessment.submission.dto.request.SubmitSubmissionRequest;
-import com.example.starter_project_2025.system.assessment.submission.dto.response.SubmissionResponse;
-import com.example.starter_project_2025.system.assessment.submission.dto.response.SubmissionResultResponse;
-import com.example.starter_project_2025.system.assessment.submission.entity.Submission;
-import com.example.starter_project_2025.system.assessment.submission.mapper.SubmissionMapper;
-import com.example.starter_project_2025.system.assessment.submission.service.SubmissionService;
+import com.example.starter_project_2025.system.assessment.dto.submission.request.StartSubmissionRequest;
+import com.example.starter_project_2025.system.assessment.dto.submission.request.SubmitAnswerRequest;
+import com.example.starter_project_2025.system.assessment.dto.submission.request.SubmitSubmissionRequest;
+import com.example.starter_project_2025.system.assessment.dto.submission.response.SubmissionResponse;
+import com.example.starter_project_2025.system.assessment.dto.submission.response.SubmissionResultResponse;
+import com.example.starter_project_2025.system.assessment.entity.Submission;
+import com.example.starter_project_2025.system.assessment.mapper.SubmissionMapper;
+import com.example.starter_project_2025.system.assessment.service.SubmissionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;

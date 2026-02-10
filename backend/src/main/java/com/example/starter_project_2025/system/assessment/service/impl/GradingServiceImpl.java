@@ -1,9 +1,9 @@
-package com.example.starter_project_2025.system.assessment.submission.service.impl;
+package com.example.starter_project_2025.system.assessment.service.impl;
 
-import com.example.starter_project_2025.system.assessment.submission.entity.Submission;
-import com.example.starter_project_2025.system.assessment.submission.entity.SubmissionAnswer;
-import com.example.starter_project_2025.system.assessment.submission.entity.SubmissionQuestion;
-import com.example.starter_project_2025.system.assessment.submission.service.GradingService;
+import com.example.starter_project_2025.system.assessment.entity.Submission;
+import com.example.starter_project_2025.system.assessment.entity.SubmissionAnswer;
+import com.example.starter_project_2025.system.assessment.entity.SubmissionQuestion;
+import com.example.starter_project_2025.system.assessment.service.GradingService;
 import org.springframework.stereotype.Service;
 
 @Service

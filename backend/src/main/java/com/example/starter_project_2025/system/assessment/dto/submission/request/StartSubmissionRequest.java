@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.assessment.submission.dto.request;
+package com.example.starter_project_2025.system.assessment.dto.submission.request;
 
 import java.util.UUID;
 

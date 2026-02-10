@@ -1,6 +1,6 @@
-package com.example.starter_project_2025.system.assessment.submission.entity;
+package com.example.starter_project_2025.system.assessment.entity;
 
-import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment.enums.SubmissionStatus;
 import com.example.starter_project_2025.system.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;

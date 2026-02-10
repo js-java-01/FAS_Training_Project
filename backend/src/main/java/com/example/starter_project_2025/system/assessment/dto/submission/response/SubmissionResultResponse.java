@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.assessment.submission.dto.response;
+package com.example.starter_project_2025.system.assessment.dto.submission.response;
 
 import lombok.Getter;
 import lombok.Setter;
