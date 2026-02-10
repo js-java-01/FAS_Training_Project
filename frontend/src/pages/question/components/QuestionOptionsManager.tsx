@@ -82,6 +82,15 @@ export const QuestionOptionsManager: React.FC<QuestionOptionsManagerProps> = ({
                             ? 'Select one correct answer'
                             : 'Select one or more correct answers'}
                     </p>
+                    {data.options.some(opt => opt.isCorrect) && (
+                        <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">
+                            <span className="text-green-600 font-bold">✓</span>
+                            {data.questionType === 'SINGLE_CHOICE'
+                                ? `Option ${data.options.findIndex(opt => opt.isCorrect) + 1} is marked correct`
+                                : `${data.options.filter(opt => opt.isCorrect).length} option(s) marked correct`
+                            }
+                        </div>
+                    )}
                 </div>
                 <Button
                     variant="outline"
@@ -102,43 +111,56 @@ export const QuestionOptionsManager: React.FC<QuestionOptionsManagerProps> = ({
 
             <div className="space-y-3">
                 {data.options.map((option, index) => (
-                    <div key={index} className="flex items-start gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
-                        <div className="flex flex-col gap-1 mt-2">
-                            <button
-                                type="button"
-                                onClick={() => handleMoveOption(index, 'up')}
-                                disabled={index === 0}
-                                className="text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                            >
-                                <GripVertical className="h-4 w-4" />
-                            </button>
-                        </div>
+                    <div key={index} className={`flex items-center gap-3 p-3 border-2 rounded-lg transition-all ${option.isCorrect
+                        ? 'bg-green-50 border-green-400 shadow-md ring-2 ring-green-200'
+                        : 'bg-gray-50 border-gray-200'
+                        }`}>
+                        <button
+                            type="button"
+                            onClick={() => handleMoveOption(index, 'up')}
+                            disabled={index === 0}
+                            className="text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+                        >
+                            <GripVertical className="h-5 w-5" />
+                        </button>
 
-                        <div className="flex items-center mt-2">
+                        <div className="flex items-center flex-shrink-0">
                             {data.questionType === 'SINGLE_CHOICE' ? (
                                 <input
                                     type="radio"
                                     checked={option.isCorrect}
                                     onChange={() => handleCorrectChange(index)}
-                                    className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                    className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500"
                                 />
                             ) : (
                                 <Checkbox
                                     checked={option.isCorrect}
                                     onCheckedChange={() => handleCorrectChange(index)}
+                                    className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
                                 />
                             )}
                         </div>
 
-                        <div className="flex-1">
-                            <input
-                                type="text"
-                                value={option.content}
-                                onChange={(e) => handleOptionChange(index, 'content', e.target.value)}
-                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors[`option_${index}`] ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder={`Option ${index + 1}`}
-                            />
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                {option.isCorrect && (
+                                    <div className="flex items-center gap-1 px-2 py-1 bg-green-600 text-white rounded text-xs font-bold flex-shrink-0">
+                                        ✓ CORRECT
+                                    </div>
+                                )}
+                                <input
+                                    type="text"
+                                    value={option.content}
+                                    onChange={(e) => handleOptionChange(index, 'content', e.target.value)}
+                                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${errors[`option_${index}`]
+                                        ? 'border-red-300 focus:ring-red-500'
+                                        : option.isCorrect
+                                            ? 'border-green-400 focus:ring-green-500 bg-white font-semibold text-green-900'
+                                            : 'border-gray-300 focus:ring-blue-500'
+                                        }`}
+                                    placeholder={`Option ${index + 1}`}
+                                />
+                            </div>
                             {errors[`option_${index}`] && (
                                 <p className="mt-1 text-sm text-red-600">{errors[`option_${index}`]}</p>
                             )}
@@ -148,7 +170,7 @@ export const QuestionOptionsManager: React.FC<QuestionOptionsManagerProps> = ({
                             type="button"
                             onClick={() => handleRemoveOption(index)}
                             disabled={data.options.length <= 2}
-                            className="mt-2 text-red-500 hover:text-red-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="text-red-500 hover:text-red-700 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
                         >
                             <Trash2 className="h-4 w-4" />
                         </button>

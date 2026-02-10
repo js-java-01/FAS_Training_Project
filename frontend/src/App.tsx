@@ -17,7 +17,7 @@ import ProgrammingLanguageManagement from "./pages/programming-language/Programm
 import TeacherAssessmentPage from "./pages/teacher-assessment/TeacherAssessmentPage";
 import EditAssessmentPage from "./pages/teacher-assessment/EditAssessmentPage";
 import { QuestionCategoryManagement, QuestionCategoryTable } from "./pages/question-category";
-import { CreateQuestionPage } from "./pages/question";
+import { CreateQuestionPage, EditQuestionPage } from "./pages/question";
 import QuestionManagementPage from "./pages/question/QuestionManagementPage";
 
 // import { SidebarProvider } from "./components/ui/sidebar";
@@ -114,7 +114,7 @@ function App() {
             }
           />
 
-          <Route       
+          <Route
             path="/programming-languages"
             element={
               <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
@@ -137,6 +137,15 @@ function App() {
             element={
               <ProtectedRoute requiredPermission="QUESTION_CREATE">
                 <CreateQuestionPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path='questions/:id/edit'
+            element={
+              <ProtectedRoute requiredPermission="QUESTION_UPDATE">
+                <EditQuestionPage />
               </ProtectedRoute>
             }
           />

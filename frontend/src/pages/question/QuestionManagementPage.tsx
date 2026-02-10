@@ -273,7 +273,7 @@ export default function QuestionManagementPage() {
                                                     <PermissionGate permission="QUESTION_UPDATE">
                                                         <ActionBtn
                                                             icon={<SquarePen size={16} />}
-                                                            onClick={() => {/* TODO: Edit page */ }}
+                                                            onClick={() => navigate(`/questions/${question.id}/edit`)}
                                                             tooltipText="Edit"
                                                         />
                                                     </PermissionGate>
@@ -291,19 +291,28 @@ export default function QuestionManagementPage() {
                                             {/* Options Preview */}
                                             <div className="mt-3 pt-3 border-t border-gray-100">
                                                 <p className="text-xs font-medium text-gray-600 mb-2">Options:</p>
-                                                <div className="space-y-1">
+                                                <div className="space-y-1.5">
                                                     {question.options
                                                         .sort((a, b) => a.orderIndex - b.orderIndex)
-                                                        .map((option) => (
+                                                        .map((option, idx) => (
                                                             <div
                                                                 key={option.id}
-                                                                className={`text-xs px-2 py-1 rounded ${option.isCorrect
-                                                                    ? 'bg-green-50 text-green-700 font-medium'
-                                                                    : 'bg-gray-50 text-gray-600'
+                                                                className={`text-xs px-3 py-2 rounded-md border-2 transition-all ${option.isCorrect
+                                                                        ? 'bg-green-100 text-green-800 border-green-400 font-bold shadow-md'
+                                                                        : 'bg-gray-50 text-gray-600 border-gray-200'
                                                                     }`}
                                                             >
-                                                                {option.isCorrect && '✓ '}
-                                                                {option.content}
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className={option.isCorrect ? 'text-green-600 font-bold' : 'text-gray-400 font-normal'}>
+                                                                        {idx + 1}.
+                                                                    </span>
+                                                                    {option.isCorrect && (
+                                                                        <span className="bg-green-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold">
+                                                                            ✓ CORRECT
+                                                                        </span>
+                                                                    )}
+                                                                    <span className={option.isCorrect ? 'font-bold' : ''}>{option.content}</span>
+                                                                </div>
                                                             </div>
                                                         ))}
                                                 </div>

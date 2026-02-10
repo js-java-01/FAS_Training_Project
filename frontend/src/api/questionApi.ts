@@ -5,10 +5,19 @@ export const questionApi = {
 
     // ==================== GET ALL ====================
     getAll: async (): Promise<Question[]> => {
-        const response = await axiosInstance.get<Question[]>(
+        const response = await axiosInstance.get<any[]>(
             '/v1/questions'
         );
-        return response.data;
+        // Transform backend response to match frontend types
+        return response.data.map(question => ({
+            ...question,
+            options: question.options.map((opt: any) => ({
+                id: opt.id,
+                content: opt.content,
+                isCorrect: opt.correct,
+                orderIndex: opt.orderIndex
+            }))
+        }));
     },
 
     // ==================== CREATE ====================
@@ -28,11 +37,71 @@ export const questionApi = {
             }))
         };
 
-        const response = await axiosInstance.post<Question>(
+        const response = await axiosInstance.post<any>(
             '/v1/questions',
             payload
         );
-        return response.data;
+        // Transform backend response to match frontend types
+        return {
+            ...response.data,
+            options: response.data.options.map((opt: any) => ({
+                id: opt.id,
+                content: opt.content,
+                isCorrect: opt.correct,
+                orderIndex: opt.orderIndex
+            }))
+        };
+    },
+
+    // ==================== UPDATE ====================
+    update: async (
+        id: string,
+        data: QuestionCreateRequest
+    ): Promise<Question> => {
+        // Transform data to match backend expectations
+        const payload = {
+            questionCategoryId: data.categoryId,
+            questionType: data.questionType,
+            content: data.content,
+            isActive: data.isActive,
+            options: data.options.map(opt => ({
+                content: opt.content,
+                correct: opt.isCorrect,
+                orderIndex: opt.orderIndex
+            }))
+        };
+
+        const response = await axiosInstance.put<any>(
+            `/v1/questions/${id}`,
+            payload
+        );
+        // Transform backend response to match frontend types
+        return {
+            ...response.data,
+            options: response.data.options.map((opt: any) => ({
+                id: opt.id,
+                content: opt.content,
+                isCorrect: opt.correct,
+                orderIndex: opt.orderIndex
+            }))
+        };
+    },
+
+    // ==================== GET BY ID ====================
+    getById: async (id: string): Promise<Question> => {
+        const response = await axiosInstance.get<any>(
+            `/v1/questions/${id}`
+        );
+        // Transform backend response to match frontend types
+        return {
+            ...response.data,
+            options: response.data.options.map((opt: any) => ({
+                id: opt.id,
+                content: opt.content,
+                isCorrect: opt.correct,
+                orderIndex: opt.orderIndex
+            }))
+        };
     },
 
     // ==================== DELETE ====================

@@ -25,6 +25,18 @@ export const questionOptionApi = {
     return response.data;
   },
 
+  // ==================== UPDATE ====================
+  update: async (
+    id: string,
+    data: QuestionOptionRequest
+  ): Promise<QuestionOption> => {
+    const response = await axiosInstance.put<QuestionOption>(
+      `/v1/question-options/${id}`,
+      data
+    );
+    return response.data;
+  },
+
   // ==================== DELETE ====================
   delete: async (id: string): Promise<void> => {
     await axiosInstance.delete(`/v1/question-options/${id}`);
