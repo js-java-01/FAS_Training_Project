@@ -51,14 +51,14 @@ export default function QuestionManagementPage() {
 
         // Filter by category
         if (selectedCategoryId) {
-            filtered = filtered.filter(q => q.category.id === selectedCategoryId);
+            filtered = filtered.filter(q => q.category?.id === selectedCategoryId);
         }
 
         // Filter by search
         if (questionSearch) {
             filtered = filtered.filter(q =>
                 q.content.toLowerCase().includes(questionSearch.toLowerCase()) ||
-                q.category.name.toLowerCase().includes(questionSearch.toLowerCase())
+                q.category?.name.toLowerCase().includes(questionSearch.toLowerCase())
             );
         }
 
@@ -175,7 +175,7 @@ export default function QuestionManagementPage() {
                                         </div>
                                     </button>
                                     {filteredCategories.map((category: QuestionCategory) => {
-                                        const count = allQuestions.filter(q => q.category.id === category.id).length;
+                                        const count = allQuestions.filter(q => q.category?.id === category.id).length;
                                         return (
                                             <button
                                                 key={category.id}
@@ -257,7 +257,7 @@ export default function QuestionManagementPage() {
                                                         {question.content}
                                                     </p>
                                                     <div className="flex items-center gap-4 text-xs text-gray-500">
-                                                        <span>Category: {question.category.name}</span>
+                                                        <span>Category: {question.category?.name || 'No Category'}</span>
                                                         <span>Options: {question.options.length}</span>
                                                         <span>
                                                             Correct: {question.options.filter(o => o.isCorrect).length}
