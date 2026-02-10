@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal } from '../Modal';
+import { Modal } from '../../components/Modal';
 import { AlertCircle } from 'lucide-react';
 import type { AssessmentType } from '../../types/assessmentType';
 

@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
-import { Modal } from '../Modal';
+import React, { useState, useEffect } from 'react';
+import { Modal } from '../../components/Modal';
 import { AssessmentFormFields } from './AssessmentFormFields';
-import type { AssessmentTypeRequest } from '../../types/assessmentType';
+import type { AssessmentType, AssessmentTypeRequest } from '../../types/assessmentType';
 
-interface CreateAssessmentModalProps {
+interface UpdateAssessmentModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (data: AssessmentTypeRequest) => void;
+    assessment: AssessmentType | null;
+    onSubmit: (id: string, data: AssessmentTypeRequest) => void;
     isPending: boolean;
 }
 
-export const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
+export const UpdateAssessmentModal: React.FC<UpdateAssessmentModalProps> = ({
     isOpen,
     onClose,
+    assessment,
     onSubmit,
     isPending,
 }) => {
@@ -22,11 +24,15 @@ export const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    const handleClose = () => {
-        setFormData({ name: '', description: '' });
-        setErrors({});
-        onClose();
-    };
+    useEffect(() => {
+        if (isOpen && assessment) {
+            setFormData({
+                name: assessment.name,
+                description: assessment.description,
+            });
+            setErrors({});
+        }
+    }, [isOpen, assessment]);
 
     const validate = () => {
         const newErrors: Record<string, string> = {};
@@ -38,50 +44,43 @@ export const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (validate()) {
-            onSubmit(formData);
+        if (assessment && validate()) {
+            onSubmit(assessment.id, formData);
         }
     };
-
-    React.useEffect(() => {
-        if (isOpen) {
-            setFormData({ name: '', description: '' });
-            setErrors({});
-        }
-    }, [isOpen]);
 
     return (
         <Modal
             isOpen={isOpen}
-            onClose={handleClose}
-            title="Create Assessment Type"
+            onClose={onClose}
+            title="Update Assessment Type"
             size="md"
             actions={
                 <div className="flex gap-2">
                     <button
                         type="button"
-                        onClick={handleClose}
+                        onClick={onClose}
                         className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
                     >
                         Cancel
                     </button>
                     <button
-                        form="create-assessment-form"
+                        form="update-assessment-form"
                         type="submit"
                         disabled={isPending}
                         className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
                     >
-                        {isPending ? 'Creating...' : 'Create Assessment'}
+                        {isPending ? 'Updating...' : 'Update Assessment'}
                     </button>
                 </div>
             }
         >
-            <form id="create-assessment-form" onSubmit={handleSubmit}>
+            <form id="update-assessment-form" onSubmit={handleSubmit}>
                 <AssessmentFormFields
                     data={formData}
                     onChange={setFormData}
                     errors={errors}
-                    idPrefix="create-"
+                    idPrefix="update-"
                 />
             </form>
         </Modal>

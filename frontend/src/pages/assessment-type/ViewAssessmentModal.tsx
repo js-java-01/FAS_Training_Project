@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal } from '../Modal';
+import { Modal } from '../../components/Modal';
 import type { AssessmentType } from '../../types/assessmentType';
 
 interface ViewAssessmentModalProps {
@@ -19,7 +19,9 @@ export const ViewAssessmentModal: React.FC<ViewAssessmentModalProps> = ({
         return new Date(date).toLocaleString('en-GB', {
             day: '2-digit',
             month: '2-digit',
-            year: 'numeric'
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     };
 

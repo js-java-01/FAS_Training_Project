@@ -12,8 +12,10 @@ import { RoleManagement } from "./pages/RoleManagement";
 import { UserManagement } from "./pages/UserManagement";
 import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import AssessmentManagement from "./pages/AssessmentManagement";
+import AssessmentManagement from "./pages/assessment-type/AssessmentManagement";
 import ProgrammingLanguageManagement from "./pages/programming-language/ProgrammingLanguageManagement";
+import TeacherAssessmentPage from "./pages/teacher-assessment/TeacherAssessmentPage";
+import EditAssessmentPage from "./pages/teacher-assessment/EditAssessmentPage";
 
 // import { SidebarProvider } from "./components/ui/sidebar";
 
@@ -78,6 +80,24 @@ function App() {
             element={
               <ProtectedRoute requiredPermission="ASSESSMENT_READ">
                 <AssessmentManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/teacher-assessment"
+            element={
+              <ProtectedRoute requiredPermission="ASSESSMENT_READ">
+                <TeacherAssessmentPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/teacher-assessment/:id/edit"
+            element={
+              <ProtectedRoute requiredPermission="ASSESSMENT_UPDATE">
+                <EditAssessmentPage />
               </ProtectedRoute>
             }
           />

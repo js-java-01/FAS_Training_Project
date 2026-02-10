@@ -5,6 +5,7 @@ import type { AssessmentType } from "../../types/assessmentType";
 import { Badge } from "@/components/ui/badge";
 import { Eye, SquarePen, Trash2 } from "lucide-react";
 import { PermissionGate } from "@/components/PermissionGate";
+import SortHeader from "../../components/data_table/SortHeader";
 
 export type AssessmentTableActions = {
     onView?: (row: AssessmentType) => void;
@@ -57,7 +58,7 @@ export const getColumns = (
         /* ================= NAME ================= */
         columnHelper.accessor("name", {
             id: "name",
-            header: "Name",
+            header: (info) => <SortHeader info={info} title="Name" />,
             size: 200,
             cell: (info) => (
                 <Badge
@@ -71,10 +72,10 @@ export const getColumns = (
 
         /* ================= DESCRIPTION ================= */
         columnHelper.accessor("description", {
-            header: "Description",
+            header: (info) => <SortHeader info={info} title="Description" />,
             size: 300,
             cell: (info) => (
-                <span className="text-gray-600 truncate block max-w-[300px]" title={info.getValue()}>
+                <span className="text-gray-600 truncate block max-w-[300px]" title={info.getValue() || ''}>
                     {info.getValue() || '-'}
                 </span>
             ),
@@ -82,8 +83,8 @@ export const getColumns = (
 
         /* ================= CREATED AT ================= */
         columnHelper.accessor("createdAt", {
-            header: "Created Date",
-            size: 150,
+            header: (info) => <SortHeader info={info} title="Created At" />,
+            size: 130,
             cell: (info) => {
                 const date = info.getValue();
                 if (!date) return '-';
