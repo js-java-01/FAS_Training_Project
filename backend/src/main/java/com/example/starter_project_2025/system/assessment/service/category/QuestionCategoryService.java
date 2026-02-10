@@ -28,4 +28,8 @@ public class QuestionCategoryService {
     public void deleteById(UUID id) {
         repository.deleteById(id);
     }
+
+    public QuestionCategory getById(UUID id) {
+        return repository.findById(id).orElseThrow(() -> new RuntimeException("QuestionCategory not found"));
+    }
 }

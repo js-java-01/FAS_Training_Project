@@ -95,4 +95,9 @@ public class QuestionService {
         return questionRepo.save(question);
     }
 
+    public Question getQuestionById(UUID id) {
+        return questionRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+    }
+
 }

@@ -49,5 +49,10 @@ public class QuestionController {
         return ResponseEntity.ok(questionService.updateQuestion(id, dto));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getQuestionById(@PathVariable UUID id) {
+        return ResponseEntity.ok(questionService.getQuestionById(id));
+    }
+
 
 }

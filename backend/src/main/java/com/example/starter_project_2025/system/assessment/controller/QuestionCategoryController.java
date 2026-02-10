@@ -34,4 +34,9 @@ public class QuestionCategoryController {
         categoryService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(categoryService.getById(id));
+    }
 }
