@@ -1,34 +1,23 @@
 import { useSelector } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { useActiveModuleGroups } from "./hooks/useSidebarMenus";
-import type { RootState } from "./store/store";
-import { Toaster } from "sonner";
 import { AuthProvider } from "./contexts/AuthContext";
 import NotFoundPage from "./pages/NotFoundPage";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
-import { Login } from "./pages/auth/Login";
-import { Logout } from "./pages/auth/Logout";
-import { Unauthorized } from "./pages/Unauthorized";
-import RegisterPage from "./pages/auth/RegisterPage";
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
-import { componentRegistry } from "./router/componentRegistry";
-
+import { Toaster } from "sonner";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { data: moduleGroups = [] } = useActiveModuleGroups(isAuthenticated);
   return (
     <BrowserRouter>
-      <Toaster
+      {/* <Toaster
         duration={1500}
         position="top-right"
         richColors
         toastOptions={{
           className: "p-4",
         }}
-      />
+      /> */}
       <AuthProvider>
         <Routes>
           <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />
