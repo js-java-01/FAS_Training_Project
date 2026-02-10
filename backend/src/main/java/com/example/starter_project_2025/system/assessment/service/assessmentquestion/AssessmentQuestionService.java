@@ -45,4 +45,8 @@ public class AssessmentQuestionService {
     public void deleteById(UUID id) {
         repo.deleteById(id);
     }
+
+    public AssessmentQuestion getById(UUID id) {
+        return repo.findById(id).orElseThrow(() -> new RuntimeException("AssessmentQuestion not found"));
+    }
 }

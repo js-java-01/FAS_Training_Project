@@ -40,4 +40,8 @@ public class AssessmentQuestionController {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(service.getById(id));
+    }
 }
