@@ -27,15 +27,19 @@ public class QuestionService {
         question.setContent(dto.getContent());
         question.setQuestionType(dto.getQuestionType());
 
-        if (dto.getCategoryId() != null) {
+        // ===== SET CATEGORY =====
+        if (dto.getQuestionCategoryId() != null) {
             QuestionCategory cat = categoryRepo
-                    .findById(dto.getCategoryId())
-                    .orElse(null);
+                    .findById(dto.getQuestionCategoryId())
+                    .orElseThrow(() ->
+                            new RuntimeException("Question category not found"));
             question.setCategory(cat);
         }
 
-        if (dto.getOptions() != null) {
+        // ===== SET OPTIONS =====
+        if (dto.getOptions() != null && !dto.getOptions().isEmpty()) {
             List<QuestionOption> options = new ArrayList<>();
+
             dto.getOptions().forEach(optDto -> {
                 QuestionOption opt = new QuestionOption();
                 opt.setContent(optDto.getContent());
@@ -44,13 +48,14 @@ public class QuestionService {
                 opt.setQuestion(question);
                 options.add(opt);
             });
+
             question.setOptions(options);
         }
 
         return questionRepo.save(question);
     }
 
-    // ===== CRUD BỔ SUNG CHO CHECKLIST =====
+    // ===== CRUD BỔ SUNG =====
 
     public List<Question> getAll() {
         return questionRepo.findAll();

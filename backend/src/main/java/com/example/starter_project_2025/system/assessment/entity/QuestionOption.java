@@ -1,29 +1,35 @@
 package com.example.starter_project_2025.system.assessment.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+
 import java.util.UUID;
 
 @Entity
+@Table(name = "question_options")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "question_options")
 public class QuestionOption {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    private boolean isCorrect = false;
+    @Column(name = "is_correct", nullable = false)
+    private boolean correct = false;
 
+    @Column(name = "order_index")
     private Integer orderIndex;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "question_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "question_id", nullable = false)
+    @JsonIgnore
     private Question question;
 }
