@@ -6,7 +6,7 @@ export const questionApi = {
   // ==================== GET ALL ====================
   getAll: async (): Promise<Question[]> => {
     const response = await axiosInstance.get<Question[]>(
-      '/api/v1/questions'
+      '/v1/questions'
     );
     return response.data;
   },
@@ -16,7 +16,7 @@ export const questionApi = {
     data: QuestionCreateRequest
   ): Promise<Question> => {
     const response = await axiosInstance.post<Question>(
-      '/api/v1/questions',
+      '/v1/questions',
       data
     );
     return response.data;
@@ -24,6 +24,6 @@ export const questionApi = {
 
   // ==================== DELETE ====================
   delete: async (id: string): Promise<void> => {
-    await axiosInstance.delete(`/api/v1/questions/${id}`);
+    await axiosInstance.delete(`/v1/questions/${id}`);
   }
 };

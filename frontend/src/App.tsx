@@ -17,6 +17,8 @@ import ProgrammingLanguageManagement from "./pages/programming-language/Programm
 import TeacherAssessmentPage from "./pages/teacher-assessment/TeacherAssessmentPage";
 import EditAssessmentPage from "./pages/teacher-assessment/EditAssessmentPage";
 import { QuestionCategoryManagement, QuestionCategoryTable } from "./pages/question-category";
+import { CreateQuestionPage } from "./pages/question";
+import QuestionManagementPage from "./pages/question/QuestionManagementPage";
 
 // import { SidebarProvider } from "./components/ui/sidebar";
 
@@ -120,6 +122,26 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path='questions'
+            element={
+              <ProtectedRoute requiredPermission="QUESTION_READ">
+                <QuestionManagementPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path='questions/create'
+            element={
+              <ProtectedRoute requiredPermission="QUESTION_CREATE">
+                <CreateQuestionPage />
+              </ProtectedRoute>
+            }
+          />
+
+
 
           <Route path="/modules" element={<ModulesManagement />} />
 

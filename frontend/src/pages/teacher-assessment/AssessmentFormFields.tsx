@@ -27,7 +27,7 @@ export const AssessmentFormFields: React.FC<AssessmentFormFieldsProps> = ({
     const assessmentTypes = assessmentTypesData?.content ?? [];
 
     return (
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+        <div className="space-y-4">
             {/* Code (only for create) */}
             {!isUpdate && (
                 <div>

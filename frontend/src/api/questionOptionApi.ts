@@ -9,7 +9,7 @@ export const questionOptionApi = {
   // ==================== GET ALL ====================
   getAll: async (): Promise<QuestionOption[]> => {
     const response = await axiosInstance.get<QuestionOption[]>(
-      '/api/v1/question-options'
+      '/v1/question-options'
     );
     return response.data;
   },
@@ -19,7 +19,7 @@ export const questionOptionApi = {
     data: QuestionOptionRequest
   ): Promise<QuestionOption> => {
     const response = await axiosInstance.post<QuestionOption>(
-      '/api/v1/question-options',
+      '/v1/question-options',
       data
     );
     return response.data;
@@ -27,6 +27,6 @@ export const questionOptionApi = {
 
   // ==================== DELETE ====================
   delete: async (id: string): Promise<void> => {
-    await axiosInstance.delete(`/api/v1/question-options/${id}`);
+    await axiosInstance.delete(`/v1/question-options/${id}`);
   }
 };
