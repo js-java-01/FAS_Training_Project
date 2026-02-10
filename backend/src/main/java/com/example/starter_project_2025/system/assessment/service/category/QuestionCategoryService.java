@@ -6,6 +6,7 @@ import com.example.starter_project_2025.system.assessment.repository.QuestionCat
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class QuestionCategoryService {
@@ -22,5 +23,9 @@ public class QuestionCategoryService {
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
         return repository.save(entity);
+    }
+
+    public void deleteById(UUID id) {
+        repository.deleteById(id);
     }
 }

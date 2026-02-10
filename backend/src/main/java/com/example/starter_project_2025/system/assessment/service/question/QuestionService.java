@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.assessment.service.question;
 
 import com.example.starter_project_2025.system.assessment.dto.question.QuestionRequestDTO;
+import com.example.starter_project_2025.system.assessment.dto.question.UpdateQuestionRequestDTO;
 import com.example.starter_project_2025.system.assessment.entity.Question;
 import com.example.starter_project_2025.system.assessment.entity.QuestionCategory;
 import com.example.starter_project_2025.system.assessment.entity.QuestionOption;
@@ -64,4 +65,34 @@ public class QuestionService {
     public void deleteById(UUID id) {
         questionRepo.deleteById(id);
     }
+
+    public Question updateQuestion(UUID id, UpdateQuestionRequestDTO dto) {
+        Question question = questionRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+
+        question.setContent(dto.getContent());
+        question.setQuestionType(dto.getQuestionType());
+        question.setIsActive(dto.getIsActive());
+
+        QuestionCategory category = categoryRepo
+                .findById(dto.getQuestionCategoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+        question.setCategory(category);
+
+        question.getOptions().clear();
+
+        if (dto.getOptions() != null) {
+            dto.getOptions().forEach(o -> {
+                QuestionOption opt = new QuestionOption();
+                opt.setContent(o.getContent());
+                opt.setCorrect(o.isCorrect());
+                opt.setOrderIndex(o.getOrderIndex());
+                opt.setQuestion(question);
+                question.getOptions().add(opt);
+            });
+        }
+
+        return questionRepo.save(question);
+    }
+
 }
