@@ -1,7 +1,7 @@
 import { MainLayout } from '@/components/layout/MainLayout';
 import MainHeader from '@/components/layout/MainHeader';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Eye, SquarePen, Trash2 } from 'lucide-react';
+import { Plus, Eye, SquarePen, Trash2, Search } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,10 @@ export default function QuestionManagementPage() {
     const navigate = useNavigate();
 
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+    const [categorySearch, setCategorySearch] = useState('');
+    const [questionSearch, setQuestionSearch] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(10);
 
     // Fetch categories
     const { data: categories = [], isLoading: categoriesLoading } = useQuery({
@@ -33,11 +37,45 @@ export default function QuestionManagementPage() {
         queryFn: () => questionApi.getAll()
     });
 
-    // Filter questions by selected category
+    // Filter categories by search
+    const filteredCategories = useMemo(() => {
+        if (!categorySearch) return categories;
+        return categories.filter((c: QuestionCategory) =>
+            c.name.toLowerCase().includes(categorySearch.toLowerCase())
+        );
+    }, [categories, categorySearch]);
+
+    // Filter questions by selected category and search
     const filteredQuestions = useMemo(() => {
-        if (!selectedCategoryId) return allQuestions;
-        return allQuestions.filter(q => q.category.id === selectedCategoryId);
-    }, [allQuestions, selectedCategoryId]);
+        let filtered = allQuestions;
+
+        // Filter by category
+        if (selectedCategoryId) {
+            filtered = filtered.filter(q => q.category.id === selectedCategoryId);
+        }
+
+        // Filter by search
+        if (questionSearch) {
+            filtered = filtered.filter(q =>
+                q.content.toLowerCase().includes(questionSearch.toLowerCase()) ||
+                q.category.name.toLowerCase().includes(questionSearch.toLowerCase())
+            );
+        }
+
+        return filtered;
+    }, [allQuestions, selectedCategoryId, questionSearch]);
+
+    // Pagination
+    const totalPages = Math.ceil(filteredQuestions.length / pageSize);
+
+    // Ensure current page is within bounds
+    const safePage = Math.min(currentPage, Math.max(1, totalPages));
+
+    const paginatedQuestions = useMemo(() => {
+        const startIndex = (safePage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        return filteredQuestions.slice(startIndex, endIndex);
+    }, [filteredQuestions, safePage, pageSize]);
 
     // Delete mutation
     const deleteMutation = useMutation({
@@ -58,24 +96,34 @@ export default function QuestionManagementPage() {
     };
 
     const getQuestionTypeBadge = (type: string) => {
-        if (type === 'SINGLE_CHOICE') {
-            return <Badge className="bg-blue-50 text-blue-600 border-blue-100">Single Choice</Badge>;
-        }
-        return <Badge className="bg-purple-50 text-purple-600 border-purple-100">Multiple Choice</Badge>;
+        const badgeClasses: Record<string, string> = {
+            SINGLE_CHOICE: 'bg-blue-50 text-blue-600 border-blue-200',
+            MULTIPLE_CHOICE: 'bg-purple-50 text-purple-600 border-purple-200',
+            TRUE_FALSE: 'bg-green-50 text-green-600 border-green-200',
+            ESSAY: 'bg-orange-50 text-orange-600 border-orange-200'
+        };
+
+        const labels: Record<string, string> = {
+            SINGLE_CHOICE: 'Single Choice',
+            MULTIPLE_CHOICE: 'Multiple Choice',
+            TRUE_FALSE: 'True/False',
+            ESSAY: 'Essay'
+        };
+
+        return (
+            <Badge variant="outline" className={badgeClasses[type] || ''}>
+                {labels[type] || type}
+            </Badge>
+        );
     };
 
     return (
-        <MainLayout pathName={{ questions: "Question Management" }}>
-            <div className="h-full flex-1 flex flex-col gap-4">
-                <MainHeader
-                    title="Question Management"
-                    description="Manage questions by category"
-                />
-
-                <div className="flex gap-2 justify-end">
+        <MainLayout>
+            <div className="h-full flex flex-col overflow-hidden">
+                <div className="px-4 flex items-center justify-between">
+                    <MainHeader title="Question Management" description="Manage questions by category" />
                     <PermissionGate permission="QUESTION_CREATE">
                         <Button
-                            size="sm"
                             onClick={() => navigate('/questions/create')}
                             className="h-8 bg-blue-600 hover:bg-blue-700"
                         >
@@ -92,6 +140,21 @@ export default function QuestionManagementPage() {
                             <h3 className="font-semibold text-gray-900">Categories</h3>
                             <p className="text-xs text-gray-500 mt-1">Select a category</p>
                         </div>
+
+                        {/* Category Search */}
+                        <div className="p-3 border-b border-gray-200">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search categories..."
+                                    value={categorySearch}
+                                    onChange={(e) => setCategorySearch(e.target.value)}
+                                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                            </div>
+                        </div>
+
                         <div className="flex-1 overflow-auto">
                             {categoriesLoading ? (
                                 <div className="p-4 text-center text-gray-500">Loading...</div>
@@ -111,7 +174,7 @@ export default function QuestionManagementPage() {
                                             </Badge>
                                         </div>
                                     </button>
-                                    {categories.map((category: QuestionCategory) => {
+                                    {filteredCategories.map((category: QuestionCategory) => {
                                         const count = allQuestions.filter(q => q.category.id === category.id).length;
                                         return (
                                             <button
@@ -149,16 +212,30 @@ export default function QuestionManagementPage() {
                             </p>
                         </div>
 
+                        {/* Question Search */}
+                        <div className="p-4 border-b border-gray-200">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search questions..."
+                                    value={questionSearch}
+                                    onChange={(e) => setQuestionSearch(e.target.value)}
+                                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                            </div>
+                        </div>
+
                         <div className="flex-1 overflow-auto p-4">
                             {questionsLoading ? (
                                 <div className="text-center text-gray-500 py-8">Loading questions...</div>
                             ) : filteredQuestions.length === 0 ? (
                                 <div className="text-center text-gray-500 py-8">
-                                    No questions found in this category
+                                    No questions found
                                 </div>
                             ) : (
                                 <div className="space-y-3">
-                                    {filteredQuestions.map((question: Question) => (
+                                    {paginatedQuestions.map((question: Question) => (
                                         <div
                                             key={question.id}
                                             className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
@@ -236,6 +313,61 @@ export default function QuestionManagementPage() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Pagination */}
+                        {filteredQuestions.length > 0 && totalPages > 1 && (
+                            <div className="p-4 border-t border-gray-200">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-sm text-gray-600">
+                                        Showing {((safePage - 1) * pageSize) + 1} to {Math.min(safePage * pageSize, filteredQuestions.length)} of {filteredQuestions.length}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                            disabled={safePage === 1}
+                                        >
+                                            Previous
+                                        </Button>
+                                        <div className="flex items-center gap-1">
+                                            {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                                .filter(page => {
+                                                    // Show first page, last page, current page, and pages around current
+                                                    return page === 1 ||
+                                                        page === totalPages ||
+                                                        Math.abs(page - safePage) <= 1;
+                                                })
+                                                .map((page, index, array) => {
+                                                    // Add ellipsis if there's a gap
+                                                    const showEllipsis = index > 0 && array[index - 1] !== page - 1;
+                                                    return (
+                                                        <div key={page} className="flex items-center">
+                                                            {showEllipsis && <span className="px-2 text-gray-400">...</span>}
+                                                            <Button
+                                                                variant={safePage === page ? 'default' : 'outline'}
+                                                                size="sm"
+                                                                onClick={() => setCurrentPage(page)}
+                                                                className="min-w-[2rem]"
+                                                            >
+                                                                {page}
+                                                            </Button>
+                                                        </div>
+                                                    );
+                                                })}
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                            disabled={safePage === totalPages}
+                                        >
+                                            Next
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

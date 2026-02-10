@@ -114,7 +114,7 @@ function App() {
             }
           />
 
-          <Route
+          <Route       
             path="/programming-languages"
             element={
               <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
@@ -140,8 +140,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-
 
           <Route path="/modules" element={<ModulesManagement />} />
 
