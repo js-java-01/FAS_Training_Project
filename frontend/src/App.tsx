@@ -15,8 +15,8 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import AssessmentManagement from "./pages/assessment-type/AssessmentManagement";
 import ProgrammingLanguageManagement from "./pages/programming-language/ProgrammingLanguageManagement";
 import TeacherAssessmentPage from "./pages/teacher-assessment/TeacherAssessmentPage";
-import EditAssessmentPage from "./pages/teacher-assessment/EditAssessmentPage";
-import { QuestionCategoryManagement, QuestionCategoryTable } from "./pages/question-category";
+import AssessmentFormPage from "./pages/teacher-assessment/AssessmentFormPage";
+import { QuestionCategoryManagement } from "./pages/question-category";
 import { CreateQuestionPage, EditQuestionPage } from "./pages/question";
 import QuestionManagementPage from "./pages/question/QuestionManagementPage";
 
@@ -97,10 +97,10 @@ function App() {
           />
 
           <Route
-            path="/question-categories"
+            path="/teacher-assessment/create"
             element={
-              <ProtectedRoute requiredPermission="QUESTION_CATEGORY_READ">
-                <QuestionCategoryManagement />
+              <ProtectedRoute requiredPermission="ASSESSMENT_CREATE">
+                <AssessmentFormPage />
               </ProtectedRoute>
             }
           />
@@ -109,7 +109,16 @@ function App() {
             path="/teacher-assessment/:id/edit"
             element={
               <ProtectedRoute requiredPermission="ASSESSMENT_UPDATE">
-                <EditAssessmentPage />
+                <AssessmentFormPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/question-categories"
+            element={
+              <ProtectedRoute requiredPermission="QUESTION_CATEGORY_READ">
+                <QuestionCategoryManagement />
               </ProtectedRoute>
             }
           />

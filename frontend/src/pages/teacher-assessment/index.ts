@@ -7,7 +7,7 @@
 
 // Main page
 export { default as TeacherAssessmentPage } from './TeacherAssessmentPage';
-export { default as EditAssessmentPage } from './EditAssessmentPage';
+export { default as AssessmentFormPage } from './AssessmentFormPage';
 
 // View components
 export { AssessmentCard } from './AssessmentCard';

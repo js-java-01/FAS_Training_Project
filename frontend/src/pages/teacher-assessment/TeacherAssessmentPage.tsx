@@ -13,7 +13,6 @@ import { assessmentApi } from '@/api/assessmentApi';
 import type { Assessment, AssessmentStatus } from '@/types/assessment';
 import { AssessmentGrid } from './AssessmentGrid';
 import { getColumns } from './columns';
-import { CreateAssessmentModal } from './CreateAssessmentModal';
 import { ViewAssessmentModal } from './ViewAssessmentModal';
 import { DeleteAssessmentDialog } from './DeleteAssessmentDialog';
 
@@ -42,7 +41,6 @@ export default function TeacherAssessmentPage() {
     // ========================================
     // State: Modal Controls
     // ========================================
-    const [showCreateModal, setShowCreateModal] = useState(false);
     const [showViewModal, setShowViewModal] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
@@ -73,20 +71,6 @@ export default function TeacherAssessmentPage() {
     // ========================================
     // CRUD Mutations
     // ========================================
-    const createMutation = useMutation({
-        mutationFn: assessmentApi.create,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['assessments'] });
-            setShowCreateModal(false);
-            toast({ variant: "success", title: "Success", description: "Assessment created successfully" });
-        },
-        onError: (error: Error & { response?: { data?: { message?: string } } }) => {
-            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to create assessment" });
-        }
-    });
-
-
-
     const deleteMutation = useMutation({
         mutationFn: assessmentApi.delete,
         onSuccess: () => {
@@ -149,7 +133,7 @@ export default function TeacherAssessmentPage() {
             <PermissionGate permission="ASSESSMENT_CREATE">
                 <Button
                     size="sm"
-                    onClick={() => setShowCreateModal(true)}
+                    onClick={() => navigate('/teacher-assessment/create')}
                     className="h-8 bg-blue-600 hover:bg-blue-700"
                 >
                     <Plus className="mr-2 h-4 w-4" />
@@ -212,13 +196,6 @@ export default function TeacherAssessmentPage() {
                 )}
 
                 {/* Modals */}
-                <CreateAssessmentModal
-                    isOpen={showCreateModal}
-                    onClose={() => setShowCreateModal(false)}
-                    onSubmit={(data: Parameters<typeof createMutation.mutate>[0]) => createMutation.mutate(data)}
-                    isPending={createMutation.isPending}
-                />
-
                 <ViewAssessmentModal
                     isOpen={showViewModal}
                     onClose={() => setShowViewModal(false)}
