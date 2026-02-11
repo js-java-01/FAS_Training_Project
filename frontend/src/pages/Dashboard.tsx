@@ -5,7 +5,6 @@ import { MainLayout } from "../components/layout/MainLayout";
 import { dashboardApi, type DashboardStats } from "../api/dashboardApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
-import MainHeader from "@/components/layout/MainHeader.tsx";
 
 export const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -29,8 +28,6 @@ export const Dashboard: React.FC = () => {
 
   return (
     <MainLayout>
-      <MainHeader title={"Dashboard"}/>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">

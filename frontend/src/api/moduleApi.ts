@@ -78,6 +78,32 @@ export const moduleGroupApi = {
         );
         return response.data;
     },
+    exportModuleGroups: async (params?: {
+        keyword?: string;
+        status?: string;
+    }): Promise<Blob> => {
+        const res = await axiosInstance.get(
+            "/module-groups/export",
+            {
+                params,
+                responseType: "blob",
+            }
+        );
+
+        return res.data;
+    },
+    importModuleGroups: async (formData: FormData) => {
+        return axiosInstance.post(
+            "/module-groups/import",
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+    },
+
 };
 
 /* =========================
@@ -159,4 +185,31 @@ export const moduleApi = {
         );
         return response.data;
     },
+
+    exportModules: async (params?: {
+        keyword?: string;
+        status?: string;
+    }): Promise<Blob> => {
+        const res = await axiosInstance.get(
+            "/modules/export",
+            {
+                params,
+                responseType: "blob",
+            }
+        );
+
+        return res.data;
+    },
+    importModules: async (formData: FormData) => {
+        return axiosInstance.post(
+            "/modules/import",
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+    },
+
 };
