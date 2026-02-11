@@ -89,12 +89,8 @@ export const RoleManagement: React.FC = () => {
 
   return (
       <MainLayout pathName={{ roles: 'Role Management' }}>
-<<<<<<< HEAD
-      <div className="flex justify-end items-center mb-6">
-=======
       <div className="flex justify-between items-center mb-6">
         <MainHeader title={"Role Management"}/>
->>>>>>> G3-develop
         <PermissionGate permission="ROLE_CREATE">
           <button
             onClick={() => setShowCreateModal(true)}
@@ -239,7 +235,7 @@ export const RoleManagement: React.FC = () => {
             </form>
           </div>
         </div>
-      )}
+      )}    
     </MainLayout>
   );
 };
