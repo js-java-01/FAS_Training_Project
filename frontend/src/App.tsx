@@ -13,12 +13,12 @@ import { UserManagement } from "./pages/UserManagement";
 import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import AssessmentManagement from "./pages/assessment-type/AssessmentManagement";
-import ProgrammingLanguageManagement from "./pages/programming-language/ProgrammingLanguageManagement";
 import TeacherAssessmentPage from "./pages/teacher-assessment/TeacherAssessmentPage";
 import AssessmentFormPage from "./pages/teacher-assessment/AssessmentFormPage";
 import { QuestionCategoryManagement } from "./pages/question-category";
 import { CreateQuestionPage, EditQuestionPage } from "./pages/question";
 import QuestionManagementPage from "./pages/question/QuestionManagementPage";
+import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
 
 // import { SidebarProvider } from "./components/ui/sidebar";
 

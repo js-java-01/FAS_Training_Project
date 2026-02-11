@@ -6,9 +6,23 @@ import { usePermissions } from "@/hooks/usePermissions"
 import { canAccessMenuItem } from "@/utils/permission.utils"
 import { moduleGroupApi } from "@/api/moduleApi"
 import { iconMap } from "@/constants/iconMap"
+import { useQuery } from "@tanstack/react-query"
+
+
+/* ================= QUERY (LOCAL) ================= */
+export const useActiveModuleGroups = () => {
+    return useQuery<ModuleGroup[]>({
+        queryKey: ["module-groups", "active"],
+        queryFn: moduleGroupApi.getActiveModuleGroups,
+        staleTime: 5 * 60 * 1000,
+    })
+}
+
+/* ================= SIDEBAR HOOK ================= */
 
 /* ------------------------------------------ */
 export function useSidebarMenus() {
+    
     const [moduleGroups, setModuleGroups] = useState<ModuleGroup[]>([])
     const { hasPermission } = usePermissions()
     const location = useLocation()
