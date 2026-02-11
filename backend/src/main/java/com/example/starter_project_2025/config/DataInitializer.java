@@ -281,6 +281,8 @@ public class DataInitializer implements CommandLineRunner {
                 createModule(userGroup, "Roles", "/roles", "shield", 2, "ROLE_READ", "Manage roles and permissions"));
         moduleRepository.save(
                 createModule(userGroup, "Locations", "/locations", "map-pin", 3, "LOCATION_READ", "Manage office locations"));
+        moduleRepository.save(
+                createModule(userGroup, "Departments", "/departments", "building", 4, "DEPARTMENT_READ", "Manage departments"));
 
         // 3. Nhóm: Role Management (deprecated - kept for backward compatibility)
         ModuleGroups roleGroup = new ModuleGroups();
