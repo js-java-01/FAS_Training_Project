@@ -1,4 +1,3 @@
-import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -6,7 +5,7 @@ import { Login } from "./pages/auth/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { UserManagement } from "./pages/UserManagement";
 import { RoleManagement } from "./pages/RoleManagement/RoleManagement";
-import { LocationManagement } from "./pages/LocationManagement";
+import LocationsManagement from "./pages/locations/LocationsManagement";
 import { Unauthorized } from "./pages/Unauthorized";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -85,7 +84,7 @@ function App() {
             path="/locations"
             element={
               <ProtectedRoute requiredPermission="LOCATION_READ">
-                <LocationManagement />
+                <LocationsManagement />
               </ProtectedRoute>
             }
           />

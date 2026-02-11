@@ -11,6 +11,7 @@ export interface Location {
   communeName: string;
   provinceName: string;
   status: LocationStatus;
+  createdAt: string;
 }
 
 export interface CreateLocationRequest {
