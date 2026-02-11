@@ -23,7 +23,7 @@ export function MainLayout({
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto min-h-0 flex flex-col px-6 pb-6 pt-0">
+                <main className="flex-1 overflow-y-auto min-h-0 flex flex-col px-6 pb-6 pt-6">
                     {children}
                 </main>
             </SidebarInset>
