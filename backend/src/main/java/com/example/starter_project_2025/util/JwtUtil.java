@@ -40,7 +40,7 @@ public class JwtUtil {
         var permissions = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
-        
+
         System.out.println("token: " + userDetails.getEmail());
         System.out.println("Permissions in token: " + permissions);
 
@@ -74,20 +74,20 @@ public class JwtUtil {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        
+
         System.out.println("[DEBUG JWT] Parsing token for user: " + claims.getSubject());
         System.out.println("[DEBUG JWT] All claims: " + claims);
         System.out.println("[DEBUG JWT] Permissions claim: " + claims.get("permissions"));
-        
+
         // Extract permissions from token claims
         @SuppressWarnings("unchecked")
         java.util.List<String> permissionsList = (java.util.List<String>) claims.get("permissions");
-        java.util.Set<String> permissions = permissionsList != null 
-            ? new java.util.HashSet<>(permissionsList) 
+        java.util.Set<String> permissions = permissionsList != null
+            ? new java.util.HashSet<>(permissionsList)
             : new java.util.HashSet<>();
-        
+
         System.out.println("[DEBUG JWT] Extracted permissions set: " + permissions);
-        
+
         return new UserDetailsImpl(
                 java.util.UUID.fromString(claims.get("userId").toString()),
                 claims.getSubject(),
