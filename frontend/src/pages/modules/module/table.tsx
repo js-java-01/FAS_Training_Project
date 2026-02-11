@@ -16,7 +16,7 @@ import { moduleApi } from "@/api/moduleApi";
 import type { Module, CreateModuleRequest } from "@/types/module";
 import { ModuleForm } from "./ModuleForm";
 import { useDebounce } from "@uidotdev/usehooks";
-import { useGetAllModules } from "./queries";
+import { useGetAllModules } from "./services/queries";
 import { ModuleDetailDialog } from "./DetailDialog";
 
 /* ===================== MAIN ===================== */
