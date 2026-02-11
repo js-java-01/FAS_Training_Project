@@ -1,7 +1,7 @@
 import { MainLayout } from '@/components/layout/MainLayout';
 import MainHeader from '@/components/layout/MainHeader';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Eye, SquarePen, Trash2, Search } from 'lucide-react';
+import { Plus, Eye, SquarePen, Trash2, Search, Filter, LayoutGrid, List, ChevronRight } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ export default function QuestionManagementPage() {
     const [questionSearch, setQuestionSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
     // Fetch categories
     const { data: categories = [], isLoading: categoriesLoading } = useQuery({
@@ -118,31 +119,90 @@ export default function QuestionManagementPage() {
     };
 
     return (
-        <MainLayout>
-            <div className="h-full flex flex-col overflow-hidden">
-                <div className="px-4 flex items-center justify-between">
-                    <MainHeader title="Question Management" description="Manage questions by category" />
+        <MainLayout pathName={{ questions: "Question Bank" }}>
+            <div className="h-full flex flex-col overflow-hidden gap-6 p-6">
+                {/* Header Section */}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <MainHeader
+                            title="Question Bank"
+                            description="Create, organize, and manage your assessment questions"
+                        />
+                    </div>
                     <PermissionGate permission="QUESTION_CREATE">
                         <Button
                             onClick={() => navigate('/questions/create')}
-                            className="h-8 bg-blue-600 hover:bg-blue-700"
+                            size="lg"
+                            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/30"
                         >
-                            <Plus className="mr-2 h-4 w-4" />
-                            Add Question
+                            <Plus className="mr-2 h-5 w-5" />
+                            Create Question
                         </Button>
                     </PermissionGate>
                 </div>
 
-                <div className="flex-1 flex gap-4 overflow-hidden">
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-blue-600 font-medium">Total Questions</p>
+                                <p className="text-2xl font-bold text-blue-900 mt-1">{allQuestions.length}</p>
+                            </div>
+                            <div className="h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                                <Filter className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-green-600 font-medium">Active</p>
+                                <p className="text-2xl font-bold text-green-900 mt-1">
+                                    {allQuestions.filter(q => q.isActive).length}
+                                </p>
+                            </div>
+                            <div className="h-12 w-12 bg-green-600 rounded-lg flex items-center justify-center text-white text-xl font-bold">
+                                ✓
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-purple-600 font-medium">Categories</p>
+                                <p className="text-2xl font-bold text-purple-900 mt-1">{categories.length}</p>
+                            </div>
+                            <div className="h-12 w-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                                <LayoutGrid className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-orange-600 font-medium">Filtered</p>
+                                <p className="text-2xl font-bold text-orange-900 mt-1">{filteredQuestions.length}</p>
+                            </div>
+                            <div className="h-12 w-12 bg-orange-600 rounded-lg flex items-center justify-center">
+                                <Search className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex-1 flex gap-6 overflow-hidden">
                     {/* Left Sidebar - Categories */}
-                    <div className="w-64 bg-white rounded-lg shadow overflow-hidden flex flex-col">
-                        <div className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900">Categories</h3>
-                            <p className="text-xs text-gray-500 mt-1">Select a category</p>
+                    <div className="w-72 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-5 border-b border-gray-200">
+                            <div className="flex items-center gap-2 text-gray-700">
+                                <Filter className="h-5 w-5" />
+                                <h3 className="font-bold text-lg">Filter by Category</h3>
+                            </div>
                         </div>
 
                         {/* Category Search */}
-                        <div className="p-3 border-b border-gray-200">
+                        <div className="p-4 border-b border-gray-200 bg-gray-50">
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <input
@@ -150,44 +210,60 @@ export default function QuestionManagementPage() {
                                     placeholder="Search categories..."
                                     value={categorySearch}
                                     onChange={(e) => setCategorySearch(e.target.value)}
-                                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                                 />
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-auto">
+                        <div className="flex-1 overflow-auto p-3">
                             {categoriesLoading ? (
                                 <div className="p-4 text-center text-gray-500">Loading...</div>
                             ) : (
-                                <div className="p-2">
+                                <div className="space-y-1">
                                     <button
                                         onClick={() => setSelectedCategoryId('')}
-                                        className={`w-full text-left px-3 py-2 rounded-lg mb-1 transition-colors ${!selectedCategoryId
-                                            ? 'bg-blue-50 text-blue-700 font-medium'
-                                            : 'hover:bg-gray-50 text-gray-700'
+                                        className={`w-full text-left px-4 py-3 rounded-lg transition-all ${!selectedCategoryId
+                                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md scale-[1.02]'
+                                            : 'hover:bg-gray-100 text-gray-700'
                                             }`}
                                     >
                                         <div className="flex items-center justify-between">
-                                            <span>All Questions</span>
-                                            <Badge variant="outline" className="text-xs">
+                                            <span className="font-medium">📚 All Questions</span>
+                                            <Badge
+                                                variant="outline"
+                                                className={`text-xs font-semibold ${!selectedCategoryId
+                                                    ? 'bg-white/20 text-white border-white/30'
+                                                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                                                    }`}
+                                            >
                                                 {allQuestions.length}
                                             </Badge>
                                         </div>
                                     </button>
                                     {filteredCategories.map((category: QuestionCategory) => {
                                         const count = allQuestions.filter(q => q.category?.id === category.id).length;
+                                        const isSelected = selectedCategoryId === category.id;
                                         return (
                                             <button
                                                 key={category.id}
                                                 onClick={() => setSelectedCategoryId(category.id)}
-                                                className={`w-full text-left px-3 py-2 rounded-lg mb-1 transition-colors ${selectedCategoryId === category.id
-                                                    ? 'bg-blue-50 text-blue-700 font-medium'
-                                                    : 'hover:bg-gray-50 text-gray-700'
+                                                className={`w-full text-left px-4 py-3 rounded-lg transition-all group ${isSelected
+                                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md scale-[1.02]'
+                                                    : 'hover:bg-gray-100 text-gray-700'
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-between">
-                                                    <span className="truncate">{category.name}</span>
-                                                    <Badge variant="outline" className="text-xs">
+                                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                        <ChevronRight className={`h-4 w-4 transition-transform ${isSelected ? 'rotate-90' : ''}`} />
+                                                        <span className="truncate font-medium">{category.name}</span>
+                                                    </div>
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={`text-xs font-semibold ml-2 ${isSelected
+                                                            ? 'bg-white/20 text-white border-white/30'
+                                                            : 'bg-gray-50 text-gray-700 border-gray-300'
+                                                            }`}
+                                                    >
                                                         {count}
                                                     </Badge>
                                                 </div>
@@ -200,67 +276,111 @@ export default function QuestionManagementPage() {
                     </div>
 
                     {/* Right Side - Questions */}
-                    <div className="flex-1 bg-white rounded-lg shadow overflow-hidden flex flex-col">
-                        <div className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900">
-                                {selectedCategoryId
-                                    ? categories.find((c: QuestionCategory) => c.id === selectedCategoryId)?.name
-                                    : 'All Questions'}
-                            </h3>
-                            <p className="text-xs text-gray-500 mt-1">
-                                {filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''}
-                            </p>
-                        </div>
+                    <div className="flex-1 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-5 border-b border-gray-200">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+                                        {selectedCategoryId
+                                            ? categories.find((c: QuestionCategory) => c.id === selectedCategoryId)?.name
+                                            : '📝 All Questions'}
+                                    </h3>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        {filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''} found
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant={viewMode === 'list' ? 'default' : 'outline'}
+                                        size="sm"
+                                        onClick={() => setViewMode('list')}
+                                        className="h-9"
+                                    >
+                                        <List className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant={viewMode === 'grid' ? 'default' : 'outline'}
+                                        size="sm"
+                                        onClick={() => setViewMode('grid')}
+                                        className="h-9"
+                                    >
+                                        <LayoutGrid className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
 
-                        {/* Question Search */}
-                        <div className="p-4 border-b border-gray-200">
-                            <div className="relative">
+                            {/* Question Search */}
+                            <div className="relative mt-4">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder="Search questions..."
+                                    placeholder="Search questions by content or category..."
                                     value={questionSearch}
                                     onChange={(e) => setQuestionSearch(e.target.value)}
-                                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                                 />
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-auto p-4">
+                        <div className="flex-1 overflow-auto p-5">
                             {questionsLoading ? (
-                                <div className="text-center text-gray-500 py-8">Loading questions...</div>
+                                <div className="flex items-center justify-center h-full">
+                                    <div className="text-center">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                                        <p className="text-gray-500 mt-4">Loading questions...</p>
+                                    </div>
+                                </div>
                             ) : filteredQuestions.length === 0 ? (
-                                <div className="text-center text-gray-500 py-8">
-                                    No questions found
+                                <div className="flex items-center justify-center h-full">
+                                    <div className="text-center">
+                                        <div className="h-24 w-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Search className="h-12 w-12 text-gray-400" />
+                                        </div>
+                                        <p className="text-gray-600 font-medium text-lg">No questions found</p>
+                                        <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search query</p>
+                                    </div>
                                 </div>
                             ) : (
-                                <div className="space-y-3">
+                                <div className={viewMode === 'grid'
+                                    ? "grid grid-cols-1 lg:grid-cols-2 gap-4"
+                                    : "space-y-4"
+                                }>
                                     {paginatedQuestions.map((question: Question) => (
                                         <div
                                             key={question.id}
-                                            className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                                            className="group border-2 border-gray-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-xl transition-all duration-200 bg-white"
                                         >
-                                            <div className="flex items-start justify-between gap-4">
+                                            <div className="flex items-start justify-between gap-4 mb-4">
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-2">
+                                                    <div className="flex items-center gap-2 mb-3 flex-wrap">
                                                         {getQuestionTypeBadge(question.questionType)}
                                                         <Badge
                                                             variant="outline"
                                                             className={question.isActive
-                                                                ? 'bg-green-50 text-green-600 border-green-200'
-                                                                : 'bg-gray-50 text-gray-600 border-gray-200'}
+                                                                ? 'bg-green-100 text-green-700 border-green-300 font-semibold'
+                                                                : 'bg-gray-100 text-gray-600 border-gray-300'}
                                                         >
-                                                            {question.isActive ? 'Active' : 'Inactive'}
+                                                            {question.isActive ? '✓ Active' : '○ Inactive'}
+                                                        </Badge>
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="bg-purple-50 text-purple-600 border-purple-200"
+                                                        >
+                                                            {question.category?.name || 'Uncategorized'}
                                                         </Badge>
                                                     </div>
-                                                    <p className="text-sm text-gray-900 font-medium mb-2 line-clamp-2">
+                                                    <p className="text-base text-gray-900 font-semibold mb-3 leading-relaxed">
                                                         {question.content}
                                                     </p>
                                                     <div className="flex items-center gap-4 text-xs text-gray-500">
-                                                        <span>Category: {question.category?.name || 'No Category'}</span>
-                                                        <span>Options: {question.options.length}</span>
-                                                        <span>
-                                                            Correct: {question.options.filter(o => o.isCorrect).length}
+                                                        <span className="flex items-center gap-1">
+                                                            <span className="font-medium">Options:</span> {question.options.length}
+                                                        </span>
+                                                        <span className="flex items-center gap-1">
+                                                            <span className="font-medium text-green-600">✓ Correct:</span>
+                                                            <span className="font-bold text-green-600">
+                                                                {question.options.filter(o => o.isCorrect).length}
+                                                            </span>
                                                         </span>
                                                     </div>
                                                 </div>
@@ -268,46 +388,51 @@ export default function QuestionManagementPage() {
                                                     <ActionBtn
                                                         icon={<Eye size={16} />}
                                                         onClick={() => {/* TODO: View modal */ }}
-                                                        tooltipText="View"
+                                                        tooltipText="View Details"
+                                                        className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
                                                     />
                                                     <PermissionGate permission="QUESTION_UPDATE">
                                                         <ActionBtn
                                                             icon={<SquarePen size={16} />}
                                                             onClick={() => navigate(`/questions/${question.id}/edit`)}
-                                                            tooltipText="Edit"
+                                                            tooltipText="Edit Question"
+                                                            className="hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300"
                                                         />
                                                     </PermissionGate>
                                                     <PermissionGate permission="QUESTION_DELETE">
                                                         <ActionBtn
                                                             icon={<Trash2 size={16} />}
                                                             onClick={() => handleDelete(question.id)}
-                                                            className="hover:text-red-500 hover:border-red-500"
-                                                            tooltipText="Delete"
+                                                            className="hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                                                            tooltipText="Delete Question"
                                                         />
                                                     </PermissionGate>
                                                 </div>
                                             </div>
 
                                             {/* Options Preview */}
-                                            <div className="mt-3 pt-3 border-t border-gray-100">
-                                                <p className="text-xs font-medium text-gray-600 mb-2">Options:</p>
-                                                <div className="space-y-1.5">
+                                            <div className="mt-4 pt-4 border-t-2 border-gray-100">
+                                                <p className="text-xs font-bold text-gray-700 mb-3 uppercase tracking-wide">Answer Options</p>
+                                                <div className="space-y-2">
                                                     {question.options
                                                         .sort((a, b) => a.orderIndex - b.orderIndex)
                                                         .map((option, idx) => (
                                                             <div
                                                                 key={option.id}
-                                                                className={`text-xs px-3 py-2 rounded-md border-2 transition-all ${option.isCorrect
-                                                                        ? 'bg-green-100 text-green-800 border-green-400 font-bold shadow-md'
-                                                                        : 'bg-gray-50 text-gray-600 border-gray-200'
+                                                                className={`text-sm px-4 py-2.5 rounded-lg border-2 transition-all ${option.isCorrect
+                                                                    ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-900 border-green-400 font-bold shadow-sm'
+                                                                    : 'bg-gray-50 text-gray-700 border-gray-200'
                                                                     }`}
                                                             >
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className={option.isCorrect ? 'text-green-600 font-bold' : 'text-gray-400 font-normal'}>
-                                                                        {idx + 1}.
+                                                                <div className="flex items-center gap-3">
+                                                                    <span className={`flex items-center justify-center h-6 w-6 rounded-full text-xs font-bold ${option.isCorrect
+                                                                        ? 'bg-green-600 text-white'
+                                                                        : 'bg-gray-300 text-gray-600'
+                                                                        }`}>
+                                                                        {String.fromCharCode(65 + idx)}
                                                                     </span>
                                                                     {option.isCorrect && (
-                                                                        <span className="bg-green-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold">
+                                                                        <span className="bg-green-600 text-white px-2 py-0.5 rounded-md text-xs font-bold">
                                                                             ✓ CORRECT
                                                                         </span>
                                                                     )}
@@ -325,10 +450,10 @@ export default function QuestionManagementPage() {
 
                         {/* Pagination */}
                         {filteredQuestions.length > 0 && totalPages > 1 && (
-                            <div className="p-4 border-t border-gray-200">
+                            <div className="p-5 border-t-2 border-gray-200 bg-gray-50">
                                 <div className="flex items-center justify-between">
-                                    <div className="text-sm text-gray-600">
-                                        Showing {((safePage - 1) * pageSize) + 1} to {Math.min(safePage * pageSize, filteredQuestions.length)} of {filteredQuestions.length}
+                                    <div className="text-sm text-gray-700 font-medium">
+                                        Showing <span className="font-bold text-blue-600">{((safePage - 1) * pageSize) + 1}</span> to <span className="font-bold text-blue-600">{Math.min(safePage * pageSize, filteredQuestions.length)}</span> of <span className="font-bold text-blue-600">{filteredQuestions.length}</span> questions
                                     </div>
                                     <div className="flex gap-2">
                                         <Button
@@ -336,28 +461,30 @@ export default function QuestionManagementPage() {
                                             size="sm"
                                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                             disabled={safePage === 1}
+                                            className="font-semibold"
                                         >
-                                            Previous
+                                            ← Previous
                                         </Button>
                                         <div className="flex items-center gap-1">
                                             {Array.from({ length: totalPages }, (_, i) => i + 1)
                                                 .filter(page => {
-                                                    // Show first page, last page, current page, and pages around current
                                                     return page === 1 ||
                                                         page === totalPages ||
                                                         Math.abs(page - safePage) <= 1;
                                                 })
                                                 .map((page, index, array) => {
-                                                    // Add ellipsis if there's a gap
                                                     const showEllipsis = index > 0 && array[index - 1] !== page - 1;
                                                     return (
                                                         <div key={page} className="flex items-center">
-                                                            {showEllipsis && <span className="px-2 text-gray-400">...</span>}
+                                                            {showEllipsis && <span className="px-2 text-gray-400 font-bold">...</span>}
                                                             <Button
                                                                 variant={safePage === page ? 'default' : 'outline'}
                                                                 size="sm"
                                                                 onClick={() => setCurrentPage(page)}
-                                                                className="min-w-[2rem]"
+                                                                className={`min-w-[2.5rem] font-semibold ${safePage === page
+                                                                    ? 'bg-blue-600 hover:bg-blue-700 shadow-md'
+                                                                    : ''
+                                                                    }`}
                                                             >
                                                                 {page}
                                                             </Button>
@@ -370,8 +497,9 @@ export default function QuestionManagementPage() {
                                             size="sm"
                                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                             disabled={safePage === totalPages}
+                                            className="font-semibold"
                                         >
-                                            Next
+                                            Next →
                                         </Button>
                                     </div>
                                 </div>

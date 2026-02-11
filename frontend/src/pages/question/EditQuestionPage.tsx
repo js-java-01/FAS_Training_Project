@@ -6,7 +6,7 @@ import { questionApi } from '@/api/questionApi';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Save, X } from 'lucide-react';
+import { Loader2, Save, X, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import type { QuestionCreateRequest } from '@/types/question';
 import { QuestionFormFields, QuestionOptionsManager } from './components';
 
@@ -123,11 +123,12 @@ export default function EditQuestionPage() {
 
     if (isLoading) {
         return (
-            <MainLayout pathName={{ questions: "Questions", edit: "Edit Question" }}>
-                <div className="h-full flex items-center justify-center">
-                    <div className="flex items-center gap-2 text-gray-500">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        <span>Loading question...</span>
+            <MainLayout pathName={{ questions: "Question Bank", edit: "Edit Question" }}>
+                <div className="h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-50">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600 font-medium text-lg">Loading question...</p>
+                        <p className="text-gray-400 text-sm mt-2">Please wait while we fetch the details</p>
                     </div>
                 </div>
             </MainLayout>
@@ -136,11 +137,19 @@ export default function EditQuestionPage() {
 
     if (!question) {
         return (
-            <MainLayout pathName={{ questions: "Questions", edit: "Edit Question" }}>
-                <div className="h-full flex items-center justify-center">
-                    <div className="text-center">
-                        <p className="text-red-500 mb-4">Question not found</p>
-                        <Button onClick={() => navigate('/questions')}>
+            <MainLayout pathName={{ questions: "Question Bank", edit: "Edit Question" }}>
+                <div className="h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-gray-50">
+                    <div className="text-center bg-white p-8 rounded-xl shadow-lg border-2 border-red-200">
+                        <div className="h-20 w-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertCircle className="h-10 w-10 text-red-600" />
+                        </div>
+                        <p className="text-red-600 font-bold text-xl mb-2">Question Not Found</p>
+                        <p className="text-gray-500 mb-6">The question you're looking for doesn't exist or has been deleted.</p>
+                        <Button
+                            onClick={() => navigate('/questions')}
+                            className="bg-blue-600 hover:bg-blue-700"
+                        >
+                            <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Questions
                         </Button>
                     </div>
@@ -150,64 +159,115 @@ export default function EditQuestionPage() {
     }
 
     return (
-        <MainLayout pathName={{ questions: "Questions", edit: "Edit Question" }}>
-            <div className="h-full flex-1 flex flex-col gap-4">
-                <MainHeader
-                    title="Edit Question"
-                    description="Update question details and options"
-                />
-
-                <div className="flex justify-end gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={handleCancel}
-                        disabled={updateMutation.isPending}
-                    >
-                        <X className="mr-2 h-4 w-4" />
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={updateMutation.isPending}
-                        className="bg-blue-600 hover:bg-blue-700"
-                    >
-                        {updateMutation.isPending ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Updating...
-                            </>
-                        ) : (
-                            <>
-                                <Save className="mr-2 h-4 w-4" />
-                                Update Question
-                            </>
-                        )}
-                    </Button>
+        <MainLayout pathName={{ questions: "Question Bank", edit: "Edit Question" }}>
+            <div className="h-full flex-1 flex flex-col gap-6 p-6">
+                {/* Header Section */}
+                <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl p-6 shadow-lg text-white">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <MainHeader
+                                title="✏️ Edit Question"
+                                description="Update question details and options"
+                            />
+                            <div className="mt-3 flex items-center gap-4">
+                                <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+                                    {Object.keys(errors).length === 0 ? (
+                                        <>
+                                            <CheckCircle2 className="h-4 w-4" />
+                                            <span className="text-sm font-medium">Ready to save</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <AlertCircle className="h-4 w-4" />
+                                            <span className="text-sm font-medium">
+                                                {Object.keys(errors).length} error(s) to fix
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+                                    <span className="text-sm font-medium">
+                                        ID: {id}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={handleCancel}
+                                disabled={updateMutation.isPending}
+                                className="bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm"
+                            >
+                                <X className="mr-2 h-4 w-4" />
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleSubmit}
+                                disabled={updateMutation.isPending}
+                                className="bg-white text-orange-700 hover:bg-gray-100 font-semibold shadow-lg"
+                            >
+                                {updateMutation.isPending ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Updating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="mr-2 h-4 w-4" />
+                                        Save Changes
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="flex-1 bg-white rounded-lg shadow overflow-hidden flex flex-col">
-                    <div className="p-4 border-b border-gray-200">
-                        <h3 className="font-semibold text-gray-900">Question Details</h3>
-                        {Object.keys(errors).length > 0 && (
-                            <p className="text-xs text-red-500 mt-1">
-                                Please fix the errors below
-                            </p>
-                        )}
+                {/* Main Content */}
+                <div className="flex-1 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
+                    <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-5 border-b-2 border-orange-200">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="font-bold text-xl text-orange-900">📝 Question Details</h3>
+                                {Object.keys(errors).length > 0 ? (
+                                    <p className="text-sm text-red-600 mt-1 flex items-center gap-1 font-medium">
+                                        <AlertCircle className="h-4 w-4" />
+                                        Please fix the errors below before saving
+                                    </p>
+                                ) : (
+                                    <p className="text-sm text-green-600 mt-1 flex items-center gap-1 font-medium">
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        All fields are valid
+                                    </p>
+                                )}
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate('/questions')}
+                                className="hover:bg-orange-50"
+                            >
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Back to List
+                            </Button>
+                        </div>
                     </div>
 
-                    <div className="flex-1 overflow-auto p-6">
-                        <div className="max-w-4xl space-y-6">
+                    <div className="flex-1 overflow-auto p-6 bg-gradient-to-b from-gray-50 to-white">
+                        <div className="max-w-5xl mx-auto space-y-8">
                             <QuestionFormFields
                                 data={formData}
                                 onChange={setFormData}
                                 errors={errors}
                             />
 
-                            <QuestionOptionsManager
-                                data={formData}
-                                onChange={setFormData}
-                                errors={errors}
-                            />
+                            <div className="border-t-2 border-gray-200 pt-6">
+                                <QuestionOptionsManager
+                                    data={formData}
+                                    onChange={setFormData}
+                                    errors={errors}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
