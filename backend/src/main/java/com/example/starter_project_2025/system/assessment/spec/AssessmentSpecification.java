@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.system.assessment.spec;
 
 import com.example.starter_project_2025.system.assessment.entity.Assessment;
-import com.example.starter_project_2025.system.assessment.entity.AssessmentStatus;
+import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 

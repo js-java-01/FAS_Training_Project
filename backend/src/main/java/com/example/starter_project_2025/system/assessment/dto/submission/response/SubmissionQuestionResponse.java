@@ -12,7 +12,7 @@ public class SubmissionQuestionResponse {
     private UUID id;
     private String questionType;
     private String content;
-    private Integer score;
+    private Double score;
     private Integer orderIndex;
 
 }

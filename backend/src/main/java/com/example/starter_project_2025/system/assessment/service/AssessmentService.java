@@ -4,7 +4,7 @@ import com.example.starter_project_2025.system.assessment.dto.AssessmentDTO;
 import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.entity.Assessment;
-import com.example.starter_project_2025.system.assessment.entity.AssessmentStatus;
+import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.mapper.AssessmentMapper;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
@@ -19,7 +19,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Map;
 
 @Service
 public class AssessmentService {

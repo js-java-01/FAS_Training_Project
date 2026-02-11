@@ -14,7 +14,7 @@ import java.util.List;
 public interface SubmissionMapper {
 
     @Mapping(source = "user.id", target = "userId")
-    @Mapping(source = "assessmentType.id", target = "assessmentId")
+    @Mapping(source = "assessment.id", target = "assessmentId")
     SubmissionResponse toSubmissionResponse(Submission submission);
 
     List<SubmissionResponse> toSubmissionResponses(List<Submission> submissions);

@@ -10,8 +10,8 @@ import java.util.UUID;
 public class SubmissionResultResponse {
 
     private UUID submissionId;
-    private Integer totalScore;
-    private Integer passScore;
+    private Double totalScore;
+    private Double passScore;
     private Boolean isPassed;
 
 }

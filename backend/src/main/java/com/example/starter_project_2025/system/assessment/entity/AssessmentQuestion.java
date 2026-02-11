@@ -27,7 +27,7 @@ public class AssessmentQuestion {
     private Question question;
 
     @Column(name = "score")
-    private Float score;
+    private Double score;
 
     @Column(name = "order_index")
     private Integer orderIndex;
