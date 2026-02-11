@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal } from '../Modal';
+import { Modal } from '../../components/Modal';
 import { LanguageFormFields } from './LanguageFormFields';
 import { validateProgrammingLanguage } from '../../lib/programmingLanguageSchema';
 import type { ProgrammingLanguageRequest } from '../../types/programmingLanguage';

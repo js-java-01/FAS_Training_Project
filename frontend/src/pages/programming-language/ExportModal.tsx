@@ -11,7 +11,7 @@ import {
     FileText,
     Loader2
 } from 'lucide-react';
-import { Modal } from '../Modal';
+import { Modal } from '../../components/Modal';
 import { useToast } from '../../hooks/use-toast';
 import { assessmentTypeApi } from '../../api/assessmentTypeApi';
 import type {

@@ -5,26 +5,26 @@ import {
     Upload
 } from 'lucide-react';
 import React, { useState, useMemo, useCallback } from 'react';
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
-import { assessmentTypeApi } from '../../api/assessmentTypeApi';
+import { programmingLanguageApi } from '../../api/programmingLanguageApi';
 import { PermissionGate } from '../../components/PermissionGate';
 import { useToast } from '../../hooks/use-toast';
-import type { AssessmentTypeRequest, ImportResult } from '../../types/assessmentType';
-import type { AssessmentType } from '../../types/assessmentType';
+import type { ProgrammingLanguageRequest, ImportResult } from '../../types/programmingLanguage';
+import type { ProgrammingLanguage } from '../../types/programmingLanguage';
 
-import { CreateAssessmentModal } from './CreateAssessmentModal';
-import { DeleteAssessmentDialog } from './DeleteAssessmentDialog';
-import { ImportAssessmentDialog } from './ImportAssessmentDialog';
-import { UpdateAssessmentModal } from './UpdateAssessmentModal';
-import { ViewAssessmentModal } from './ViewAssessmentModal';
+import { CreateLanguageModal } from './CreateLanguageModal';
+import { DeleteLanguageDialog } from './DeleteLanguageDialog';
+import { ImportLanguageDialog } from './ImportLanguageDialog';
+import { UpdateLanguageModal } from './UpdateLanguageModal';
+import { ViewLanguageModal } from './ViewLanguageModal';
 import { ExportModal } from './ExportModal';
 
 import { DataTable } from '@/components/data_table/DataTable';
-import { getColumns } from './columns';
+import { getColumns } from './column';
 import { Button } from "@/components/ui/button";
 
-export const AssessmentTable: React.FC = () => {
+export const ProgrammingLanguageTable: React.FC = () => {
     const { toast } = useToast();
     const queryClient = useQueryClient();
 
@@ -32,16 +32,10 @@ export const AssessmentTable: React.FC = () => {
     // State: Table Configuration
     // ========================================
     const [keyword, setKeyword] = useState('');
-    // const [sortBy, setSortBy] = useState('createdAt'); // Sorting managed by DataTable if needed?
-    // const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
-    // Currently DataTable doesn't seem to expose simple sort callback easily or I didn't check deep enough.
-    // Let's stick to default sorting for now or keep it hardcoded in API call if DataTable manualSorting is not used.
-    // Creating state to map to API.
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
-
-    // We can handle sorting if DataTable passes it back. For now let's default to createAt desc
-    const [sorting] = useState([{ id: 'createdAt', desc: true }]);
+    //const [sorting] = useState([{ id: 'createdAt', desc: true }]);
+    const [sortingClient, setSortingClient] = useState<SortingState>([]);
 
     // ========================================
     // State: Modal Controls
@@ -52,23 +46,23 @@ export const AssessmentTable: React.FC = () => {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showImportDialog, setShowImportDialog] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
-    const [selectedAssessment, setSelectedAssessment] = useState<AssessmentType | null>(null);
+    const [selectedLanguage, setSelectedLanguage] = useState<ProgrammingLanguage | null>(null);
 
     // ========================================
     // Data Loading (Queries)
     // ========================================
     const { data: tableData, isLoading, isFetching } = useQuery({
-        queryKey: ['assessments', page, size, sorting, keyword],
-        queryFn: () => assessmentTypeApi.getAll({
+        queryKey: ['programmingLanguages', page, size, keyword],
+        queryFn: () => programmingLanguageApi.getAll({
             page,
             size,
-            sortBy: sorting[0]?.id || 'createdAt',
-            sortDir: sorting[0]?.desc ? 'desc' : 'asc',
-            keyword: keyword || undefined
+            // sortBy: sorting[0]?.id || 'createdAt',
+            // sortDir: sorting[0]?.desc ? 'desc' : 'asc',
+            search: keyword || undefined
         })
     });
 
-    // Safe table data with defaults (similar to ModulesTable pattern)
+    // Safe table data with defaults
     const safeTableData = useMemo(() => ({
         items: tableData?.content ?? [],
         page: tableData?.number ?? page,
@@ -81,51 +75,47 @@ export const AssessmentTable: React.FC = () => {
     // CRUD Mutations
     // ========================================
     const createMutation = useMutation({
-        mutationFn: assessmentTypeApi.create,
+        mutationFn: programmingLanguageApi.create,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['assessments'] });
+            queryClient.invalidateQueries({ queryKey: ['programmingLanguages'] });
             setShowCreateModal(false);
-            toast({ variant: "success", title: "Success", description: "Assessment type created successfully" });
+            toast({ variant: "success", title: "Success", description: "Programming language created successfully" });
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
-            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to create assessment.ts type" });
+            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to create programming language" });
         }
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }: { id: string; data: AssessmentTypeRequest }) =>
-            assessmentTypeApi.update(id, data),
+        mutationFn: ({ id, data }: { id: number; data: ProgrammingLanguageRequest }) =>
+            programmingLanguageApi.update(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['assessments'] });
+            queryClient.invalidateQueries({ queryKey: ['programmingLanguages'] });
             setShowUpdateModal(false);
-            toast({ variant: "success", title: "Success", description: "Assessment type updated successfully" });
+            toast({ variant: "success", title: "Success", description: "Programming language updated successfully" });
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
-            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to update assessment.ts type" });
+            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to update programming language" });
         }
     });
 
     const deleteMutation = useMutation({
-        mutationFn: assessmentTypeApi.delete,
+        mutationFn: programmingLanguageApi.delete,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['assessments'] });
+            queryClient.invalidateQueries({ queryKey: ['programmingLanguages'] });
             setShowDeleteDialog(false);
-            toast({ variant: "success", title: "Success", description: "Assessment type deleted successfully" });
+            toast({ variant: "success", title: "Success", description: "Programming language deleted successfully" });
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
-            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to delete assessment.ts type" });
+            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to delete programming language" });
         }
     });
 
     const importMutation = useMutation({
-        mutationFn: assessmentTypeApi.importAssessment,
+        mutationFn: programmingLanguageApi.import,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['assessments'] });
+            queryClient.invalidateQueries({ queryKey: ['programmingLanguages'] });
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
             const errorMessage = error.response?.data?.message;
             if (!errorMessage || !errorMessage.includes('Missing required column')) {
@@ -141,18 +131,18 @@ export const AssessmentTable: React.FC = () => {
     // ========================================
     // Columns & Actions
     // ========================================
-    const handleView = useCallback((row: AssessmentType) => {
-        setSelectedAssessment(row);
+    const handleView = useCallback((row: ProgrammingLanguage) => {
+        setSelectedLanguage(row);
         setShowViewModal(true);
     }, []);
 
-    const handleEdit = useCallback((row: AssessmentType) => {
-        setSelectedAssessment(row);
+    const handleEdit = useCallback((row: ProgrammingLanguage) => {
+        setSelectedLanguage(row);
         setShowUpdateModal(true);
     }, []);
 
-    const handleDelete = useCallback((row: AssessmentType) => {
-        setSelectedAssessment(row);
+    const handleDelete = useCallback((row: ProgrammingLanguage) => {
+        setSelectedLanguage(row);
         setShowDeleteDialog(true);
     }, []);
 
@@ -174,24 +164,26 @@ export const AssessmentTable: React.FC = () => {
                 Export
             </Button>
 
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowImportDialog(true)}
-                className="h-8"
-            >
-                <Upload className="mr-2 h-4 w-4" />
-                Import
-            </Button>
+            <PermissionGate permission="PROGRAMMING_LANGUAGE_CREATE">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowImportDialog(true)}
+                    className="h-8"
+                >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Import
+                </Button>
+            </PermissionGate>
 
-            <PermissionGate permission="ASSESSMENT_CREATE">
+            <PermissionGate permission="PROGRAMMING_LANGUAGE_CREATE">
                 <Button
                     size="sm"
                     onClick={() => setShowCreateModal(true)}
                     className="h-8 bg-blue-600 hover:bg-blue-700"
                 >
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Assessment
+                    Add Language
                 </Button>
             </PermissionGate>
         </div>
@@ -199,8 +191,8 @@ export const AssessmentTable: React.FC = () => {
 
     return (
         <div className="h-full flex flex-col">
-            <DataTable<AssessmentType, unknown>
-                columns={columns as ColumnDef<AssessmentType, unknown>[]}
+            <DataTable<ProgrammingLanguage, unknown>
+                columns={columns as ColumnDef<ProgrammingLanguage, unknown>[]}
                 data={safeTableData.items}
                 isLoading={isLoading}
                 isFetching={isFetching}
@@ -219,45 +211,48 @@ export const AssessmentTable: React.FC = () => {
                 searchPlaceholder="name"
                 onSearchChange={setKeyword}
 
-                // Sorting
-                // manualSorting={true} // Enable if we want server-side sorting with this prop
-                // onSortingChange={...} // Need to map Tanstack sorting state to our sorting state
-
                 // Actions
                 headerActions={headerActions}
+
+                // Sorting
+                sorting={sortingClient}
+                onSortingChange={setSortingClient}
+                manualSorting={false}
+                
+                
             />
 
             {/* Modals */}
-            <CreateAssessmentModal
+            <CreateLanguageModal
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 onSubmit={(data) => createMutation.mutate(data)}
                 isPending={createMutation.isPending}
             />
 
-            <UpdateAssessmentModal
+            <UpdateLanguageModal
                 isOpen={showUpdateModal}
                 onClose={() => setShowUpdateModal(false)}
-                assessment={selectedAssessment}
+                language={selectedLanguage}
                 onSubmit={(id, data) => updateMutation.mutate({ id, data })}
                 isPending={updateMutation.isPending}
             />
 
-            <ViewAssessmentModal
+            <ViewLanguageModal
                 isOpen={showViewModal}
                 onClose={() => setShowViewModal(false)}
-                assessment={selectedAssessment}
+                language={selectedLanguage}
             />
 
-            <DeleteAssessmentDialog
+            <DeleteLanguageDialog
                 isOpen={showDeleteDialog}
                 onClose={() => setShowDeleteDialog(false)}
-                assessment={selectedAssessment}
-                onConfirm={() => selectedAssessment && deleteMutation.mutate(selectedAssessment.id)}
+                language={selectedLanguage}
+                onConfirm={() => selectedLanguage && deleteMutation.mutate(selectedLanguage.id)}
                 isPending={deleteMutation.isPending}
             />
 
-            <ImportAssessmentDialog
+            <ImportLanguageDialog
                 isOpen={showImportDialog}
                 onClose={() => {
                     setShowImportDialog(false);
@@ -266,7 +261,7 @@ export const AssessmentTable: React.FC = () => {
                 onImport={(file) => importMutation.mutate(file)}
                 isPending={importMutation.isPending}
                 importResult={importMutation.data as ImportResult ?? null}
-                onSuccess={() => queryClient.invalidateQueries({ queryKey: ['assessments'] })}
+                onSuccess={() => queryClient.invalidateQueries({ queryKey: ['programmingLanguages'] })}
             />
 
             <ExportModal
