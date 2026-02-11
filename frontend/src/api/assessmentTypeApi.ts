@@ -1,7 +1,6 @@
 import axiosInstance from './axiosInstance';
 import { type AssessmentType, type AssessmentTypeRequest } from '../types/assessmentType';
 import { type PaginatedResponse } from '../types/assessmentType';
-import { type ExportRequest, type ExportPreviewResponse } from '../types/assessmentExport';
 
 export const assessmentTypeApi = {
   getAll: async (params?: {
@@ -68,39 +67,30 @@ export const assessmentTypeApi = {
       formData,
       {
         headers: {
-          'Content-Type': undefined
-        }
+          'Content-Type': 'multipart/form-data',
+        },
       }
     );
 
     return response.data;
   },
 
-  // ==================== Export Preview & Download ====================
+  exportAssessment: async (): Promise<void> => {
+    const response = await axiosInstance.get('/assessment-type/export', {
+      responseType: 'blob',
+    });
 
-  /**
-   * Get paginated preview data for export.
-   */
-  getExportPreview: async (request: ExportRequest): Promise<ExportPreviewResponse> => {
-    const response = await axiosInstance.post<ExportPreviewResponse>(
-      '/assessment-type/export/preview',
-      request
-    );
-    return response.data;
-  },
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
 
-  /**
-   * Download the export file.
-   */
-  export: async (request: ExportRequest): Promise<Blob> => {
-    const response = await axiosInstance.post(
-      '/assessment-type/export',
-      request,
-      {
-        responseType: 'blob'
-      }
-    );
-    return response.data;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'assessment.xlsx';
+    document.body.appendChild(link);
+    link.click();
+
+    link.remove();
+    window.URL.revokeObjectURL(url);
   },
 
   downloadTemplate: async (): Promise<Blob> => {

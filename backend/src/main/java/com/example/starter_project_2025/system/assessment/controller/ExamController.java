@@ -3,7 +3,7 @@ package com.example.starter_project_2025.system.assessment.controller;
 import com.example.starter_project_2025.system.assessment.dto.AssessmentDTO;
 import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRequest;
-import com.example.starter_project_2025.system.assessment.entity.AssessmentStatus;
+import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.service.AssessmentService;
 import io.swagger.v3.oas.annotations.tags.Tag; // Thêm import này
 import jakarta.validation.Valid;

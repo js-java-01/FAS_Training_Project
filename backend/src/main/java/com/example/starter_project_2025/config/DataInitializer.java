@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.config;
 
 import com.example.starter_project_2025.system.assessment.entity.*;
+import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;

@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.assessment.dto;
 
-import com.example.starter_project_2025.system.assessment.entity.AssessmentStatus;
+import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

@@ -7,6 +7,8 @@ import com.example.starter_project_2025.system.assessment.service.question.Quest
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +32,7 @@ public class QuestionController {
     }
 
     @Operation(summary = "Get all questions")
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<Question>> getAllQuestions() {
         return ResponseEntity.ok(questionService.getAll());
     }
@@ -52,6 +54,18 @@ public class QuestionController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getQuestionById(@PathVariable UUID id) {
         return ResponseEntity.ok(questionService.getQuestionById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<Question>> search(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) String questionType,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                questionService.search(keyword, categoryId, questionType, pageable)
+        );
     }
 
 
