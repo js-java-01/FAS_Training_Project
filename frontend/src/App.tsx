@@ -1,31 +1,38 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Toaster } from "sonner";
 import { AuthProvider } from "./contexts/AuthContext";
+import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
+import { Login } from "./pages/auth/Login";
+import { Unauthorized } from "./pages/Unauthorized";
+import RegisterPage from "./pages/auth/RegisterPage";
 import ModulesManagement from "./pages/modules/module/ModulesManagement";
-import { ProtectedRoute } from "./components/ProtectedRoute";
 import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
-import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { RoleManagement } from "./pages/RoleManagement";
-import { AssessmentManagement } from "./pages/AssessmentManagement";
 import { UserManagement } from "./pages/UserManagement";
 import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import RegisterPage from "./pages/auth/RegisterPage";
-import { Unauthorized } from "./pages/Unauthorized";
-import { Login } from "./pages/auth/Login";
-import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
-import { Toaster } from "sonner";
+import AssessmentManagement from "./pages/assessment-type/AssessmentManagement";
+import TeacherAssessmentPage from "./pages/teacher-assessment/TeacherAssessmentPage";
+import AssessmentFormPage from "./pages/teacher-assessment/AssessmentFormPage";
+import { QuestionCategoryManagement } from "./pages/question-category";
+import { CreateQuestionPage, EditQuestionPage } from "./pages/question";
+import QuestionManagementPage from "./pages/question/QuestionManagementPage";
+import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
+
+// import { SidebarProvider } from "./components/ui/sidebar";
 
 function App() {
   return (
     <BrowserRouter>
-      {/* <Toaster
+      <Toaster
         duration={1500}
         position="top-right"
         richColors
         toastOptions={{
           className: "p-4",
         }}
-      /> */}
+      />
       <AuthProvider>
         {/* <SidebarProvider>
          
@@ -54,6 +61,24 @@ function App() {
             }
           />
           <Route
+            path="/roles"
+            element={
+              <ProtectedRoute requiredPermission="ROLE_READ">
+                <RoleManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/moduleGroups"
+            element={
+              <ProtectedRoute requiredPermission="ROLE_READ">
+                <ModuleGroupsManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/assessment-type"
             element={
               <ProtectedRoute requiredPermission="ASSESSMENT_READ">
@@ -62,12 +87,38 @@ function App() {
             }
           />
 
+          <Route
+            path="/teacher-assessment"
+            element={
+              <ProtectedRoute requiredPermission="ASSESSMENT_READ">
+                <TeacherAssessmentPage />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
-            path="/roles"
+            path="/teacher-assessment/create"
             element={
-              <ProtectedRoute requiredPermission="ROLE_READ">
-                <RoleManagement />
+              <ProtectedRoute requiredPermission="ASSESSMENT_CREATE">
+                <AssessmentFormPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/teacher-assessment/:id/edit"
+            element={
+              <ProtectedRoute requiredPermission="ASSESSMENT_UPDATE">
+                <AssessmentFormPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/question-categories"
+            element={
+              <ProtectedRoute requiredPermission="QUESTION_CATEGORY_READ">
+                <QuestionCategoryManagement />
               </ProtectedRoute>
             }
           />
@@ -80,19 +131,38 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
-            path="/moduleGroups"
+            path='questions'
             element={
-              <ProtectedRoute requiredPermission="ROLE_READ">
-                <ModuleGroupsManagement />
+              <ProtectedRoute requiredPermission="QUESTION_READ">
+                <QuestionManagementPage />
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path='questions/create'
+            element={
+              <ProtectedRoute requiredPermission="QUESTION_CREATE">
+                <CreateQuestionPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path='questions/:id/edit'
+            element={
+              <ProtectedRoute requiredPermission="QUESTION_UPDATE">
+                <EditQuestionPage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/modules" element={<ModulesManagement />} />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
-        <Toaster />
       </AuthProvider>
     </BrowserRouter>
   );

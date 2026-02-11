@@ -35,6 +35,9 @@ export const AssessmentFormFields: React.FC<AssessmentFormFieldsProps> = ({
                 {errors.name && (
                     <p className="mt-1 text-sm text-red-600">{errors.name}</p>
                 )}
+                <p className="mt-1 text-xs text-gray-500">
+                    {data.name.length}/255 characters
+                </p>
             </div>
 
             <div>
@@ -53,6 +56,9 @@ export const AssessmentFormFields: React.FC<AssessmentFormFieldsProps> = ({
                 {errors.description && (
                     <p className="mt-1 text-sm text-red-600">{errors.description}</p>
                 )}
+                <p className="mt-1 text-xs text-gray-500">
+                    {data.description.length}/1000 characters
+                </p>
             </div>
         </div>
     );

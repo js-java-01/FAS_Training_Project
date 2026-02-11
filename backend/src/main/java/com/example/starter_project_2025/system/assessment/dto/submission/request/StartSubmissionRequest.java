@@ -1,17 +1,14 @@
 package com.example.starter_project_2025.system.assessment.dto.submission.request;
 
+import lombok.Data;
+
 import java.util.UUID;
 
+
+@Data
 public class StartSubmissionRequest {
 
-    private UUID assessmentTypeId;
+    private Long assessmentId;
 
-    public UUID getAssessmentTypeId() {
-        return assessmentTypeId;
-    }
-
-    public void setAssessmentTypeId(UUID assessmentTypeId) {
-        this.assessmentTypeId = assessmentTypeId;
-    }
 }
 

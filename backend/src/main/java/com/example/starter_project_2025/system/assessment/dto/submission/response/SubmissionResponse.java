@@ -12,11 +12,11 @@ public class SubmissionResponse {
 
     private UUID id;
     private UUID userId;
-    private UUID assessmentId;
+    private Long assessmentId;
     private String status;
     private LocalDateTime startedAt;
     private LocalDateTime submittedAt;
-    private Integer totalScore;
+    private Double totalScore;
     private Boolean isPassed;
 
 

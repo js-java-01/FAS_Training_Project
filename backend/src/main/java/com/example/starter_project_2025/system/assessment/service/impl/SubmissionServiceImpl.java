@@ -2,21 +2,22 @@ package com.example.starter_project_2025.system.assessment.service.impl;
 
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
-import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment.entity.*;
+import com.example.starter_project_2025.system.assessment.enums.QuestionType;
+import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.assessment.dto.submission.request.StartSubmissionRequest;
 import com.example.starter_project_2025.system.assessment.dto.submission.request.SubmitAnswerRequest;
 import com.example.starter_project_2025.system.assessment.dto.submission.request.SubmitSubmissionRequest;
-import com.example.starter_project_2025.system.assessment.entity.Submission;
-import com.example.starter_project_2025.system.assessment.entity.SubmissionAnswer;
-import com.example.starter_project_2025.system.assessment.entity.SubmissionQuestion;
 import com.example.starter_project_2025.system.assessment.enums.SubmissionStatus;
 import com.example.starter_project_2025.system.assessment.repository.SubmissionRepository;
+import com.example.starter_project_2025.system.assessment.service.GradingService;
 import com.example.starter_project_2025.system.assessment.service.SubmissionService;
 import com.example.starter_project_2025.system.assessment.spec.SubmissionSpecification;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -33,7 +34,10 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     private final SubmissionRepository submissionRepository;
     private final UserRepository userRepository;
-    private final AssessmentTypeRepository assessmentTypeRepository;
+    @Autowired
+    private AssessmentRepository assessmentRepository;
+    @Autowired
+    private GradingService gradingService;
 
     /* ===== Student flow ===== */
 
@@ -43,15 +47,36 @@ public class SubmissionServiceImpl implements SubmissionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        AssessmentType assessmentType = assessmentTypeRepository
-                .findById(String.valueOf(request.getAssessmentTypeId()))
-                .orElseThrow(() -> new ResourceNotFoundException("Assessment type not found"));
+        Assessment assessment = assessmentRepository.findById(request.getAssessmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Assessment not found"));
 
         Submission submission = Submission.builder()
                 .user(user)
+                .assessment(assessment)
                 .status(SubmissionStatus.IN_PROGRESS)
                 .startedAt(LocalDateTime.now())
                 .build();
+
+        // ===== CLONE QUESTIONS (SNAPSHOT) =====
+        assessment.getAssessmentQuestions().forEach(aq -> {
+
+            SubmissionQuestion sq = SubmissionQuestion.builder()
+                    .submission(submission)
+                    .originalQuestionId(aq.getQuestion().getId())
+                    .content(aq.getQuestion().getContent())
+                    .questionType(
+                            QuestionType.valueOf(aq.getQuestion().getQuestionType())
+                    )
+                    .score(
+                            aq.getScore() != null
+                                    ? aq.getScore().doubleValue()
+                                    : null
+                    )
+                    .orderIndex(aq.getOrderIndex())
+                    .build();
+
+            submission.getSubmissionQuestions().add(sq);
+        });
 
         return submissionRepository.save(submission);
     }
@@ -71,10 +96,18 @@ public class SubmissionServiceImpl implements SubmissionService {
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Submission question not found"));
 
+        // ===== PREVENT MULTIPLE ANSWERS =====
+        if (!question.getSubmissionAnswers().isEmpty()) {
+            throw new BadRequestException("Question already answered");
+        }
+
         SubmissionAnswer answer = SubmissionAnswer.builder()
+                .submission(submission)
                 .submissionQuestion(question)
                 .answerValue(request.getAnswerValue())
                 .build();
+
+        gradingService.gradeAnswer(question, answer);
 
         question.getSubmissionAnswers().add(answer);
 
@@ -93,22 +126,23 @@ public class SubmissionServiceImpl implements SubmissionService {
         submission.setStatus(SubmissionStatus.SUBMITTED);
         submission.setSubmittedAt(LocalDateTime.now());
 
+        gradingService.finalizeSubmission(submission);
+
         return submission;
     }
 
-    /* ===== Query ===== */
 
     @Override
     @Transactional(readOnly = true)
     public Page<Submission> searchSubmissions(
             UUID userId,
-            UUID assessmentTypeId,
+            UUID assessmentId,
             Pageable pageable
     ) {
 
         Specification<Submission> spec = Specification
                 .where(SubmissionSpecification.hasUserId(userId))
-                .and(SubmissionSpecification.hasAssessmentTypeId(assessmentTypeId));
+                .and(SubmissionSpecification.hasAssessmentId(assessmentId));
 
         return submissionRepository.findAll(spec, pageable);
     }
