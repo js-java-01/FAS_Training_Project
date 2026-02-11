@@ -23,7 +23,9 @@ export default function QuestionManagementPage() {
     const [categorySearch, setCategorySearch] = useState('');
     const [questionSearch, setQuestionSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [categoryPage, setCategoryPage] = useState(1);
     const [pageSize] = useState(10);
+    const [categoryPageSize] = useState(8);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
     // Fetch categories
@@ -45,6 +47,16 @@ export default function QuestionManagementPage() {
             c.name.toLowerCase().includes(categorySearch.toLowerCase())
         );
     }, [categories, categorySearch]);
+
+    // Pagination for categories
+    const totalCategoryPages = Math.ceil(filteredCategories.length / categoryPageSize);
+    const safeCategoryPage = Math.min(categoryPage, Math.max(1, totalCategoryPages));
+
+    const paginatedCategories = useMemo(() => {
+        const startIndex = (safeCategoryPage - 1) * categoryPageSize;
+        const endIndex = startIndex + categoryPageSize;
+        return filteredCategories.slice(startIndex, endIndex);
+    }, [filteredCategories, safeCategoryPage, categoryPageSize]);
 
     // Filter questions by selected category and search
     const filteredQuestions = useMemo(() => {
@@ -123,19 +135,13 @@ export default function QuestionManagementPage() {
             <div className="h-full flex flex-col overflow-hidden gap-6 p-6">
                 {/* Header Section */}
                 <div className="flex items-center justify-between">
-                    <div>
-                        <MainHeader
-                            title="Question Bank"
-                            description="Create, organize, and manage your assessment questions"
-                        />
-                    </div>
+                    <MainHeader
+                        title="Question Bank"
+                        description="Manage your assessment questions"
+                    />
                     <PermissionGate permission="QUESTION_CREATE">
-                        <Button
-                            onClick={() => navigate('/questions/create')}
-                            size="lg"
-                            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/30"
-                        >
-                            <Plus className="mr-2 h-5 w-5" />
+                        <Button onClick={() => navigate('/questions/create')}>
+                            <Plus className="mr-2 h-4 w-4" />
                             Create Question
                         </Button>
                     </PermissionGate>
@@ -143,129 +149,87 @@ export default function QuestionManagementPage() {
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-blue-600 font-medium">Total Questions</p>
-                                <p className="text-2xl font-bold text-blue-900 mt-1">{allQuestions.length}</p>
-                            </div>
-                            <div className="h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <Filter className="h-6 w-6 text-white" />
-                            </div>
-                        </div>
+                    <div className="bg-white rounded-lg p-4 border">
+                        <p className="text-sm text-gray-600">Total Questions</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">{allQuestions.length}</p>
                     </div>
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-green-600 font-medium">Active</p>
-                                <p className="text-2xl font-bold text-green-900 mt-1">
-                                    {allQuestions.filter(q => q.isActive).length}
-                                </p>
-                            </div>
-                            <div className="h-12 w-12 bg-green-600 rounded-lg flex items-center justify-center text-white text-xl font-bold">
-                                ✓
-                            </div>
-                        </div>
+                    <div className="bg-white rounded-lg p-4 border">
+                        <p className="text-sm text-gray-600">Active</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">
+                            {allQuestions.filter(q => q.isActive).length}
+                        </p>
                     </div>
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-purple-600 font-medium">Categories</p>
-                                <p className="text-2xl font-bold text-purple-900 mt-1">{categories.length}</p>
-                            </div>
-                            <div className="h-12 w-12 bg-purple-600 rounded-lg flex items-center justify-center">
-                                <LayoutGrid className="h-6 w-6 text-white" />
-                            </div>
-                        </div>
+                    <div className="bg-white rounded-lg p-4 border">
+                        <p className="text-sm text-gray-600">Categories</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">{categories.length}</p>
                     </div>
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-orange-600 font-medium">Filtered</p>
-                                <p className="text-2xl font-bold text-orange-900 mt-1">{filteredQuestions.length}</p>
-                            </div>
-                            <div className="h-12 w-12 bg-orange-600 rounded-lg flex items-center justify-center">
-                                <Search className="h-6 w-6 text-white" />
-                            </div>
-                        </div>
+                    <div className="bg-white rounded-lg p-4 border">
+                        <p className="text-sm text-gray-600">Filtered</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">{filteredQuestions.length}</p>
                     </div>
                 </div>
 
                 <div className="flex-1 flex gap-6 overflow-hidden">
                     {/* Left Sidebar - Categories */}
-                    <div className="w-72 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
-                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-5 border-b border-gray-200">
-                            <div className="flex items-center gap-2 text-gray-700">
-                                <Filter className="h-5 w-5" />
-                                <h3 className="font-bold text-lg">Filter by Category</h3>
+                    <div className="w-64 bg-white rounded-lg border overflow-hidden flex flex-col">
+                        <div className="p-4 border-b bg-gray-50">
+                            <h3 className="font-semibold text-gray-900">Categories</h3>
+                            <p className="text-xs text-gray-600 mt-1">
+                                {filteredCategories.length} categor{filteredCategories.length !== 1 ? 'ies' : 'y'}
+                            </p>
+                            {/* Category Search */}
+                            <div className="pt-3">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search categories..."
+                                        value={categorySearch}
+                                        onChange={(e) => setCategorySearch(e.target.value)}
+                                        className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        {/* Category Search */}
-                        <div className="p-4 border-b border-gray-200 bg-gray-50">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search categories..."
-                                    value={categorySearch}
-                                    onChange={(e) => setCategorySearch(e.target.value)}
-                                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                />
-                            </div>
-                        </div>
 
-                        <div className="flex-1 overflow-auto p-3">
+
+                        <div className="flex-1 overflow-auto p-4">
                             {categoriesLoading ? (
                                 <div className="p-4 text-center text-gray-500">Loading...</div>
                             ) : (
                                 <div className="space-y-1">
                                     <button
                                         onClick={() => setSelectedCategoryId('')}
-                                        className={`w-full text-left px-4 py-3 rounded-lg transition-all ${!selectedCategoryId
-                                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md scale-[1.02]'
+                                        className={`w-full text-left px-3 py-2 rounded-md transition-all ${!selectedCategoryId
+                                            ? 'bg-blue-600 text-white'
                                             : 'hover:bg-gray-100 text-gray-700'
                                             }`}
                                     >
                                         <div className="flex items-center justify-between">
-                                            <span className="font-medium">📚 All Questions</span>
-                                            <Badge
-                                                variant="outline"
-                                                className={`text-xs font-semibold ${!selectedCategoryId
-                                                    ? 'bg-white/20 text-white border-white/30'
-                                                    : 'bg-blue-50 text-blue-700 border-blue-200'
-                                                    }`}
-                                            >
+                                            <span className="text-sm font-medium">All Questions</span>
+                                            <span className={`text-xs ${!selectedCategoryId ? 'text-white' : 'text-gray-600'}`}>
                                                 {allQuestions.length}
-                                            </Badge>
+                                            </span>
                                         </div>
                                     </button>
-                                    {filteredCategories.map((category: QuestionCategory) => {
+                                    {paginatedCategories.map((category: QuestionCategory) => {
                                         const count = allQuestions.filter(q => q.category?.id === category.id).length;
                                         const isSelected = selectedCategoryId === category.id;
                                         return (
                                             <button
                                                 key={category.id}
                                                 onClick={() => setSelectedCategoryId(category.id)}
-                                                className={`w-full text-left px-4 py-3 rounded-lg transition-all group ${isSelected
-                                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md scale-[1.02]'
+                                                className={`w-full text-left px-3 py-2 rounded-md transition-all ${isSelected
+                                                    ? 'bg-blue-600 text-white'
                                                     : 'hover:bg-gray-100 text-gray-700'
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                                                        <ChevronRight className={`h-4 w-4 transition-transform ${isSelected ? 'rotate-90' : ''}`} />
-                                                        <span className="truncate font-medium">{category.name}</span>
-                                                    </div>
-                                                    <Badge
-                                                        variant="outline"
-                                                        className={`text-xs font-semibold ml-2 ${isSelected
-                                                            ? 'bg-white/20 text-white border-white/30'
-                                                            : 'bg-gray-50 text-gray-700 border-gray-300'
-                                                            }`}
-                                                    >
+                                                    <span className="truncate text-sm font-medium">{category.name}</span>
+                                                    <span className={`text-xs ml-2 ${isSelected ? 'text-white' : 'text-gray-600'}`}>
                                                         {count}
-                                                    </Badge>
+                                                    </span>
                                                 </div>
                                             </button>
                                         );
@@ -273,20 +237,49 @@ export default function QuestionManagementPage() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Category Pagination */}
+                        {filteredCategories.length > 0 && totalCategoryPages > 1 && (
+                            <div className="p-4 border-t bg-gray-50">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-xs text-gray-600">
+                                        Showing {((safeCategoryPage - 1) * categoryPageSize) + 1}-{Math.min(safeCategoryPage * categoryPageSize, filteredCategories.length)} of {filteredCategories.length}
+                                    </div>
+                                    <div className="flex gap-1">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCategoryPage(p => Math.max(1, p - 1))}
+                                            disabled={safeCategoryPage === 1}
+                                        >
+                                            Previous
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCategoryPage(p => Math.min(totalCategoryPages, p + 1))}
+                                            disabled={safeCategoryPage === totalCategoryPages}
+                                        >
+                                            Next
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Side - Questions */}
-                    <div className="flex-1 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
-                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-5 border-b border-gray-200">
+                    <div className="flex-1 bg-white rounded-lg border overflow-hidden flex flex-col">
+                        <div className="p-4 border-b bg-gray-50">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+                                    <h3 className="font-semibold text-gray-900">
                                         {selectedCategoryId
                                             ? categories.find((c: QuestionCategory) => c.id === selectedCategoryId)?.name
-                                            : '📝 All Questions'}
+                                            : 'All Questions'}
                                     </h3>
-                                    <p className="text-sm text-gray-600 mt-1">
-                                        {filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''} found
+                                    <p className="text-xs text-gray-600 mt-1">
+                                        {filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -310,34 +303,32 @@ export default function QuestionManagementPage() {
                             </div>
 
                             {/* Question Search */}
-                            <div className="relative mt-4">
+                            <div className="relative mt-3">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder="Search questions by content or category..."
+                                    placeholder="Search questions..."
                                     value={questionSearch}
                                     onChange={(e) => setQuestionSearch(e.target.value)}
-                                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                    className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 />
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-auto p-5">
+                        <div className="flex-1 overflow-auto p-4">
                             {questionsLoading ? (
                                 <div className="flex items-center justify-center h-full">
                                     <div className="text-center">
-                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                                        <p className="text-gray-500 mt-4">Loading questions...</p>
+                                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div>
+                                        <p className="text-gray-500 mt-3 text-sm">Loading...</p>
                                     </div>
                                 </div>
                             ) : filteredQuestions.length === 0 ? (
                                 <div className="flex items-center justify-center h-full">
                                     <div className="text-center">
-                                        <div className="h-24 w-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Search className="h-12 w-12 text-gray-400" />
-                                        </div>
-                                        <p className="text-gray-600 font-medium text-lg">No questions found</p>
-                                        <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search query</p>
+                                        <Search className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                                        <p className="text-gray-600 font-medium">No questions found</p>
+                                        <p className="text-gray-400 text-sm mt-1">Try adjusting your filters</p>
                                     </div>
                                 </div>
                             ) : (
@@ -348,19 +339,19 @@ export default function QuestionManagementPage() {
                                     {paginatedQuestions.map((question: Question) => (
                                         <div
                                             key={question.id}
-                                            className="group border-2 border-gray-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-xl transition-all duration-200 bg-white"
+                                            className="border rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all"
                                         >
-                                            <div className="flex items-start justify-between gap-4 mb-4">
+                                            <div className="flex items-start justify-between gap-4 mb-3">
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-3 flex-wrap">
+                                                    <div className="flex items-center gap-2 mb-2 flex-wrap">
                                                         {getQuestionTypeBadge(question.questionType)}
                                                         <Badge
                                                             variant="outline"
                                                             className={question.isActive
-                                                                ? 'bg-green-100 text-green-700 border-green-300 font-semibold'
-                                                                : 'bg-gray-100 text-gray-600 border-gray-300'}
+                                                                ? 'bg-green-50 text-green-700 border-green-200'
+                                                                : 'bg-gray-50 text-gray-600 border-gray-200'}
                                                         >
-                                                            {question.isActive ? '✓ Active' : '○ Inactive'}
+                                                            {question.isActive ? 'Active' : 'Inactive'}
                                                         </Badge>
                                                         <Badge
                                                             variant="outline"
@@ -369,18 +360,14 @@ export default function QuestionManagementPage() {
                                                             {question.category?.name || 'Uncategorized'}
                                                         </Badge>
                                                     </div>
-                                                    <p className="text-base text-gray-900 font-semibold mb-3 leading-relaxed">
+                                                    <p className="text-sm text-gray-900 font-medium mb-2">
                                                         {question.content}
                                                     </p>
-                                                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                                                        <span className="flex items-center gap-1">
-                                                            <span className="font-medium">Options:</span> {question.options.length}
-                                                        </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <span className="font-medium text-green-600">✓ Correct:</span>
-                                                            <span className="font-bold text-green-600">
-                                                                {question.options.filter(o => o.isCorrect).length}
-                                                            </span>
+                                                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                                                        <span>{question.options.length} options</span>
+                                                        <span>·</span>
+                                                        <span className="text-green-600">
+                                                            {question.options.filter(o => o.isCorrect).length} correct
                                                         </span>
                                                     </div>
                                                 </div>
@@ -411,32 +398,27 @@ export default function QuestionManagementPage() {
                                             </div>
 
                                             {/* Options Preview */}
-                                            <div className="mt-4 pt-4 border-t-2 border-gray-100">
-                                                <p className="text-xs font-bold text-gray-700 mb-3 uppercase tracking-wide">Answer Options</p>
-                                                <div className="space-y-2">
+                                            <div className="mt-3 pt-3 border-t">
+                                                <p className="text-xs font-semibold text-gray-600 mb-2">Options</p>
+                                                <div className="space-y-1.5">
                                                     {question.options
                                                         .sort((a, b) => a.orderIndex - b.orderIndex)
                                                         .map((option, idx) => (
                                                             <div
                                                                 key={option.id}
-                                                                className={`text-sm px-4 py-2.5 rounded-lg border-2 transition-all ${option.isCorrect
-                                                                    ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-900 border-green-400 font-bold shadow-sm'
+                                                                className={`text-sm px-3 py-2 rounded-md border ${option.isCorrect
+                                                                    ? 'bg-green-50 text-green-900 border-green-300 font-medium'
                                                                     : 'bg-gray-50 text-gray-700 border-gray-200'
                                                                     }`}
                                                             >
-                                                                <div className="flex items-center gap-3">
-                                                                    <span className={`flex items-center justify-center h-6 w-6 rounded-full text-xs font-bold ${option.isCorrect
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className={`flex items-center justify-center h-5 w-5 rounded-full text-xs font-medium ${option.isCorrect
                                                                         ? 'bg-green-600 text-white'
                                                                         : 'bg-gray-300 text-gray-600'
                                                                         }`}>
                                                                         {String.fromCharCode(65 + idx)}
                                                                     </span>
-                                                                    {option.isCorrect && (
-                                                                        <span className="bg-green-600 text-white px-2 py-0.5 rounded-md text-xs font-bold">
-                                                                            ✓ CORRECT
-                                                                        </span>
-                                                                    )}
-                                                                    <span className={option.isCorrect ? 'font-bold' : ''}>{option.content}</span>
+                                                                    <span>{option.content}</span>
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -450,20 +432,19 @@ export default function QuestionManagementPage() {
 
                         {/* Pagination */}
                         {filteredQuestions.length > 0 && totalPages > 1 && (
-                            <div className="p-5 border-t-2 border-gray-200 bg-gray-50">
+                            <div className="p-4 border-t bg-gray-50">
                                 <div className="flex items-center justify-between">
-                                    <div className="text-sm text-gray-700 font-medium">
-                                        Showing <span className="font-bold text-blue-600">{((safePage - 1) * pageSize) + 1}</span> to <span className="font-bold text-blue-600">{Math.min(safePage * pageSize, filteredQuestions.length)}</span> of <span className="font-bold text-blue-600">{filteredQuestions.length}</span> questions
+                                    <div className="text-xs text-gray-600">
+                                        Showing {((safePage - 1) * pageSize) + 1}-{Math.min(safePage * pageSize, filteredQuestions.length)} of {filteredQuestions.length}
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-1">
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                             disabled={safePage === 1}
-                                            className="font-semibold"
                                         >
-                                            ← Previous
+                                            Previous
                                         </Button>
                                         <div className="flex items-center gap-1">
                                             {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -476,15 +457,12 @@ export default function QuestionManagementPage() {
                                                     const showEllipsis = index > 0 && array[index - 1] !== page - 1;
                                                     return (
                                                         <div key={page} className="flex items-center">
-                                                            {showEllipsis && <span className="px-2 text-gray-400 font-bold">...</span>}
+                                                            {showEllipsis && <span className="px-1 text-gray-400">...</span>}
                                                             <Button
                                                                 variant={safePage === page ? 'default' : 'outline'}
                                                                 size="sm"
                                                                 onClick={() => setCurrentPage(page)}
-                                                                className={`min-w-[2.5rem] font-semibold ${safePage === page
-                                                                    ? 'bg-blue-600 hover:bg-blue-700 shadow-md'
-                                                                    : ''
-                                                                    }`}
+                                                                className="min-w-[2rem]"
                                                             >
                                                                 {page}
                                                             </Button>
@@ -497,9 +475,8 @@ export default function QuestionManagementPage() {
                                             size="sm"
                                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                             disabled={safePage === totalPages}
-                                            className="font-semibold"
                                         >
-                                            Next →
+                                            Next
                                         </Button>
                                     </div>
                                 </div>

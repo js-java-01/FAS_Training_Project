@@ -5,18 +5,19 @@ export const questionApi = {
 
     // ==================== GET ALL ====================
     getAll: async (): Promise<Question[]> => {
-        const response = await axiosInstance.get<any[]>(
+        const response = await axiosInstance.get<any>(
             '/v1/questions'
         );
         // Transform backend response to match frontend types
-        return response.data.map(question => ({
+        const questions = response.data.content || [];
+        return questions.map((question: any) => ({
             ...question,
-            options: question.options.map((opt: any) => ({
+            options: question.options?.map((opt: any) => ({
                 id: opt.id,
                 content: opt.content,
                 isCorrect: opt.correct,
                 orderIndex: opt.orderIndex
-            }))
+            })) || []
         }));
     },
 
@@ -44,12 +45,12 @@ export const questionApi = {
         // Transform backend response to match frontend types
         return {
             ...response.data,
-            options: response.data.options.map((opt: any) => ({
+            options: response.data.options?.map((opt: any) => ({
                 id: opt.id,
                 content: opt.content,
                 isCorrect: opt.correct,
                 orderIndex: opt.orderIndex
-            }))
+            })) || []
         };
     },
 
@@ -78,12 +79,12 @@ export const questionApi = {
         // Transform backend response to match frontend types
         return {
             ...response.data,
-            options: response.data.options.map((opt: any) => ({
+            options: response.data.options?.map((opt: any) => ({
                 id: opt.id,
                 content: opt.content,
                 isCorrect: opt.correct,
                 orderIndex: opt.orderIndex
-            }))
+            })) || []
         };
     },
 
@@ -95,12 +96,12 @@ export const questionApi = {
         // Transform backend response to match frontend types
         return {
             ...response.data,
-            options: response.data.options.map((opt: any) => ({
+            options: response.data.options?.map((opt: any) => ({
                 id: opt.id,
                 content: opt.content,
                 isCorrect: opt.correct,
                 orderIndex: opt.orderIndex
-            }))
+            })) || []
         };
     },
 

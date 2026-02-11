@@ -158,82 +158,56 @@ export default function CreateQuestionPage() {
         <MainLayout pathName={{ questions: "Question Bank", create: "Create Questions" }}>
             <div className="h-full flex-1 flex flex-col gap-6 p-6">
                 {/* Header Section */}
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-6 shadow-lg text-white">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <MainHeader
-                                title="✨ Create New Questions"
-                                description={`Building ${questions.length} question${questions.length > 1 ? 's' : ''} for your assessment`}
-                            />
-                            <div className="mt-3 flex items-center gap-4">
-                                <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-                                    <CheckCircle2 className="h-4 w-4" />
-                                    <span className="text-sm font-medium">
-                                        {questions.filter((_, idx) => !errors[idx] || Object.keys(errors[idx]).length === 0).length} Complete
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-                                    <AlertCircle className="h-4 w-4" />
-                                    <span className="text-sm font-medium">
-                                        {questions.filter((_, idx) => errors[idx] && Object.keys(errors[idx]).length > 0).length} Need Attention
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex gap-3">
-                            <Button
-                                variant="outline"
-                                onClick={handleCancel}
-                                disabled={createMutation.isPending}
-                                className="bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm"
-                            >
-                                <X className="mr-2 h-4 w-4" />
-                                Cancel
-                            </Button>
-                            <Button
-                                onClick={handleSubmit}
-                                disabled={createMutation.isPending}
-                                className="bg-white text-blue-700 hover:bg-gray-100 font-semibold shadow-lg"
-                            >
-                                {createMutation.isPending ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Creating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-2 h-4 w-4" />
-                                        Create {questions.length} Question{questions.length > 1 ? 's' : ''}
-                                    </>
-                                )}
-                            </Button>
-                        </div>
+                <div className="flex items-center justify-between">
+                    <MainHeader
+                        title="Create New Questions"
+                        description={`${questions.length} question${questions.length > 1 ? 's' : ''} to create`}
+                    />
+                    <div className="flex gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={handleCancel}
+                            disabled={createMutation.isPending}
+                        >
+                            <X className="mr-2 h-4 w-4" />
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={createMutation.isPending}
+                        >
+                            {createMutation.isPending ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Creating...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Create {questions.length} Question{questions.length > 1 ? 's' : ''}
+                                </>
+                            )}
+                        </Button>
                     </div>
                 </div>
 
                 {/* Add Question Button */}
-                <div className="flex justify-between items-center">
-                    <Button
-                        variant="outline"
-                        size="lg"
-                        onClick={handleAddQuestion}
-                        className="border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 text-blue-700 font-semibold"
-                    >
-                        <Plus className="mr-2 h-5 w-5" />
-                        Add Another Question
-                    </Button>
-                    <p className="text-sm text-gray-500">
-                        💡 <span className="font-medium">Tip:</span> Create multiple questions at once to save time
-                    </p>
-                </div>
+                <Button
+                    variant="outline"
+                    onClick={handleAddQuestion}
+                    className="border-dashed w-fit"
+                >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Another Question
+                </Button>
 
                 <div className="flex-1 flex gap-6 overflow-hidden">
                     {/* Left Sidebar - Question List */}
                     {questions.length > 1 && (
-                        <div className="w-80 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
-                            <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-5 border-b border-gray-200">
-                                <h3 className="font-bold text-lg text-gray-900">📝 Questions Queue</h3>
-                                <p className="text-sm text-gray-600 mt-1">{questions.length} questions in total</p>
+                        <div className="w-64 bg-white rounded-lg border overflow-hidden flex flex-col">
+                            <div className="p-4 border-b bg-gray-50">
+                                <h3 className="font-semibold text-gray-900">Questions</h3>
+                                <p className="text-xs text-gray-600 mt-1">{questions.length} total</p>
                             </div>
                             <div className="flex-1 overflow-auto p-3">
                                 {questions.map((q, index) => {
@@ -243,36 +217,31 @@ export default function CreateQuestionPage() {
                                         <button
                                             key={index}
                                             onClick={() => setActiveQuestionIndex(index)}
-                                            className={`w-full text-left p-4 rounded-lg mb-2 transition-all group ${activeQuestionIndex === index
-                                                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md scale-[1.02]'
-                                                : 'hover:bg-gray-100 text-gray-700 border-2 border-gray-200'
+                                            className={`w-full text-left p-3 rounded-md mb-2 transition-all group ${activeQuestionIndex === index
+                                                ? 'bg-blue-600 text-white'
+                                                : 'hover:bg-gray-100 text-gray-700 border'
                                                 }`}
                                         >
-                                            <div className="flex items-start justify-between">
+                                            <div className="flex items-start justify-between gap-2">
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <span className={`font-bold text-sm ${activeQuestionIndex === index ? 'text-white' : 'text-gray-900'}`}>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className={`text-sm font-medium ${activeQuestionIndex === index ? 'text-white' : 'text-gray-900'}`}>
                                                             Question {index + 1}
                                                         </span>
                                                         {isComplete && !hasErrors && (
-                                                            <CheckCircle2 className={`h-4 w-4 ${activeQuestionIndex === index ? 'text-green-300' : 'text-green-600'}`} />
+                                                            <CheckCircle2 className={`h-3 w-3 ${activeQuestionIndex === index ? 'text-green-300' : 'text-green-600'}`} />
                                                         )}
                                                         {hasErrors && (
-                                                            <AlertCircle className={`h-4 w-4 ${activeQuestionIndex === index ? 'text-red-300' : 'text-red-600'}`} />
+                                                            <AlertCircle className={`h-3 w-3 ${activeQuestionIndex === index ? 'text-red-300' : 'text-red-600'}`} />
                                                         )}
                                                     </div>
                                                     {q.content ? (
-                                                        <div className={`text-sm truncate ${activeQuestionIndex === index ? 'text-white/90' : 'text-gray-600'}`}>
+                                                        <div className={`text-xs truncate ${activeQuestionIndex === index ? 'text-white/80' : 'text-gray-600'}`}>
                                                             {q.content}
                                                         </div>
                                                     ) : (
-                                                        <div className={`text-xs italic ${activeQuestionIndex === index ? 'text-white/70' : 'text-gray-400'}`}>
-                                                            No content yet...
-                                                        </div>
-                                                    )}
-                                                    {hasErrors && (
-                                                        <div className={`text-xs mt-1 font-medium ${activeQuestionIndex === index ? 'text-red-300' : 'text-red-600'}`}>
-                                                            ⚠ {Object.keys(errors[index]).length} error(s)
+                                                        <div className={`text-xs italic ${activeQuestionIndex === index ? 'text-white/60' : 'text-gray-400'}`}>
+                                                            No content
                                                         </div>
                                                     )}
                                                 </div>
@@ -282,12 +251,12 @@ export default function CreateQuestionPage() {
                                                             e.stopPropagation();
                                                             handleRemoveQuestion(index);
                                                         }}
-                                                        className={`ml-2 hover:scale-110 transition-transform ${activeQuestionIndex === index
-                                                            ? 'text-red-300 hover:text-red-200'
+                                                        className={`hover:scale-110 transition-transform ${activeQuestionIndex === index
+                                                            ? 'text-red-300 hover:text-red-100'
                                                             : 'text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100'
                                                             }`}
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 className="h-3 w-3" />
                                                     </button>
                                                 )}
                                             </div>
@@ -299,57 +268,53 @@ export default function CreateQuestionPage() {
                     )}
 
                     {/* Right Side - Question Form */}
-                    <div className="flex-1 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
-                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-5 border-b-2 border-blue-200">
+                    <div className="flex-1 bg-white rounded-lg border overflow-hidden flex flex-col">
+                        <div className="p-4 border-b bg-gray-50">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h3 className="font-bold text-xl text-blue-900 flex items-center gap-2">
-                                        📋 Question {activeQuestionIndex + 1}
+                                    <h3 className="font-semibold text-gray-900">
+                                        Question {activeQuestionIndex + 1}
                                         {questions.length > 1 && (
-                                            <span className="text-sm font-normal text-blue-600">
+                                            <span className="text-sm font-normal text-gray-600 ml-2">
                                                 of {questions.length}
                                             </span>
                                         )}
                                     </h3>
                                     {errors[activeQuestionIndex] && Object.keys(errors[activeQuestionIndex]).length > 0 ? (
-                                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1 font-medium">
-                                            <AlertCircle className="h-4 w-4" />
-                                            Please fix {Object.keys(errors[activeQuestionIndex]).length} error(s) below
+                                        <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                            <AlertCircle className="h-3 w-3" />
+                                            {Object.keys(errors[activeQuestionIndex]).length} error(s)
                                         </p>
                                     ) : questions[activeQuestionIndex].content && questions[activeQuestionIndex].categoryId ? (
-                                        <p className="text-sm text-green-600 mt-1 flex items-center gap-1 font-medium">
-                                            <CheckCircle2 className="h-4 w-4" />
-                                            Looking good!
+                                        <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                                            <CheckCircle2 className="h-3 w-3" />
+                                            Complete
                                         </p>
-                                    ) : (
-                                        <p className="text-sm text-gray-600 mt-1">
-                                            Fill out the details below
-                                        </p>
-                                    )}
+                                    ) : null}
                                 </div>
                                 {questions.length > 1 && (
                                     <Button
-                                        variant="outline"
+                                        variant="ghost"
                                         size="sm"
                                         onClick={() => handleRemoveQuestion(activeQuestionIndex)}
-                                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                     >
                                         <Trash2 className="mr-2 h-4 w-4" />
-                                        Remove This Question
+                                        Remove
                                     </Button>
                                 )}
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-auto p-6 bg-gradient-to-b from-gray-50 to-white">
-                            <div className="max-w-5xl mx-auto space-y-8">
+                        <div className="flex-1 overflow-auto p-6">
+                            <div className="max-w-4xl mx-auto space-y-6">
                                 <QuestionFormFields
                                     data={questions[activeQuestionIndex]}
                                     onChange={(data) => handleQuestionChange(activeQuestionIndex, data)}
                                     errors={errors[activeQuestionIndex] || {}}
                                 />
 
-                                <div className="border-t-2 border-gray-200 pt-6">
+                                <div className="border-t pt-6">
                                     <QuestionOptionsManager
                                         data={questions[activeQuestionIndex]}
                                         onChange={(data) => handleQuestionChange(activeQuestionIndex, data)}
