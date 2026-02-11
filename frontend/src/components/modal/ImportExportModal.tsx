@@ -15,6 +15,7 @@ import {
     Trash2,
     ImportIcon,
     FileSpreadsheet,
+    Download,
 } from "lucide-react";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -25,12 +26,14 @@ export default function ImportExportModal({
                                               setOpen,
                                               onImport,
                                               onExport,
+                                              onDownloadTemplate,
                                           }: {
     title?: string;
     open: boolean;
     setOpen: (open: boolean) => void;
     onImport: (file: File) => Promise<void>;
     onExport: () => Promise<void>;
+    onDownloadTemplate: () => Promise<void>;
 }) {
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
@@ -52,6 +55,15 @@ export default function ImportExportModal({
         }
 
         return true;
+    };
+
+    /* ================= FILE SELECT ================= */
+    const handleFileSelect = (file: File | null) => {
+        if (!file) return;
+        if (!validateFile(file)) return;
+
+        setFile(file);
+        setError(null);
     };
 
     /* ================= IMPORT ================= */
@@ -81,13 +93,14 @@ export default function ImportExportModal({
         }
     };
 
-    /* ================= FILE PICK ================= */
-    const handleFileSelect = (file: File | null) => {
-        if (!file) return;
-        if (!validateFile(file)) return;
-
-        setFile(file);
-        setError(null);
+    /* ================= TEMPLATE ================= */
+    const handleDownloadTemplate = async () => {
+        try {
+            setLoading(true);
+            await onDownloadTemplate();
+        } finally {
+            setLoading(false);
+        }
     };
 
     /* ================= DRAG & DROP ================= */
@@ -108,9 +121,7 @@ export default function ImportExportModal({
         setIsDragging(false);
 
         const droppedFile = e.dataTransfer.files?.[0];
-        if (!droppedFile) return;
-
-        handleFileSelect(droppedFile);
+        handleFileSelect(droppedFile ?? null);
     };
 
     /* ================= REMOVE FILE ================= */
@@ -124,7 +135,7 @@ export default function ImportExportModal({
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="sm:max-w-xl min-h-[420px] flex flex-col">
+            <DialogContent className="sm:max-w-xl min-h-[440px] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Import & Export Data {title}</DialogTitle>
                     <DialogDescription>
@@ -141,8 +152,9 @@ export default function ImportExportModal({
                     {/* ================= IMPORT ================= */}
                     <TabsContent
                         value="import"
-                        className="mt-6 space-y-4 min-h-[260px] flex flex-col justify-between"
+                        className="mt-6 space-y-4 min-h-[280px] flex flex-col justify-between"
                     >
+
                         {/* DROP ZONE */}
                         <div
                             onDragOver={handleDragOver}
@@ -175,13 +187,26 @@ export default function ImportExportModal({
                                 }
                             />
 
-                            <Button
-                                className="w-48 bg-blue-600 text-white"
-                                disabled={loading}
-                                onClick={() => fileInputRef.current?.click()}
-                            >
-                                Choose file
-                            </Button>
+                            <div className="flex gap-2 mt-2">
+                                <Button
+                                    className=" bg-blue-600 text-white"
+                                    disabled={loading}
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <FileSpreadsheet/>
+                                    Choose file
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleDownloadTemplate}
+                                    disabled={loading}
+                                    className="gap-2"
+                                >
+                                    <Download className="h-4 w-4" />
+                                    Download template
+                                </Button>
+                            </div>
                         </div>
 
                         {/* FILE INFO */}

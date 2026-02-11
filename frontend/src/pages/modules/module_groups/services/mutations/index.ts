@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { moduleGroupApi } from "@/api/moduleApi";
+import { moduleGroupApi} from "@/api/moduleApi";
 
 /* ========= EXPORT ========= */
 export const useExportModuleGroup = () => {
@@ -18,6 +18,14 @@ export const useImportModuleGroup = () => {
             formData.append("file", file);
 
             await moduleGroupApi.importModuleGroups(formData);
+        },
+    });
+};
+
+export const useDownloadTemplate = () => {
+    return useMutation({
+        mutationFn: async () => {
+            return await moduleGroupApi.exportTemplateModuleGroups(); // Blob
         },
     });
 };

@@ -17,7 +17,7 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { useGetAllModules } from "./services/queries";
 import { ModuleDetailDialog } from "./DetailDialog";
 import ImportExportModal from "@/components/modal/ImportExportModal.tsx";
-import {useExportModules, useImportModules} from "@/pages/modules/module/services/mutations";
+import {useDownloadTemplate, useExportModules, useImportModules} from "@/pages/modules/module/services/mutations";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
@@ -48,6 +48,7 @@ export default function ModulesTable() {
 
     const { mutateAsync: importModules } = useImportModules();
     const { mutateAsync: exportModules } = useExportModules();
+    const { mutateAsync: downloadTemplate } = useDownloadTemplate();
 
     /* ---------- query ---------- */
     const {
@@ -143,7 +144,7 @@ export default function ModulesTable() {
         [],
     );
 
-    /* ================= IMPORT / EXPORT ================= */
+    /* ================= IMPORT / EXPORT / TEMPLATE ================= */
     const handleImport = async (file: File) => {
         try {
             await importModules(file);
@@ -153,27 +154,39 @@ export default function ModulesTable() {
             await reload();
         } catch (err: any) {
             toast.error(err?.response?.data?.message ?? "Failed to import modules");
-            throw err; // để modal biết là fail
+            throw err;
         }
     };
 
     const handleExport = async () => {
         try {
             const blob = await exportModules();
-
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = "modules.xlsx";
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-
+            downloadBlob(blob, "modules.xlsx");
             toast.success("Export modules successfully");
         } catch {
             toast.error("Failed to export modules");
         }
+    };
+
+    const handleDownloadTemplate = async () => {
+        try {
+            const blob = await downloadTemplate();
+            downloadBlob(blob, "modules_template.xlsx");
+            toast.success("Download template successfully");
+        } catch {
+            toast.error("Failed to download template");
+        }
+    };
+
+    const downloadBlob = (blob: Blob, filename: string) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
     };
 
 
@@ -260,6 +273,7 @@ export default function ModulesTable() {
                 setOpen={setOpenBackupModal}
                 onImport={handleImport}
                 onExport={handleExport}
+                onDownloadTemplate={handleDownloadTemplate}
             />
         </div>
     );
