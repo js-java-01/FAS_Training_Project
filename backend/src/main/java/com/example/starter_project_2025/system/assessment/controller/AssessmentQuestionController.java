@@ -28,6 +28,13 @@ public class AssessmentQuestionController {
         return ResponseEntity.ok(service.addQuestionToExam(dto));
     }
 
+    @GetMapping("/assessment/{assessmentId}")
+    public ResponseEntity<List<AssessmentQuestion>> getByAssessmentId(
+            @PathVariable Long assessmentId
+    ) {
+        return ResponseEntity.ok(service.getByAssessmentId(assessmentId));
+    }
+
     @Operation(summary = "Get all assessment questions")
     @GetMapping
     public ResponseEntity<List<AssessmentQuestion>> getAll() {

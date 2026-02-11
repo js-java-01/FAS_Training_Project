@@ -1,0 +1,668 @@
+Folder PATH listing for volume New Volume
+Volume serial number is AA8D-9161
+E:.
+│   .env
+│   .gitattributes
+│   .gitignore
+│   backend.env.example
+│   mvnw
+│   mvnw.cmd
+│   pom.xml
+│   struct.txt
+│   
+├───.idea
+│       compiler.xml
+│       copilot.data.migration.ask2agent.xml
+│       encodings.xml
+│       jarRepositories.xml
+│       misc.xml
+│       vcs.xml
+│       workspace.xml
+│       
+├───src
+│   ├───main
+│   │   ├───java
+│   │   │   └───com
+│   │   │       └───example
+│   │   │           └───starter_project_2025
+│   │   │               │   StarterProject2025Application.java
+│   │   │               │   
+│   │   │               ├───config
+│   │   │               │       DataInitializer.java
+│   │   │               │       OpenApiConfig.java
+│   │   │               │       PasswordEncoderConfig.java
+│   │   │               │       SecurityConfig.java
+│   │   │               │       
+│   │   │               ├───constant
+│   │   │               │       ErrorMessage.java
+│   │   │               │       SuccessMessage.java
+│   │   │               │       
+│   │   │               ├───exception
+│   │   │               │       BadRequestException.java
+│   │   │               │       GlobalExceptionHandler.java
+│   │   │               │       ResourceNotFoundException.java
+│   │   │               │       UnauthenticatedException.java
+│   │   │               │       
+│   │   │               ├───security
+│   │   │               │       JwtAuthenticationFilter.java
+│   │   │               │       UserDetailsImpl.java
+│   │   │               │       UserDetailsServiceImpl.java
+│   │   │               │       
+│   │   │               ├───system
+│   │   │               │   ├───assessment
+│   │   │               │   │   ├───controller
+│   │   │               │   │   │       AssessmentTypeController.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───dto
+│   │   │               │   │   │       AssessmentImportRequest.java
+│   │   │               │   │   │       AssessmentTypeDTO.java
+│   │   │               │   │   │       CreateAssessmentRequest.java
+│   │   │               │   │   │       ImportErrorDTO.java
+│   │   │               │   │   │       ImportResultDTO.java
+│   │   │               │   │   │       UpdateAssessmentRequest.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───entity
+│   │   │               │   │   │       AssessmentType.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───mapper
+│   │   │               │   │   │       AssessmentTypeMapper.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───repository
+│   │   │               │   │   │       AssessmentTypeRepository.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───service
+│   │   │               │   │   │       AssessmentService.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───spec
+│   │   │               │   │   │       AssessmentTypeSpecification.java
+│   │   │               │   │   │       
+│   │   │               │   │   └───submission
+│   │   │               │   │       ├───controller
+│   │   │               │   │       │       SubmissionController.java
+│   │   │               │   │       │       
+│   │   │               │   │       ├───dto
+│   │   │               │   │       │   ├───request
+│   │   │               │   │       │   │       StartSubmissionRequest.java
+│   │   │               │   │       │   │       SubmitAnswerRequest.java
+│   │   │               │   │       │   │       SubmitSubmissionRequest.java
+│   │   │               │   │       │   │       
+│   │   │               │   │       │   └───response
+│   │   │               │   │       │           SubmissionQuestionResponse.java
+│   │   │               │   │       │           SubmissionResponse.java
+│   │   │               │   │       │           SubmissionResultResponse.java
+│   │   │               │   │       │           
+│   │   │               │   │       ├───entity
+│   │   │               │   │       │       Submission.java
+│   │   │               │   │       │       SubmissionAnswer.java
+│   │   │               │   │       │       SubmissionQuestion.java
+│   │   │               │   │       │       
+│   │   │               │   │       ├───mapper
+│   │   │               │   │       │       SubmissionMapper.java
+│   │   │               │   │       │       
+│   │   │               │   │       ├───repository
+│   │   │               │   │       │       SubmissionAnswerRepository.java
+│   │   │               │   │       │       SubmissionQuestionRepository.java
+│   │   │               │   │       │       SubmissionRepository.java
+│   │   │               │   │       │       
+│   │   │               │   │       ├───service
+│   │   │               │   │       │   │   GradingService.java
+│   │   │               │   │       │   │   SubmissionService.java
+│   │   │               │   │       │   │   
+│   │   │               │   │       │   └───impl
+│   │   │               │   │       │           GradingServiceImpl.java
+│   │   │               │   │       │           SubmissionServiceImpl.java
+│   │   │               │   │       │           
+│   │   │               │   │       └───spec
+│   │   │               │   │               SubmissionSpecification.java
+│   │   │               │   │               
+│   │   │               │   ├───audit
+│   │   │               │   │   └───entity
+│   │   │               │   │           AuditLog.java
+│   │   │               │   │           
+│   │   │               │   ├───auth
+│   │   │               │   │   ├───controller
+│   │   │               │   │   │       AuthController.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───dto
+│   │   │               │   │   │   ├───forgotpassword
+│   │   │               │   │   │   │       ForgotPasswordCreateDTO.java
+│   │   │               │   │   │   │       ForgotPasswordDTO.java
+│   │   │               │   │   │   │       
+│   │   │               │   │   │   ├───login
+│   │   │               │   │   │   │       LoginRequest.java
+│   │   │               │   │   │   │       LoginResponse.java
+│   │   │               │   │   │   │       
+│   │   │               │   │   │   ├───permission
+│   │   │               │   │   │   │       PermissionDTO.java
+│   │   │               │   │   │   │       
+│   │   │               │   │   │   ├───register
+│   │   │               │   │   │   │       RegisterCreateDTO.java
+│   │   │               │   │   │   │       RegisterVerifyDTO.java
+│   │   │               │   │   │   │       
+│   │   │               │   │   │   └───role
+│   │   │               │   │   │           RoleDTO.java
+│   │   │               │   │   │           
+│   │   │               │   │   ├───entity
+│   │   │               │   │   │       Permission.java
+│   │   │               │   │   │       RefreshToken.java
+│   │   │               │   │   │       Role.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───mapper
+│   │   │               │   │   │       AuthMapper.java
+│   │   │               │   │   │       UserAuthMapper.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───repository
+│   │   │               │   │   │       PermissionRepository.java
+│   │   │               │   │   │       RefreshTokenRepository.java
+│   │   │               │   │   │       RoleRepository.java
+│   │   │               │   │   │       
+│   │   │               │   │   └───service
+│   │   │               │   │       ├───auth
+│   │   │               │   │       │       AuthService.java
+│   │   │               │   │       │       AuthServiceImpl.java
+│   │   │               │   │       │       
+│   │   │               │   │       ├───email
+│   │   │               │   │       │       EmailService.java
+│   │   │               │   │       │       EmailServiceImpl.java
+│   │   │               │   │       │       
+│   │   │               │   │       ├───oauth2
+│   │   │               │   │       │       CustomOAuth2UserServiceImpl.java
+│   │   │               │   │       │       OAuth2AuthenticationSuccessHandler.java
+│   │   │               │   │       │       
+│   │   │               │   │       ├───otp
+│   │   │               │   │       │       OtpService.java
+│   │   │               │   │       │       OtpServiceImpl.java
+│   │   │               │   │       │       
+│   │   │               │   │       ├───redis
+│   │   │               │   │       │       RedisService.java
+│   │   │               │   │       │       RedisServiceImpl.java
+│   │   │               │   │       │       
+│   │   │               │   │       └───refreshToken
+│   │   │               │   │               RefreshTokenService.java
+│   │   │               │   │               RefreshTokenServiceImpl.java
+│   │   │               │   │               
+│   │   │               │   ├───dashboard
+│   │   │               │   │   ├───controller
+│   │   │               │   │   │       DashboardController.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───dto
+│   │   │               │   │   │       DashboardStatsDTO.java
+│   │   │               │   │   │       
+│   │   │               │   │   └───service
+│   │   │               │   │           DashboardService.java
+│   │   │               │   │           
+│   │   │               │   ├───modulegroups
+│   │   │               │   │   ├───controller
+│   │   │               │   │   │       ModuleController.java
+│   │   │               │   │   │       ModuleGroupImportExportController.java
+│   │   │               │   │   │       ModuleGroupsController.java
+│   │   │               │   │   │       ModuleImportExportController.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───dto
+│   │   │               │   │   │   ├───request
+│   │   │               │   │   │   │       CreateModuleGroup.java
+│   │   │               │   │   │   │       CreateModuleRequest.java
+│   │   │               │   │   │   │       UpdateModuleGroup.java
+│   │   │               │   │   │   │       UpdateModuleRequest.java
+│   │   │               │   │   │   │       
+│   │   │               │   │   │   └───response
+│   │   │               │   │   │           ApiResponse.java
+│   │   │               │   │   │           CreateModuleResponse.java
+│   │   │               │   │   │           ImportErrorDetail.java
+│   │   │               │   │   │           ImportResultResponse.java
+│   │   │               │   │   │           ModuleDetail.java
+│   │   │               │   │   │           ModuleGroupDetailResponse.java
+│   │   │               │   │   │           ModuleGroupResponse.java
+│   │   │               │   │   │           PageResponse.java
+│   │   │               │   │   │           Pagination.java
+│   │   │               │   │   │           UpdateModuleResponse.java
+│   │   │               │   │   │           
+│   │   │               │   │   ├───entity
+│   │   │               │   │   │       Module.java
+│   │   │               │   │   │       ModuleGroups.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───mapper
+│   │   │               │   │   │       ModuleGroupMapper.java
+│   │   │               │   │   │       ModuleMapper.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───repository
+│   │   │               │   │   │       ModuleGroupsRepository.java
+│   │   │               │   │   │       ModuleRepository.java
+│   │   │               │   │   │       
+│   │   │               │   │   └───service
+│   │   │               │   │           ModuleGroupImportExportService.java
+│   │   │               │   │           ModuleGroupImportExportServiceImpl.java
+│   │   │               │   │           ModuleGroupServiceImpl.java
+│   │   │               │   │           ModuleGroupsService.java
+│   │   │               │   │           ModuleImportExportService.java
+│   │   │               │   │           ModuleImportExportServiceImpl.java
+│   │   │               │   │           ModuleService.java
+│   │   │               │   │           ModuleServiceImpl.java
+│   │   │               │   │           
+│   │   │               │   ├───programminglanguage
+│   │   │               │   │   ├───controller
+│   │   │               │   │   │       ProgrammingLanguageController.java
+│   │   │               │   │   │       ProgrammingLanguageExportController.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───dto
+│   │   │               │   │   │       ExportFormat.java
+│   │   │               │   │   │       ExportPreviewResponse.java
+│   │   │               │   │   │       ExportRequest.java
+│   │   │               │   │   │       ImportResultResponse.java
+│   │   │               │   │   │       ProgrammingLanguageCreateRequest.java
+│   │   │               │   │   │       ProgrammingLanguageResponse.java
+│   │   │               │   │   │       ProgrammingLanguageUpdateRequest.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───entity
+│   │   │               │   │   │       ProgrammingLanguage.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───export
+│   │   │               │   │   │       CsvExportService.java
+│   │   │               │   │   │       ExcelExportService.java
+│   │   │               │   │   │       ExportService.java
+│   │   │               │   │   │       ExportServiceFactory.java
+│   │   │               │   │   │       ProgrammingLanguageFieldMapper.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───mapper
+│   │   │               │   │   │       ProgrammingLanguageMapper.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───repository
+│   │   │               │   │   │       ProgrammingLanguageRepository.java
+│   │   │               │   │   │       
+│   │   │               │   │   ├───service
+│   │   │               │   │   │       ProgrammingLanguageExportService.java
+│   │   │               │   │   │       ProgrammingLanguageService.java
+│   │   │               │   │   │       
+│   │   │               │   │   └───specification
+│   │   │               │   │           ProgrammingLanguageSpecification.java
+│   │   │               │   │           
+│   │   │               │   └───user
+│   │   │               │       ├───controller
+│   │   │               │       │       StudentController.java
+│   │   │               │       │       UserController.java
+│   │   │               │       │       
+│   │   │               │       ├───dto
+│   │   │               │       │       CreateClassRequest.java
+│   │   │               │       │       CreateStudentRequest.java
+│   │   │               │       │       CreateUserRequest.java
+│   │   │               │       │       EnrollStudentRequest.java
+│   │   │               │       │       StudentDTO.java
+│   │   │               │       │       UserDTO.java
+│   │   │               │       │       
+│   │   │               │       ├───entity
+│   │   │               │       │       Student.java
+│   │   │               │       │       StudentClass.java
+│   │   │               │       │       TrainingClass.java
+│   │   │               │       │       User.java
+│   │   │               │       │       
+│   │   │               │       ├───enums
+│   │   │               │       │       Gender.java
+│   │   │               │       │       
+│   │   │               │       ├───mapper
+│   │   │               │       │       StudentMapper.java
+│   │   │               │       │       UserMapper.java
+│   │   │               │       │       
+│   │   │               │       ├───repository
+│   │   │               │       │       StudentClassRepository.java
+│   │   │               │       │       StudentRepository.java
+│   │   │               │       │       TrainingClassRepository.java
+│   │   │               │       │       UserRepository.java
+│   │   │               │       │       
+│   │   │               │       ├───service
+│   │   │               │       │   │   StudentService.java
+│   │   │               │       │   │   UserService.java
+│   │   │               │       │   │   
+│   │   │               │       │   └───impl
+│   │   │               │       │           StudentServiceImpl.java
+│   │   │               │       │           UserServiceImpl.java
+│   │   │               │       │           
+│   │   │               │       ├───spec
+│   │   │               │       │       StudentSpecification.java
+│   │   │               │       │       UserSpecification.java
+│   │   │               │       │       
+│   │   │               │       └───validator
+│   │   │               │               AgeBetween.java
+│   │   │               │               AgeValidator.java
+│   │   │               │               
+│   │   │               └───util
+│   │   │                       CookieUtil.java
+│   │   │                       CsvUtil.java
+│   │   │                       JwtUtil.java
+│   │   │                       
+│   │   └───resources
+│   │       │   application.properties
+│   │       │   
+│   │       └───templates
+│   │               forgotPassword.html
+│   │               otp-email.html
+│   │               
+│   └───test
+│       └───java
+│           └───com
+│               └───example
+│                   └───starter_project_2025
+│                           StarterProject2025ApplicationTests.java
+│                           
+└───target
+    ├───classes
+    │   │   application.properties
+    │   │   
+    │   ├───com
+    │   │   └───example
+    │   │       └───starter_project_2025
+    │   │           │   StarterProject2025Application.class
+    │   │           │   
+    │   │           ├───config
+    │   │           │       DataInitializer.class
+    │   │           │       OpenApiConfig.class
+    │   │           │       PasswordEncoderConfig.class
+    │   │           │       SecurityConfig.class
+    │   │           │       
+    │   │           ├───constant
+    │   │           │       ErrorMessage.class
+    │   │           │       SuccessMessage.class
+    │   │           │       
+    │   │           ├───exception
+    │   │           │       BadRequestException.class
+    │   │           │       GlobalExceptionHandler$ErrorResponse.class
+    │   │           │       GlobalExceptionHandler.class
+    │   │           │       ResourceNotFoundException.class
+    │   │           │       UnauthenticatedException.class
+    │   │           │       
+    │   │           ├───security
+    │   │           │       JwtAuthenticationFilter.class
+    │   │           │       UserDetailsImpl.class
+    │   │           │       UserDetailsServiceImpl.class
+    │   │           │       
+    │   │           ├───system
+    │   │           │   ├───assessment
+    │   │           │   │   ├───controller
+    │   │           │   │   │       AssessmentTypeController.class
+    │   │           │   │   │       
+    │   │           │   │   ├───dto
+    │   │           │   │   │       AssessmentImportRequest.class
+    │   │           │   │   │       AssessmentTypeDTO.class
+    │   │           │   │   │       CreateAssessmentRequest.class
+    │   │           │   │   │       ImportErrorDTO.class
+    │   │           │   │   │       ImportResultDTO.class
+    │   │           │   │   │       UpdateAssessmentRequest.class
+    │   │           │   │   │       
+    │   │           │   │   ├───entity
+    │   │           │   │   │       AssessmentType.class
+    │   │           │   │   │       
+    │   │           │   │   ├───mapper
+    │   │           │   │   │       AssessmentTypeMapper.class
+    │   │           │   │   │       AssessmentTypeMapperImpl.class
+    │   │           │   │   │       
+    │   │           │   │   ├───repository
+    │   │           │   │   │       AssessmentTypeRepository.class
+    │   │           │   │   │       
+    │   │           │   │   ├───service
+    │   │           │   │   │       AssessmentService.class
+    │   │           │   │   │       
+    │   │           │   │   └───spec
+    │   │           │   │           AssessmentTypeSpecification.class
+    │   │           │   │           
+    │   │           │   ├───audit
+    │   │           │   │   └───entity
+    │   │           │   │           AuditLog.class
+    │   │           │   │           
+    │   │           │   ├───auth
+    │   │           │   │   ├───controller
+    │   │           │   │   │       AuthController.class
+    │   │           │   │   │       
+    │   │           │   │   ├───dto
+    │   │           │   │   │   ├───forgotpassword
+    │   │           │   │   │   │       ForgotPasswordCreateDTO.class
+    │   │           │   │   │   │       ForgotPasswordDTO.class
+    │   │           │   │   │   │       
+    │   │           │   │   │   ├───login
+    │   │           │   │   │   │       LoginRequest.class
+    │   │           │   │   │   │       LoginResponse.class
+    │   │           │   │   │   │       
+    │   │           │   │   │   ├───permission
+    │   │           │   │   │   │       PermissionDTO.class
+    │   │           │   │   │   │       
+    │   │           │   │   │   ├───register
+    │   │           │   │   │   │       RegisterCreateDTO.class
+    │   │           │   │   │   │       RegisterVerifyDTO.class
+    │   │           │   │   │   │       
+    │   │           │   │   │   └───role
+    │   │           │   │   │           RoleDTO.class
+    │   │           │   │   │           
+    │   │           │   │   ├───entity
+    │   │           │   │   │       Permission.class
+    │   │           │   │   │       RefreshToken.class
+    │   │           │   │   │       Role.class
+    │   │           │   │   │       
+    │   │           │   │   ├───mapper
+    │   │           │   │   │       AuthMapper.class
+    │   │           │   │   │       AuthMapperImpl.class
+    │   │           │   │   │       UserAuthMapper.class
+    │   │           │   │   │       UserAuthMapperImpl.class
+    │   │           │   │   │       
+    │   │           │   │   ├───repository
+    │   │           │   │   │       PermissionRepository.class
+    │   │           │   │   │       RefreshTokenRepository.class
+    │   │           │   │   │       RoleRepository.class
+    │   │           │   │   │       
+    │   │           │   │   └───service
+    │   │           │   │       ├───auth
+    │   │           │   │       │       AuthService.class
+    │   │           │   │       │       AuthServiceImpl.class
+    │   │           │   │       │       
+    │   │           │   │       ├───email
+    │   │           │   │       │       EmailService.class
+    │   │           │   │       │       EmailServiceImpl.class
+    │   │           │   │       │       
+    │   │           │   │       ├───oauth2
+    │   │           │   │       │       CustomOAuth2UserServiceImpl.class
+    │   │           │   │       │       OAuth2AuthenticationSuccessHandler.class
+    │   │           │   │       │       
+    │   │           │   │       ├───otp
+    │   │           │   │       │       OtpService.class
+    │   │           │   │       │       OtpServiceImpl.class
+    │   │           │   │       │       
+    │   │           │   │       ├───redis
+    │   │           │   │       │       RedisService.class
+    │   │           │   │       │       RedisServiceImpl.class
+    │   │           │   │       │       
+    │   │           │   │       └───refreshToken
+    │   │           │   │               RefreshTokenService.class
+    │   │           │   │               RefreshTokenServiceImpl.class
+    │   │           │   │               
+    │   │           │   ├───dashboard
+    │   │           │   │   ├───controller
+    │   │           │   │   │       DashboardController.class
+    │   │           │   │   │       
+    │   │           │   │   ├───dto
+    │   │           │   │   │       DashboardStatsDTO.class
+    │   │           │   │   │       
+    │   │           │   │   └───service
+    │   │           │   │           DashboardService.class
+    │   │           │   │           
+    │   │           │   ├───modulegroups
+    │   │           │   │   ├───controller
+    │   │           │   │   │       ModuleController.class
+    │   │           │   │   │       ModuleGroupImportExportController.class
+    │   │           │   │   │       ModuleGroupsController.class
+    │   │           │   │   │       ModuleImportExportController.class
+    │   │           │   │   │       
+    │   │           │   │   ├───dto
+    │   │           │   │   │   ├───request
+    │   │           │   │   │   │       CreateModuleGroup.class
+    │   │           │   │   │   │       CreateModuleRequest.class
+    │   │           │   │   │   │       UpdateModuleGroup.class
+    │   │           │   │   │   │       UpdateModuleRequest.class
+    │   │           │   │   │   │       
+    │   │           │   │   │   └───response
+    │   │           │   │   │           ApiResponse.class
+    │   │           │   │   │           CreateModuleResponse.class
+    │   │           │   │   │           ImportErrorDetail.class
+    │   │           │   │   │           ImportResultResponse.class
+    │   │           │   │   │           ModuleDetail$ModuleDetailBuilder.class
+    │   │           │   │   │           ModuleDetail.class
+    │   │           │   │   │           ModuleGroupDetailResponse.class
+    │   │           │   │   │           ModuleGroupResponse.class
+    │   │           │   │   │           PageResponse.class
+    │   │           │   │   │           Pagination.class
+    │   │           │   │   │           UpdateModuleResponse$UpdateModuleResponseBuilder.class
+    │   │           │   │   │           UpdateModuleResponse.class
+    │   │           │   │   │           
+    │   │           │   │   ├───entity
+    │   │           │   │   │       Module.class
+    │   │           │   │   │       ModuleGroups.class
+    │   │           │   │   │       
+    │   │           │   │   ├───mapper
+    │   │           │   │   │       ModuleGroupMapper.class
+    │   │           │   │   │       ModuleMapper.class
+    │   │           │   │   │       
+    │   │           │   │   ├───repository
+    │   │           │   │   │       ModuleGroupsRepository.class
+    │   │           │   │   │       ModuleRepository.class
+    │   │           │   │   │       
+    │   │           │   │   └───service
+    │   │           │   │           ModuleGroupImportExportService.class
+    │   │           │   │           ModuleGroupImportExportServiceImpl.class
+    │   │           │   │           ModuleGroupServiceImpl.class
+    │   │           │   │           ModuleGroupsService.class
+    │   │           │   │           ModuleImportExportService.class
+    │   │           │   │           ModuleImportExportServiceImpl.class
+    │   │           │   │           ModuleService.class
+    │   │           │   │           ModuleServiceImpl.class
+    │   │           │   │           
+    │   │           │   ├───programminglanguage
+    │   │           │   │   ├───controller
+    │   │           │   │   │       ProgrammingLanguageController.class
+    │   │           │   │   │       ProgrammingLanguageExportController.class
+    │   │           │   │   │       
+    │   │           │   │   ├───dto
+    │   │           │   │   │       ExportFormat.class
+    │   │           │   │   │       ExportPreviewResponse$FieldInfo.class
+    │   │           │   │   │       ExportPreviewResponse.class
+    │   │           │   │   │       ExportRequest.class
+    │   │           │   │   │       ImportResultResponse$ImportError.class
+    │   │           │   │   │       ImportResultResponse.class
+    │   │           │   │   │       ProgrammingLanguageCreateRequest.class
+    │   │           │   │   │       ProgrammingLanguageResponse.class
+    │   │           │   │   │       ProgrammingLanguageUpdateRequest.class
+    │   │           │   │   │       
+    │   │           │   │   ├───entity
+    │   │           │   │   │       ProgrammingLanguage.class
+    │   │           │   │   │       
+    │   │           │   │   ├───export
+    │   │           │   │   │       CsvExportService.class
+    │   │           │   │   │       ExcelExportService.class
+    │   │           │   │   │       ExportService.class
+    │   │           │   │   │       ExportServiceFactory.class
+    │   │           │   │   │       ProgrammingLanguageFieldMapper.class
+    │   │           │   │   │       
+    │   │           │   │   ├───mapper
+    │   │           │   │   │       ProgrammingLanguageMapper.class
+    │   │           │   │   │       ProgrammingLanguageMapperImpl.class
+    │   │           │   │   │       
+    │   │           │   │   ├───repository
+    │   │           │   │   │       ProgrammingLanguageRepository.class
+    │   │           │   │   │       
+    │   │           │   │   ├───service
+    │   │           │   │   │       ProgrammingLanguageExportService.class
+    │   │           │   │   │       ProgrammingLanguageService$1.class
+    │   │           │   │   │       ProgrammingLanguageService.class
+    │   │           │   │   │       
+    │   │           │   │   └───specification
+    │   │           │   │           ProgrammingLanguageSpecification.class
+    │   │           │   │           
+    │   │           │   └───user
+    │   │           │       ├───controller
+    │   │           │       │       StudentController.class
+    │   │           │       │       UserController.class
+    │   │           │       │       
+    │   │           │       ├───dto
+    │   │           │       │       CreateClassRequest.class
+    │   │           │       │       CreateStudentRequest$CreateStudentRequestBuilder.class
+    │   │           │       │       CreateStudentRequest.class
+    │   │           │       │       CreateUserRequest$CreateUserRequestBuilder.class
+    │   │           │       │       CreateUserRequest.class
+    │   │           │       │       EnrollStudentRequest.class
+    │   │           │       │       StudentDTO$StudentDTOBuilder.class
+    │   │           │       │       StudentDTO.class
+    │   │           │       │       UserDTO$UserDTOBuilder.class
+    │   │           │       │       UserDTO.class
+    │   │           │       │       
+    │   │           │       ├───entity
+    │   │           │       │       Student$StudentBuilder.class
+    │   │           │       │       Student$StudentBuilderImpl.class
+    │   │           │       │       Student.class
+    │   │           │       │       StudentClass.class
+    │   │           │       │       TrainingClass.class
+    │   │           │       │       User$UserBuilder.class
+    │   │           │       │       User$UserBuilderImpl.class
+    │   │           │       │       User.class
+    │   │           │       │       
+    │   │           │       ├───enums
+    │   │           │       │       Gender.class
+    │   │           │       │       
+    │   │           │       ├───mapper
+    │   │           │       │       StudentMapper.class
+    │   │           │       │       StudentMapperImpl.class
+    │   │           │       │       UserMapper.class
+    │   │           │       │       UserMapperImpl.class
+    │   │           │       │       
+    │   │           │       ├───repository
+    │   │           │       │       StudentClassRepository.class
+    │   │           │       │       StudentRepository.class
+    │   │           │       │       TrainingClassRepository.class
+    │   │           │       │       UserRepository.class
+    │   │           │       │       
+    │   │           │       ├───service
+    │   │           │       │   │   StudentService.class
+    │   │           │       │   │   UserService.class
+    │   │           │       │   │   
+    │   │           │       │   └───impl
+    │   │           │       │           StudentServiceImpl.class
+    │   │           │       │           UserServiceImpl.class
+    │   │           │       │           
+    │   │           │       ├───spec
+    │   │           │       │       StudentSpecification.class
+    │   │           │       │       UserSpecification.class
+    │   │           │       │       
+    │   │           │       └───validator
+    │   │           │               AgeBetween.class
+    │   │           │               AgeValidator.class
+    │   │           │               
+    │   │           └───util
+    │   │                   CookieUtil.class
+    │   │                   CsvUtil.class
+    │   │                   JwtUtil.class
+    │   │                   
+    │   └───templates
+    │           forgotPassword.html
+    │           otp-email.html
+    │           
+    ├───generated-sources
+    │   └───annotations
+    │       └───com
+    │           └───example
+    │               └───starter_project_2025
+    │                   └───system
+    │                       ├───assessment
+    │                       │   └───mapper
+    │                       │           AssessmentTypeMapperImpl.java
+    │                       │           
+    │                       ├───auth
+    │                       │   └───mapper
+    │                       │           AuthMapperImpl.java
+    │                       │           UserAuthMapperImpl.java
+    │                       │           
+    │                       ├───programminglanguage
+    │                       │   └───mapper
+    │                       │           ProgrammingLanguageMapperImpl.java
+    │                       │           
+    │                       └───user
+    │                           └───mapper
+    │                                   StudentMapperImpl.java
+    │                                   UserMapperImpl.java
+    │                                   
+    ├───generated-test-sources
+    │   └───test-annotations
+    └───test-classes

@@ -1,14 +1,11 @@
-
-import { createColumnHelper } from "@tanstack/react-table";
-import type { Module } from "@/types/module";
+import { createColumnHelper} from "@tanstack/react-table";
+import type { Module} from "@/types/module";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { EditIcon, EyeIcon, Trash } from "lucide-react";
-import { iconMap } from "@/constants/iconMap";
+import {EditIcon, EyeIcon, Trash} from "lucide-react";
+import {iconMap} from "@/constants/iconMap.ts";
 import dayjs from "dayjs";
 import { Badge } from "@/components/ui/badge";
-import SortHeader from "@/components/data_table/SortHeader";
-import FilterHeader from "@/components/data_table/FilterHeader";
 
 export type TableActions = {
     onView?: (row: Module) => void;
@@ -16,7 +13,9 @@ export type TableActions = {
     onDelete?: (row: Module) => void;
 };
 
-export const getColumns = (actions?: TableActions) => {
+export const getColumns = (
+    actions?: TableActions
+) => {
     const columnHelper = createColumnHelper<Module>();
 
     return [
@@ -27,106 +26,117 @@ export const getColumns = (actions?: TableActions) => {
             header: ({ table }) => (
                 <Checkbox
                     checked={table.getIsAllPageRowsSelected()}
-                    onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
+                    onCheckedChange={(v) =>
+                        table.toggleAllPageRowsSelected(!!v)
+                    }
                     aria-label="Select all"
                 />
             ),
             cell: ({ row }) => (
                 <Checkbox
                     checked={row.getIsSelected()}
-                    onCheckedChange={(v) => row.toggleSelected(!!v)}
+                    onCheckedChange={(v) =>
+                        row.toggleSelected(!!v)
+                    }
                     aria-label="Select row"
                 />
             ),
             enableSorting: false,
+            enableHiding: false,
         }),
 
         /* ================= NAME ================= */
-        columnHelper.accessor("title", {
-            header: (info) => <SortHeader info={info} title="Name" />,
+        columnHelper.accessor((row) => row.title || row.name || "", {
+            id: "title",
+            header: "Name",
             size: 200,
-            cell: (info) => <span className="font-medium">{info.getValue()}</span>,
-        }),
-
-        /* ================= URL ================= */
-        columnHelper.accessor("url", {
-            header: (info) => <SortHeader info={info} title="Url" />,
-            size: 200,
-        }),
-
-        /* ================= ICON ================= */
-        columnHelper.accessor("icon", {
-            header: (info) => <SortHeader info={info} title="Icon" />,
-            size: 200,
-            cell: (info) => {
-                const key = info.getValue();
-                if (!key || !(key in iconMap)) return null;
-                const Icon = iconMap[key as keyof typeof iconMap];
-                return (
-                    <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4" />
-                        {key}
-                    </div>
-                );
-            },
-        }),
-
-        /* ================= DESCRIPTION ================= */
-        columnHelper.accessor("description", {
-            header: (info) => <SortHeader info={info} title="Description" />,
-            size: 300,
             cell: (info) => (
-                <span className="line-clamp-2 text-muted-foreground">
-                    {info.getValue() || "-"}
-                </span>
-            ),
-        }),
-
-        /* ================= STATUS (UI ONLY) ================= */
-        columnHelper.accessor("isActive", {
-            id: "isActive",
-            header: ({ column }) => (
-                <FilterHeader
-                    column={column}
-                    title="Status"
-                    selectedValue={column.getFilterValue() as string}
-                    onFilterChange={(value) => column.setFilterValue(value || undefined)}
-                />
-            ),
-            size: 120,
-            cell: (info) => (
-                <Badge
-                    className={
-                        info.getValue()
-                            ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none"
-                            : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none"
-                    }
-                >
-                    {info.getValue() ? "Active" : "In Active"}
-                </Badge>
+                <span className="font-medium">{info.getValue()}</span>
             ),
             meta: {
-                filterOptions: ["ACTIVE", "INACTIVE"],
-                labelOptions: {
-                    ACTIVE: "Active",
-                    INACTIVE: "Inactive",
-                },
-                title: "Status",
+                title: "Name",
             },
-            filterFn: (row, columnId, filterValue) => {
-                if (!filterValue) return true;
-                const cellValue = row.getValue(columnId) ? "ACTIVE" : "INACTIVE";
-                return cellValue === filterValue;
-            },
-            enableSorting: false,
         }),
 
+        /* ================= Url ================= */
+        columnHelper.accessor("url", {
+            header: "Url",
+            size: 200,
+            cell: (info) => (
+                <span className="font-medium">{info.getValue()}</span>
+            ),
+            meta: {
+                title: "Url",
+            },
+        }),
+
+        /* ================= Icon ================= */
+    columnHelper.accessor("icon", {
+        header: "Icon",
+        size: 200,
+        cell: (info) => {
+            const iconKey = info.getValue();
+
+            if (!iconKey || !(iconKey in iconMap)) {
+                return null; // or render fallback icon
+            }
+
+            const Icon = iconMap[iconKey as keyof typeof iconMap];
+
+            return (
+                <div className="flex items-center gap-2">
+                    <Icon className="w-4 h-4 text-gray-700" />
+                    <span className="font-medium">
+        {info.getValue()}
+      </span>
+                </div>
+            );
+        },
+        meta: {
+            title: "Icon",
+        },
+    }),
+
+    /* ================= DESCRIPTION ================= */
+        columnHelper.accessor("description", {
+            header: "Description",
+            size: 300,
+            cell: (info) => (
+                <span className="text-muted-foreground line-clamp-2">
+          {info.getValue() || "-"}
+        </span>
+            ),
+            meta: {
+                title: "Description",
+            },
+        }),
+
+        /* ================= STATUS ================= */
+        columnHelper.accessor("isActive", {
+            header: "Status",
+            size: 100,
+            cell: (info) => {
+                const isActive = info.getValue();
+                return (
+                    <Badge className={`${isActive ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-200" : "bg-red-100 text-red-700 hover:bg-red-200 border-red-200"}`} variant="outline">
+                        {isActive ? "Active" : "Inactive"}
+                    </Badge>
+                );
+            },
+            meta: {
+                title: "Status",
+            },
+        }),
 
         /* ================= CREATED AT ================= */
         columnHelper.accessor("createdAt", {
-            header: (info) => <SortHeader info={info} title="Created At" />,
+            header: "Created At",
             size: 160,
-            cell: (info) => dayjs(info.getValue()).format("YYYY-MM-DD HH:mm"),
+            cell: (info) =>
+                dayjs(info.getValue()).format("YYYY-MM-DD HH:mm"),
+            meta: {
+                title: "Created At",
+            }
         }),
 
         /* ================= ACTIONS ================= */
@@ -143,6 +153,7 @@ export const getColumns = (actions?: TableActions) => {
                             onClick={() => actions.onView!(row.original)}
                         />
                     )}
+
                     {actions?.onEdit && (
                         <ActionBtn
                             tooltipText="Edit"
@@ -150,6 +161,7 @@ export const getColumns = (actions?: TableActions) => {
                             onClick={() => actions.onEdit!(row.original)}
                         />
                     )}
+
                     {actions?.onDelete && (
                         <ActionBtn
                             tooltipText="Delete"
@@ -159,6 +171,9 @@ export const getColumns = (actions?: TableActions) => {
                     )}
                 </div>
             ),
+            meta: {
+                title: "Actions",
+            },
             enableSorting: false,
         }),
     ];
