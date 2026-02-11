@@ -23,7 +23,7 @@ export const QuestionOptionsManager: React.FC<QuestionOptionsManagerProps> = ({
             ...data,
             options: [
                 ...data.options,
-                { content: '', isCorrect: false, orderIndex: data.options.length }
+                { content: '', correct: false, orderIndex: data.options.length }
             ]
         });
     };
@@ -49,10 +49,10 @@ export const QuestionOptionsManager: React.FC<QuestionOptionsManagerProps> = ({
 
         if (data.questionType === 'SINGLE_CHOICE') {
             newOptions.forEach((opt, i) => {
-                opt.isCorrect = i === index;
+                opt.correct = i === index;
             });
         } else {
-            newOptions[index].isCorrect = !newOptions[index].isCorrect;
+            newOptions[index].correct = !newOptions[index].correct;
         }
 
         onChange({ ...data, options: newOptions });
@@ -70,7 +70,7 @@ export const QuestionOptionsManager: React.FC<QuestionOptionsManagerProps> = ({
         onChange({ ...data, options: newOptions });
     };
 
-    const correctCount = data.options.filter(opt => opt.isCorrect).length;
+    const correctCount = data.options.filter(opt => opt.correct).length;
 
     return (
         <div>
@@ -127,7 +127,7 @@ export const QuestionOptionsManager: React.FC<QuestionOptionsManagerProps> = ({
 
             <div className="space-y-3">
                 {data.options.map((option, index) => (
-                    <div key={index} className={`group flex items-center gap-3 p-4 border-2 rounded-xl transition-all ${option.isCorrect
+                    <div key={index} className={`group flex items-center gap-3 p-4 border-2 rounded-xl transition-all ${option.correct
                         ? 'bg-gradient-to-r from-green-50 to-green-100 border-green-400 shadow-lg ring-2 ring-green-300'
                         : errors[`option_${index}`]
                             ? 'bg-red-50 border-red-300'
@@ -158,7 +158,7 @@ export const QuestionOptionsManager: React.FC<QuestionOptionsManagerProps> = ({
                         </div>
 
                         {/* Option Number Badge */}
-                        <div className={`flex items-center justify-center h-10 w-10 rounded-full text-sm font-bold flex-shrink-0 ${option.isCorrect
+                        <div className={`flex items-center justify-center h-10 w-10 rounded-full text-sm font-bold flex-shrink-0 ${option.correct
                             ? 'bg-green-600 text-white shadow-md'
                             : 'bg-gray-300 text-gray-700'
                             }`}>
@@ -170,13 +170,13 @@ export const QuestionOptionsManager: React.FC<QuestionOptionsManagerProps> = ({
                             {data.questionType === 'SINGLE_CHOICE' ? (
                                 <input
                                     type="radio"
-                                    checked={option.isCorrect}
+                                    checked={option.correct}
                                     onChange={() => handleCorrectChange(index)}
                                     className="h-5 w-5 text-green-600 border-gray-400 focus:ring-green-500 cursor-pointer"
                                 />
                             ) : (
                                 <Checkbox
-                                    checked={option.isCorrect}
+                                    checked={option.correct}
                                     onCheckedChange={() => handleCorrectChange(index)}
                                     className="h-5 w-5 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
                                 />
@@ -186,7 +186,7 @@ export const QuestionOptionsManager: React.FC<QuestionOptionsManagerProps> = ({
                         {/* Option Content */}
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
-                                {option.isCorrect && (
+                                {option.correct && (
                                     <div className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded-md text-xs font-bold flex-shrink-0 shadow-sm">
                                         <CheckCircle2 className="h-3 w-3" />
                                         CORRECT ANSWER
@@ -200,7 +200,7 @@ export const QuestionOptionsManager: React.FC<QuestionOptionsManagerProps> = ({
                                 onChange={(e) => handleOptionChange(index, 'content', e.target.value)}
                                 className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:border-transparent transition-all ${errors[`option_${index}`]
                                     ? 'border-red-400 focus:ring-red-500 bg-red-50'
-                                    : option.isCorrect
+                                    : option.correct
                                         ? 'border-green-400 focus:ring-green-500 bg-white font-bold text-green-900'
                                         : 'border-gray-300 focus:ring-blue-500 bg-white'
                                     }`}

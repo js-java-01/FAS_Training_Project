@@ -16,7 +16,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
     const [showAddModal, setShowAddModal] = useState(false);
 
     // Fetch assessment questions
-    const { data: assessmentQuestions = [], isLoading } = useQuery({
+    const { data: assessmentQuestions = [], isLoading, error: fetchError } = useQuery({
         queryKey: ['assessmentQuestions', assessmentId],
         queryFn: () => assessmentQuestionApi.getByAssessmentId(assessmentId!),
         enabled: !!assessmentId,
@@ -33,7 +33,6 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['assessmentQuestions', assessmentId] });
-            toast({ variant: 'success', title: 'Success', description: 'Question added to assessment' });
         },
         onError: (error: Error & { response?: { data?: { message?: string } } }) => {
             toast({ variant: 'destructive', title: 'Error', description: error.response?.data?.message || 'Failed to add question' });
@@ -70,11 +69,42 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
         );
     }
 
-    const handleAddQuestion = (questionId: string, score: number) => {
-        const nextOrderIndex = assessmentQuestions.length > 0
+    const handleAddQuestions = async (selected: { questionId: string; score: number }[]) => {
+        const startOrderIndex = assessmentQuestions.length > 0
             ? Math.max(...assessmentQuestions.map(aq => aq.orderIndex)) + 1
             : 0;
-        createMutation.mutate({ questionId, score, orderIndex: nextOrderIndex });
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for (let i = 0; i < selected.length; i++) {
+            const item = selected[i];
+            try {
+                await createMutation.mutateAsync({
+                    questionId: item.questionId,
+                    score: item.score,
+                    orderIndex: startOrderIndex + i,
+                });
+                successCount++;
+            } catch (error: any) {
+                failCount++;
+                console.error('Failed to add question:', error);
+                const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+                toast({
+                    variant: 'destructive',
+                    title: 'Failed to add question',
+                    description: `${errorMessage}`
+                });
+            }
+        }
+
+        if (successCount > 0) {
+            toast({
+                variant: 'success',
+                title: 'Success',
+                description: `${successCount} question(s) added successfully${failCount > 0 ? `, ${failCount} failed` : ''}`
+            });
+        }
     };
 
     const handleDeleteQuestion = (assessmentQuestionId: string) => {
@@ -98,6 +128,26 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
         );
     }
 
+    if (fetchError) {
+        return (
+            <div className="max-w-4xl">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                    <XCircle className="h-12 w-12 text-red-600 mx-auto mb-3" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Questions</h3>
+                    <p className="text-sm text-gray-600">
+                        {(fetchError as any)?.response?.data?.message || (fetchError as Error)?.message || 'Unable to fetch assessment questions'}
+                    </p>
+                    <Button
+                        onClick={() => queryClient.invalidateQueries({ queryKey: ['assessmentQuestions', assessmentId] })}
+                        className="mt-4"
+                    >
+                        Try Again
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-6xl">
             <div className="flex items-center justify-between mb-6">
@@ -105,7 +155,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                     <h3 className="text-lg font-semibold text-gray-900">Assessment Questions</h3>
                     <p className="text-sm text-gray-500 mt-1">Manage questions for this assessment</p>
                 </div>
-                <Button 
+                <Button
                     onClick={() => setShowAddModal(true)}
                     className="bg-blue-600 hover:bg-blue-700"
                     disabled={createMutation.isPending}
@@ -156,7 +206,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                     <p className="text-sm text-gray-500 mb-6">
                         Start building your assessment by adding questions from your question bank.
                     </p>
-                    <Button 
+                    <Button
                         onClick={() => setShowAddModal(true)}
                         className="bg-blue-600 hover:bg-blue-700"
                     >
@@ -169,10 +219,10 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                 <div className="space-y-3">
                     {assessmentQuestions.map((assessmentQuestion, index) => {
                         const hasCorrectAnswer = assessmentQuestion.question.options.some(opt => opt.correct);
-                        
+
                         return (
-                            <div 
-                                key={assessmentQuestion.id} 
+                            <div
+                                key={assessmentQuestion.id}
                                 className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                             >
                                 <div className="flex items-start gap-4">
@@ -236,7 +286,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
             <AddQuestionModal
                 isOpen={showAddModal}
                 onClose={() => setShowAddModal(false)}
-                onAdd={handleAddQuestion}
+                onAdd={handleAddQuestions}
                 existingQuestionIds={existingQuestionIds}
             />
         </div>

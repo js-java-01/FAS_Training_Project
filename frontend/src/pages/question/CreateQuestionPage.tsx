@@ -21,8 +21,8 @@ export default function CreateQuestionPage() {
             isActive: true,
             categoryId: '',
             options: [
-                { content: '', isCorrect: false, orderIndex: 0 },
-                { content: '', isCorrect: false, orderIndex: 1 },
+                { content: '', correct: false, orderIndex: 0 },
+                { content: '', correct: false, orderIndex: 1 },
             ],
         }
     ]);
@@ -74,7 +74,7 @@ export default function CreateQuestionPage() {
                 newErrors.options = 'At least 2 options are required';
             }
 
-            const hasCorrectOption = formData.options.some(opt => opt.isCorrect);
+            const hasCorrectOption = formData.options.some(opt => opt.correct);
             if (!hasCorrectOption) {
                 newErrors.correctOption = 'At least one option must be marked as correct';
             }
@@ -120,8 +120,8 @@ export default function CreateQuestionPage() {
                 isActive: true,
                 categoryId: '',
                 options: [
-                    { content: '', isCorrect: false, orderIndex: 0 },
-                    { content: '', isCorrect: false, orderIndex: 1 },
+                    { content: '', correct: false, orderIndex: 0 },
+                    { content: '', correct: false, orderIndex: 1 },
                 ],
             }
         ]);
@@ -212,7 +212,7 @@ export default function CreateQuestionPage() {
                             <div className="flex-1 overflow-auto p-3">
                                 {questions.map((q, index) => {
                                     const hasErrors = errors[index] && Object.keys(errors[index]).length > 0;
-                                    const isComplete = q.content && q.categoryId && q.options.some(opt => opt.isCorrect);
+                                    const isComplete = q.content && q.categoryId && q.options.some(opt => opt.correct);
                                     return (
                                         <button
                                             key={index}

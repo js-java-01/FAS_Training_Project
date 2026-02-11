@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.assessment.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Data // Cái này để tự sinh Getter/Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
 @Table(name = "question_categories")
 public class QuestionCategory {
     @Id

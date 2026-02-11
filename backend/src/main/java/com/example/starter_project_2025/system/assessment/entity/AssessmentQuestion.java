@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.assessment.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,11 +20,13 @@ public class AssessmentQuestion {
     // Nối về Assessment (Của người khác làm, ông đã có file Assessment dummy rồi)
     @ManyToOne
     @JoinColumn(name = "assessment_id", nullable = false)
+    @JsonIgnoreProperties({ "assessmentQuestions", "handler", "hibernateLazyInitializer" })
     private Assessment assessment;
 
     // Nối về Question (Của ông)
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
+    @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
     private Question question;
 
     @Column(name = "score")

@@ -22,8 +22,8 @@ export default function EditQuestionPage() {
         isActive: true,
         categoryId: '',
         options: [
-            { content: '', isCorrect: false, orderIndex: 0 },
-            { content: '', isCorrect: false, orderIndex: 1 },
+            { content: '', correct: false, orderIndex: 0 },
+            { content: '', correct: false, orderIndex: 1 },
         ],
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -45,7 +45,7 @@ export default function EditQuestionPage() {
                 categoryId: question.category.id,
                 options: question.options.map(opt => ({
                     content: opt.content,
-                    isCorrect: opt.isCorrect,
+                    correct: opt.correct,
                     orderIndex: opt.orderIndex,
                 }))
             });
@@ -90,7 +90,7 @@ export default function EditQuestionPage() {
             newErrors.options = 'At least 2 options are required';
         }
 
-        const hasCorrectOption = formData.options.some(opt => opt.isCorrect);
+        const hasCorrectOption = formData.options.some(opt => opt.correct);
         if (!hasCorrectOption) {
             newErrors.correctOption = 'At least one option must be marked as correct';
         }

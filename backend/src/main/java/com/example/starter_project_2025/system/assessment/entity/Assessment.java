@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.assessment.entity;
 
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +17,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
 public class Assessment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,13 +25,11 @@ public class Assessment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assessment_type_id", nullable = false)
+    @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
     private AssessmentType assessmentType;
 
-    @OneToMany(
-            mappedBy = "assessment",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({ "assessment" })
     private List<AssessmentQuestion> assessmentQuestions = new ArrayList<>();
 
     @Column(nullable = false, unique = true, length = 50)

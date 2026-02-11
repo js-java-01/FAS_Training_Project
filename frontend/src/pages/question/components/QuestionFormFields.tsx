@@ -24,9 +24,9 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
     const handleTypeChange = (newType: 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE') => {
         const newOptions = [...data.options];
         if (newType === 'SINGLE_CHOICE') {
-            const firstCorrect = newOptions.findIndex(opt => opt.isCorrect);
+            const firstCorrect = newOptions.findIndex(opt => opt.correct);
             newOptions.forEach((opt, i) => {
-                opt.isCorrect = i === (firstCorrect >= 0 ? firstCorrect : 0);
+                opt.correct = i === (firstCorrect >= 0 ? firstCorrect : 0);
             });
         }
         onChange({ ...data, questionType: newType, options: newOptions });
