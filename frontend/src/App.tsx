@@ -12,8 +12,13 @@ import { RoleManagement } from "./pages/RoleManagement";
 import { UserManagement } from "./pages/UserManagement";
 import { Dashboard } from "./pages/Dashboard";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import AssessmentManagement from "./pages/AssessmentManagement";
-import ProgrammingLanguageManagement from "./pages/programming-language/ProgrammingLanguageManagement";
+import AssessmentManagement from "./pages/assessment-type/AssessmentManagement";
+import TeacherAssessmentPage from "./pages/teacher-assessment/TeacherAssessmentPage";
+import AssessmentFormPage from "./pages/teacher-assessment/AssessmentFormPage";
+import { QuestionCategoryManagement } from "./pages/question-category";
+import { CreateQuestionPage, EditQuestionPage } from "./pages/question";
+import QuestionManagementPage from "./pages/question/QuestionManagementPage";
+import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
 
 // import { SidebarProvider } from "./components/ui/sidebar";
 
@@ -83,10 +88,73 @@ function App() {
           />
 
           <Route
+            path="/teacher-assessment"
+            element={
+              <ProtectedRoute requiredPermission="ASSESSMENT_READ">
+                <TeacherAssessmentPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/teacher-assessment/create"
+            element={
+              <ProtectedRoute requiredPermission="ASSESSMENT_CREATE">
+                <AssessmentFormPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/teacher-assessment/:id/edit"
+            element={
+              <ProtectedRoute requiredPermission="ASSESSMENT_UPDATE">
+                <AssessmentFormPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/question-categories"
+            element={
+              <ProtectedRoute requiredPermission="QUESTION_CATEGORY_READ">
+                <QuestionCategoryManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/programming-languages"
             element={
               <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
                 <ProgrammingLanguageManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path='questions'
+            element={
+              <ProtectedRoute requiredPermission="QUESTION_READ">
+                <QuestionManagementPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path='questions/create'
+            element={
+              <ProtectedRoute requiredPermission="QUESTION_CREATE">
+                <CreateQuestionPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path='questions/:id/edit'
+            element={
+              <ProtectedRoute requiredPermission="QUESTION_UPDATE">
+                <EditQuestionPage />
               </ProtectedRoute>
             }
           />

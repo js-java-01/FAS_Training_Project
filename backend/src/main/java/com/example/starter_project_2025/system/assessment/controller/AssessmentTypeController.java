@@ -1,10 +1,10 @@
 package com.example.starter_project_2025.system.assessment.controller;
 
 import com.example.starter_project_2025.system.assessment.dto.AssessmentTypeDTO;
-import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentRequest;
+import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentTypeRequest;
 import com.example.starter_project_2025.system.assessment.dto.ImportResultDTO;
-import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRequest;
-import com.example.starter_project_2025.system.assessment.service.AssessmentService;
+import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentTypeRequest;
+import com.example.starter_project_2025.system.assessment.service.AssessmentTypeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -27,11 +27,11 @@ import java.time.LocalDate;
 public class AssessmentTypeController {
 
     @Autowired
-    private AssessmentService assessService;
+    private AssessmentTypeService assessService;
 
     @PostMapping
     public ResponseEntity<AssessmentTypeDTO> create(
-            @Valid @RequestBody CreateAssessmentRequest request) {
+            @Valid @RequestBody CreateAssessmentTypeRequest request) {
 
         return ResponseEntity.ok(assessService.create(request));
     }
@@ -40,7 +40,7 @@ public class AssessmentTypeController {
     @PutMapping("/{id}")
     public ResponseEntity<AssessmentTypeDTO> update(
             @PathVariable String id,
-            @Valid @RequestBody UpdateAssessmentRequest request) {
+            @Valid @RequestBody UpdateAssessmentTypeRequest request) {
 
         return ResponseEntity.ok(assessService.update(id, request));
     }
@@ -59,9 +59,6 @@ public class AssessmentTypeController {
     @GetMapping
     public ResponseEntity<Page<AssessmentTypeDTO>> search(
             @RequestParam(required = false) String keyword,
-            @PageableDefault(size = 20, sort = "createdAt")
-            Pageable pageable,
-
             @RequestParam(required = false) String name,
 
             @RequestParam(required = false)
@@ -70,11 +67,21 @@ public class AssessmentTypeController {
 
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate toDate
-    ) {
-        return ResponseEntity.ok(assessService.search(keyword, pageable, name, fromDate, toDate));
-    }
+            LocalDate toDate,
 
+            @PageableDefault(size = 20, sort = "createdAt")
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                assessService.search(
+                        keyword,
+                        pageable,
+                        name,
+                        fromDate,
+                        toDate
+                )
+        );
+    }
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ImportResultDTO> importAssessments(@RequestParam("file") MultipartFile file) {
 

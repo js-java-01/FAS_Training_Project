@@ -89,7 +89,7 @@ export const AssessmentTable: React.FC = () => {
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
-            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to create assessment type" });
+            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to create assessment.ts type" });
         }
     });
 
@@ -103,7 +103,7 @@ export const AssessmentTable: React.FC = () => {
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
-            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to update assessment type" });
+            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to update assessment.ts type" });
         }
     });
 
@@ -116,7 +116,7 @@ export const AssessmentTable: React.FC = () => {
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
-            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to delete assessment type" });
+            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to delete assessment.ts type" });
         }
     });
 
