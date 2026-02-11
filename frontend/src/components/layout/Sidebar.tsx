@@ -1,4 +1,4 @@
-import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarTrigger } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, useSidebar } from "@/components/ui/sidebar";
 
 import { NavMain } from "@/components/layout/NavMain";
 import { useSidebarMenus } from "@/hooks/useSidebarMenus";
@@ -14,18 +14,25 @@ import { authApi } from "@/api/authApi";
 export function SidebarMenu() {
   const { navGroups } = useSidebarMenus();
   const navigate = useNavigate();
+  const { toggleSidebar, state } = useSidebar();
   return (
     <Sidebar variant="inset" collapsible="icon">
       {/* Header */}
       <SidebarHeader className="py-3">
-        <div className="flex min-w-0 items-center gap-2 overflow-hidden px-2 group-data-[collapsible=icon]:justify-center">
-          <SidebarTrigger className="size-8" />
-          <div className="flex min-w-0 items-center gap-2 transition-[opacity,transform] duration-150 group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:-translate-x-2 group-data-[collapsible=icon]:opacity-0">
-            <div className="flex size-8 items-center justify-center rounded-md bg-blue-800 text-sm font-semibold text-white">
+        <div className="px-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={toggleSidebar}
+            className="flex h-auto w-full min-w-0 items-center justify-start gap-3 px-2 py-2 transition-colors group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-800 text-sm font-semibold text-white shadow-sm">
               RB
             </div>
-            <span className="text-lg font-bold text-blue-800 whitespace-nowrap truncate">RBAC System</span>
-          </div>
+            {state === "expanded" ? (
+              <span className="text-lg font-bold text-blue-800 whitespace-nowrap truncate">RBAC System</span>
+            ) : null}
+          </Button>
         </div>
       </SidebarHeader>
 
@@ -39,8 +46,10 @@ export function SidebarMenu() {
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="p-4 text-xs flex flex-row items-center justify-between text-muted-foreground group-data-[collapsible=icon]:justify-center">
-        <span className="group-data-[collapsible=icon]:hidden">RBAC System v1.0</span>
+      <SidebarFooter className="p-4 text-xs flex flex-row items-center gap-2 text-muted-foreground group-data-[collapsible=icon]:justify-center">
+        {state === "expanded" ? (
+          <span className="min-w-0 flex-1 whitespace-nowrap truncate">RBAC System v1.0</span>
+        ) : null}
         <TooltipWrapper content="Logout">
           <Button
             size="icon"
