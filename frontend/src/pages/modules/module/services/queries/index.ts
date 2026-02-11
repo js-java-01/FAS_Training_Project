@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { moduleApi } from "@/api/moduleApi";
+import { moduleApi } from "@/api/moduleApi.ts";
 import {queryKeys} from "@/pages/modules/keys.ts";
 
 export const useGetAllModules = (params: {

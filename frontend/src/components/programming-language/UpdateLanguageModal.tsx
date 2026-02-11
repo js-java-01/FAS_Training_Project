@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal } from '../Modal';
+import { Modal } from '../modal/Modal.tsx';
 import { LanguageFormFields } from './LanguageFormFields';
 import { getSupportedBadgeStyle } from './utils';
 import { validateProgrammingLanguage } from '../../lib/programmingLanguageSchema';

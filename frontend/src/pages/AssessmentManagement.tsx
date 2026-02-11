@@ -16,7 +16,7 @@ import React, { useState } from 'react';
 
 import { assessmentTypeApi } from '../api/assessmentTypeApi';
 import { PermissionGate } from '../components/PermissionGate';
-import { useToast } from '../hooks/use-toast';
+import { useToast } from '../hooks/useToast.ts';
 import type { AssessmentType, AssessmentTypeRequest, ImportResult } from '../types/assessmentType';
 
 import { MainLayout } from '@/components/layout/MainLayout';

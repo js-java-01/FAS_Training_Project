@@ -3,15 +3,12 @@ package com.example.starter_project_2025.system.location.entity;
 import com.example.starter_project_2025.system.common.enums.LocationStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "locations")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @Builder
@@ -36,7 +33,6 @@ public class Location {
     @Column(nullable = false, length = 20)
     private LocationStatus locationStatus;
 
-    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -44,6 +40,7 @@ public class Location {
     public void prePersist() {
         if (id == null) id = UUID.randomUUID();
         if (locationStatus == null) locationStatus = LocationStatus.ACTIVE;
+        if (createdAt == null) createdAt = LocalDateTime.now();
     }
 
 }

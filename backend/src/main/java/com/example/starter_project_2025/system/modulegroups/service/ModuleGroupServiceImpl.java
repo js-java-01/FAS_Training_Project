@@ -9,9 +9,12 @@ import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleG
 import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
 import com.example.starter_project_2025.system.modulegroups.mapper.ModuleGroupMapper;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
+import com.example.starter_project_2025.system.modulegroups.util.StringNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,11 +40,38 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
                 ? null
                 : "%" + keyword.toLowerCase() + "%";
 
-        Page<ModuleGroups> page =
-                moduleGroupsRepository.search(kw, isActive, pageable);
+        Page<ModuleGroups> page;
+
+        // 👉 CHỈ xử lý riêng cho totalModules
+        if (pageable.getSort().getOrderFor("totalModules") != null) {
+
+            Sort.Direction dir =
+                    pageable.getSort().getOrderFor("totalModules").getDirection();
+
+            // 🚨 quan trọng: bỏ sort khỏi pageable
+            Pageable pageOnly = PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize()
+            );
+
+            page = dir.isAscending()
+                    ? moduleGroupsRepository.searchOrderByTotalModulesAsc(
+                    kw, isActive, pageOnly
+            )
+                    : moduleGroupsRepository.searchOrderByTotalModulesDesc(
+                    kw, isActive, pageOnly
+            );
+
+        } else {
+            // 👉 các sort bình thường (displayOrder, name, createdAt…)
+            page = moduleGroupsRepository.search(
+                    kw, isActive, pageable
+            );
+        }
 
         return page.map(moduleGroupMapper::toDetailResponse);
     }
+
 
     @Override
     public List<ModuleGroupDetailResponse> getAll() {
@@ -74,8 +104,11 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
 
     @Override
     public ModuleGroupResponse create(CreateModuleGroup req) {
-        if (moduleGroupsRepository.existsByName(req.getName())) {
-            throw new BadRequestException("Module group name already exists: " + req.getName());
+
+        String name = StringNormalizer.normalize(req.getName());
+
+        if (moduleGroupsRepository.existsByName(name)) {
+            throw new BadRequestException("Module group name already exists: " + name);
         }
 
         // Validate Order
@@ -88,11 +121,10 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
         }
         if (newOrder < 1) newOrder = 1;
 
-        // Create: Chèn vào -> Đôn tất cả những thằng sau nó lên 1
         moduleGroupsRepository.shiftOrdersForInsert(newOrder);
 
         ModuleGroups entity = new ModuleGroups();
-        entity.setName(req.getName());
+        entity.setName(name);
         entity.setDescription(req.getDescription());
         entity.setDisplayOrder(newOrder);
         entity.setIsActive(req.getIsActive() != null ? req.getIsActive() : true);
@@ -101,21 +133,31 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
         return moduleGroupMapper.toResponse(saved);
     }
 
+
     @Override
     public ModuleGroupDetailResponse update(UUID id, UpdateModuleGroup req) {
-        ModuleGroups group = moduleGroupsRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ModuleGroupResponse", "id", id));
 
-        if (!group.getName().equals(req.getName()) && moduleGroupsRepository.existsByName(req.getName())) {
-            throw new BadRequestException("Module group name already exists: " + req.getName());
+        ModuleGroups group = moduleGroupsRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("ModuleGroupResponse", "id", id)
+                );
+
+        String name = StringNormalizer.normalize(req.getName());
+
+        if (!group.getName().equals(name)
+                && moduleGroupsRepository.existsByName(name)) {
+            throw new BadRequestException(
+                    "Module group name already exists: " + name
+            );
         }
 
-        // --- REORDER ---
         Integer oldOrder = group.getDisplayOrder();
-        Integer newOrder = (req.getDisplayOrder() != null) ? req.getDisplayOrder() : oldOrder;
+        Integer newOrder = (req.getDisplayOrder() != null)
+                ? req.getDisplayOrder()
+                : oldOrder;
+
         long currentCount = moduleGroupsRepository.count();
 
-        // Validate Max
         if (newOrder > currentCount) {
             throw new BadRequestException("Display Order cannot exceed " + currentCount);
         }
@@ -123,37 +165,41 @@ public class ModuleGroupServiceImpl implements ModuleGroupsService {
 
         if (!newOrder.equals(oldOrder)) {
             if (newOrder < oldOrder) {
-                // CASE 1: Move UP (VD: 5 -> 2)
                 moduleGroupsRepository.shiftOrdersForMoveUp(newOrder, oldOrder);
             } else {
-                // CASE 2: Move DOWN (VD: 1 -> 3)
                 moduleGroupsRepository.shiftOrdersForMoveDown(oldOrder, newOrder);
             }
         }
 
-        group.setName(req.getName());
+        group.setName(name);
         group.setDescription(req.getDescription());
         group.setDisplayOrder(newOrder);
-        group.setIsActive(req.getIsActive() != null ? req.getIsActive() : group.getIsActive());
+        group.setIsActive(
+                req.getIsActive() != null ? req.getIsActive() : group.getIsActive()
+        );
 
         ModuleGroups saved = moduleGroupsRepository.save(group);
         return moduleGroupMapper.toDetailResponse(saved);
     }
 
 
+
     @Override
     @Transactional
     public void delete(UUID id) {
+
         ModuleGroups group = moduleGroupsRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ModuleGroup", "id", id));
 
         if (Boolean.FALSE.equals(group.getIsActive())) {
             throw new BadRequestException("Module group is already inactive");
         }
+
         if (group.getModules() != null) {
             group.getModules().forEach(module -> module.setIsActive(false));
         }
         group.setIsActive(false);
+
         moduleGroupsRepository.save(group);
     }
 

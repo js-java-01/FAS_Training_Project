@@ -8,13 +8,15 @@ import { moduleGroupApi } from "@/api/moduleApi"
 import { iconMap } from "@/constants/iconMap"
 
 /* ================= QUERY (LOCAL) ================= */
-export const useActiveModuleGroups = () => {
+export const useActiveModuleGroups = (enabled = true) => {
     return useQuery<ModuleGroup[]>({
         queryKey: ["module-groups", "active"],
         queryFn: moduleGroupApi.getActiveModuleGroups,
+        enabled, 
         staleTime: 5 * 60 * 1000,
-    })
-}
+    });
+};
+
 
 /* ================= SIDEBAR HOOK ================= */
 export function useSidebarMenus() {
@@ -62,17 +64,18 @@ export function useSidebarMenus() {
                             .map((c) => ({
                                 title: c.title,
                                 url: c.url || "#",
+                                isActive: isActiveRoute(c.url),
                             }))
+
+                        const isActive =
+                            isActiveRoute(module.url) ||
+                            children?.some((c) => c.isActive)
 
                         return {
                             title: module.title,
                             url: module.url || "#",
                             icon: iconMap[safeIcon],
-                            isActive:
-                                isActiveRoute(module.url) ||
-                                children?.some((c) =>
-                                    isActiveRoute(c.url)
-                                ),
+                            isActive,
                             items:
                                 children && children.length > 0
                                     ? children

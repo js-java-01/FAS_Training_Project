@@ -1,3 +1,4 @@
+import ToggleTheme from "@/components/ToggleTheme";
 import { Badge } from "@/components/ui/badge.tsx";
 import type { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
@@ -12,6 +13,7 @@ export default function HeaderRight() {
           {role.toLowerCase()}
         </Badge>
       )}
+        <ToggleTheme />
     </div>
   );
 }

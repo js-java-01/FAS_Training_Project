@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
+
 import java.util.UUID;
 
 @Repository
@@ -30,6 +30,7 @@ public interface ModuleGroupsRepository extends JpaRepository<ModuleGroups, UUID
     List<ModuleGroups> findAllWithModules();
 
     boolean existsByName(String name);
+    boolean existsByNameIgnoreCase(String name);
 
     List<ModuleGroups> findByIsActiveTrueOrderByDisplayOrderAsc();
 
@@ -62,5 +63,58 @@ public interface ModuleGroupsRepository extends JpaRepository<ModuleGroups, UUID
     @Modifying
     @Query("UPDATE ModuleGroups m SET m.displayOrder = m.displayOrder - 1 WHERE m.displayOrder > :oldOrder AND m.displayOrder <= :newOrder")
     void shiftOrdersForMoveDown(@Param("oldOrder") Integer oldOrder, @Param("newOrder") Integer newOrder);
+
+
+    @Query(
+            value = """
+        SELECT mg
+        FROM ModuleGroups mg
+        LEFT JOIN mg.modules m
+        WHERE
+            (:keyword IS NULL OR LOWER(mg.name) LIKE :keyword)
+        AND (:isActive IS NULL OR mg.isActive = :isActive)
+        GROUP BY mg
+        ORDER BY COUNT(m) ASC
+    """,
+            countQuery = """
+        SELECT COUNT(DISTINCT mg.id)
+        FROM ModuleGroups mg
+        LEFT JOIN mg.modules m
+        WHERE
+            (:keyword IS NULL OR LOWER(mg.name) LIKE :keyword)
+        AND (:isActive IS NULL OR mg.isActive = :isActive)
+    """
+    )
+    Page<ModuleGroups> searchOrderByTotalModulesAsc(
+            @Param("keyword") String keyword,
+            @Param("isActive") Boolean isActive,
+            Pageable pageable
+    );
+
+    @Query(
+            value = """
+        SELECT mg
+        FROM ModuleGroups mg
+        LEFT JOIN mg.modules m
+        WHERE
+            (:keyword IS NULL OR LOWER(mg.name) LIKE :keyword)
+        AND (:isActive IS NULL OR mg.isActive = :isActive)
+        GROUP BY mg
+        ORDER BY COUNT(m) DESC
+    """,
+            countQuery = """
+        SELECT COUNT(DISTINCT mg.id)
+        FROM ModuleGroups mg
+        LEFT JOIN mg.modules m
+        WHERE
+            (:keyword IS NULL OR LOWER(mg.name) LIKE :keyword)
+        AND (:isActive IS NULL OR mg.isActive = :isActive)
+    """
+    )
+    Page<ModuleGroups> searchOrderByTotalModulesDesc(
+            @Param("keyword") String keyword,
+            @Param("isActive") Boolean isActive,
+            Pageable pageable
+    );
 
 }
