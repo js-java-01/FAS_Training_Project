@@ -3,7 +3,7 @@ import { Download, FileCheck, AlertCircle } from 'lucide-react';
 import { Modal } from '../modal/Modal.tsx';
 import { Button } from '../ui/button';
 import { downloadTemplate } from '../../hooks/useProgrammingLanguages';
-import { useToast } from '../../hooks/use-toast';
+import { useToast } from '../../hooks/useToast.ts';
 import type { ImportResult } from '../../types/programmingLanguage';
 
 interface ImportLanguageDialogProps {

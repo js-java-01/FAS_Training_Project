@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Upload, FileText, Trash2, ImportIcon } from "lucide-react";
+import { Upload, FileText, Trash2 } from "lucide-react";
 
 export default function ImportExportModal({
                                               title,
@@ -36,14 +36,11 @@ export default function ImportExportModal({
         try {
             setLoading(true);
             setError(null);
-            await onImport(file);
-
+            await onImport(file); // success → parent lo toast + close
             setFile(null);
-            setOpen(false);
         } catch (err: any) {
             setError(
-                err?.response?.data?.message ||
-                "Failed to import module groups"
+                err?.response?.data?.message ?? "Failed to import module groups"
             );
         } finally {
             setLoading(false);
@@ -104,7 +101,7 @@ export default function ImportExportModal({
                                 className="hidden"
                                 onChange={(e) => {
                                     setFile(e.target.files?.[0] ?? null);
-                                    setError(null);
+                                    setError(null); // reset lỗi khi chọn file mới
                                 }}
                             />
 
@@ -122,8 +119,8 @@ export default function ImportExportModal({
                                     <div className="flex items-center gap-2">
                                         <FileText className="h-4 w-4" />
                                         <span className="truncate max-w-[240px]">
-                      {file.name}
-                    </span>
+                                            {file.name}
+                                        </span>
                                     </div>
 
                                     <div className="flex gap-2">
@@ -132,15 +129,11 @@ export default function ImportExportModal({
                                             onClick={handleImportClick}
                                             disabled={loading}
                                             className={
-                                                loading
-                                                    ? "bg-gray-400 hover:bg-gray-400"
-                                                    : "bg-green-600 text-white"
+                                            loading ? "bg-gray-400 hover:bg-gray-400" : "bg-green-600 text-white"
                                             }
                                         >
-                                            <ImportIcon className="h-4 w-4 mr-1" />
                                             {loading ? "Importing..." : "Import"}
                                         </Button>
-
                                         <Button
                                             size="sm"
                                             variant="destructive"
@@ -149,11 +142,15 @@ export default function ImportExportModal({
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
+
                                     </div>
                                 </div>
 
+                                {/* ERROR MESSAGE */}
                                 {error && (
-                                    <p className="text-sm text-red-600">{error}</p>
+                                    <p className="text-sm text-red-600">
+                                        {error}
+                                    </p>
                                 )}
                             </div>
                         )}

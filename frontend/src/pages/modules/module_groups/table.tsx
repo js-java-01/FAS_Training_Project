@@ -145,12 +145,11 @@ export default function ModuleGroupsTable() {
     const handleImport = async (file: File) => {
         try {
             await importModuleGroup(file);
-            await invalidateModuleGroups();
-            await reload();
+            toast.success("Import success");
             setOpenBackupModal(false);
-        } catch (err) {
-            // ❗ QUAN TRỌNG: throw để modal hiển thị lỗi
-            throw err;
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message ?? "Import failed");
+            throw err; // để modal biết là fail
         }
     };
 
