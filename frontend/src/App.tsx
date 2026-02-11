@@ -20,7 +20,7 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Logout } from "./pages/auth/Logout";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
-import DepartmentManagement from "@/pages/DepartmentManagement.tsx";
+import DepartmentManagement from "@/pages/department/DepartmentManagement";
 
 
 

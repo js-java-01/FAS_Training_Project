@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { departmentApi } from '../api/departmentApi';
-import { MainLayout } from '../components/layout/MainLayout';
-import { PermissionGate } from '../components/PermissionGate';
-import { locationApi } from '../api/locationApi';
+import { departmentApi } from '../../api/departmentApi';
+import { MainLayout } from '../../components/layout/MainLayout';
+import { PermissionGate } from '../../components/PermissionGate';
+import { locationApi } from '../../api/locationApi';
+import { ImportModal } from '../../components/ImportModal';
+import { FiPlus, FiUploadCloud, FiDownload } from "react-icons/fi";
+
+
+
+
 
 const DepartmentManagement = () => {
     const [departments, setDepartments] = useState<any[]>([]);
     const [existingLocations, setExistingLocations] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [importFile, setImportFile] = useState<File | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+
     const [formData, setFormData] = useState({
         name: '',
         code: '',
@@ -46,8 +56,16 @@ const DepartmentManagement = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await departmentApi.create(formData);
+            if (isEditing && selectedDept) {
+                await departmentApi.update(selectedDept.id, formData);
+            } else {
+                await departmentApi.create(formData);
+            }
+
             setShowModal(false);
+            setIsEditing(false);
+            setSelectedDept(null);
+
             setFormData({ name: '', code: '', description: '', locationId: '' });
             loadDepartments();
         } catch (err: any) {
@@ -66,20 +84,99 @@ const DepartmentManagement = () => {
         }
     };
 
+    const handleImport = async (file: File) => {
+        await departmentApi.import(file);
+        loadDepartments();
+    };
+
+    const handleExport = async () => {
+        const response = await departmentApi.export();
+        const url = window.URL.createObjectURL(new Blob([response]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "departments.xlsx");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    };
+
+
+    const handleDownloadTemplate = async () => {
+        try {
+            const blob = await departmentApi.downloadTemplate();
+
+            const url = window.URL.createObjectURL(new Blob([blob]));
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.setAttribute("download", "department_import_template.xlsx");
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (err) {
+            alert("Failed to download template");
+        }
+    };
+
+
+
+
     if (isLoading) {
-        return <MainLayout><div className="p-8 text-center">Loading...</div></MainLayout>;
+        return <MainLayout><div className="p-8 text-center">Loading...</div>
+        </MainLayout>;
     }
 
     return (
         <MainLayout>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Department Management</h1>
-                <PermissionGate permission="DEPARTMENT_CREATE">
-                    <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-blue-600 text-white rounded-md">
-                        Create Department
-                    </button>
-                </PermissionGate>
+                <div>
+                    <h1 className="text-2xl font-bold">
+                        Department Management
+                    </h1>
+                    <p className="text-sm text-gray-500">
+                        View and manage departments in the system.
+                    </p>
+                </div>
+
+                <div className="flex gap-2">
+
+                    {/* IMPORT */}
+                    <PermissionGate permission="DEPARTMENT_IMPORT">
+                        <button
+                            onClick={() => setShowImportModal(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border rounded-md font-semibold hover:bg-gray-100"
+                        >
+                            <FiUploadCloud />
+                            Import
+                        </button>
+                    </PermissionGate>
+
+                    {/* EXPORT */}
+                    <PermissionGate permission="DEPARTMENT_EXPORT">
+                        <button
+                            onClick={handleExport}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border rounded-md font-semibold hover:bg-gray-100"
+                        >
+                            <FiDownload />
+                            Export
+                        </button>
+                    </PermissionGate>
+
+                    {/* CREATE */}
+                    <PermissionGate permission="DEPARTMENT_CREATE">
+                        <button
+                            onClick={() => setShowModal(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700"
+                        >
+                            <FiPlus />
+                            Add Department
+                        </button>
+                    </PermissionGate>
+
+                </div>
             </div>
+
 
             <div className="grid grid-cols-1 gap-6">
                 {departments.map((dept) => (
@@ -107,10 +204,28 @@ const DepartmentManagement = () => {
                                 >
                                     View
                                 </button>
+                                <PermissionGate permission="DEPARTMENT_UPDATE">
+                                    <button
+                                        onClick={() => {
+                                            setIsEditing(true);
+                                            setSelectedDept(dept);
+                                            setFormData({
+                                                name: dept.name,
+                                                code: dept.code,
+                                                description: dept.description,
+                                                locationId: dept.locationId || ''
+                                            });
+                                            setShowModal(true);
+                                        }}
+                                        className="text-purple-600 hover:underline"
+                                    >
+                                        Edit
+                                    </button>
+                                </PermissionGate>
 
                                 <PermissionGate permission="DEPARTMENT_DELETE">
                                     <button onClick={() => handleDelete(dept.id)}
-                                            className="text-red-600 hover:underline">Delete
+                                        className="text-red-600 hover:underline">Delete
                                     </button>
                                 </PermissionGate>
                             </div>
@@ -122,9 +237,12 @@ const DepartmentManagement = () => {
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-8 max-w-md w-full m-4">
-                        <h2 className="text-xl font-bold mb-4">Create New Department</h2>
+                        <h2 className="text-xl font-bold mb-4">
+                            {isEditing ? "Edit Department" : "Create New Department"}
+                        </h2>
+
                         <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700">
                                     Name <span className="text-red-500">*</span>
                                 </label>
@@ -133,7 +251,7 @@ const DepartmentManagement = () => {
                                     placeholder="e.g. Software Development"
                                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                                     value={formData.name}
-                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 />
                             </div>
 
@@ -146,7 +264,7 @@ const DepartmentManagement = () => {
                                     placeholder="e.g. SD_01"
                                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                                     value={formData.code}
-                                    onChange={(e) => setFormData({...formData, code: e.target.value})}
+                                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                                 />
                             </div>
 
@@ -157,17 +275,17 @@ const DepartmentManagement = () => {
                                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                                     rows={3}
                                     value={formData.description}
-                                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 />
                             </div>
 
                             <select
                                 required
                                 value={formData.locationId}
-                                onChange={(e) => setFormData({...formData, locationId: e.target.value})}
+                                onChange={(e) => setFormData({ ...formData, locationId: e.target.value })}
                                 className="mt-1 block w-full p-2 border rounded-md"
                             >
-                                <option value="">Select Location <span className="text-red-500">*</span></option>
+                                <option value="">Select Location *</option>
                                 {existingLocations.map((loc) => (
                                     <option key={loc.id} value={loc.id}>{loc.name}</option>
                                 ))}
@@ -186,7 +304,7 @@ const DepartmentManagement = () => {
                                     type="submit"
                                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                                 >
-                                    Create
+                                    {isEditing ? "Update" : "Create"}
                                 </button>
                             </div>
                         </form>
@@ -244,6 +362,14 @@ const DepartmentManagement = () => {
                     </div>
                 </div>
             )}
+            <ImportModal
+                isOpen={showImportModal}
+                onClose={() => setShowImportModal(false)}
+                title="Import Departments"
+                onDownloadTemplate={handleDownloadTemplate}
+                onImport={handleImport}
+            />
+
 
         </MainLayout>
     );
