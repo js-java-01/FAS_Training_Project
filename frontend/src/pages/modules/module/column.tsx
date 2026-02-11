@@ -1,4 +1,3 @@
-
 import { createColumnHelper } from "@tanstack/react-table";
 import type { Module } from "@/types/module";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,6 +37,19 @@ export const getColumns = (actions?: TableActions) => {
                     aria-label="Select row"
                 />
             ),
+            enableSorting: false,
+        }),
+
+        /* ================= NUMBER ================= */
+        columnHelper.display({
+            id: "number",
+            header: "#",
+            size: 60,
+            cell: ({ row, table }) =>
+                row.index +
+                1 +
+                table.getState().pagination.pageIndex *
+                table.getState().pagination.pageSize,
             enableSorting: false,
         }),
 
@@ -82,7 +94,18 @@ export const getColumns = (actions?: TableActions) => {
             ),
         }),
 
-        /* ================= STATUS (UI ONLY) ================= */
+        /* ================= DISPLAY ORDER ================= */
+        columnHelper.accessor("displayOrder", {
+            header: (info) => <SortHeader info={info} title="Display Order" />,
+            size: 100,
+            cell: (info) => (
+                <span className="block text-center">
+                    {info.getValue()}
+                </span>
+            ),
+        }),
+
+        /* ================= STATUS ================= */
         columnHelper.accessor("isActive", {
             id: "isActive",
             header: ({ column }) => (
@@ -102,7 +125,7 @@ export const getColumns = (actions?: TableActions) => {
                             : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none"
                     }
                 >
-                    {info.getValue() ? "Active" : "In Active"}
+                    {info.getValue() ? "Active" : "Inactive"}
                 </Badge>
             ),
             meta: {

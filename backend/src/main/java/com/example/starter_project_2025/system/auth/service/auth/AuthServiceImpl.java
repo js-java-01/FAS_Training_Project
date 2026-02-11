@@ -1,8 +1,8 @@
 package com.example.starter_project_2025.system.auth.service.auth;
 
 import com.example.starter_project_2025.constant.ErrorMessage;
-import com.example.starter_project_2025.mapper.AuthMapper;
-import com.example.starter_project_2025.mapper.UserMapper;
+import com.example.starter_project_2025.system.auth.mapper.AuthMapper;
+import com.example.starter_project_2025.system.auth.mapper.UserAuthMapper;
 import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.auth.dto.forgotpassword.ForgotPasswordDTO;
 import com.example.starter_project_2025.system.auth.dto.login.LoginRequest;
@@ -20,9 +20,6 @@ import com.example.starter_project_2025.util.CookieUtil;
 import com.example.starter_project_2025.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
-import org.springframework.scheduling.annotation.Async;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,13 +39,13 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final UserRepository userRepository;
     private final TemplateEngine templateEngine;
-    private final UserMapper userMapper;
+    private final UserAuthMapper userAuthMapper;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtils;
     private final RefreshTokenService refreshTokenService;
-    private final UserService userServiceImpl;
+    private final UserService userService;
     private final AuthMapper authMapper;
     private final CookieUtil cookieUtil;
 
@@ -82,7 +79,7 @@ public class AuthServiceImpl implements AuthService {
             return false;
         }
 
-        User user = userMapper.toEntity(registerCreateDTO);
+        User user = userAuthMapper.toEntity(registerCreateDTO);
         Role role = roleRepository.findByName("STUDENT").isPresent()
                 ? roleRepository.findByName("STUDENT").get()
                 : roleRepository.findByName("USER").orElseThrow(() -> new IllegalArgumentException("Role not found"));
@@ -136,7 +133,7 @@ public class AuthServiceImpl implements AuthService {
         String at = jwtUtils.generateToken(authentication);
 
         if (reqData.isRememberedMe()) {
-            var user = userServiceImpl.findByEmail(userDetails.getEmail());
+            var user = userService.findByEmail(userDetails.getEmail());
             var rt = refreshTokenService.generateAndSaveRefreshToken(user);
             cookieUtil.addCookie(response, rt);
         }

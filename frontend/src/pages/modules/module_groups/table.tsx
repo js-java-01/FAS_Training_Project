@@ -60,7 +60,7 @@ export default function ModuleGroupsTable() {
   const safeTableData = useMemo(
       () => ({
         items: tableData?.items ?? [],
-        page: tableData?.pagination?.page ?? pageIndex + 1,
+        page: tableData?.pagination?.page ?? pageIndex,
         pageSize: tableData?.pagination?.pageSize ?? pageSize,
         totalPages: tableData?.pagination?.totalPages ?? 0,
         totalElements: tableData?.pagination?.totalElements ?? 0,
@@ -148,7 +148,7 @@ export default function ModuleGroupsTable() {
 
             /* Pagination (manual) */
             manualPagination
-            pageIndex={safeTableData.page - 1} // DataTable dùng index-based
+            pageIndex={safeTableData.page} // DataTable dùng index-based
             pageSize={safeTableData.pageSize}
             totalPage={safeTableData.totalPages}
             onPageChange={setPageIndex}
