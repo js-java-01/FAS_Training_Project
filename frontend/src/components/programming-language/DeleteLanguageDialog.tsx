@@ -1,6 +1,6 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
-import { Modal } from '../Modal';
+import { Modal } from '../modal/Modal.tsx';
 import type { ProgrammingLanguage } from '../../types/programmingLanguage';
 
 interface DeleteLanguageDialogProps {

@@ -1,8 +1,6 @@
-// src/pages/modules/module/table.tsx
-
 import { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
+import {DatabaseBackup, Plus} from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
@@ -16,8 +14,10 @@ import { moduleApi } from "@/api/moduleApi";
 import type { Module, CreateModuleRequest } from "@/types/module";
 import { ModuleForm } from "./ModuleForm";
 import { useDebounce } from "@uidotdev/usehooks";
-import { useGetAllModules } from "./queries";
+import { useGetAllModules } from "./services/queries";
 import { ModuleDetailDialog } from "./DetailDialog";
+import ImportExportModal from "@/components/modal/ImportExportModal.tsx";
+import {useExportModules, useImportModules} from "@/pages/modules/module/services/mutations";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
@@ -26,6 +26,7 @@ export default function ModulesTable() {
     const [editingModule, setEditingModule] = useState<Module | null>(null);
     const [viewingModule, setViewingModule] = useState<Module | null>(null);
     const [deletingModule, setDeletingModule] = useState<Module | null>(null);
+    const [openBackupModal, setOpenBackupModal] = useState(false);
 
     /* ---------- table state ---------- */
     const [sorting, setSorting] = useState<SortingState>([]);
@@ -44,6 +45,9 @@ export default function ModulesTable() {
         const { id, desc } = sorting[0];
         return `${id},${desc ? "desc" : "asc"}`;
     }, [sorting]);
+
+    const { mutateAsync: importModules } = useImportModules();
+    const { mutateAsync: exportModules } = useExportModules();
 
     /* ---------- query ---------- */
     const {
@@ -139,6 +143,40 @@ export default function ModulesTable() {
         [],
     );
 
+    /* ================= IMPORT / EXPORT ================= */
+    const handleImport = async (file: File) => {
+        try {
+            await importModules(file);
+            toast.success("Import modules successfully");
+            setOpenBackupModal(false);
+            await invalidateModules();
+            await reload();
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message ?? "Failed to import modules");
+            throw err; // để modal biết là fail
+        }
+    };
+
+    const handleExport = async () => {
+        try {
+            const blob = await exportModules();
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "modules.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            toast.success("Export modules successfully");
+        } catch {
+            toast.error("Failed to export modules");
+        }
+    };
+
+
     /* ===================== RENDER ===================== */
     return (
         <div className="relative space-y-4 h-full flex-1">
@@ -172,16 +210,25 @@ export default function ModulesTable() {
 
                 /* Header */
                 headerActions={
-                    <Button
-                        onClick={() => {
-                            setEditingModule(null);
-                            setIsFormOpen(true);
-                        }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Add New Module
-                    </Button>
+                    <div className={"flex flex-row gap-2"}>
+                        <Button
+                            variant="secondary"
+                            onClick={() => setOpenBackupModal(true)}
+                        >
+                            <DatabaseBackup className="h-4 w-4" />
+                            Import / Export
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                setEditingModule(null);
+                                setIsFormOpen(true);
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add New Module
+                        </Button>
+                    </div>
                 }
             />
 
@@ -206,6 +253,13 @@ export default function ModulesTable() {
                 description={`Are you sure you want to delete "${deletingModule?.title}"?`}
                 onCancel={() => setDeletingModule(null)}
                 onConfirm={() => void handleDelete()}
+            />
+            <ImportExportModal
+                title="Modules"
+                open={openBackupModal}
+                setOpen={setOpenBackupModal}
+                onImport={handleImport}
+                onExport={handleExport}
             />
         </div>
     );
