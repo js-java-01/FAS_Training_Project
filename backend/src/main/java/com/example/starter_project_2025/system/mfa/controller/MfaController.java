@@ -17,7 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/mfa")
+@RequestMapping("/api/mfa")
 @RequiredArgsConstructor
 public class MfaController {
 

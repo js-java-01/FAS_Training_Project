@@ -105,7 +105,9 @@ public class MfaStepUpFilter extends OncePerRequestFilter {
     }
 
     private boolean shouldSkipMfaCheck(String path) {
-        return path.startsWith("/mfa/") ||
+        return path.startsWith("/api/mfa/") ||
+               path.startsWith("/mfa/") ||
+               path.startsWith("/api/auth/") ||
                path.startsWith("/auth/") ||
                path.startsWith("/oauth2/") ||
                path.startsWith("/login") ||
