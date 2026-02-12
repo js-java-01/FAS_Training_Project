@@ -27,7 +27,9 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = mfaGate.subscribe(() => {
+      console.log("MFA Gate triggered, has pending requests:", mfaGate.hasPendingRequests());
       if (mfaGate.hasPendingRequests()) {
+        console.log("Opening MFA modal");
         setShowMfaModal(true);
       }
     });
@@ -36,11 +38,13 @@ function App() {
   }, []);
 
   const handleMfaSuccess = () => {
+    console.log("MFA verification successful, resolving all pending requests");
     mfaGate.resolveAll((config) => axiosInstance(config));
     setShowMfaModal(false);
   };
 
   const handleMfaCancel = () => {
+    console.log("MFA cancelled by user, rejecting all pending requests");
     mfaGate.rejectAll(new Error("MFA cancelled by user"));
     setShowMfaModal(false);
   };
@@ -49,6 +53,11 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <ToastContainer position="top-right" autoClose={3000} theme="colored" aria-label={undefined} />
+        {showMfaModal && (
+          <div style={{ position: "fixed", top: 10, right: 10, background: "yellow", padding: "10px", zIndex: 9999 }}>
+            MFA Modal State: {showMfaModal ? "OPEN" : "CLOSED"}
+          </div>
+        )}
         <MfaPromptModal open={showMfaModal} onStepUpSuccess={handleMfaSuccess} onCancel={handleMfaCancel} />
         <Routes>
           <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />

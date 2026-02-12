@@ -31,6 +31,7 @@ axiosInstance.interceptors.response.use(
     const originalReq = error.config;
 
     if (error?.response?.status === 403 && error?.response?.data?.code === "MFA_REQUIRED" && !originalReq._mfa_retry) {
+      console.log("MFA required detected, enqueueing request:", originalReq.url);
       originalReq._mfa_retry = true;
       return mfaGate.enqueue(originalReq);
     }

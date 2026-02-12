@@ -21,6 +21,7 @@ export function MfaPromptModal({ open, onStepUpSuccess, onCancel }: MfaPromptMod
   const [checkingStatus, setCheckingStatus] = useState<boolean>(true);
 
   useEffect(() => {
+    console.log("MfaPromptModal open changed:", open);
     if (open) {
       checkMfaStatus();
     } else {
@@ -42,9 +43,13 @@ export function MfaPromptModal({ open, onStepUpSuccess, onCancel }: MfaPromptMod
     try {
       setCheckingStatus(true);
       setError("");
+      console.log("Checking MFA status...");
       const status = await mfaApi.status();
+      console.log("MFA status received:", status);
       setIsSetupMode(!status.success);
+      console.log("Setup mode:", !status.success);
     } catch (err) {
+      console.error("Failed to check MFA status:", err);
       setError("Failed to check MFA status");
     } finally {
       setCheckingStatus(false);
@@ -55,10 +60,13 @@ export function MfaPromptModal({ open, onStepUpSuccess, onCancel }: MfaPromptMod
     try {
       setLoading(true);
       setError("");
+      console.log("Initializing MFA...");
       const response = await mfaApi.init();
+      console.log("MFA initialized, QR code URL:", response.qrCodeUrl);
       setQrCodeUrl(response.qrCodeUrl);
       setIsInitialized(true);
     } catch (err) {
+      console.error("Failed to initialize MFA:", err);
       setError("Failed to initialize MFA");
     } finally {
       setLoading(false);
