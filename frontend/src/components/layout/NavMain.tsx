@@ -7,10 +7,12 @@ import {
 } from "@/components/ui/collapsible";
 
 import {
-    SidebarMenuItem,
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarMenu,
     SidebarMenuButton,
+    SidebarMenuItem,
     SidebarMenuSub,
-    SidebarMenuSubItem,
     SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 
