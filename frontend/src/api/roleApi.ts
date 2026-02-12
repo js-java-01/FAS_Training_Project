@@ -42,4 +42,27 @@ export const roleApi = {
     const response = await axiosInstance.post<Role>(`/roles/${roleId}/permissions/remove`, { permissionIds });
     return response.data;
   },
+  downloadTemplate: async (): Promise<Blob> => {
+    const response = await axiosInstance.get('/roles/template', {
+      responseType: 'blob', // Quan trọng: Báo cho axios biết đây là file binary
+    });
+    return response.data;
+  },
+
+  importRoles: async (file: File): Promise<void> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    await axiosInstance.post('/roles/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  exportRoles: async (): Promise<Blob> => {
+    const response = await axiosInstance.get('/roles/export', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };

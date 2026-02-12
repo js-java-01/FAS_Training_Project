@@ -2,7 +2,6 @@ import { useSelector } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useActiveModuleGroups } from "./hooks/useSidebarMenus";
 import type { RootState } from "./store/store";
-import { Toaster } from "sonner";
 import { AuthProvider } from "./contexts/AuthContext";
 import NotFoundPage from "./pages/NotFoundPage";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
@@ -14,22 +13,44 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import { componentRegistry } from "./router/componentRegistry";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useEffect, useState } from "react";
+import { MfaPromptModal } from "./components/MfaPromptModal";
+import mfaGate from "./api/mfaGate";
+import axiosInstance from "./api/axiosInstance";
+import MfaSettings from "./pages/MfaSettings";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { data: moduleGroups = [] } = useActiveModuleGroups(isAuthenticated);
+  const [showMfaModal, setShowMfaModal] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = mfaGate.subscribe(() => {
+      if (mfaGate.hasPendingRequests()) {
+        setShowMfaModal(true);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const handleMfaSuccess = () => {
+    mfaGate.resolveAll((config) => axiosInstance(config));
+    setShowMfaModal(false);
+  };
+
+  const handleMfaCancel = () => {
+    mfaGate.rejectAll(new Error("MFA cancelled by user"));
+    setShowMfaModal(false);
+  };
+
   return (
     <BrowserRouter>
-      <Toaster
-        duration={1500}
-        position="top-right"
-        richColors
-        toastOptions={{
-          className: "p-4",
-        }}
-      />
       <AuthProvider>
+        <ToastContainer position="top-right" autoClose={3000} theme="colored" aria-label={undefined} />
+        <MfaPromptModal open={showMfaModal} onStepUpSuccess={handleMfaSuccess} onCancel={handleMfaCancel} />
         <Routes>
           <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />
           <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
@@ -38,7 +59,7 @@ function App() {
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/mfa-settings" element={<ProtectedRoute><MfaSettings /></ProtectedRoute>} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           {moduleGroups.flatMap((group) =>
             group.modules.map((m) => {

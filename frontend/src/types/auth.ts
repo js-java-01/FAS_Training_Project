@@ -24,6 +24,7 @@ export interface LoginResponse {
   lastName: string;
   role: string;
   permissions: string[];
+  mfaEnabled?: boolean;
 }
 
 export interface CreateUserRequest {

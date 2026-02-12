@@ -2,28 +2,45 @@ package com.example.starter_project_2025.config;
 
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
+
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.system.menu.entity.Menu;
+import com.example.starter_project_2025.system.menu.entity.MenuItem;
+import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
+import com.example.starter_project_2025.system.menu.repository.MenuRepository;
+import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.user.repository.UserRepository;
+import com.example.starter_project_2025.system.location.data.entity.Commune;
+import com.example.starter_project_2025.system.location.data.entity.Province;
+import com.example.starter_project_2025.system.location.data.repository.CommuneRepository;
+import com.example.starter_project_2025.system.location.data.repository.ProvinceRepository;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
 import com.example.starter_project_2025.system.modulegroups.entity.Module;
 import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
 import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -32,6 +49,11 @@ public class DataInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
+    private final MenuRepository menuRepository;
+    private final MenuItemRepository menuItemRepository;
+    private final ProvinceRepository provinceRepository;
+    private final CommuneRepository communeRepository;
+    private final ObjectMapper objectMapper;
     private final ModuleGroupsRepository moduleGroupsRepository;
     private final ModuleRepository moduleRepository;
     private final ProgrammingLanguageRepository programmingLanguageRepository;
@@ -48,14 +70,13 @@ public class DataInitializer implements CommandLineRunner {
             initializePermissions();
             initializeRoles();
             initializeUsers();
+            initializeMenus();
+            initializeLocationData();
             initializeModuleGroups();
-            log.info("Database initialization completed successfully!");
-        } else {
-            log.info("Database already initialized, checking for missing permissions...");
-            // Check if programming language permissions exist, if not, add them
             ensureProgrammingLanguagePermissions();
-            // Always check and initialize programming languages if they don't exist
             initializeProgrammingLanguages();
+        } else {
+            log.info("Database already initialized, skipping core data initialization.");
         }
     }
 
@@ -78,8 +99,14 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
-                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN")
-        );
+                createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"),
+                createPermission("LOCATION_CREATE", "Create new locations", "LOCATION", "CREATE"),
+                createPermission("LOCATION_READ", "View locations", "LOCATION", "READ"),
+                createPermission("LOCATION_UPDATE", "Update existing locations", "LOCATION", "UPDATE"),
+                createPermission("LOCATION_DELETE", "Delete locations", "LOCATION", "DELETE"),
+                createPermission("LOCATION_IMPORT", "Import locations", "LOCATION", "IMPORT"),
+                createPermission("LOCATION_EXPORT", "Export locations", "LOCATION", "EXPORT")
+                );
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }
@@ -97,12 +124,14 @@ public class DataInitializer implements CommandLineRunner {
         Role adminRole = new Role();
         adminRole.setName("ADMIN");
         adminRole.setDescription("Administrator with full system access");
+//        adminRole.setHierarchyLevel(1);
         adminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
         roleRepository.save(adminRole);
 
         Role studentRole = new Role();
         studentRole.setName("STUDENT");
         studentRole.setDescription("Student with limited access to educational resources");
+//        studentRole.setHierarchyLevel(2);
         studentRole.setPermissions(new HashSet<>(permissionRepository.findByAction("READ")));
         roleRepository.save(studentRole);
 
@@ -143,6 +172,81 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized 3 users (admin@example.com, student@example.com, jane.smith@example.com)");
     }
 
+    private void initializeMenus() {
+        Menu mainMenu = new Menu();
+        mainMenu.setName("Main Menu");
+        mainMenu.setDescription("Primary navigation menu");
+        mainMenu.setIsActive(true);
+        mainMenu.setDisplayOrder(1);
+        mainMenu = menuRepository.save(mainMenu);
+
+        MenuItem dashboard = createMenuItem(mainMenu, null, "Dashboard", "/dashboard", "dashboard", 1, null);
+        menuItemRepository.save(dashboard);
+
+        Menu adminMenu = new Menu();
+        adminMenu.setName("Administration");
+        adminMenu.setDescription("Administrative functions menu");
+        adminMenu.setIsActive(true);
+        adminMenu.setDisplayOrder(2);
+        adminMenu = menuRepository.save(adminMenu);
+
+        MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1, "USER_READ");
+        MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2, "ROLE_READ");
+        MenuItem locationManagement = createMenuItem(adminMenu, null, "Location Management", "/locations", "location", 3, "LOCATION_READ");
+        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, locationManagement));
+
+        log.info("Initialized 2 menus with menu items");
+    }
+
+    private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order, String permission) {
+        MenuItem item = new MenuItem();
+        item.setMenu(menu);
+        item.setParent(parent);
+        item.setTitle(title);
+        item.setUrl(url);
+        item.setIcon(icon);
+        item.setDisplayOrder(order);
+        item.setIsActive(true);
+        item.setRequiredPermission(permission);
+        return item;
+    }
+
+    private void initializeLocationData() {
+        if (provinceRepository.count() > 0 || communeRepository.count() > 0) {
+            log.info("Location data already initialized, skipping location data import.");
+            return;
+        }
+
+        try (InputStream inputStream = new ClassPathResource("LocationData.json").getInputStream()) {
+            LocationDataJson locationData = objectMapper.readValue(inputStream, LocationDataJson.class);
+
+            List<Province> provinces = locationData.province().stream()
+                    .map(p -> new Province(p.idProvince(), p.name()))
+                    .toList();
+            provinceRepository.saveAll(provinces);
+
+            Map<String, Province> provinceById = provinces.stream()
+                    .collect(Collectors.toMap(Province::getId, Function.identity()));
+
+            List<Commune> communes = locationData.commune().stream()
+                    .map(c -> new Commune(c.idCommune(), c.name(), provinceById.get(c.idProvince())))
+                    .toList();
+            communeRepository.saveAll(communes);
+
+            log.info("Initialized {} provinces and {} communes", provinces.size(), communes.size());
+        } catch (IOException e) {
+            log.error("Failed to import location data from LocationData.json", e);
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record LocationDataJson(List<ProvinceJson> province, List<CommuneJson> commune) { }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record ProvinceJson(String idProvince, String name) { }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record CommuneJson(String idProvince, String idCommune, String name) { }
     private void initializeModuleGroups() {
         // 1. Nhóm: Main Menu
         ModuleGroups mainGroup = new ModuleGroups();
@@ -164,18 +268,21 @@ public class DataInitializer implements CommandLineRunner {
         userGroup = moduleGroupsRepository.save(userGroup);
 
         moduleRepository.save(
-                createModule(userGroup, "User Management", "/users", "users", 1, "USER_READ", "Manage system users"));
+                createModule(userGroup, "Users", "/users", "users", 1, "USER_READ", "Manage system users"));
+        moduleRepository.save(
+                createModule(userGroup, "Roles", "/roles", "shield", 2, "ROLE_READ", "Manage roles and permissions"));
+        moduleRepository.save(
+                createModule(userGroup, "Locations", "/locations", "map-pin", 3, "LOCATION_READ", "Manage office locations"));
 
-        // 3. Nhóm: Role Management
+        // 3. Nhóm: Role Management (deprecated - kept for backward compatibility)
         ModuleGroups roleGroup = new ModuleGroups();
         roleGroup.setName("Role Management");
         roleGroup.setDescription("Manage roles and role-based access control");
         roleGroup.setDisplayOrder(3);
-        roleGroup.setIsActive(true);
+        roleGroup.setIsActive(false); // Disabled - modules moved to User Management
         roleGroup = moduleGroupsRepository.save(roleGroup);
-
-        moduleRepository.save(createModule(roleGroup, "Role Management", "/roles", "shield", 2, "ROLE_READ",
-                "Manage roles and permissions"));
+        
+        // No modules in this group - all moved to User Management
 
         // 4. Nhóm: System Management
         ModuleGroups systemGroup = new ModuleGroups();
