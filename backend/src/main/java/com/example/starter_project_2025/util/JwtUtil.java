@@ -116,6 +116,15 @@ public class JwtUtil {
         return claims.getSubject();
     }
 
+    public String extractJti(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getId();
+    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
