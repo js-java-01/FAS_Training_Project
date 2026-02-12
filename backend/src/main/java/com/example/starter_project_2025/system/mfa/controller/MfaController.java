@@ -34,45 +34,30 @@ public class MfaController {
     public ResponseEntity<MfaSetupInitResponse> initSetup(
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        System.out.println("=== MFA Setup Init ===");
-        System.out.println("User ID: " + userDetails.getId());
-        System.out.println("User Email: " + userDetails.getEmail());
-        
         try {
             User user = userRepository.findById(userDetails.getId())
                     .orElseThrow(() -> new IllegalStateException("User not found"));
 
-            System.out.println("User found: " + user.getEmail());
-
             // Generate secret
-            System.out.println("Generating secret...");
             String secret = mfaService.generateSecret();
-            System.out.println("Secret generated: " + secret);
 
             // Save credential (not enabled yet)
-            System.out.println("Saving credential...");
             mfaService.initMfa(user, secret);
-            System.out.println("Credential saved");
 
             // Build QR code URL
-            System.out.println("Building QR code URL...");
             String qrCodeUrl = mfaService.buildOtpAuthUrl(
                     user.getEmail(),
                     secret,
-                    "FAS Training System"
+                    "RBAC"
             );
-            System.out.println("QR code URL: " + qrCodeUrl);
 
             MfaSetupInitResponse response = MfaSetupInitResponse.builder()
                     .secret(secret)
                     .qrCodeUrl(qrCodeUrl)
                     .build();
             
-            System.out.println("Returning response");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            System.err.println("Error in initSetup: " + e.getMessage());
-            e.printStackTrace();
             throw e;
         }
     }

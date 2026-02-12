@@ -33,9 +33,6 @@ export const Login: React.FC = () => {
     try {
       const res = await authApi.login({ email: cleanEmail, password: cleanPassword, isRememberedMe });
       dispatch(setLogin(res));
-      console.log('====================================');
-      console.log("Testttttt: ",res);
-      console.log('====================================');
       navigate("/dashboard");
     } catch (err) {
       if (axios.isAxiosError(err)) {

@@ -20,11 +20,9 @@ export default function MfaSettings() {
     try {
       setChecking(true);
       const response = await mfaApi.status();
-      console.log("MFA Status:", response);
       setMfaEnabled(response.success);
       toast.success(response.message);
     } catch (error: any) {
-      console.error("Check status error:", error);
       toast.error("Failed to check MFA status");
     } finally {
       setChecking(false);
@@ -35,13 +33,11 @@ export default function MfaSettings() {
     try {
       setLoading(true);
       const response = await mfaApi.init();
-      console.log("MFA Init:", response);
       setQrCodeUrl(response.qrCodeUrl);
       setSecret(response.secret);
       setSetupMode(true);
       toast.success("MFA initialized! Scan the QR code with your authenticator app.");
     } catch (error: any) {
-      console.error("Init MFA error:", error);
       toast.error(error.response?.data?.message || "Failed to initialize MFA");
     } finally {
       setLoading(false);
@@ -57,7 +53,6 @@ export default function MfaSettings() {
     try {
       setLoading(true);
       const response = await mfaApi.confirmSetup(verificationCode);
-      console.log("MFA Confirm:", response);
       toast.success("MFA enabled successfully!");
       setMfaEnabled(true);
       setSetupMode(false);
@@ -65,7 +60,6 @@ export default function MfaSettings() {
       setSecret("");
       setVerificationCode("");
     } catch (error: any) {
-      console.error("Confirm setup error:", error);
       toast.error(error.response?.data?.message || "Invalid verification code");
     } finally {
       setLoading(false);
@@ -86,7 +80,6 @@ export default function MfaSettings() {
       setDisableMode(false);
       setDisableCode("");
     } catch (error: any) {
-      console.error("Disable MFA error:", error);
       toast.error(error.response?.data?.message || "Failed to disable MFA");
     } finally {
       setLoading(false);

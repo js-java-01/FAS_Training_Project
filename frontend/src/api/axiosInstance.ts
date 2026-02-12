@@ -33,7 +33,6 @@ axiosInstance.interceptors.response.use(
     // Only handle MFA_REQUIRED if user is authenticated (has token)
     const token = localStorage.getItem("token");
     if (token && error?.response?.status === 403 && error?.response?.data?.code === "MFA_REQUIRED" && !originalReq._mfa_retry) {
-      console.log("MFA required detected, enqueueing request:", originalReq.url);
       originalReq._mfa_retry = true;
       return mfaGate.enqueue(originalReq);
     }
