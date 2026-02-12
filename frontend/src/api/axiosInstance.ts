@@ -29,10 +29,19 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalReq = error.config;
 
-    if (error?.response?.status === 401 && !originalReq._retry && !originalReq.url.includes("/auth/login") && !originalReq.url.includes("/auth/logout")) {
+    if (
+      error?.response?.status === 401 &&
+      !originalReq._retry &&
+      !originalReq.url.includes("/auth/login") &&
+      !originalReq.url.includes("/auth/logout")
+    ) {
       originalReq._retry = true;
       try {
-        const res = await axios.post<LoginResponse>("http://localhost:8080/api/refresh", {}, { withCredentials: true });
+        const res = await axios.post<LoginResponse>(
+          "http://localhost:8080/api/auth/refresh",
+          {},
+          { withCredentials: true, headers: { Authorization: "" } },
+        );
         const { token } = res.data;
 
         localStorage.setItem("token", token);
