@@ -19,8 +19,7 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Logout } from "./pages/auth/Logout";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
-
-
+import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
 
 function App() {
   return (
@@ -34,88 +33,97 @@ function App() {
         }}
       /> */}
       <AuthProvider>
-        <ToastContainer position="top-right" autoClose={3000} theme="colored" aria-label={undefined} />
-        {/* <SidebarProvider>
+        <RoleSwitchProvider>
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            theme="colored"
+            aria-label={undefined}
+          />
+          {/* <SidebarProvider>
          
         </SidebarProvider> */}
 
-        <Routes>
-          <Route path="*" element={<NotFoundRedirect />} />
-          <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/logout" element={<Logout />} />
-          <Route path="/unauthorized" element={<Unauthorized />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute requiredPermission="USER_READ">
-                <UserManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessment-type"
-            element={
-              <ProtectedRoute requiredPermission="ASSESSMENT_READ">
-                <AssessmentManagement />
-              </ProtectedRoute>
-            }
-          />
-
-
-          <Route
-            path="/roles"
-            element={
-              <ProtectedRoute requiredPermission="ROLE_READ">
-                <RoleManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/locations"
-            element={
-              <ProtectedRoute requiredPermission="LOCATION_READ">
-                <LocationManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/programming-languages"
-            element={
-              <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
-                <ProgrammingLanguageManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/moduleGroups"
-            element={
-              <ProtectedRoute requiredPermission="ROLE_READ">
-                <ModuleGroupsManagement />
-              </ProtectedRoute>
-            }
-          />
+          <Routes>
+            <Route path="*" element={<NotFoundRedirect />} />
             <Route
-                path="/modules"
-                element={
-                    <ProtectedRoute requiredPermission="ROLE_READ">
-                        <ModulesManagement />
-                    </ProtectedRoute>
-                }
+              path="/oauth2/redirect"
+              element={<OAuth2RedirectHandler />}
+            />
+            <Route path="/login" element={<Login />} />
+            <Route path="/logout" element={<Logout />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute requiredPermission="USER_READ">
+                  <UserManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessment-type"
+              element={
+                <ProtectedRoute requiredPermission="ASSESSMENT_READ">
+                  <AssessmentManagement />
+                </ProtectedRoute>
+              }
             />
 
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
+            <Route
+              path="/roles"
+              element={
+                <ProtectedRoute requiredPermission="ROLE_READ">
+                  <RoleManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/locations"
+              element={
+                <ProtectedRoute requiredPermission="LOCATION_READ">
+                  <LocationManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programming-languages"
+              element={
+                <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
+                  <ProgrammingLanguageManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/moduleGroups"
+              element={
+                <ProtectedRoute requiredPermission="ROLE_READ">
+                  <ModuleGroupsManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/modules"
+              element={
+                <ProtectedRoute requiredPermission="ROLE_READ">
+                  <ModulesManagement />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </RoleSwitchProvider>
       </AuthProvider>
     </BrowserRouter>
   );
