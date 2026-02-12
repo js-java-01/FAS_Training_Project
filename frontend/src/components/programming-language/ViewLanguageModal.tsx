@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal } from '../Modal';
+import { Modal } from '../modal/Modal.tsx';
 import { getLanguageBadgeStyle, getSupportedBadgeStyle, formatDate, displayValue } from './utils';
 import type { ProgrammingLanguage } from '../../types/programmingLanguage';
 

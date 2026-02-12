@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { PermissionGate } from '../components/PermissionGate';
-import { useToast } from '../hooks/use-toast';
+import { useToast } from '../hooks/useToast.ts';
 import {
     CreateLanguageModal,
     UpdateLanguageModal,
