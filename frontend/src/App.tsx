@@ -60,7 +60,6 @@ function App() {
           )}
           <Route path="*" element={<NotFoundRedirect />} />
         </Routes>
-        <Toaster />
       </AuthProvider>
     </BrowserRouter>
   );

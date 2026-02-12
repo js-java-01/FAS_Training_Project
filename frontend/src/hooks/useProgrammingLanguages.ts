@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { programmingLanguageApi } from '../api/programmingLanguageApi';
-import { useToast } from './use-toast';
+import { useToast } from './useToast.ts';
 import type { SearchParams } from '../types/programmingLanguage';
 
 // Query keys for cache management

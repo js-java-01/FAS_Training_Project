@@ -50,17 +50,17 @@ export const Modal: React.FC<{
             variants={panelVariants}
           >
             <motion.div
-              className="bg-white rounded-xl shadow-2xl overflow-hidden"
+              className="bg-card text-foreground rounded-xl shadow-2xl overflow-hidden"
               onClick={(e) => e.stopPropagation()} 
               whileTap={{ scale: 0.999 }}
             >
-              <header className="px-6 py-4 border-b bg-gray-50">
+              <header className="px-6 py-4 border-b bg-muted">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
                   <button
                     onClick={onClose}
                     aria-label="Close dialog"
-                    className="text-gray-500 hover:text-black hover:bg-gray-200 rounded-md p-1 transition"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted/70 rounded-md p-1 transition"
                   >
                     ×
                   </button>
