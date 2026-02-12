@@ -4,6 +4,7 @@ import com.example.starter_project_2025.security.JwtAuthenticationFilter;
 import com.example.starter_project_2025.security.UserDetailsServiceImpl;
 import com.example.starter_project_2025.system.auth.service.oauth2.CustomOAuth2UserServiceImpl;
 import com.example.starter_project_2025.system.auth.service.oauth2.OAuth2AuthenticationSuccessHandler;
+import com.example.starter_project_2025.system.mfa.filter.MfaStepUpFilter;
 import io.swagger.v3.oas.models.OpenAPI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +39,7 @@ public class SecurityConfig
 {
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final MfaStepUpFilter mfaStepUpFilter;
     private final CustomOAuth2UserServiceImpl customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final PasswordEncoderConfig passwordEncoder;
@@ -57,6 +59,9 @@ public class SecurityConfig
                         .requestMatchers("/api/assessments/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        
+                        // MFA endpoints
+                        .requestMatchers("/mfa/**", "/api/mfa/**").authenticated()
                         
                         // Menu endpoints
                         .requestMatchers(HttpMethod.GET, "/api/menus/**", "/api/menu-items/**").authenticated()
@@ -89,6 +94,7 @@ public class SecurityConfig
                 )
                 .authenticationProvider(authenticationProvider(passwordEncoder.passwordEncoder()))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(mfaStepUpFilter, JwtAuthenticationFilter.class)
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
