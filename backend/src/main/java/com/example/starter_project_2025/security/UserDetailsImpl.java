@@ -50,18 +50,22 @@ public class UserDetailsImpl implements UserDetails
     public Collection<? extends GrantedAuthority> getAuthorities()
     {
         System.out.println("[DEBUG] getAuthorities called for user: " + email);
-        System.out.println("[DEBUG] permissions value: " + permissions);
-        System.out.println("[DEBUG] permissions is null: " + (permissions == null));
+        System.out.println("[DEBUG] role: " + role);
+        System.out.println("[DEBUG] permissions: " + permissions);
         
         if (permissions == null) {
-            System.out.println("[DEBUG] Returning empty set because permissions is null");
-            return Set.of();
+            System.out.println("[DEBUG] Returning only role because permissions is null");
+            return Set.of(new SimpleGrantedAuthority("ROLE_" + role));
         }
         
         var authorities = permissions.stream()
                 .map(permission -> new SimpleGrantedAuthority(permission))
                 .collect(Collectors.toSet());
-        System.out.println("[DEBUG] Returning authorities: " + authorities);
+        
+        // Add ROLE_ prefix to role name
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+        
+        System.out.println("[DEBUG] Returning authorities with role: " + authorities);
         return authorities;
     }
 
