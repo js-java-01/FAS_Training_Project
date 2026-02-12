@@ -19,7 +19,8 @@ import { MainLayout } from "../../components/layout/MainLayout";
 import { PermissionGate } from "../../components/PermissionGate";
 import { ConfirmDeleteModal } from "../../components/ConfirmDeleteModal";
 
-import { RoleCard } from "./components/RoleCard";
+import { DataTable } from "@/components/data_table/DataTable";
+import { getColumns } from "./columns";
 import { RoleFormModal } from "./components/RoleFormModal";
 import { ImportExportActions } from "@/components/import-export/ImportExportActions";
 import { BaseImportModal } from "@/components/import-export/BaseImportModal";
@@ -153,31 +154,40 @@ export const RoleManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* ================= ROLE LIST ================= */}
-      <RoleCard
-        roles={roles}
-        onView={(role) => {
-          setSelectedRole(role);
-          setExpandPermissions(false);
-          setShowDetail(true);
-        }}
-        onEdit={openEdit}
-        onToggleStatus={async (id) => {
-          try {
-            await roleApi.toggleRoleStatus(id);
-            toast.success("Role status updated");
-            loadData();
-          } catch (error: any) {
-            toast.error(
-              error?.response?.data?.message || "Failed to update status",
-            );
-          }
-        }}
-        onDelete={(role) => {
-          setSelectedRole(role);
-          setDeleteRoleId(role.id);
-        }}
-      />
+      {/* ================= ROLE TABLE ================= */}
+      <div className="h-[60vh]">
+        <DataTable<Role, unknown>
+          columns={getColumns({
+            onView: (role) => {
+              setSelectedRole(role);
+              setExpandPermissions(false);
+              setShowDetail(true);
+            },
+            onEdit: openEdit,
+            onToggleStatus: async (id: string) => {
+              try {
+                await roleApi.toggleRoleStatus(id);
+                toast.success("Role status updated");
+                loadData();
+              } catch (error: any) {
+                toast.error(
+                  error?.response?.data?.message || "Failed to update status",
+                );
+              }
+            },
+            onDelete: (role) => {
+              setSelectedRole(role);
+              setDeleteRoleId(role.id);
+            },
+          })}
+          data={roles}
+          isLoading={loading}
+          isSearch
+          manualSearch={false}
+          searchValue={["name", "description"]}
+          searchPlaceholder="name or description"
+        />
+      </div>
 
       {/* ================= DETAIL MODAL (INLINE – GỘP) ================= */}
       {showDetail && selectedRole && (
