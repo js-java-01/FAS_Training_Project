@@ -33,10 +33,11 @@ public class MfaService {
      * Build OTP Auth URL for QR code generation
      */
     public String buildOtpAuthUrl(String userEmail, String secret, String issuer) {
+        GoogleAuthenticatorKey key = new GoogleAuthenticatorKey.Builder(secret).build();
         return GoogleAuthenticatorQRGenerator.getOtpAuthURL(
             issuer,
             userEmail,
-            googleAuthenticator.createCredentials(secret)
+            key
         );
     }
 
