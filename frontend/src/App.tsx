@@ -15,14 +15,41 @@ import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import { componentRegistry } from "./router/componentRegistry";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useEffect, useState } from "react";
+import { MfaPromptModal } from "./components/MfaPromptModal";
+import mfaGate from "./api/mfaGate";
+import axiosInstance from "./api/axiosInstance";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { data: moduleGroups = [] } = useActiveModuleGroups(isAuthenticated);
+  const [showMfaModal, setShowMfaModal] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = mfaGate.subscribe(() => {
+      if (mfaGate.hasPendingRequests()) {
+        setShowMfaModal(true);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const handleMfaSuccess = () => {
+    mfaGate.resolveAll((config) => axiosInstance(config));
+    setShowMfaModal(false);
+  };
+
+  const handleMfaCancel = () => {
+    mfaGate.rejectAll(new Error("MFA cancelled by user"));
+    setShowMfaModal(false);
+  };
+
   return (
     <BrowserRouter>
       <AuthProvider>
         <ToastContainer position="top-right" autoClose={3000} theme="colored" aria-label={undefined} />
+        <MfaPromptModal open={showMfaModal} onStepUpSuccess={handleMfaSuccess} onCancel={handleMfaCancel} />
         <Routes>
           <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />
           <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
