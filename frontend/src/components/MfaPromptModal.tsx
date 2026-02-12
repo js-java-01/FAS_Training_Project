@@ -119,8 +119,8 @@ export function MfaPromptModal({ open, onStepUpSuccess, onCancel }: MfaPromptMod
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-      <DialogContent className="sm:max-w-md" showCloseButton={!loading}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()} modal={true}>
+      <DialogContent className="sm:max-w-md" showCloseButton={!loading} onPointerDownOutside={(e) => loading && e.preventDefault()} onEscapeKeyDown={(e) => loading && e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>
             {checkingStatus ? "Loading..." : isSetupMode ? "Setup Multi-Factor Authentication" : "Verify Your Identity"}
