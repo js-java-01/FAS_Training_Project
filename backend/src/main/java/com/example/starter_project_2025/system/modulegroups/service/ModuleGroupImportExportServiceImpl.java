@@ -22,6 +22,7 @@ import java.util.Iterator;
 public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExportService {
 
     private final ModuleGroupsRepository repository;
+    private static final String NAME_REGEX = "^[A-Za-z\\s]+$";
 
     private static final String[] TEMPLATE_HEADERS =
             {"name", "description", "displayOrder", "isActive"};
@@ -51,16 +52,16 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
 
     @Override
     public ImportResultResponse importExcel(MultipartFile file) {
-        ImportResultResponse result = new ImportResultResponse();
 
-        // ===== BASIC VALIDATION =====
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("File is empty");
+            throw new RuntimeException("File is empty");
         }
 
-        if (!file.getOriginalFilename().endsWith(".xlsx")) {
-            throw new IllegalArgumentException("Only .xlsx file is supported");
+        if (!file.getOriginalFilename().toLowerCase().endsWith(".xlsx")) {
+            throw new RuntimeException("Invalid file format. Only .xlsx is allowed");
         }
+
+        ImportResultResponse result = new ImportResultResponse();
 
         try (InputStream is = file.getInputStream();
              Workbook workbook = new XSSFWorkbook(is)) {
@@ -69,11 +70,15 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
             Iterator<Row> rows = sheet.iterator();
 
             if (!rows.hasNext()) {
-                return result;
+                throw new RuntimeException("File is empty");
             }
 
-            rows.next(); // skip header
-            int rowIndex = 1; // excel row index (0-based)
+            Row header = rows.next();
+            if (header.getPhysicalNumberOfCells() != 4) {
+                throw new RuntimeException("Invalid template format");
+            }
+
+            int rowIndex = 1;
 
             while (rows.hasNext()) {
                 Row row = rows.next();
@@ -85,17 +90,22 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
                     Integer displayOrder = getInteger(row, 2, 0);
                     Boolean isActive = getBoolean(row, 3, true);
 
-                    // ===== VALIDATION =====
                     if (name == null || name.isBlank()) {
                         throw new IllegalArgumentException("name|Name is required");
                     }
 
-                    if (repository.existsByName(name)) {
+                    // chỉ cho phép chữ + khoảng trắng
+                    if (!name.matches("^[A-Za-z\\s]+$")) {
+                        throw new IllegalArgumentException("name|Only letters and spaces are allowed");
+                    }
+
+                    // check trùng (case insensitive)
+                    if (repository.existsByNameIgnoreCase(name.trim())) {
                         throw new IllegalArgumentException("name|Name already exists");
                     }
 
                     ModuleGroups group = new ModuleGroups();
-                    group.setName(name);
+                    group.setName(name.trim());
                     group.setDescription(description);
                     group.setDisplayOrder(displayOrder);
                     group.setIsActive(isActive);
@@ -104,6 +114,7 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
                     result.setSuccessCount(result.getSuccessCount() + 1);
 
                 } catch (Exception ex) {
+
                     result.setFailedCount(result.getFailedCount() + 1);
 
                     String msg = ex.getMessage() == null ? "Unknown error" : ex.getMessage();
@@ -111,21 +122,23 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
 
                     result.getErrors().add(
                             new ImportErrorDetail(
-                                    rowIndex + 1, // excel row number
+                                    rowIndex + 1,
                                     err[0],
                                     err.length > 1 ? err[1] : msg
                             )
                     );
                 }
+
                 rowIndex++;
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Import failed", e);
+            throw new RuntimeException("Import module groups failed");
         }
 
         return result;
     }
+
 
 
     @Override

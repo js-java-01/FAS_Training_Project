@@ -10,6 +10,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/modules")
 @RequiredArgsConstructor
@@ -32,9 +34,17 @@ public class ModuleImportExportController {
     public ResponseEntity<ImportResultResponse> importModules(
             @RequestPart("file") MultipartFile file
     ) {
-        return ResponseEntity.ok(service.importExcel(file));
-    }
 
+        ImportResultResponse response = service.importExcel(file);
+
+        if (response.getFailedCount() > 0) {
+            response.setMessage("Import modules done. Some records failed to import.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        response.setMessage("Import modules successfully");
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportModules() {
