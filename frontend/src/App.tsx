@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { MfaPromptModal } from "./components/MfaPromptModal";
 import mfaGate from "./api/mfaGate";
 import axiosInstance from "./api/axiosInstance";
+import MfaSettings from "./pages/MfaSettings";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -67,6 +68,7 @@ function App() {
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/mfa-settings" element={<ProtectedRoute><MfaSettings /></ProtectedRoute>} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           {moduleGroups.flatMap((group) =>
             group.modules.map((m) => {
