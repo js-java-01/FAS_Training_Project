@@ -10,9 +10,11 @@ export default function MfaSettings() {
   const [loading, setLoading] = useState<boolean>(false);
   const [checking, setChecking] = useState<boolean>(false);
   const [setupMode, setSetupMode] = useState<boolean>(false);
+  const [disableMode, setDisableMode] = useState<boolean>(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [secret, setSecret] = useState<string>("");
   const [verificationCode, setVerificationCode] = useState<string>("");
+  const [disableCode, setDisableCode] = useState<string>("");
 
   const checkStatus = async () => {
     try {
@@ -70,16 +72,19 @@ export default function MfaSettings() {
     }
   };
 
-  const handleDisableMfa = async () => {
-    if (!window.confirm("Are you sure you want to disable MFA?")) {
+  const handleConfirmDisable = async () => {
+    if (!disableCode || disableCode.length !== 6) {
+      toast.error("Please enter a 6-digit code");
       return;
     }
 
     try {
       setLoading(true);
-      await mfaApi.disable();
+      await mfaApi.disable(disableCode);
       toast.success("MFA disabled successfully!");
       setMfaEnabled(false);
+      setDisableMode(false);
+      setDisableCode("");
     } catch (error: any) {
       console.error("Disable MFA error:", error);
       toast.error(error.response?.data?.message || "Failed to disable MFA");
@@ -174,12 +179,39 @@ export default function MfaSettings() {
           {mfaEnabled && !setupMode && (
             <div className="border border-destructive/50 rounded-lg p-4">
               <h3 className="font-semibold text-lg mb-2 text-destructive">Disable MFA</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Warning: Disabling MFA will reduce your account security.
-              </p>
-              <Button onClick={handleDisableMfa} disabled={loading} variant="destructive">
-                {loading ? "Disabling..." : "Disable MFA"}
-              </Button>
+              
+              {!disableMode ? (
+                <>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Warning: Disabling MFA will reduce your account security.
+                  </p>
+                  <Button onClick={() => setDisableMode(true)} disabled={loading} variant="destructive">
+                    Disable MFA
+                  </Button>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Enter the 6-digit code from your authenticator app to confirm:
+                  </p>
+                  <Input
+                    type="text"
+                    placeholder="000000"
+                    maxLength={6}
+                    value={disableCode}
+                    onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, ""))}
+                    disabled={loading}
+                  />
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => { setDisableMode(false); setDisableCode(""); }} disabled={loading} className="flex-1">
+                      Cancel
+                    </Button>
+                    <Button onClick={handleConfirmDisable} disabled={loading || disableCode.length !== 6} variant="destructive" className="flex-1">
+                      {loading ? "Disabling..." : "Confirm Disable"}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
