@@ -19,7 +19,7 @@ import java.util.UUID;
 public class MfaService {
 
     private final MfaCredentialRepository mfaCredentialRepository;
-    private final GoogleAuthenticator googleAuthenticator = new GoogleAuthenticator();
+    private final GoogleAuthenticator googleAuthenticator;
 
     /**
      * Generate a new TOTP secret for a user
@@ -53,7 +53,7 @@ public class MfaService {
             throw new MfaLockedException("Account is temporarily locked. Try again later.");
         }
 
-        // Verify the code
+        // Verify the code using secret key directly
         boolean isValid = googleAuthenticator.authorize(credential.getSecretEnc(), Integer.parseInt(code));
 
         if (!isValid) {
