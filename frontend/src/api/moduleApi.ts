@@ -104,6 +104,21 @@ export const moduleGroupApi = {
         );
     },
 
+    exportTemplateModuleGroups: async (params?: {
+        keyword?: string;
+        status?: string;
+    }): Promise<Blob> => {
+        const res = await axiosInstance.get(
+            "/module-groups/template",
+            {
+                params,
+                responseType: "blob",
+            }
+        );
+
+        return res.data;
+    },
+
 };
 
 /* =========================
@@ -211,5 +226,18 @@ export const moduleApi = {
             }
         );
     },
+    exportTemplateModules: async (params?: {
+        keyword?: string;
+        status?: string;
+    }): Promise<Blob> => {
+        const res = await axiosInstance.get(
+            "/modules/template",
+            {
+                params,
+                responseType: "blob",
+            }
+        );
 
+        return res.data;
+    },
 };

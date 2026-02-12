@@ -19,6 +19,7 @@ import type { ModuleGroupDto } from "./form";
 import { ModuleGroupDetailDialog } from "./DetailDialog";
 import ImportExportModal from "@/components/modal/ImportExportModal";
 import {
+    useDownloadTemplate,
     useExportModuleGroup,
     useImportModuleGroup,
 } from "@/pages/modules/module_groups/services/mutations";
@@ -42,6 +43,7 @@ export default function ModuleGroupsTable() {
 
     const { mutateAsync: importModuleGroup } = useImportModuleGroup();
     const { mutateAsync: exportModuleGroup } = useExportModuleGroup();
+    const { mutateAsync: downloadTemplate } = useDownloadTemplate();
 
     const queryClient = useQueryClient();
 
@@ -141,35 +143,49 @@ export default function ModuleGroupsTable() {
         }
     };
 
-    /* ================= IMPORT / EXPORT ================= */
+    /* ================= IMPORT / EXPORT / TEMPLATE ================= */
     const handleImport = async (file: File) => {
         try {
             await importModuleGroup(file);
-            toast.success("Import success");
+            toast.success("Import module groups successfully");
             setOpenBackupModal(false);
+            await invalidateModuleGroups();
+            await reload();
         } catch (err: any) {
-            toast.error(err?.response?.data?.message ?? "Import failed");
-            throw err; // để modal biết là fail
+            toast.error(err?.response?.data?.message ?? "Failed to import module groups");
+            throw err;
         }
     };
 
     const handleExport = async () => {
         try {
             const blob = await exportModuleGroup();
-
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = "module-groups.xlsx";
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-
+            downloadBlob(blob, "module_groups.xlsx");
             toast.success("Export module groups successfully");
         } catch {
             toast.error("Failed to export module groups");
         }
+    };
+
+    const handleDownloadTemplate = async () => {
+        try {
+            const blob = await downloadTemplate();
+            downloadBlob(blob, "module_groups_template.xlsx");
+            toast.success("Download template successfully");
+        } catch {
+            toast.error("Failed to download template");
+        }
+    };
+
+    const downloadBlob = (blob: Blob, filename: string) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
     };
 
     /* ===================== RENDER ===================== */
@@ -247,6 +263,7 @@ export default function ModuleGroupsTable() {
                 setOpen={setOpenBackupModal}
                 onImport={handleImport}
                 onExport={handleExport}
+                onDownloadTemplate={handleDownloadTemplate}
             />
         </div>
     );
