@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -44,7 +45,10 @@ public class JwtUtil {
         System.out.println("token: " + userDetails.getEmail());
         System.out.println("Permissions in token: " + permissions);
 
+        String jti = UUID.randomUUID().toString();
+
         return Jwts.builder()
+                .setId(jti)
                 .setSubject(userDetails.getEmail())
                 .claim("userId", userDetails.getId().toString())
                 .claim("role", userDetails.getRole())
@@ -59,7 +63,10 @@ public class JwtUtil {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
 
+        String jti = UUID.randomUUID().toString();
+
         return Jwts.builder()
+                .setId(jti)
                 .setSubject(userDetails.getEmail())
                 .claim("userId", userDetails.getId().toString())
                 .setIssuedAt(now)
