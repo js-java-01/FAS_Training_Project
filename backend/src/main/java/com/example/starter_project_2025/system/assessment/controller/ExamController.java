@@ -68,4 +68,24 @@ public class ExamController {
     public void delete(@PathVariable Long id) {
         assessmentService.delete(id);
     }
+
+    @GetMapping("/status")
+    public ResponseEntity<AssessmentDTO> getByStatus(
+            @RequestParam AssessmentStatus status) {
+
+        return ResponseEntity.ok(
+                assessmentService.findByStatus(status)
+        );
+    }
+
+    // 🔄 Update status
+    @PutMapping("/{id}/status")
+    public ResponseEntity<AssessmentDTO> updateStatus(
+            @PathVariable Long id,
+            @RequestParam AssessmentStatus status) {
+
+        return ResponseEntity.ok(
+                assessmentService.updateStatus(id, status)
+        );
+    }
 }

@@ -17,13 +17,11 @@ public class AssessmentQuestion {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // Nối về Assessment (Của người khác làm, ông đã có file Assessment dummy rồi)
     @ManyToOne
     @JoinColumn(name = "assessment_id", nullable = false)
     @JsonIgnoreProperties({ "assessmentQuestions", "handler", "hibernateLazyInitializer" })
     private Assessment assessment;
 
-    // Nối về Question (Của ông)
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
     @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })

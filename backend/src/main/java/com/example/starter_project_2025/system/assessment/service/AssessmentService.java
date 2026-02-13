@@ -107,5 +107,26 @@ public class AssessmentService {
         assessmentRepository.delete(assessment);
     }
 
+    public AssessmentDTO findByStatus(AssessmentStatus status) {
+        Assessment assessment = assessmentRepository
+                .findAssessmentByStatus(status)
+                .orElseThrow(() -> new RuntimeException("Assessment not found with status: " + status));
+
+        return assessmentMapper.toDto(assessment);
+    }
+
+    public AssessmentDTO updateStatus(Long id, AssessmentStatus status) {
+        Assessment assessment = assessmentRepository
+                .findById(id)
+                .orElseThrow(() -> new RuntimeException("Assessment not found with id: " + id));
+
+        assessment.setStatus(status);
+
+        return assessmentMapper.toDto(
+                assessmentRepository.save(assessment)
+        );
+    }
+
+
 
 }
