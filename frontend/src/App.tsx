@@ -14,12 +14,14 @@ import ModulesManagement from "./pages/modules/module/ModulesManagement";
 import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
 import { AssessmentManagement } from "./pages/AssessmentManagement";
+import CourseManagement from "./pages/CourseManagement/CourseManagement";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Logout } from "./pages/auth/Logout";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
+import CourseDetailPage from "./pages/CourseManagement/CourseDetailPage";
 
 function App() {
   return (
@@ -104,6 +106,15 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/courses"
+              element={
+                <ProtectedRoute requiredPermission="COURSE_READ">
+                  <CourseManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/courses/:id" element={<CourseDetailPage />} />
             <Route
               path="/moduleGroups"
               element={
