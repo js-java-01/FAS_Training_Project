@@ -14,6 +14,7 @@ import { BaseImportModal } from "@/components/import-export/BaseImportModal";
 import { CourseCreateModal } from "./components/CourseCreateModal";
 import MainHeader from "@/components/layout/MainHeader";
 import { useDebounce } from "@/hooks/useDebounce";
+import type { SortingState } from "@tanstack/react-table";
 
 export const CourseManagement: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -22,6 +23,7 @@ export const CourseManagement: React.FC = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [sorting, setSorting] = useState<SortingState>([]);
   const navigate = useNavigate();
 
   // filters
@@ -31,10 +33,13 @@ export const CourseManagement: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const debouncedKeyword = useDebounce(keyword, 300);
 
+  const sortParam = useMemo(() => {
+    if (!sorting.length) return undefined;
+    const { id, desc } = sorting[0];
+    return `${id},${desc ? "desc" : "asc"}`;
+  }, [sorting]);
+
   const [showImportModal, setShowImportModal] = useState(false);
-  const [importFile, setImportFile] = useState<File | null>(null);
-  const [importResult, setImportResult] = useState<any>(null);
-  const [isImporting, setIsImporting] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editCourse, setEditCourse] = useState<Course | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -48,6 +53,7 @@ export const CourseManagement: React.FC = () => {
   }, [
     page,
     pageSize,
+    sorting,
     debouncedKeyword,
     topicFilter,
     trainerFilter,
@@ -62,6 +68,7 @@ export const CourseManagement: React.FC = () => {
         topicCode: topicFilter || undefined,
         trainerId: trainerFilter || undefined,
         status: statusFilter || undefined,
+        sort: sortParam,
       });
       setCourses(data.content || []);
       setTotalPages(data.totalPages || 0);
@@ -80,71 +87,38 @@ export const CourseManagement: React.FC = () => {
     setStatusFilter("");
   };
 
-  // derive unique topic/trainer options from current page data
-  const topicOptions = useMemo(
-    () => [
-      ...new Set(courses.map((c) => (c as any).topicCode).filter(Boolean)),
-    ],
-    [courses],
-  );
+  // derive unique trainer options from current page data
+  const topicOptions: string[] = []; // topics not yet implemented
   const trainerOptions = useMemo(
     () =>
       [
         ...new Map(
           courses
             .filter((c) => c.trainerName)
-            .map((c) => [(c as any).trainerId ?? c.trainerName, c]),
+            .map((c) => [c.trainerId ?? c.trainerName, c]),
         ).values(),
       ].map((c) => ({
-        id: (c as any).trainerId ?? "",
+        id: c.trainerId ?? "",
         name: c.trainerName ?? "",
       })),
     [courses],
   );
 
-  // export current table data to CSV
-  const handleExport = () => {
-    if (!courses || courses.length === 0) return;
-    const headers = [
-      "Course name",
-      "Code",
-      "Trainer",
-      "Price",
-      "Created",
-      "Status",
-    ];
-    const rows = courses.map((c) => [
-      c.courseName || "",
-      c.courseCode || "",
-      c.trainerName || "",
-      String((c as any).price ?? ""),
-      c.createdDate ? new Date(c.createdDate).toLocaleString() : "",
-      c.status || "",
-    ]);
-    const csv = [headers, ...rows]
-      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `courses_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-    toast.success("Exported courses");
-  };
-
-  const handleImport = async () => {
-    if (!importFile) return;
-    setIsImporting(true);
-    // no backend import implemented yet
-    setTimeout(() => {
-      setIsImporting(false);
-      setImportResult({ message: "Import not implemented" });
-      toast.error("Import not implemented");
-    }, 800);
+  const handleExport = async () => {
+    try {
+      const blob = await courseApi.exportCourses();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `courses_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Exported courses successfully!");
+    } catch {
+      toast.error("Failed to export courses");
+    }
   };
 
   const handleDelete = async () => {
@@ -170,14 +144,12 @@ export const CourseManagement: React.FC = () => {
           />
           <div className="flex items-center gap-2">
             <ImportExportActions
-              onImport={() => setShowImportModal(true)}
-              onExport={handleExport}
-              importPermission="COURSE_IMPORT"
-              exportPermission="COURSE_EXPORT"
+              onImportClick={() => setShowImportModal(true)}
+              onExportClick={handleExport}
             />
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700"
             >
               <FiPlus />
               Add Course
@@ -270,6 +242,9 @@ export const CourseManagement: React.FC = () => {
             onPageChange={(p) => setPage(p)}
             onPageSizeChange={(s) => setPageSize(s)}
             isSearch={false}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            manualSorting
             onRowClick={(c) => navigate(`/courses/${(c as any).id}`)}
           />
         </div>
@@ -290,18 +265,11 @@ export const CourseManagement: React.FC = () => {
       <BaseImportModal
         open={showImportModal}
         title="Import Courses"
-        templateName="course_import_template.xlsx"
-        accept=".csv,.xlsx"
-        isImporting={isImporting}
-        importResult={importResult}
-        onClose={() => {
-          setShowImportModal(false);
-          setImportFile(null);
-          setImportResult(null);
-        }}
-        onDownloadTemplate={() => toast("Download template not implemented")}
-        onFileChange={(file) => setImportFile(file)}
-        onImport={handleImport}
+        templateFileName="courses_import_template.xlsx"
+        onClose={() => setShowImportModal(false)}
+        onSuccess={loadData}
+        onDownloadTemplate={() => courseApi.downloadTemplate()}
+        onImport={(file) => courseApi.importCourses(file)}
       />
       <CourseCreateModal
         open={showCreateModal}
