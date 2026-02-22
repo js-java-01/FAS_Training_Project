@@ -8,8 +8,11 @@ import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.course.entity.Course;
+import com.example.starter_project_2025.system.course.entity.CourseCohort;
+import com.example.starter_project_2025.system.course.enums.CohortStatus;
 import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
+import com.example.starter_project_2025.system.course.repository.CourseCohortRepository;
 import com.example.starter_project_2025.system.course.repository.CourseRepository;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
@@ -66,6 +69,7 @@ public class DataInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final AssessmentTypeRepository assessmentTypeRepository;
     private final CourseRepository courseRepository;
+    private final CourseCohortRepository courseCohortRepository;
 
     @Override
     @Transactional
@@ -82,6 +86,7 @@ public class DataInitializer implements CommandLineRunner {
             ensureProgrammingLanguagePermissions();
             initializeProgrammingLanguages();
             initializeCourses();
+            initializeCohorts();
         } else {
             log.info("Database already initialized, skipping core data initialization.");
         }
@@ -118,7 +123,12 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("COURSE_UPDATE", "Update existing courses", "COURSE", "UPDATE"),
                 createPermission("COURSE_DELETE", "Delete courses", "COURSE", "DELETE"),
                 createPermission("COURSE_IMPORT", "Import courses", "COURSE", "IMPORT"),
-                createPermission("COURSE_EXPORT", "Export courses", "COURSE", "EXPORT"));
+                createPermission("COURSE_EXPORT", "Export courses", "COURSE", "EXPORT"),
+                createPermission("COHORT_CREATE", "Create new cohorts", "COHORT", "CREATE"),
+                createPermission("COHORT_READ", "View cohorts", "COHORT", "READ"),
+                createPermission("COHORT_UPDATE", "Update existing cohorts", "COHORT", "UPDATE"),
+                createPermission("COHORT_DELETE", "Delete cohorts", "COHORT", "DELETE"),
+                createPermission("ENROLL_COURSE", "Enroll into a course cohort", "ENROLLMENT", "CREATE"));
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }
@@ -143,11 +153,12 @@ public class DataInitializer implements CommandLineRunner {
         Role studentRole = new Role();
         studentRole.setName("STUDENT");
         studentRole.setDescription("Student with limited access to educational resources");
-        // studentRole.setHierarchyLevel(2);
-        studentRole.setPermissions(new HashSet<>(permissionRepository.findByAction("READ")));
+        List<Permission> studentPermissions = new java.util.ArrayList<>(permissionRepository.findByAction("READ"));
+        permissionRepository.findByName("ENROLL_COURSE").ifPresent(studentPermissions::add);
+        studentRole.setPermissions(new HashSet<>(studentPermissions));
         roleRepository.save(studentRole);
 
-        log.info("Initialized 2 roles: ADMIN and STUDENT");
+        log.info("Initialized 2 roles: ADMIN, STUDENT");
     }
 
     private void initializeUsers() {
@@ -337,11 +348,10 @@ public class DataInitializer implements CommandLineRunner {
         // Nhóm này có 2 module con
         Module courseSub = createModule(trainingGroup, "Courses", "/courses", "book-open", 1, "COURSE_READ",
                 "Manage training courses");
-        // Module modulesSub = createModule(trainingGroup, "Modules", "/modules",
-        // "menu", 2, "MENU_READ",
-        // "Manage training modules");
+        Module courseCatalogSub = createModule(trainingGroup, "Course Catalog", "/my-courses", "graduation-cap", 2,
+                "ENROLL_COURSE", "Browse and enroll in available courses");
 
-        moduleRepository.saveAll(Arrays.asList(courseSub));
+        moduleRepository.saveAll(Arrays.asList(courseSub, courseCatalogSub));
 
         log.info("Initialized 5 module groups and their respective modules.");
     }
@@ -459,7 +469,7 @@ public class DataInitializer implements CommandLineRunner {
                 .estimatedTime(90 * 24 * 60) // 3 months ≈ minutes
                 .thumbnailUrl("https://example.com/java.jpg")
 
-                .status(CourseStatus.DRAFT)
+                .status(CourseStatus.ACTIVE)
 
                 .description("Java Spring Boot from basic to advanced")
                 .note("Core backend course")
@@ -483,7 +493,7 @@ public class DataInitializer implements CommandLineRunner {
                 .estimatedTime(60 * 24 * 60) // 2 months
                 .thumbnailUrl("https://example.com/react.jpg")
 
-                .status(CourseStatus.DRAFT)
+                .status(CourseStatus.ACTIVE)
 
                 .description("React from zero to hero")
                 .note("Frontend track")
@@ -500,5 +510,56 @@ public class DataInitializer implements CommandLineRunner {
         courseRepository.saveAll(List.of(javaCourse, reactCourse));
 
         log.info("Initialized {} courses", 2);
+    }
+
+    private void initializeCohorts() {
+        if (courseCohortRepository.count() > 0) {
+            log.info("Cohorts already exist, skipping initialization");
+            return;
+        }
+
+        Course java01 = courseRepository.findAll().stream()
+                .filter(c -> "JBM-01".equals(c.getCourseCode()))
+                .findFirst().orElse(null);
+        Course react01 = courseRepository.findAll().stream()
+                .filter(c -> "RFP-01".equals(c.getCourseCode()))
+                .findFirst().orElse(null);
+
+        if (java01 != null) {
+            CourseCohort jbm1 = CourseCohort.builder()
+                    .code("JBM-01-2026-C1")
+                    .startDate(java.time.LocalDate.of(2026, 3, 1))
+                    .endDate(java.time.LocalDate.of(2026, 5, 31))
+                    .capacity(30)
+                    .status(CohortStatus.OPEN)
+                    .course(java01)
+                    .build();
+
+            CourseCohort jbm2 = CourseCohort.builder()
+                    .code("JBM-01-2026-C2")
+                    .startDate(java.time.LocalDate.of(2026, 6, 1))
+                    .endDate(java.time.LocalDate.of(2026, 8, 31))
+                    .capacity(25)
+                    .status(CohortStatus.DRAFT)
+                    .course(java01)
+                    .build();
+
+            courseCohortRepository.saveAll(List.of(jbm1, jbm2));
+        }
+
+        if (react01 != null) {
+            CourseCohort rfp1 = CourseCohort.builder()
+                    .code("RFP-01-2026-C1")
+                    .startDate(java.time.LocalDate.of(2026, 4, 1))
+                    .endDate(java.time.LocalDate.of(2026, 5, 31))
+                    .capacity(20)
+                    .status(CohortStatus.OPEN)
+                    .course(react01)
+                    .build();
+
+            courseCohortRepository.save(rfp1);
+        }
+
+        log.info("Initialized cohorts for courses");
     }
 }

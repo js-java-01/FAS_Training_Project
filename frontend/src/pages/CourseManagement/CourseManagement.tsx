@@ -15,6 +15,8 @@ import { CourseCreateModal } from "./components/CourseCreateModal";
 import MainHeader from "@/components/layout/MainHeader";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { SortingState } from "@tanstack/react-table";
+import { usePermissions } from "@/hooks/usePermissions";
+import { CohortEnrollModal } from "@/components/CohortEnrollModal";
 
 export const CourseManagement: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -25,6 +27,8 @@ export const CourseManagement: React.FC = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [sorting, setSorting] = useState<SortingState>([]);
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
+  const isStudentMode = !hasPermission("COURSE_UPDATE");
 
   // filters
   const [keyword, setKeyword] = useState("");
@@ -43,6 +47,7 @@ export const CourseManagement: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editCourse, setEditCourse] = useState<Course | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [enrollCourse, setEnrollCourse] = useState<Course | null>(null);
 
   useEffect(() => {
     setPage(0);
@@ -143,17 +148,21 @@ export const CourseManagement: React.FC = () => {
             description="Courses management and configuration"
           />
           <div className="flex items-center gap-2">
-            <ImportExportActions
-              onImportClick={() => setShowImportModal(true)}
-              onExportClick={handleExport}
-            />
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700"
-            >
-              <FiPlus />
-              Add Course
-            </button>
+            {!isStudentMode && (
+              <>
+                <ImportExportActions
+                  onImportClick={() => setShowImportModal(true)}
+                  onExportClick={handleExport}
+                />
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700"
+                >
+                  <FiPlus />
+                  Add Course
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -228,11 +237,15 @@ export const CourseManagement: React.FC = () => {
         {/* ── Table ── */}
         <div className="flex-1 min-h-0">
           <DataTable<Course, unknown>
-            columns={getColumns({
-              onView: (c) => navigate(`/courses/${c.id}`),
-              onEdit: (c) => setEditCourse(c),
-              onDelete: (c) => setDeleteId(c.id),
-            })}
+            columns={getColumns(
+              {
+                onView: (c) => navigate(`/courses/${c.id}`),
+                onEdit: (c) => setEditCourse(c),
+                onDelete: (c) => setDeleteId(c.id),
+                onEnroll: (c) => setEnrollCourse(c),
+              },
+              isStudentMode,
+            )}
             data={courses}
             isLoading={loading}
             manualPagination
@@ -282,6 +295,12 @@ export const CourseManagement: React.FC = () => {
         onClose={() => setEditCourse(null)}
         onSuccess={loadData}
       />
+      {enrollCourse && (
+        <CohortEnrollModal
+          course={enrollCourse}
+          onClose={() => setEnrollCourse(null)}
+        />
+      )}
     </MainLayout>
   );
 };

@@ -22,6 +22,7 @@ import { Logout } from "./pages/auth/Logout";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
 import CourseDetailPage from "./pages/CourseManagement/CourseDetailPage";
+import TraineeCourses from "./pages/trainee/TraineeCourses";
 
 function App() {
   return (
@@ -115,6 +116,14 @@ function App() {
               }
             />
             <Route path="/courses/:id" element={<CourseDetailPage />} />
+            <Route
+              path="/my-courses"
+              element={
+                <ProtectedRoute requiredPermission="ENROLL_COURSE">
+                  <TraineeCourses />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/moduleGroups"
               element={

@@ -1,16 +1,19 @@
-import React from "react";
 import type { Course } from "@/types/course";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { FiEye, FiEdit, FiTrash2 } from "react-icons/fi";
-import { ColumnDef } from "@tanstack/react-table";
+import { FiEye, FiEdit, FiTrash2, FiUserPlus } from "react-icons/fi";
+import type { ColumnDef } from "@tanstack/react-table";
 import SortHeader from "@/components/data_table/SortHeader";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export const getColumns = (handlers: {
-  onView?: (c: Course) => void;
-  onEdit?: (c: Course) => void;
-  onDelete?: (c: Course) => void;
-}) => {
+export const getColumns = (
+  handlers: {
+    onView?: (c: Course) => void;
+    onEdit?: (c: Course) => void;
+    onDelete?: (c: Course) => void;
+    onEnroll?: (c: Course) => void;
+  },
+  isStudentMode = false,
+) => {
   const columns: ColumnDef<Course, any>[] = [
     {
       id: "select",
@@ -112,6 +115,22 @@ export const getColumns = (handlers: {
       header: "Actions",
       cell: ({ row }) => {
         const c = row.original as Course;
+        if (isStudentMode) {
+          return (
+            <div className="flex items-center gap-2">
+              <ActionBtn
+                icon={<FiEye />}
+                tooltipText="View detail"
+                onClick={() => handlers.onView?.(c)}
+              />
+              <ActionBtn
+                icon={<FiUserPlus />}
+                tooltipText="Enroll"
+                onClick={() => handlers.onEnroll?.(c)}
+              />
+            </div>
+          );
+        }
         return (
           <div className="flex items-center gap-2">
             <ActionBtn

@@ -4,6 +4,7 @@ import { courseApi } from "@/api/courseApi";
 import { userApi } from "@/api/userApi";
 import type { User } from "@/types/auth";
 import { toast } from "sonner";
+import { CohortTab } from "./CohortTab";
 import {
   FiEdit,
   FiBookOpen,
@@ -49,6 +50,7 @@ function formatDate(value?: string) {
 
 const tabs = [
   "Overview",
+  "Cohort",
   "Assessment Scheme",
   "Outline",
   "Objectives",
@@ -178,25 +180,26 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
           ))}
         </div>
 
-        {isEditing ? (
-          <button
-            type="button"
-            onClick={cancelEdit}
-            className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1 rounded-md cursor-pointer hover:bg-blue-700"
-          >
-            <FiX size={14} />
-            Done
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={startEdit}
-            className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1 rounded-md cursor-pointer hover:bg-blue-700"
-          >
-            <FiEdit size={14} />
-            Edit
-          </button>
-        )}
+        {activeTab === "Overview" &&
+          (isEditing ? (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1 rounded-md cursor-pointer hover:bg-blue-700"
+            >
+              <FiX size={14} />
+              Done
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={startEdit}
+              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1 rounded-md cursor-pointer hover:bg-blue-700"
+            >
+              <FiEdit size={14} />
+              Edit
+            </button>
+          ))}
       </div>
 
       {/* READ-ONLY */}
@@ -412,7 +415,9 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
         </form>
       )}
 
-      {activeTab !== "Overview" && (
+      {activeTab === "Cohort" && <CohortTab courseId={course.id} />}
+
+      {activeTab !== "Overview" && activeTab !== "Cohort" && (
         <div className="text-gray-400 text-sm">
           This tab is implemented by another team.
         </div>
