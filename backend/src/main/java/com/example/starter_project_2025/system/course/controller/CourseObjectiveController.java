@@ -2,9 +2,11 @@ package com.example.starter_project_2025.system.course.controller;
 
 import com.example.starter_project_2025.system.course.dto.CourseObjectiveCreateRequest;
 import com.example.starter_project_2025.system.course.dto.CourseObjectiveResponse;
+import com.example.starter_project_2025.system.course.dto.ObjectiveUpdateRequest;
 import com.example.starter_project_2025.system.course.service.CourseObjectiveService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,5 +40,27 @@ public class CourseObjectiveController {
             @PathVariable UUID courseId) {
 
         return ResponseEntity.ok(service.getByCourse(courseId));
+    }
+
+    @PutMapping("/{objectiveId}")
+    @PreAuthorize("hasAnyAuthority('COURSE_UPDATE')")
+    public ResponseEntity<CourseObjectiveResponse> updateObjective(
+            @PathVariable UUID courseId,
+            @PathVariable UUID objectiveId,
+            @Valid @RequestBody ObjectiveUpdateRequest request
+    ) {
+        return ResponseEntity.ok(
+                service.updateObjective(courseId, objectiveId, request)
+        );
+    }
+
+    @DeleteMapping("/{objectiveId}")
+    @PreAuthorize("hasAnyAuthority('COURSE_UPDATE')")
+    public ResponseEntity<Void> deleteObjective(
+            @PathVariable UUID courseId,
+            @PathVariable UUID objectiveId
+    ) {
+        service.deleteObjective(courseId, objectiveId);
+        return ResponseEntity.noContent().build();
     }
 }
