@@ -7,27 +7,23 @@ import { AuthProvider } from "./contexts/AuthContext";
 
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Login } from "./pages/auth/Login";
-import { Logout } from "./pages/auth/Logout";
 import { Unauthorized } from "./pages/Unauthorized";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
-import { Dashboard } from "./pages/Dashboard";
-import { UserManagement } from "./pages/UserManagement";
-import { AssessmentManagement } from "./pages/AssessmentManagement";
-import { RoleManagement } from "./pages/RoleManagement";
-import { LocationManagement } from "./pages/LocationManagement";
+
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
-import CourseManagement from "./pages/course/CourseManagement";
-import CourseDetailPage from "./pages/course/CourseDetailPage";
-import StudentCourseContent from "./pages/learning/StudentCourseContent";
-import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
+
 import ModulesManagement from "./pages/modules/module/ModulesManagement";
 import { componentRegistry } from "./router/componentRegistry";
-import { ToastContainer } from "react-toastify";
+
 import { Toaster } from "sonner";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
+import { AssessmentFormPage, TeacherAssessmentPage } from "./pages/teacher-assessment";
+import { QuestionCategoryManagement } from "./pages/question-category";
+import { CreateQuestionPage, EditQuestionPage, QuestionManagementPage } from "./pages/question";
+import { Logout } from "./components/auth/Logout";
 
 
 function App() {
@@ -74,54 +70,44 @@ function App() {
               })
             )}
             <Route path="*" element={<NotFoundRedirect />} />
-          </Routes>
 
-
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            theme="colored"
-            aria-label={undefined}
-          />
-
-
-          <Routes>
-            <Route path="*" element={<NotFoundRedirect />} />
-            <Route
-              path="/oauth2/redirect"
-              element={<OAuth2RedirectHandler />}
-            />
-            <Route path="/login" element={<Login />} />
-            <Route path="/logout" element={<Logout />} />
-            <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
 
             <Route
-              path="/assessment-type"
+              path="/teacher-assessment"
               element={
                 <ProtectedRoute requiredPermission="ASSESSMENT_READ">
-                  <AssessmentManagement />
+                  <TeacherAssessmentPage />
                 </ProtectedRoute>
               }
             />
 
             <Route
-              path="/locations"
+              path="/teacher-assessment/create"
               element={
-                <ProtectedRoute requiredPermission="LOCATION_READ">
-                  <LocationManagement />
+                <ProtectedRoute requiredPermission="ASSESSMENT_CREATE">
+                  <AssessmentFormPage />
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/teacher-assessment/:id/edit"
+              element={
+                <ProtectedRoute requiredPermission="ASSESSMENT_UPDATE">
+                  <AssessmentFormPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/question-categories"
+              element={
+                <ProtectedRoute requiredPermission="QUESTION_CATEGORY_READ">
+                  <QuestionCategoryManagement />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/programming-languages"
               element={
@@ -130,39 +116,40 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
             <Route
-              path="/courses"
+              path='questions'
               element={
-                <ProtectedRoute requiredPermission="COURSE_READ">
-                  <CourseManagement />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/courses/:id" element={<CourseDetailPage />} />
-            {/* /my-courses redirects to /courses for backward compat */}
-            <Route
-              path="/my-courses"
-              element={<Navigate to="/courses" replace />}
-            />
-            <Route
-              path="/my-courses/:id"
-              element={<Navigate to="/courses" replace />}
-            />
-            <Route
-              path="/learn/:cohortId"
-              element={
-                <ProtectedRoute requiredPermission="ENROLL_COURSE">
-                  <StudentCourseContent />
+                <ProtectedRoute requiredPermission="QUESTION_READ">
+                  <QuestionManagementPage />
                 </ProtectedRoute>
               }
             />
 
+            <Route
+              path='questions/create'
+              element={
+                <ProtectedRoute requiredPermission="QUESTION_CREATE">
+                  <CreateQuestionPage />
+                </ProtectedRoute>
+              }
+            />
 
+            <Route
+              path='questions/:id/edit'
+              element={
+                <ProtectedRoute requiredPermission="QUESTION_UPDATE">
+                  <EditQuestionPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route path="/modules" element={<ModulesManagement />} />
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </RoleSwitchProvider>
-      </AuthProvider>
+      </AuthProvider >
     </BrowserRouter >
   );
 }

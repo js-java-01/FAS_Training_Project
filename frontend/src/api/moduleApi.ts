@@ -111,19 +111,20 @@ export const moduleGroupApi = {
 ========================= */
 
 export const moduleApi = {
-    getAllModules: async (params: {
-        page: number;
-        size: number;
-        sort?: string;
-        keyword?: string;
-    }): Promise<PagedData<Module>> => {
-        const res = await axiosInstance.get<ApiResponse<PagedData<Module>>>(
-            "/modules",
-            { params }
-        );
+    getAllModules: async (
+        page = 0,
+        size = 100,
+        sort = 'displayOrder,asc'
+    ) => {
+        const response = await axiosInstance.get<{
+            content: Module[];
+            totalElements: number;
+            totalPages: number;
+        }>(`/modules?page=${page}&size=${size}&sort=${sort}`);
 
-        return res.data.data;
+        return response.data;
     },
+
     getModulesByModuleGroup: async (
         moduleGroupId: string
     ): Promise<Module[]> => {

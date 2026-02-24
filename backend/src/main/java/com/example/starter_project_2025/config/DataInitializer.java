@@ -1,8 +1,11 @@
 package com.example.starter_project_2025.config;
 
-import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment.entity.*;
+import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
+import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
-
+import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
+import com.example.starter_project_2025.system.assessment.repository.QuestionRepository;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
@@ -43,8 +46,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashSet;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -70,6 +75,9 @@ public class DataInitializer implements CommandLineRunner {
     private final AssessmentTypeRepository assessmentTypeRepository;
     private final CourseRepository courseRepository;
     private final CourseCohortRepository courseCohortRepository;
+    private final AssessmentRepository assessmentRepository;
+    private final QuestionCategoryRepository questionCategoryRepository;
+    private final QuestionRepository questionRepository;
 
     @Override
     @Transactional
@@ -83,12 +91,19 @@ public class DataInitializer implements CommandLineRunner {
             initializeMenus();
             initializeLocationData();
             initializeModuleGroups();
+            initializeAssessmentType();
+            initializeAssessments();
+            initializeQuestionCategories();
+            initializeQuestions();
+
+            log.info("Database initialization completed successfully!");
+        } else {
+            log.info("Database already initialized, checking for missing permissions...");
+            // Check if programming language permissions exist, if not, add them
             ensureProgrammingLanguagePermissions();
             initializeProgrammingLanguages();
             initializeCourses();
             initializeCohorts();
-        } else {
-            log.info("Database already initialized, skipping core data initialization.");
         }
     }
 
@@ -128,7 +143,46 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("COHORT_READ", "View cohorts", "COHORT", "READ"),
                 createPermission("COHORT_UPDATE", "Update existing cohorts", "COHORT", "UPDATE"),
                 createPermission("COHORT_DELETE", "Delete cohorts", "COHORT", "DELETE"),
-                createPermission("ENROLL_COURSE", "Enroll into a course cohort", "ENROLLMENT", "CREATE"));
+                createPermission("ENROLL_COURSE", "Enroll into a course cohort", "ENROLLMENT", "CREATE"),
+                createPermission("ASSESSMENTTYPE_READ", "View assessment types", "ASSESSMENT_TYPE", "READ"),
+                createPermission("ASSESSMENTTYPE_UPDATE", "Update existing assessment types", "ASSESSMENT_TYPE",
+                        "UPDATE"),
+                createPermission("ASSESSMENTTYPE_DELETE", "Delete assessment types", "ASSESSMENT_TYPE", "DELETE"),
+                createPermission("ASSESSMENTTYPE_CREATE", "Assign assessment types", "ASSESSMENT_TYPE", "ASSIGN"),
+                createPermission("STUDENT_CREATE", "Create new students", "STUDENT", "CREATE"),
+                createPermission("STUDENT_READ", "View students", "STUDENT", "READ"),
+                createPermission("STUDENT_UPDATE", "Update existing students", "STUDENT", "UPDATE"),
+                createPermission("STUDENT_DELETE", "Delete students", "STUDENT", "DELETE"),
+                createPermission("STUDENT_ASSIGN", "Assign students", "STUDENT", "ASSIGN"),
+                createPermission("PROGRAMMING_LANGUAGE_CREATE", "Create new programming languages",
+                        "PROGRAMMING_LANGUAGE", "CREATE"),
+                createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages", "PROGRAMMING_LANGUAGE",
+                        "READ"),
+                createPermission("PROGRAMMING_LANGUAGE_UPDATE", "Update existing programming languages",
+                        "PROGRAMMING_LANGUAGE", "UPDATE"),
+                createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages", "PROGRAMMING_LANGUAGE",
+                        "DELETE"),
+                createPermission("ASSESSMENT_CREATE", "Create new assessments", "ASSESSMENT", "CREATE"),
+                createPermission("ASSESSMENT_READ", "View assessments", "ASSESSMENT", "READ"),
+                createPermission("ASSESSMENT_UPDATE", "Update existing assessments", "ASSESSMENT", "UPDATE"),
+                createPermission("ASSESSMENT_DELETE", "Delete assessments", "ASSESSMENT", "DELETE"),
+                createPermission("ASSESSMENT_ASSIGN", "Assign assessments to students or classes", "ASSESSMENT",
+                        "ASSIGN"),
+                createPermission("ASSESSMENT_PUBLISH", "Publish or unpublish assessments", "ASSESSMENT", "PUBLISH"),
+                createPermission("ASSESSMENT_SUBMIT", "Submit assessment attempts", "ASSESSMENT", "SUBMIT"),
+                createPermission("QUESTION_CREATE", "Create new questions", "QUESTION", "CREATE"),
+                createPermission("QUESTION_READ", "View questions", "QUESTION", "READ"),
+                createPermission("QUESTION_UPDATE", "Update questions", "QUESTION", "UPDATE"),
+                createPermission("QUESTION_DELETE", "Delete questions", "QUESTION", "DELETE"),
+                createPermission("QUESTION_CATEGORY_CREATE", "Create question categories", "QUESTION_CATEGORY",
+                        "CREATE"),
+                createPermission("QUESTION_CATEGORY_READ", "View question categories", "QUESTION_CATEGORY", "READ"),
+                createPermission("QUESTION_CATEGORY_UPDATE", "Update question categories", "QUESTION_CATEGORY",
+                        "UPDATE"),
+                createPermission("QUESTION_CATEGORY_DELETE", "Delete question categories", "QUESTION_CATEGORY",
+                        "DELETE")
+
+        );
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }
@@ -281,6 +335,92 @@ public class DataInitializer implements CommandLineRunner {
     private record CommuneJson(String idProvince, String idCommune, String name) {
     }
 
+    private void initializeAssessments() {
+
+        if (assessmentRepository.count() > 0) {
+            return;
+        }
+
+        AssessmentType entranceType = assessmentTypeRepository
+                .findByName("Entrance Quiz")
+                .orElseThrow(() -> new RuntimeException("AssessmentType 'Entrance Quiz' not found"));
+
+        AssessmentType midtermType = assessmentTypeRepository
+                .findByName("Midterm Test")
+                .orElseThrow(() -> new RuntimeException("AssessmentType 'Midterm Test' not found"));
+
+        AssessmentType finalType = assessmentTypeRepository
+                .findByName("Final Exam")
+                .orElseThrow(() -> new RuntimeException("AssessmentType 'Final Exam' not found"));
+
+        Assessment entranceAssessment = new Assessment();
+        entranceAssessment.setAssessmentType(entranceType);
+        entranceAssessment.setCode("JAVA_ENTRANCE_2025");
+        entranceAssessment.setTitle("Java Entrance Quiz 2025");
+        entranceAssessment.setDescription("Entrance assessment for Java trainees");
+        entranceAssessment.setTotalScore(100);
+        entranceAssessment.setPassScore(60);
+        entranceAssessment.setTimeLimitMinutes(60);
+        entranceAssessment.setAttemptLimit(1);
+        entranceAssessment.setIsShuffleQuestion(true);
+        entranceAssessment.setIsShuffleOption(true);
+        entranceAssessment.setStatus(AssessmentStatus.ACTIVE);
+
+        Assessment midtermAssessment = new Assessment();
+        midtermAssessment.setAssessmentType(midtermType);
+        midtermAssessment.setCode("JAVA_MIDTERM_2025");
+        midtermAssessment.setTitle("Java Midterm Test 2025");
+        midtermAssessment.setDescription("Midterm evaluation for Java course");
+        midtermAssessment.setTotalScore(100);
+        midtermAssessment.setPassScore(50);
+        midtermAssessment.setTimeLimitMinutes(90);
+        midtermAssessment.setAttemptLimit(1);
+        midtermAssessment.setIsShuffleQuestion(false);
+        midtermAssessment.setIsShuffleOption(false);
+        midtermAssessment.setStatus(AssessmentStatus.ACTIVE);
+
+        Assessment finalAssessment = new Assessment();
+        finalAssessment.setAssessmentType(finalType);
+        finalAssessment.setCode("JAVA_FINAL_2025");
+        finalAssessment.setTitle("Java Final Exam 2025");
+        finalAssessment.setDescription("Final assessment for Java course");
+        finalAssessment.setTotalScore(100);
+        finalAssessment.setPassScore(60);
+        finalAssessment.setTimeLimitMinutes(120);
+        finalAssessment.setAttemptLimit(1);
+        finalAssessment.setIsShuffleQuestion(false);
+        finalAssessment.setIsShuffleOption(false);
+        finalAssessment.setStatus(AssessmentStatus.ACTIVE);
+
+        assessmentRepository.saveAll(
+                List.of(entranceAssessment, midtermAssessment, finalAssessment));
+
+        log.info("Initialized {} assessments", 3);
+    }
+
+    private void initializeQuestionCategories() {
+
+        if (questionCategoryRepository.count() > 0) {
+            return;
+        }
+
+        QuestionCategory javaCore = new QuestionCategory();
+        javaCore.setName("Java Core");
+        javaCore.setDescription("Core Java knowledge");
+
+        QuestionCategory oop = new QuestionCategory();
+        oop.setName("OOP");
+        oop.setDescription("Object-oriented programming concepts");
+
+        QuestionCategory sql = new QuestionCategory();
+        sql.setName("SQL");
+        sql.setDescription("Database and SQL knowledge");
+
+        questionCategoryRepository.saveAll(List.of(javaCore, oop, sql));
+
+        log.info("Initialized {} question categories", 3);
+    }
+
     private void initializeModuleGroups() {
         // 1. Nhóm: Main Menu
         ModuleGroups mainGroup = new ModuleGroups();
@@ -354,6 +494,62 @@ public class DataInitializer implements CommandLineRunner {
         moduleRepository.saveAll(Arrays.asList(courseSub, courseCatalogSub));
 
         log.info("Initialized 5 module groups and their respective modules.");
+        // 5. Nhóm: Assessment Type Management
+        ModuleGroups assessmentTypeGroup = new ModuleGroups();
+        assessmentTypeGroup.setName("Assessment Type Management");
+        assessmentTypeGroup.setDescription("Manage assessment types and related permissions");
+        assessmentTypeGroup.setDisplayOrder(3);
+        assessmentTypeGroup.setIsActive(true);
+        assessmentTypeGroup = moduleGroupsRepository.save(assessmentTypeGroup);
+
+        moduleRepository.save(
+                createModule(
+                        assessmentTypeGroup,
+                        "Assessment Type Management",
+                        "/assessment-type",
+                        "shield", // icon (you can change if you want)
+                        2,
+                        "ASSESSMENT_READ",
+                        "Manage assessment types"));
+
+        // 6. Nhóm: Student Management
+        ModuleGroups studentGroup = new ModuleGroups();
+        studentGroup.setName("Student Management");
+        studentGroup.setDescription("Manage students and related permissions");
+        studentGroup.setDisplayOrder(4); // next order after assessment type
+        studentGroup.setIsActive(true);
+        studentGroup = moduleGroupsRepository.save(studentGroup);
+
+        moduleRepository.save(
+                createModule(
+                        studentGroup,
+                        "Student Management",
+                        "/v1/student",
+                        "users", // icon, you can change
+                        1,
+                        "STUDENT_READ",
+                        "Manage students"));
+
+        log.info("Initialized 5 module groups and their respective modules.");
+        // 6. Programming Language Management
+        ModuleGroups programmingLanguageGroup = new ModuleGroups();
+        programmingLanguageGroup.setName("Programming Language Management");
+        programmingLanguageGroup.setDescription("Manage programming languages and their configurations");
+        programmingLanguageGroup.setDisplayOrder(6);
+        programmingLanguageGroup.setIsActive(true);
+        programmingLanguageGroup = moduleGroupsRepository.save(programmingLanguageGroup);
+
+        moduleRepository.save(
+                createModule(
+                        programmingLanguageGroup,
+                        "Programming Languages",
+                        "/programming-languages",
+                        "code",
+                        1,
+                        "PROGRAMMING_LANGUAGE_READ",
+                        "Manage programming languages"));
+
+        log.info("Initialized 6 module groups and their respective modules.");
     }
 
     private Module createModule(ModuleGroups group, String title, String url, String icon,
@@ -370,7 +566,7 @@ public class DataInitializer implements CommandLineRunner {
         return module;
     }
 
-    private void initializeAssessments() {
+    private void initializeAssessmentType() {
 
         if (assessmentTypeRepository.count() > 0) {
             return;
@@ -419,6 +615,46 @@ public class DataInitializer implements CommandLineRunner {
                 log.info("Added programming language permissions to ADMIN role");
             }
         }
+    }
+
+    private void initializeQuestions() {
+
+        if (questionRepository.count() > 0) {
+            return;
+        }
+
+        QuestionCategory javaCore = questionCategoryRepository
+                .findByName("Java Core")
+                .orElseThrow(() -> new RuntimeException("Java Core category not found"));
+
+        // ===== QUESTION =====
+        Question q1 = new Question();
+        q1.setContent("Which keyword is used to inherit a class in Java?");
+        q1.setQuestionType("SINGLE");
+        q1.setCategory(javaCore);
+
+        // ===== OPTIONS =====
+        List<QuestionOption> options = new ArrayList<>();
+
+        QuestionOption o1 = new QuestionOption();
+        o1.setContent("extends");
+        o1.setCorrect(true);
+        o1.setOrderIndex(1);
+        o1.setQuestion(q1);
+        options.add(o1);
+
+        QuestionOption o2 = new QuestionOption();
+        o2.setContent("implements");
+        o2.setCorrect(false);
+        o2.setOrderIndex(2);
+        o2.setQuestion(q1);
+        options.add(o2);
+
+        q1.setOptions(options);
+
+        questionRepository.save(q1); // 🔥 cascade save options
+
+        log.info("Initialized 1 question with options");
     }
 
     private void initializeProgrammingLanguages() {
