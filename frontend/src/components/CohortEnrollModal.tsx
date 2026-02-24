@@ -34,9 +34,10 @@ function fmtDate(v?: string | null) {
 interface Props {
   course: Course;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export function CohortEnrollModal({ course, onClose }: Props) {
+export function CohortEnrollModal({ course, onClose, onSuccess }: Props) {
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [loading, setLoading] = useState(true);
   const [enrollingId, setEnrollingId] = useState<string | null>(null);
@@ -56,6 +57,7 @@ export function CohortEnrollModal({ course, onClose }: Props) {
       await enrollmentApi.enroll(cohort.id);
       setEnrolledIds((prev) => new Set(prev).add(cohort.id));
       toast.success(`Enrolled in ${cohort.code} successfully!`);
+      onSuccess?.();
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ??

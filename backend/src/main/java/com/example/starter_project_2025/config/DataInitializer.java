@@ -9,10 +9,12 @@ import com.example.starter_project_2025.system.auth.repository.PermissionReposit
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.entity.CourseCohort;
+import com.example.starter_project_2025.system.course.entity.CourseLesson;
 import com.example.starter_project_2025.system.course.enums.CohortStatus;
 import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
 import com.example.starter_project_2025.system.course.repository.CourseCohortRepository;
+import com.example.starter_project_2025.system.course.repository.CourseLessonRepository;
 import com.example.starter_project_2025.system.course.repository.CourseRepository;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
@@ -70,6 +72,7 @@ public class DataInitializer implements CommandLineRunner {
     private final AssessmentTypeRepository assessmentTypeRepository;
     private final CourseRepository courseRepository;
     private final CourseCohortRepository courseCohortRepository;
+    private final CourseLessonRepository courseLessonRepository;
 
     @Override
     @Transactional
@@ -87,6 +90,7 @@ public class DataInitializer implements CommandLineRunner {
             initializeProgrammingLanguages();
             initializeCourses();
             initializeCohorts();
+            initializeLessons();
         } else {
             log.info("Database already initialized, skipping core data initialization.");
         }
@@ -118,6 +122,12 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("LOCATION_DELETE", "Delete locations", "LOCATION", "DELETE"),
                 createPermission("LOCATION_IMPORT", "Import locations", "LOCATION", "IMPORT"),
                 createPermission("LOCATION_EXPORT", "Export locations", "LOCATION", "EXPORT"),
+                createPermission("DEPARTMENT_READ", "View departments", "DEPARTMENT", "READ"),
+                createPermission("DEPARTMENT_CREATE", "Create new departments", "DEPARTMENT", "CREATE"),
+                createPermission("DEPARTMENT_UPDATE", "Update existing departments", "DEPARTMENT", "UPDATE"),
+                createPermission("DEPARTMENT_DELETE", "Delete departments", "DEPARTMENT", "DELETE"),
+                createPermission("DEPARTMENT_IMPORT", "Import departments", "DEPARTMENT", "IMPORT"),
+                createPermission("DEPARTMENT_EXPORT", "Export departments", "DEPARTMENT", "EXPORT"),
                 createPermission("COURSE_CREATE", "Create new courses", "COURSE", "CREATE"),
                 createPermission("COURSE_READ", "View courses", "COURSE", "READ"),
                 createPermission("COURSE_UPDATE", "Update existing courses", "COURSE", "UPDATE"),
@@ -128,7 +138,11 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("COHORT_READ", "View cohorts", "COHORT", "READ"),
                 createPermission("COHORT_UPDATE", "Update existing cohorts", "COHORT", "UPDATE"),
                 createPermission("COHORT_DELETE", "Delete cohorts", "COHORT", "DELETE"),
-                createPermission("ENROLL_COURSE", "Enroll into a course cohort", "ENROLLMENT", "CREATE"));
+                createPermission("ENROLL_COURSE", "Enroll into a course cohort", "ENROLLMENT", "CREATE"),
+                createPermission("LESSON_CREATE", "Create new lessons", "LESSON", "CREATE"),
+                createPermission("LESSON_UPDATE", "Update existing lessons", "LESSON", "UPDATE"),
+                createPermission("LESSON_DELETE", "Delete lessons", "LESSON", "DELETE"));
+                
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }
@@ -213,12 +227,11 @@ public class DataInitializer implements CommandLineRunner {
         adminMenu.setDisplayOrder(2);
         adminMenu = menuRepository.save(adminMenu);
 
-        MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1,
-                "USER_READ");
-        MenuItem locationManagement = createMenuItem(adminMenu, null, "Location Management", "/locations", "location",
-                3, "LOCATION_READ");
-        MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2,
-                "ROLE_READ");
+        MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1, "USER_READ");
+        MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2, "ROLE_READ");
+        MenuItem locationManagement = createMenuItem(adminMenu, null, "Location Management", "/locations", "location", 3, "LOCATION_READ");
+        MenuItem departmentManagement = createMenuItem(adminMenu, null, "Department Management", "/departments", "department", 4, "DEPARTMENT_READ");
+        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, locationManagement, departmentManagement));
         MenuItem courseManagement = createMenuItem(adminMenu, null, "Course Management", "/courses", "security", 4,
                 "COURSE_READ");
 
@@ -227,8 +240,7 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized 2 menus with menu items");
     }
 
-    private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order,
-            String permission) {
+    private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order, String permission) {
         MenuItem item = new MenuItem();
         item.setMenu(menu);
         item.setParent(parent);
@@ -306,8 +318,9 @@ public class DataInitializer implements CommandLineRunner {
         moduleRepository.save(
                 createModule(userGroup, "Roles", "/roles", "shield", 2, "ROLE_READ", "Manage roles and permissions"));
         moduleRepository.save(
-                createModule(userGroup, "Locations", "/locations", "map-pin", 3, "LOCATION_READ",
-                        "Manage office locations"));
+                createModule(userGroup, "Locations", "/locations", "map-pin", 3, "LOCATION_READ", "Manage office locations"));
+        moduleRepository.save(
+                createModule(userGroup, "Departments", "/departments", "building", 4, "DEPARTMENT_READ", "Manage departments"));
 
         // 3. Nhóm: Role Management (deprecated - kept for backward compatibility)
         ModuleGroups roleGroup = new ModuleGroups();
@@ -420,6 +433,7 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
     }
+
 
     private void initializeProgrammingLanguages() {
         // Only initialize if no programming languages exist
@@ -562,4 +576,50 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info("Initialized cohorts for courses");
     }
+
+    private void initializeLessons() {
+    if (courseLessonRepository.count() > 0) {
+        log.info("Lessons already exist, skipping initialization");
+        return;
+    }
+
+    // Tìm khóa học Java
+    Course java01 = courseRepository.findAll().stream()
+            .filter(c -> "JBM-01".equals(c.getCourseCode()))
+            .findFirst().orElse(null);
+            
+    // Tìm khóa học React
+    Course react01 = courseRepository.findAll().stream()
+            .filter(c -> "RFP-01".equals(c.getCourseCode()))
+            .findFirst().orElse(null);
+
+    if (java01 != null) {
+        List<CourseLesson> javaLessons = Arrays.asList(
+            createLesson(java01, "Introduction to Spring Boot", "Overview of Spring ecosystem and setup.", 1),
+            createLesson(java01, "Spring Data JPA & Hibernate", "Deep dive into database ORM mapping.", 2),
+            createLesson(java01, "Spring Security & JWT", "Securing APIs with token-based authentication.", 3)
+        );
+        courseLessonRepository.saveAll(javaLessons);
+    }
+
+    if (react01 != null) {
+        List<CourseLesson> reactLessons = Arrays.asList(
+            createLesson(react01, "React Fundamentals", "Components, Props, and State basics.", 1),
+            createLesson(react01, "Hooks & Context API", "Managing global state and side effects.", 2),
+            createLesson(react01, "TanStack Query & Axios", "Handling server-side state and API calls.", 3)
+        );
+        courseLessonRepository.saveAll(reactLessons);
+    }
+
+    log.info("Initialized lessons for Java and React courses");
+}
+
+private CourseLesson createLesson(Course course, String name, String desc, int order) {
+    return CourseLesson.builder()
+            .course(course)
+            .lessonName(name)
+            .description(desc)
+            .sortOrder(order)
+            .build();
+}
 }
