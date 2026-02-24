@@ -33,4 +33,6 @@ public interface UserService {
     UserDTO assignRole(UUID userId, UUID roleId);
 
     User findByEmail(String email);
+
+    User getCurrentUser();
 }
