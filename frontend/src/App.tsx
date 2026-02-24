@@ -5,7 +5,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Login } from "./pages/auth/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { UserManagement } from "./pages/UserManagement";
-import { RoleManagement } from "./pages/RoleManagement/RoleManagement";
+import { RoleManagement } from "./pages/role/RoleManagement";
 import { LocationManagement } from "./pages/LocationManagement";
 import { Unauthorized } from "./pages/Unauthorized";
 import { ToastContainer } from "react-toastify";
