@@ -83,7 +83,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
 
                 {/* Backdrop mờ */}
                 <div
-                    className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+                    className="fixed inset-0 bg-black/40"
                     aria-hidden="true"
                     onClick={handleClose}
                 ></div>
