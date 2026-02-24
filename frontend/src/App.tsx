@@ -5,7 +5,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Login } from "./pages/auth/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { UserManagement } from "./pages/UserManagement";
-import { RoleManagement } from "./pages/RoleManagement/RoleManagement";
+import { RoleManagement } from "./pages/role/RoleManagement";
 import { LocationManagement } from "./pages/LocationManagement";
 import { Unauthorized } from "./pages/Unauthorized";
 import { ToastContainer } from "react-toastify";
@@ -14,15 +14,15 @@ import ModulesManagement from "./pages/modules/module/ModulesManagement";
 import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
 import { AssessmentManagement } from "./pages/AssessmentManagement";
-import CourseManagement from "./pages/CourseManagement/CourseManagement";
+import CourseManagement from "./pages/course/CourseManagement";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Logout } from "./pages/auth/Logout";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
-import CourseDetailPage from "./pages/CourseManagement/CourseDetailPage";
-import TraineeCourses from "./pages/trainee/TraineeCourses";
+import CourseDetailPage from "./pages/course/CourseDetailPage";
+import StudentCourseContent from "./pages/learning/StudentCourseContent";
 
 function App() {
   return (
@@ -116,11 +116,20 @@ function App() {
               }
             />
             <Route path="/courses/:id" element={<CourseDetailPage />} />
+            {/* /my-courses redirects to /courses for backward compat */}
             <Route
               path="/my-courses"
+              element={<Navigate to="/courses" replace />}
+            />
+            <Route
+              path="/my-courses/:id"
+              element={<Navigate to="/courses" replace />}
+            />
+            <Route
+              path="/learn/:cohortId"
               element={
                 <ProtectedRoute requiredPermission="ENROLL_COURSE">
-                  <TraineeCourses />
+                  <StudentCourseContent />
                 </ProtectedRoute>
               }
             />

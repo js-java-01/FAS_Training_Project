@@ -4,17 +4,20 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { courseApi } from "@/api/courseApi";
 import { CourseDetail } from "./components/CourseDetail";
 import { toast } from "sonner";
-import MainHeader from "@/components/layout/MainHeader";
+import { usePermissions } from "@/hooks/usePermissions";
+import StudentCourseDetailPage from "@/pages/learning/StudentCourseDetailPage";
 
 const CourseDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState<any>();
   const [loading, setLoading] = useState(true);
+  const { hasPermission } = usePermissions();
+  const isStudentMode = !hasPermission("COURSE_UPDATE");
 
   useEffect(() => {
-    if (id) loadCourse();
-  }, [id]);
+    if (id && !isStudentMode) loadCourse();
+  }, [id, isStudentMode]);
 
   const loadCourse = async () => {
     try {
@@ -27,6 +30,9 @@ const CourseDetailPage = () => {
       setLoading(false);
     }
   };
+
+  // Student: render the full student detail view
+  if (isStudentMode) return <StudentCourseDetailPage />;
 
   return (
     <MainLayout pathName={id ? { [id]: "Detail" } : undefined}>
