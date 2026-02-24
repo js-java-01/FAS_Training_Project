@@ -7,11 +7,14 @@ import {
 } from "@/components/ui/collapsible";
 
 import {
-    SidebarMenuItem,
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarMenu,
     SidebarMenuButton,
+    SidebarMenuItem,
     SidebarMenuSub,
-    SidebarMenuSubItem,
     SidebarMenuSubButton,
+    SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
 type NavItem = {
@@ -22,10 +25,10 @@ type NavItem = {
 };
 
 export function NavMain({
-                            title,
-                            items,
-                            sidebarState,
-                        }: {
+    title,
+    items,
+    sidebarState,
+}: {
     title: string;
     items: NavItem[];
     sidebarState: "expanded" | "collapsed";

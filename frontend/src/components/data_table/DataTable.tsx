@@ -70,6 +70,8 @@ interface DataTableProps<TData, TValue> {
     manualSorting?: boolean;
     // ACTION
     headerActions?: React.ReactNode;
+    // Row click
+    onRowClick?: (row: TData) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -94,8 +96,10 @@ export function DataTable<TData, TValue>({
                                              sorting,
                                              onSortingChange,
                                              manualSorting = false,
-                                             // ACTION
-                                             headerActions,
+                                            // ACTION
+                                            headerActions,
+                                            // row click
+                                            onRowClick,
                                          }: DataTableProps<TData, TValue>) {
     /** ------------------ SEARCH DATA ------------------ */
     const [searchText, setSearchText] = useState("");
@@ -159,6 +163,9 @@ export function DataTable<TData, TValue>({
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [rowSelection, setRowSelection] = useState({});
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+    // internal sorting state when consumer does not control sorting
+    const [internalSorting, setInternalSorting] = useState<SortingState>([]);
+    const sortingState = sorting ?? internalSorting;
 
     /** ------------------ REACT TABLE ------------------ */
     const table = useReactTable({
@@ -169,7 +176,7 @@ export function DataTable<TData, TValue>({
             rowSelection,
             pagination,
             columnVisibility,
-            sorting,
+            ...(sorting ? {sorting} : {sorting: sortingState}),
         },
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
@@ -194,12 +201,19 @@ export function DataTable<TData, TValue>({
         ...(manualSorting ? {} : {getSortedRowModel: getSortedRowModel()}),
         manualSorting: manualSorting,
         onSortingChange: (updaterOrValue) => {
-            if (!onSortingChange) return;
-
-            if (typeof updaterOrValue === "function") {
-                onSortingChange(updaterOrValue(sorting ?? []));
+            if (onSortingChange) {
+                if (typeof updaterOrValue === "function") {
+                    onSortingChange(updaterOrValue(sorting ?? []));
+                } else {
+                    onSortingChange(updaterOrValue);
+                }
             } else {
-                onSortingChange(updaterOrValue);
+                // update internal sorting state
+                if (typeof updaterOrValue === "function") {
+                    setInternalSorting((prev) => updaterOrValue(prev));
+                } else {
+                    setInternalSorting(updaterOrValue);
+                }
             }
         },
     });
@@ -320,6 +334,16 @@ export function DataTable<TData, TValue>({
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}
                                     className="w-full odd:bg-accent even:bg-background"
+                                    onClick={(e) => {
+                                        try {
+                                            const target = e.target as HTMLElement | null;
+                                            // ignore clicks on interactive elements inside the row
+                                            if (target && target.closest("button, a, input, label")) return;
+                                        } catch (err) {
+                                            // ignore
+                                        }
+                                        if (onRowClick) onRowClick(row.original as TData);
+                                    }}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>

@@ -30,7 +30,7 @@ import java.util.UUID;
 @RequestMapping("/api/roles")
 @RequiredArgsConstructor
 @Tag(name = "Role Management", description = "APIs for managing roles and permissions")
-@SecurityRequirement(name = "Bearer Authentication")
+@SecurityRequirement(name = "bearerAuth")
 public class RoleController {
 
     private final RoleService roleService;

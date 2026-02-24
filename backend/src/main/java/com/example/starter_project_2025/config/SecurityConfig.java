@@ -53,6 +53,7 @@ public class SecurityConfig
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/", "/index.html", "/login", "/oauth2/**").permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
@@ -84,6 +85,11 @@ public class SecurityConfig
                         .requestMatchers(HttpMethod.PUT, "/api/programming-languages/**").hasAuthority("PROGRAMMING_LANGUAGE_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/programming-languages/**").hasAuthority("PROGRAMMING_LANGUAGE_DELETE")
                         .requestMatchers(HttpMethod.GET, "/api/programming-languages/**").hasAuthority("PROGRAMMING_LANGUAGE_READ")
+
+                        .requestMatchers(HttpMethod.GET, "/api/courses/**").hasAuthority("COURSE_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/courses").hasAuthority("COURSE_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/courses/**").hasAuthority("COURSE_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/courses/**").hasAuthority("COURSE_DELETE")
                         
                         .anyRequest().authenticated()
                 )
