@@ -13,7 +13,6 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
-import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
 import { Dashboard } from "./pages/Dashboard";
 import { UserManagement } from "./pages/UserManagement";
 import { AssessmentManagement } from "./pages/AssessmentManagement";
@@ -25,6 +24,10 @@ import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import ModulesManagement from "./pages/modules/module/ModulesManagement";
+import { componentRegistry } from "./router/componentRegistry";
+import { ToastContainer } from "react-toastify";
+import { Toaster } from "sonner";
+import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
 
 
 function App() {
@@ -32,55 +35,55 @@ function App() {
   const { data: moduleGroups = [] } = useActiveModuleGroups(isAuthenticated);
   return (
     <BrowserRouter>
-      {/* <Toaster
+      <Toaster
         duration={1500}
         position="top-right"
         richColors
         toastOptions={{
           className: "p-4",
         }}
-      /> */}
+      />
       <AuthProvider>
-        <Routes>
-          <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />
-          <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/logout" element={<Logout />} />
-          <Route path="/unauthorized" element={<Unauthorized />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          {moduleGroups.flatMap((group) =>
-            group.modules.map((m) => {
-              if (!m.url) return null;
-              const Component = componentRegistry[m.url];
-              if (!Component || !m.url) return null;
-              return (
-                <Route
-                  key={m.id}
-                  path={m.url}
-                  element={
-                    <ProtectedRoute requiredPermission={m.requiredPermission}>
-                      <Component />
-                    </ProtectedRoute>
-                  }
-                />
-              );
-            })
-          )}
-          <Route path="*" element={<NotFoundRedirect />} />
-        </Routes>
         <RoleSwitchProvider>
+          <Routes>
+            <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />
+            <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/logout" element={<Logout />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {moduleGroups.flatMap((group) =>
+              group.modules.map((m) => {
+                if (!m.url) return null;
+                const Component = componentRegistry[m.url];
+                if (!Component || !m.url) return null;
+                return (
+                  <Route
+                    key={m.id}
+                    path={m.url}
+                    element={
+                      <ProtectedRoute requiredPermission={m.requiredPermission}>
+                        <Component />
+                      </ProtectedRoute>
+                    }
+                  />
+                );
+              })
+            )}
+            <Route path="*" element={<NotFoundRedirect />} />
+          </Routes>
+
+
           <ToastContainer
             position="top-right"
             autoClose={3000}
             theme="colored"
             aria-label={undefined}
           />
-          {/* <SidebarProvider>
-         
-        </SidebarProvider> */}
+
 
           <Routes>
             <Route path="*" element={<NotFoundRedirect />} />
@@ -101,14 +104,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/users"
-              element={
-                <ProtectedRoute requiredPermission="USER_READ">
-                  <UserManagement />
-                </ProtectedRoute>
-              }
-            />
+
             <Route
               path="/assessment-type"
               element={
@@ -118,14 +114,6 @@ function App() {
               }
             />
 
-            <Route
-              path="/roles"
-              element={
-                <ProtectedRoute requiredPermission="ROLE_READ">
-                  <RoleManagement />
-                </ProtectedRoute>
-              }
-            />
             <Route
               path="/locations"
               element={
@@ -168,28 +156,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/moduleGroups"
-              element={
-                <ProtectedRoute requiredPermission="ROLE_READ">
-                  <ModuleGroupsManagement />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/modules"
-              element={
-                <ProtectedRoute requiredPermission="ROLE_READ">
-                  <ModulesManagement />
-                </ProtectedRoute>
-              }
-            />
+
+
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </RoleSwitchProvider>
       </AuthProvider>
-    </BrowserRouter>
+    </BrowserRouter >
   );
 }
 

@@ -41,6 +41,7 @@ export default function HeaderRight() {
           {role.toLowerCase()}
         </Badge>
 
+
         <ToggleTheme />
       </div>
     );
@@ -53,8 +54,8 @@ export default function HeaderRight() {
         <button
           onClick={() => setOpen((o) => !o)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors cursor-pointer ${isViewingAsStudent
-              ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-              : "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+            ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+            : "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
             }`}
         >
           {isViewingAsStudent ? (
@@ -77,8 +78,8 @@ export default function HeaderRight() {
                 setOpen(false);
               }}
               className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-gray-50 transition-colors cursor-pointer ${!isViewingAsStudent
-                  ? "text-blue-700 font-medium bg-blue-50"
-                  : "text-gray-700"
+                ? "text-blue-700 font-medium bg-blue-50"
+                : "text-gray-700"
                 }`}
             >
               <ShieldCheck size={15} />
@@ -93,8 +94,8 @@ export default function HeaderRight() {
                 setOpen(false);
               }}
               className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-gray-50 transition-colors cursor-pointer ${isViewingAsStudent
-                  ? "text-green-700 font-medium bg-green-50"
-                  : "text-gray-700"
+                ? "text-green-700 font-medium bg-green-50"
+                : "text-gray-700"
                 }`}
             >
               <GraduationCap size={15} />
@@ -106,6 +107,6 @@ export default function HeaderRight() {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 }
