@@ -8,7 +8,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
-public interface StudentMapper {
+public interface StudentMapper
+{
 
     Student toEntity(CreateStudentRequest request);
 
@@ -17,6 +18,6 @@ public interface StudentMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "role", ignore = true)
+//    @Mapping(target = "role", ignore = true)
     void update(@MappingTarget Student student, StudentDTO dto);
 }

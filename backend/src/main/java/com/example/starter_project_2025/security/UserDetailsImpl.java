@@ -1,6 +1,8 @@
 package com.example.starter_project_2025.security;
 
+import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.user_role.entity.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,7 +17,8 @@ import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
-public class UserDetailsImpl implements UserDetails {
+public class UserDetailsImpl implements UserDetails
+{
 
     private UUID id;
     private String email;
@@ -26,12 +29,29 @@ public class UserDetailsImpl implements UserDetails {
     private Set<String> permissions;
     private boolean isActive;
 
-    public static UserDetailsImpl build(User user) {
+    public static UserDetailsImpl build(User user)
+    {
         // var permissions = user.getUserRoles().getPermissions();
         // if (permissions != null && !permissions.isEmpty()) {
         // System.out.println("First permission: " +
         // permissions.iterator().next().getName());
         // }
+
+        var defaultRole = user.getUserRoles().stream()
+                .filter(UserRole::isDefault)
+                .findFirst()
+                .orElse(null);
+
+        String roleName = "";
+        Set<String> permissions = new HashSet<>();
+
+        if (defaultRole != null)
+        {
+            roleName = defaultRole.getRole().getName();
+            permissions = defaultRole.getRole().getPermissions().stream()
+                    .map(Permission::getName)
+                    .collect(Collectors.toSet());
+        }
 
         return new UserDetailsImpl(
                 user.getId(),
@@ -39,18 +59,21 @@ public class UserDetailsImpl implements UserDetails {
                 user.getPasswordHash(),
                 user.getFirstName(),
                 user.getLastName(),
-                "",
-                new HashSet<String>(),
-                user.getIsActive());
+                roleName,
+                permissions,
+                user.getIsActive()
+        );
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public Collection<? extends GrantedAuthority> getAuthorities()
+    {
         System.out.println("[DEBUG] getAuthorities called for user: " + email);
         System.out.println("[DEBUG] permissions value: " + permissions);
         System.out.println("[DEBUG] permissions is null: " + (permissions == null));
 
-        if (permissions == null) {
+        if (permissions == null)
+        {
             System.out.println("[DEBUG] Returning empty set because permissions is null");
             return Set.of();
         }
@@ -63,27 +86,32 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
+    public String getUsername()
+    {
         return email;
     }
 
     @Override
-    public boolean isAccountNonExpired() {
+    public boolean isAccountNonExpired()
+    {
         return true;
     }
 
     @Override
-    public boolean isAccountNonLocked() {
+    public boolean isAccountNonLocked()
+    {
         return true;
     }
 
     @Override
-    public boolean isCredentialsNonExpired() {
+    public boolean isCredentialsNonExpired()
+    {
         return true;
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean isEnabled()
+    {
         return isActive;
     }
 }

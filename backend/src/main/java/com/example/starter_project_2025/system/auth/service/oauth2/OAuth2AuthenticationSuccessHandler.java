@@ -42,7 +42,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
-        entityManager.refresh(user);
+//        entityManager.refresh(user);
 
         String rt = refreshTokenService.generateAndSaveRefreshToken(user);
         String at = jwtUtil.generateToken(UserDetailsImpl.build(user));

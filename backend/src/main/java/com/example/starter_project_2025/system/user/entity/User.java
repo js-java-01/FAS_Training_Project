@@ -42,7 +42,7 @@ public class User
     @Column(nullable = false, length = 100)
     String lastName;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     Set<UserRole> userRoles;
 
     @Column(nullable = false)

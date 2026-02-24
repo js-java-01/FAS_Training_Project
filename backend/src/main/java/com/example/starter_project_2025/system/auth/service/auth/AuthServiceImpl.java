@@ -6,6 +6,7 @@ import com.example.starter_project_2025.system.auth.dto.forgotpassword.ForgotPas
 import com.example.starter_project_2025.system.auth.dto.login.LoginRequest;
 import com.example.starter_project_2025.system.auth.dto.login.LoginResponse;
 import com.example.starter_project_2025.system.auth.dto.permission.GetPermissonReqDTO;
+import com.example.starter_project_2025.system.auth.dto.permission.PermissionResponseDTO;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.mapper.AuthMapper;
@@ -217,7 +218,7 @@ public class AuthServiceImpl implements AuthService
 
 
     @Override
-    public LoginResponse getPermissionsWithRole(GetPermissonReqDTO data, String email)
+    public PermissionResponseDTO getPermissionsWithRole(GetPermissonReqDTO data, String email)
     {
         {
             var user = userRepository.findByEmail(email)
@@ -238,7 +239,7 @@ public class AuthServiceImpl implements AuthService
             userDetails.setRole(role.getName());
             userDetails.setPermissions(permissions);
 
-            return authMapper.toLoginResponse(userDetails);
+            return authMapper.toPermissionResponse(userDetails);
         }
     }
 

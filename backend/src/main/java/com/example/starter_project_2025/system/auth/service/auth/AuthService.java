@@ -4,6 +4,7 @@ import com.example.starter_project_2025.system.auth.dto.forgotpassword.ForgotPas
 import com.example.starter_project_2025.system.auth.dto.login.LoginRequest;
 import com.example.starter_project_2025.system.auth.dto.login.LoginResponse;
 import com.example.starter_project_2025.system.auth.dto.permission.GetPermissonReqDTO;
+import com.example.starter_project_2025.system.auth.dto.permission.PermissionResponseDTO;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,5 +25,5 @@ public interface AuthService
 
     LoginResponse refresh(String token);
 
-    LoginResponse getPermissionsWithRole(GetPermissonReqDTO data, String email);
+    PermissionResponseDTO getPermissionsWithRole(GetPermissonReqDTO data, String email);
 }
