@@ -55,9 +55,67 @@ public class DepartmentServiceImpl implements DepartmentService {
         }).collect(Collectors.toList());
     }
 
+
+
+    @Override
+    public DepartmentDTO getById(UUID id) {
+
+        Department department = departmentRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Department not found with id: " + id));
+
+        DepartmentDTO dto = new DepartmentDTO();
+
+        dto.setId(department.getId());
+        dto.setName(department.getName());
+        dto.setCode(department.getCode());
+        dto.setDescription(department.getDescription());
+
+        if (department.getLocation() != null) {
+            dto.setLocationId(department.getLocation().getId().toString());
+            dto.setLocationName(department.getLocation().getName());
+        }
+
+        return dto;
+    }
+
+
+
     @Override
     @Transactional
-    public void delete(Long id) {
+    public void delete(UUID id) {
+        if (!departmentRepository.existsById(id)) {
+            throw new RuntimeException("Department not found with id: " + id);
+        }
         departmentRepository.deleteById(id);
     }
+
+    @Override
+    @Transactional
+    public Department update(UUID id, DepartmentDTO dto) {
+
+        Department department = departmentRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Department not found with id: " + id));
+
+        department.setName(dto.getName());
+        department.setCode(dto.getCode());
+        department.setDescription(dto.getDescription());
+
+        if (dto.getLocationId() != null && !dto.getLocationId().isBlank()) {
+
+            Location location = locationRepository.findById(
+                            UUID.fromString(dto.getLocationId()))
+                    .orElseThrow(() ->
+                            new RuntimeException("Location does not exist!"));
+
+            department.setLocation(location);
+        } else {
+            department.setLocation(null);
+        }
+
+        return departmentRepository.save(department);
+    }
+
+
 }

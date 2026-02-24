@@ -1,4 +1,9 @@
-import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
+} from "@/components/ui/sidebar";
 
 import { NavMain } from "@/components/layout/NavMain";
 import { useSidebarMenus } from "@/hooks/useSidebarMenus";
@@ -17,20 +22,25 @@ export function SidebarMenu() {
   return (
     <Sidebar variant="inset">
       {/* Header */}
-      <SidebarHeader className=" py-3 font-bold text-lg text-blue-800">RBAC System</SidebarHeader>
+      <SidebarHeader className="py-3 px-4">
+        <div className="font-bold text-lg text-blue-800 leading-tight">
+          FSTraining
+        </div>
+        <div className="text-xs text-gray-500">Training Management</div>
+      </SidebarHeader>
 
       {/* Content */}
       <SidebarContent>
         {navGroups.map((group) =>
           group ? (
             <NavMain key={group.id} title={group.name} items={group.items} />
-          ) : null
+          ) : null,
         )}
       </SidebarContent>
 
       {/* Footer */}
       <SidebarFooter className="p-4 text-xs flex flex-row justify-between items-center text-muted-foreground">
-        RBAC System v1.0
+        FSTraining v1.0
         <TooltipWrapper content="Logout">
           <Button
             size="icon"
