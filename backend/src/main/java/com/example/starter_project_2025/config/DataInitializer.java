@@ -68,6 +68,8 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AssessmentTypeRepository assessmentTypeRepository;
+    private final CourseRepository courseRepository;
+    private final CourseCohortRepository courseCohortRepository;
 
     @Override
     @Transactional
@@ -121,9 +123,7 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("DEPARTMENT_UPDATE", "Update existing departments", "DEPARTMENT", "UPDATE"),
                 createPermission("DEPARTMENT_DELETE", "Delete departments", "DEPARTMENT", "DELETE"),
                 createPermission("DEPARTMENT_IMPORT", "Import departments", "DEPARTMENT", "IMPORT"),
-                createPermission("DEPARTMENT_EXPORT", "Export departments", "DEPARTMENT", "EXPORT")
-                );
-                createPermission("LOCATION_EXPORT", "Export locations", "LOCATION", "EXPORT"),
+                createPermission("DEPARTMENT_EXPORT", "Export departments", "DEPARTMENT", "EXPORT"),
                 createPermission("COURSE_CREATE", "Create new courses", "COURSE", "CREATE"),
                 createPermission("COURSE_READ", "View courses", "COURSE", "READ"),
                 createPermission("COURSE_UPDATE", "Update existing courses", "COURSE", "UPDATE"),
