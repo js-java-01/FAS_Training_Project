@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DataTable } from "@/components/data_table/DataTable";
 import { courseApi } from "@/api/courseApi";
+import { enrollmentApi } from "@/api/enrollmentApi";
+import type { EnrolledCourse } from "@/api/enrollmentApi";
 import type { Course } from "@/types/course";
 import { getColumns } from "./components/columns";
 import { toast } from "sonner";
@@ -16,6 +18,8 @@ import {
   User,
   Tag,
   Loader2,
+  GraduationCap,
+  Play,
 } from "lucide-react";
 import { ImportExportActions } from "@/components/import-export/ImportExportActions";
 import { BaseImportModal } from "@/components/import-export/BaseImportModal";
@@ -55,15 +59,26 @@ function fmtPrice(price?: number, discount?: number) {
   }).format(final);
 }
 
-function CourseCard({ course }: { course: Course }) {
+function CourseCard({
+  course,
+  enrolledCohortId,
+}: {
+  course: Course;
+  enrolledCohortId?: string;
+}) {
   const navigate = useNavigate();
+  const isEnrolled = !!enrolledCohortId;
   const hours = course.estimatedTime
     ? Math.round(course.estimatedTime / 60)
     : null;
   return (
     <div
       className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden flex flex-col cursor-pointer group"
-      onClick={() => navigate(`/courses/${course.id}`)}
+      onClick={() =>
+        isEnrolled
+          ? navigate(`/learn/${enrolledCohortId}`)
+          : navigate(`/courses/${course.id}`)
+      }
     >
       <div className="h-44 bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center relative overflow-hidden">
         {course.thumbnailUrl ? (
@@ -115,6 +130,31 @@ function CourseCard({ course }: { course: Course }) {
             </span>
           )}
         </div>
+        {/* Action button */}
+        <div className="px-4 pb-4">
+          {isEnrolled ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/learn/${enrolledCohortId}`);
+              }}
+              className="w-full py-1.5 text-sm font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 mt-4"
+            >
+              <Play size={13} />
+              Continue Learning
+            </button>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/courses/${course.id}`);
+              }}
+              className="w-full py-1.5 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mt-4"
+            >
+              View &amp; Enroll
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -132,6 +172,24 @@ export const CourseManagement: React.FC = () => {
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
   const isStudentMode = !hasPermission("COURSE_UPDATE");
+
+  // student tab state
+  const [activeTab, setActiveTab] = useState<"catalog" | "enrollments">(
+    "catalog",
+  );
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
+  const [enrolledLoading, setEnrolledLoading] = useState(false);
+
+  // map courseId → cohortId for quick lookup in catalog
+  const enrolledCohortMap = useMemo(
+    () =>
+      Object.fromEntries(
+        enrolledCourses
+          .filter((ec) => ec?.course?.id)
+          .map((ec) => [ec.course.id, ec.cohortId]),
+      ) as Record<string, string>,
+    [enrolledCourses],
+  );
 
   // filters (admin)
   const [keyword, setKeyword] = useState("");
@@ -215,6 +273,41 @@ export const CourseManagement: React.FC = () => {
     setLevelFilter("");
   };
 
+  const loadEnrolledCourses = async () => {
+    try {
+      setEnrolledLoading(true);
+      const data = await enrollmentApi.getMyEnrolledCourses();
+      console.log("[enrollments] raw response:", data);
+      setEnrolledCourses(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("[enrollments] error:", err);
+      toast.error("Failed to load enrolled courses");
+    } finally {
+      setEnrolledLoading(false);
+    }
+  };
+
+  // Load enrolled courses: on mount (student) and when switching to enrollments tab
+  useEffect(() => {
+    if (isStudentMode) {
+      loadEnrolledCourses();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isStudentMode]);
+
+  useEffect(() => {
+    if (isStudentMode && activeTab === "enrollments") {
+      loadEnrolledCourses();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, isStudentMode]);
+
+  const handleEnrollSuccess = () => {
+    setEnrollCourse(null);
+    loadEnrolledCourses();
+    setActiveTab("enrollments");
+  };
+
   // derive unique trainer options from current page data
   const topicOptions: string[] = []; // topics not yet implemented
   const trainerOptions = useMemo(
@@ -267,92 +360,171 @@ export const CourseManagement: React.FC = () => {
       {isStudentMode ? (
         <div className="h-full flex-1 flex flex-col gap-4">
           <MainHeader
-            title="Course Catalog"
-            description="Browse and enroll in available courses"
+            title="Courses"
+            description="Browse the catalog or view your enrolled courses"
           />
 
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1">
-              <Search
-                size={15}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-              />
-              <input
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Search courses by name or code..."
-                className="pl-8 pr-3 py-1.5 text-sm border rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <select
-              value={levelFilter}
-              onChange={(e) => setLevelFilter(e.target.value)}
-              className="text-sm border rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
-            >
-              <option value="">All Levels</option>
-              <option value="BEGINNER">Beginner</option>
-              <option value="INTERMEDIATE">Intermediate</option>
-              <option value="ADVANCED">Advanced</option>
-            </select>
+          {/* ── Tabs ── */}
+          <div className="flex gap-1 border-b border-gray-200">
             <button
-              onClick={resetFilters}
-              title="Reset filters"
-              className="p-1.5 border rounded-md hover:bg-gray-100 text-gray-500 shrink-0"
+              onClick={() => setActiveTab("catalog")}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "catalog"
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
             >
-              <RotateCcw size={15} />
+              <BookOpen size={15} />
+              Course Catalog
+            </button>
+            <button
+              onClick={() => setActiveTab("enrollments")}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "enrollments"
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <GraduationCap size={15} />
+              My Enrollments
             </button>
           </div>
 
-          {!loading && (
-            <p className="text-sm text-gray-500 -mt-2">
-              {courses.length} course{courses.length !== 1 ? "s" : ""} found
-              {debouncedKeyword && ` for "${debouncedKeyword}"`}
-            </p>
+          {/* ── CATALOG TAB ── */}
+          {activeTab === "catalog" && (
+            <>
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <Search
+                    size={15}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  />
+                  <input
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                    placeholder="Search courses by name or code..."
+                    className="pl-8 pr-3 py-1.5 text-sm border rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <select
+                  value={levelFilter}
+                  onChange={(e) => setLevelFilter(e.target.value)}
+                  className="text-sm border rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
+                >
+                  <option value="">All Levels</option>
+                  <option value="BEGINNER">Beginner</option>
+                  <option value="INTERMEDIATE">Intermediate</option>
+                  <option value="ADVANCED">Advanced</option>
+                </select>
+                <button
+                  onClick={resetFilters}
+                  title="Reset filters"
+                  className="p-1.5 border rounded-md hover:bg-gray-100 text-gray-500 shrink-0"
+                >
+                  <RotateCcw size={15} />
+                </button>
+              </div>
+
+              {!loading && (
+                <p className="text-sm text-gray-500 -mt-2">
+                  {courses.length} course{courses.length !== 1 ? "s" : ""} found
+                  {debouncedKeyword && ` for "${debouncedKeyword}"`}
+                </p>
+              )}
+
+              {/* Card grid */}
+              {loading ? (
+                <div className="flex items-center justify-center py-24 text-gray-400">
+                  <Loader2 className="animate-spin mr-2" size={24} />
+                  Loading courses...
+                </div>
+              ) : courses.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                  <BookOpen size={56} className="mb-4 opacity-30" />
+                  <p className="text-lg font-medium">No courses available</p>
+                  <p className="text-sm mt-1">
+                    Check back later for new courses.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 overflow-y-auto pb-4">
+                  {courses.map((course) => (
+                    <CourseCard
+                      key={course.id}
+                      course={course}
+                      enrolledCohortId={enrolledCohortMap[course.id]}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-2 shrink-0">
+                  <button
+                    disabled={page === 0}
+                    onClick={() => setPage((p) => p - 1)}
+                    className="px-4 py-2 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-500">
+                    Page {page + 1} of {totalPages}
+                  </span>
+                  <button
+                    disabled={page >= totalPages - 1}
+                    onClick={() => setPage((p) => p + 1)}
+                    className="px-4 py-2 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Card grid */}
-          {loading ? (
-            <div className="flex items-center justify-center py-24 text-gray-400">
-              <Loader2 className="animate-spin mr-2" size={24} />
-              Loading courses...
-            </div>
-          ) : courses.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-              <BookOpen size={56} className="mb-4 opacity-30" />
-              <p className="text-lg font-medium">No courses available</p>
-              <p className="text-sm mt-1">Check back later for new courses.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 overflow-y-auto pb-4">
-              {courses.map((course) => (
-                <CourseCard key={course.id} course={course} />
-              ))}
-            </div>
-          )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-2 shrink-0">
-              <button
-                disabled={page === 0}
-                onClick={() => setPage((p) => p - 1)}
-                className="px-4 py-2 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition"
-              >
-                Previous
-              </button>
-              <span className="text-sm text-gray-500">
-                Page {page + 1} of {totalPages}
-              </span>
-              <button
-                disabled={page >= totalPages - 1}
-                onClick={() => setPage((p) => p + 1)}
-                className="px-4 py-2 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition"
-              >
-                Next
-              </button>
-            </div>
-          )}
+          {/* ── MY ENROLLMENTS TAB ── */}
+          {activeTab === "enrollments" &&
+            (() => {
+              const validEnrolled = enrolledCourses.filter(
+                (ec) => ec?.course?.id,
+              );
+              return (
+                <>
+                  {enrolledLoading ? (
+                    <div className="flex items-center justify-center py-24 text-gray-400">
+                      <Loader2 className="animate-spin mr-2" size={24} />
+                      Loading enrolled courses...
+                    </div>
+                  ) : validEnrolled.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                      <GraduationCap size={56} className="mb-4 opacity-30" />
+                      <p className="text-lg font-medium">No enrollments yet</p>
+                      <p className="text-sm mt-1">
+                        Go to the Course Catalog to find and enroll in a course.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm text-gray-500 -mt-2">
+                        {validEnrolled.length} course
+                        {validEnrolled.length !== 1 ? "s" : ""} enrolled
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 overflow-y-auto pb-4">
+                        {validEnrolled.map((ec) => (
+                          <CourseCard
+                            key={ec.course.id}
+                            course={ec.course}
+                            enrolledCohortId={String(ec.cohortId)}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+              );
+            })()}
         </div>
       ) : (
         /* ════════════════ ADMIN / TRAINER TABLE VIEW ════════════════ */
@@ -503,6 +675,7 @@ export const CourseManagement: React.FC = () => {
         <CohortEnrollModal
           course={enrollCourse}
           onClose={() => setEnrollCourse(null)}
+          onSuccess={isStudentMode ? handleEnrollSuccess : undefined}
         />
       )}
     </MainLayout>

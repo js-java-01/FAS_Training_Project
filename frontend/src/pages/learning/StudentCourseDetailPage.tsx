@@ -353,12 +353,20 @@ export default function StudentCourseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("about");
   const [showEnrollModal, setShowEnrollModal] = useState(false);
+  const [enrolledCohortId, setEnrolledCohortId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    courseApi
-      .getCourseById(id)
-      .then(setCourse)
+    // Load course + enrollment status in parallel
+    Promise.all([
+      courseApi.getCourseById(id),
+      enrollmentApi.getMyEnrolledCourses().catch(() => []),
+    ])
+      .then(([courseData, enrolled]) => {
+        setCourse(courseData);
+        const match = enrolled.find((ec) => ec?.course?.id === id);
+        if (match) setEnrolledCohortId(match.cohortId);
+      })
       .catch(() => {
         toast.error("Failed to load course");
         navigate("/courses");
@@ -368,6 +376,7 @@ export default function StudentCourseDetailPage() {
 
   const handleEnrolled = (cohortId: string) => {
     setShowEnrollModal(false);
+    setEnrolledCohortId(cohortId);
     navigate(`/learn/${cohortId}`);
   };
 
@@ -448,15 +457,25 @@ export default function StudentCourseDetailPage() {
                 </div>
 
                 <button
-                  onClick={() => setShowEnrollModal(true)}
-                  className="
-            px-8 py-3 rounded-xl font-semibold text-white
-            bg-blue-600 hover:bg-blue-700
-            active:scale-95 transition
-            shadow-md hover:shadow-lg
-          "
+                  onClick={() =>
+                    enrolledCohortId
+                      ? navigate(`/learn/${enrolledCohortId}`)
+                      : setShowEnrollModal(true)
+                  }
+                  className={
+                    enrolledCohortId
+                      ? "px-8 py-3 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 active:scale-95 transition shadow-md hover:shadow-lg flex items-center gap-2"
+                      : "px-8 py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition shadow-md hover:shadow-lg"
+                  }
                 >
-                  Enroll now
+                  {enrolledCohortId ? (
+                    <>
+                      <Play size={16} />
+                      Continue Learning
+                    </>
+                  ) : (
+                    "Enroll now"
+                  )}
                 </button>
               </div>
 
