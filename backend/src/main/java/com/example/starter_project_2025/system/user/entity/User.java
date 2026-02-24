@@ -1,17 +1,18 @@
 package com.example.starter_project_2025.system.user.entity;
 
-import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.user_role.entity.UserRole;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -22,7 +23,8 @@ import java.util.UUID;
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class User {
+public class User
+{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -41,7 +43,7 @@ public class User {
     String lastName;
 
     @OneToMany(mappedBy = "user")
-    List<UserRole> userRoles;
+    Set<UserRole> userRoles;
 
     @Column(nullable = false)
     Boolean isActive = true;
