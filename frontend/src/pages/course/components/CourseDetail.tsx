@@ -5,6 +5,7 @@ import { userApi } from "@/api/userApi";
 import type { User } from "@/types/auth";
 import { toast } from "sonner";
 import { CohortTab } from "./CohortTab";
+import { OutlineTab } from "./OutlineTab";
 import {
   FiEdit,
   FiBookOpen,
@@ -415,13 +416,15 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
         </form>
       )}
 
-      {activeTab === "Cohort" && <CohortTab courseId={course.id} />}
+        {activeTab === "Cohort" && <CohortTab courseId={course.id} />}
 
-      {activeTab !== "Overview" && activeTab !== "Cohort" && (
-        <div className="text-gray-400 text-sm">
-          This tab is implemented by another team.
-        </div>
-      )}
+        {activeTab === "Outline" && <OutlineTab courseId={course.id} />}
+
+        {activeTab !== "Overview" && activeTab !== "Cohort" && activeTab !== "Outline" && (
+          <div className="text-gray-400 text-sm py-10 text-center border-2 border-dashed rounded-lg">
+            This tab ({activeTab}) is being developed by another team.
+          </div>
+        )}
     </div>
   );
 }
