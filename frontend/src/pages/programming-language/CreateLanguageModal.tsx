@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
 import { Modal } from '../../components/Modal';
-import { ProgrammingLanguageFormFields } from './ProgrammingLanguageFormFields';
+import { LanguageFormFields } from './LanguageFormFields';
+import { validateProgrammingLanguage } from '../../lib/programmingLanguageSchema';
 import type { ProgrammingLanguageRequest } from '../../types/programmingLanguage';
 
 interface CreateLanguageModalProps {
+    /** Whether the modal is open */
     isOpen: boolean;
+    /** Callback when modal is closed */
     onClose: () => void;
+    /** Callback when form is submitted with valid data */
     onSubmit: (data: ProgrammingLanguageRequest) => void;
+    /** Whether the create mutation is pending */
     isPending: boolean;
 }
 
+/**
+ * Modal for creating a new programming language (3.2.9.1)
+ * 
+ * Handles its own form state and validation, calling onSubmit
+ * only when validation passes.
+ */
 export const CreateLanguageModal: React.FC<CreateLanguageModalProps> = ({
     isOpen,
     onClose,
@@ -20,36 +31,30 @@ export const CreateLanguageModal: React.FC<CreateLanguageModalProps> = ({
         name: '',
         version: '',
         description: '',
-        isSupported: false,
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const handleClose = () => {
-        setFormData({ name: '', version: '', description: '', isSupported: false });
+        setFormData({ name: '', version: '', description: '' });
         setErrors({});
         onClose();
     };
 
-    const validate = () => {
-        const newErrors: Record<string, string> = {};
-        if (!formData.name.trim()) newErrors.name = 'Name is required';
-        if (formData.name.length > 255) newErrors.name = 'Name must be at most 255 characters';
-        if (formData.version && formData.version.length > 255) newErrors.version = 'Version must be at most 255 characters';
-        if (formData.description && formData.description.length > 1000) newErrors.description = 'Description must be at most 1000 characters';
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (validate()) {
-            onSubmit(formData);
+        const validation = validateProgrammingLanguage(formData);
+        if (!validation.isValid) {
+            setErrors(validation.errors);
+            return;
         }
+        setErrors({});
+        onSubmit(formData);
     };
 
+    // Reset form when modal opens
     React.useEffect(() => {
         if (isOpen) {
-            setFormData({ name: '', version: '', description: '', isSupported: false });
+            setFormData({ name: '', version: '', description: '' });
             setErrors({});
         }
     }, [isOpen]);
@@ -61,27 +66,27 @@ export const CreateLanguageModal: React.FC<CreateLanguageModalProps> = ({
             title="Create Programming Language"
             size="md"
             actions={
-                <div className="flex gap-2">
+                <>
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
+                        className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-800"
                     >
                         Cancel
                     </button>
                     <button
-                        form="create-language-form"
+                        form="create-lang-form"
                         type="submit"
                         disabled={isPending}
-                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 shadow-sm disabled:bg-blue-400"
                     >
                         {isPending ? 'Creating...' : 'Create Language'}
                     </button>
-                </div>
+                </>
             }
         >
-            <form id="create-language-form" onSubmit={handleSubmit}>
-                <ProgrammingLanguageFormFields
+            <form id="create-lang-form" onSubmit={handleSubmit} className="space-y-5">
+                <LanguageFormFields
                     data={formData}
                     onChange={setFormData}
                     errors={errors}

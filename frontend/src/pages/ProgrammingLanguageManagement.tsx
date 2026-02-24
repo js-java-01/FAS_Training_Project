@@ -1,6 +1,5 @@
 import { MainLayout } from '@/components/layout/MainLayout';
-import { ProgrammingLanguageTable } from '.';
-import { Code2 } from 'lucide-react';
+import { ProgrammingLanguageTable } from './programming-language/ProgrammingLanguageTable';
 import MainHeader from '@/components/layout/MainHeader';
 
 /**

@@ -95,8 +95,8 @@ export const getColumns = (
         }),
 
         /* ================= SUPPORTED STATUS ================= */
-        columnHelper.accessor("supported", {
-            id: "supported",
+        columnHelper.accessor("isSupported", {
+            id: "isSupported",
             header: ({ column }) => (
                 <FilterHeader
                     column={column}
@@ -134,20 +134,6 @@ export const getColumns = (
             enableSorting: false,
         }),
 
-        /* ================= CREATED AT ================= */
-        columnHelper.accessor("createdAt", {
-            header: (info) => <SortHeader info={info} title="Created At" />,
-            size: 130,
-            cell: (info) => {
-                const date = info.getValue();
-                if (!date) return '-';
-                return new Date(date).toLocaleDateString('en-GB', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                });
-            },
-        }),
 
         /* ================= ACTIONS ================= */
         columnHelper.display({

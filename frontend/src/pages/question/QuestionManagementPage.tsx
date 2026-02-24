@@ -1,7 +1,7 @@
 import { MainLayout } from '@/components/layout/MainLayout';
 import MainHeader from '@/components/layout/MainHeader';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Eye, SquarePen, Trash2, Search } from 'lucide-react';
+import { Plus, Eye, SquarePen, Trash2, Search, Filter, LayoutGrid, List, ChevronRight } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,10 @@ export default function QuestionManagementPage() {
     const [categorySearch, setCategorySearch] = useState('');
     const [questionSearch, setQuestionSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [categoryPage, setCategoryPage] = useState(1);
     const [pageSize] = useState(10);
+    const [categoryPageSize] = useState(8);
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
     // Fetch categories
     const { data: categories = [], isLoading: categoriesLoading } = useQuery({
@@ -44,6 +47,16 @@ export default function QuestionManagementPage() {
             c.name.toLowerCase().includes(categorySearch.toLowerCase())
         );
     }, [categories, categorySearch]);
+
+    // Pagination for categories
+    const totalCategoryPages = Math.ceil(filteredCategories.length / categoryPageSize);
+    const safeCategoryPage = Math.min(categoryPage, Math.max(1, totalCategoryPages));
+
+    const paginatedCategories = useMemo(() => {
+        const startIndex = (safeCategoryPage - 1) * categoryPageSize;
+        const endIndex = startIndex + categoryPageSize;
+        return filteredCategories.slice(startIndex, endIndex);
+    }, [filteredCategories, safeCategoryPage, categoryPageSize]);
 
     // Filter questions by selected category and search
     const filteredQuestions = useMemo(() => {
@@ -118,78 +131,105 @@ export default function QuestionManagementPage() {
     };
 
     return (
-        <MainLayout>
-            <div className="h-full flex flex-col overflow-hidden">
-                <div className="px-4 flex items-center justify-between">
-                    <MainHeader title="Question Management" description="Manage questions by category" />
+        <MainLayout pathName={{ questions: "Question Bank" }}>
+            <div className="h-full flex flex-col overflow-hidden gap-6 p-6">
+                {/* Header Section */}
+                <div className="flex items-center justify-between">
+                    <MainHeader
+                        title="Question Bank"
+                        description="Manage your assessment questions"
+                    />
                     <PermissionGate permission="QUESTION_CREATE">
-                        <Button
-                            onClick={() => navigate('/questions/create')}
-                            className="h-8 bg-blue-600 hover:bg-blue-700"
-                        >
+                        <Button onClick={() => navigate('/questions/create')}>
                             <Plus className="mr-2 h-4 w-4" />
-                            Add Question
+                            Create Question
                         </Button>
                     </PermissionGate>
                 </div>
 
-                <div className="flex-1 flex gap-4 overflow-hidden">
-                    {/* Left Sidebar - Categories */}
-                    <div className="w-64 bg-white rounded-lg shadow overflow-hidden flex flex-col">
-                        <div className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900">Categories</h3>
-                            <p className="text-xs text-gray-500 mt-1">Select a category</p>
-                        </div>
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="bg-white rounded-lg p-4 border">
+                        <p className="text-sm text-gray-600">Total Questions</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">{allQuestions.length}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border">
+                        <p className="text-sm text-gray-600">Active</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">
+                            {allQuestions.filter(q => q.isActive).length}
+                        </p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border">
+                        <p className="text-sm text-gray-600">Categories</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">{categories.length}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border">
+                        <p className="text-sm text-gray-600">Filtered</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">{filteredQuestions.length}</p>
+                    </div>
+                </div>
 
-                        {/* Category Search */}
-                        <div className="p-3 border-b border-gray-200">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search categories..."
-                                    value={categorySearch}
-                                    onChange={(e) => setCategorySearch(e.target.value)}
-                                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
+                <div className="flex-1 flex gap-6 overflow-hidden">
+                    {/* Left Sidebar - Categories */}
+                    <div className="w-64 bg-white rounded-lg border overflow-hidden flex flex-col">
+                        <div className="p-4 border-b bg-gray-50">
+                            <h3 className="font-semibold text-gray-900">Categories</h3>
+                            <p className="text-xs text-gray-600 mt-1">
+                                {filteredCategories.length} categor{filteredCategories.length !== 1 ? 'ies' : 'y'}
+                            </p>
+                            {/* Category Search */}
+                            <div className="pt-3">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search categories..."
+                                        value={categorySearch}
+                                        onChange={(e) => setCategorySearch(e.target.value)}
+                                        className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-auto">
+
+
+                        <div className="flex-1 overflow-auto p-4">
                             {categoriesLoading ? (
                                 <div className="p-4 text-center text-gray-500">Loading...</div>
                             ) : (
-                                <div className="p-2">
+                                <div className="space-y-1">
                                     <button
                                         onClick={() => setSelectedCategoryId('')}
-                                        className={`w-full text-left px-3 py-2 rounded-lg mb-1 transition-colors ${!selectedCategoryId
-                                            ? 'bg-blue-50 text-blue-700 font-medium'
-                                            : 'hover:bg-gray-50 text-gray-700'
+                                        className={`w-full text-left px-3 py-2 rounded-md transition-all ${!selectedCategoryId
+                                            ? 'bg-blue-600 text-white'
+                                            : 'hover:bg-gray-100 text-gray-700'
                                             }`}
                                     >
                                         <div className="flex items-center justify-between">
-                                            <span>All Questions</span>
-                                            <Badge variant="outline" className="text-xs">
+                                            <span className="text-sm font-medium">All Questions</span>
+                                            <span className={`text-xs ${!selectedCategoryId ? 'text-white' : 'text-gray-600'}`}>
                                                 {allQuestions.length}
-                                            </Badge>
+                                            </span>
                                         </div>
                                     </button>
-                                    {filteredCategories.map((category: QuestionCategory) => {
+                                    {paginatedCategories.map((category: QuestionCategory) => {
                                         const count = allQuestions.filter(q => q.category?.id === category.id).length;
+                                        const isSelected = selectedCategoryId === category.id;
                                         return (
                                             <button
                                                 key={category.id}
                                                 onClick={() => setSelectedCategoryId(category.id)}
-                                                className={`w-full text-left px-3 py-2 rounded-lg mb-1 transition-colors ${selectedCategoryId === category.id
-                                                    ? 'bg-blue-50 text-blue-700 font-medium'
-                                                    : 'hover:bg-gray-50 text-gray-700'
+                                                className={`w-full text-left px-3 py-2 rounded-md transition-all ${isSelected
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'hover:bg-gray-100 text-gray-700'
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-between">
-                                                    <span className="truncate">{category.name}</span>
-                                                    <Badge variant="outline" className="text-xs">
+                                                    <span className="truncate text-sm font-medium">{category.name}</span>
+                                                    <span className={`text-xs ml-2 ${isSelected ? 'text-white' : 'text-gray-600'}`}>
                                                         {count}
-                                                    </Badge>
+                                                    </span>
                                                 </div>
                                             </button>
                                         );
@@ -197,70 +237,137 @@ export default function QuestionManagementPage() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Category Pagination */}
+                        {filteredCategories.length > 0 && totalCategoryPages > 1 && (
+                            <div className="p-4 border-t bg-gray-50">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-xs text-gray-600">
+                                        Showing {((safeCategoryPage - 1) * categoryPageSize) + 1}-{Math.min(safeCategoryPage * categoryPageSize, filteredCategories.length)} of {filteredCategories.length}
+                                    </div>
+                                    <div className="flex gap-1">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCategoryPage(p => Math.max(1, p - 1))}
+                                            disabled={safeCategoryPage === 1}
+                                        >
+                                            Previous
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCategoryPage(p => Math.min(totalCategoryPages, p + 1))}
+                                            disabled={safeCategoryPage === totalCategoryPages}
+                                        >
+                                            Next
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Side - Questions */}
-                    <div className="flex-1 bg-white rounded-lg shadow overflow-hidden flex flex-col">
-                        <div className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900">
-                                {selectedCategoryId
-                                    ? categories.find((c: QuestionCategory) => c.id === selectedCategoryId)?.name
-                                    : 'All Questions'}
-                            </h3>
-                            <p className="text-xs text-gray-500 mt-1">
-                                {filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''}
-                            </p>
-                        </div>
+                    <div className="flex-1 bg-white rounded-lg border overflow-hidden flex flex-col">
+                        <div className="p-4 border-b bg-gray-50">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="font-semibold text-gray-900">
+                                        {selectedCategoryId
+                                            ? categories.find((c: QuestionCategory) => c.id === selectedCategoryId)?.name
+                                            : 'All Questions'}
+                                    </h3>
+                                    <p className="text-xs text-gray-600 mt-1">
+                                        {filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant={viewMode === 'list' ? 'default' : 'outline'}
+                                        size="sm"
+                                        onClick={() => setViewMode('list')}
+                                        className="h-9"
+                                    >
+                                        <List className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant={viewMode === 'grid' ? 'default' : 'outline'}
+                                        size="sm"
+                                        onClick={() => setViewMode('grid')}
+                                        className="h-9"
+                                    >
+                                        <LayoutGrid className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
 
-                        {/* Question Search */}
-                        <div className="p-4 border-b border-gray-200">
-                            <div className="relative">
+                            {/* Question Search */}
+                            <div className="relative mt-3">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <input
                                     type="text"
                                     placeholder="Search questions..."
                                     value={questionSearch}
                                     onChange={(e) => setQuestionSearch(e.target.value)}
-                                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 />
                             </div>
                         </div>
 
                         <div className="flex-1 overflow-auto p-4">
                             {questionsLoading ? (
-                                <div className="text-center text-gray-500 py-8">Loading questions...</div>
+                                <div className="flex items-center justify-center h-full">
+                                    <div className="text-center">
+                                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div>
+                                        <p className="text-gray-500 mt-3 text-sm">Loading...</p>
+                                    </div>
+                                </div>
                             ) : filteredQuestions.length === 0 ? (
-                                <div className="text-center text-gray-500 py-8">
-                                    No questions found
+                                <div className="flex items-center justify-center h-full">
+                                    <div className="text-center">
+                                        <Search className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                                        <p className="text-gray-600 font-medium">No questions found</p>
+                                        <p className="text-gray-400 text-sm mt-1">Try adjusting your filters</p>
+                                    </div>
                                 </div>
                             ) : (
-                                <div className="space-y-3">
+                                <div className={viewMode === 'grid'
+                                    ? "grid grid-cols-1 lg:grid-cols-2 gap-4"
+                                    : "space-y-4"
+                                }>
                                     {paginatedQuestions.map((question: Question) => (
                                         <div
                                             key={question.id}
-                                            className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                                            className="border rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all"
                                         >
-                                            <div className="flex items-start justify-between gap-4">
+                                            <div className="flex items-start justify-between gap-4 mb-3">
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-2">
+                                                    <div className="flex items-center gap-2 mb-2 flex-wrap">
                                                         {getQuestionTypeBadge(question.questionType)}
                                                         <Badge
                                                             variant="outline"
                                                             className={question.isActive
-                                                                ? 'bg-green-50 text-green-600 border-green-200'
+                                                                ? 'bg-green-50 text-green-700 border-green-200'
                                                                 : 'bg-gray-50 text-gray-600 border-gray-200'}
                                                         >
                                                             {question.isActive ? 'Active' : 'Inactive'}
                                                         </Badge>
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="bg-purple-50 text-purple-600 border-purple-200"
+                                                        >
+                                                            {question.category?.name || 'Uncategorized'}
+                                                        </Badge>
                                                     </div>
-                                                    <p className="text-sm text-gray-900 font-medium mb-2 line-clamp-2">
+                                                    <p className="text-sm text-gray-900 font-medium mb-2">
                                                         {question.content}
                                                     </p>
-                                                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                                                        <span>Category: {question.category?.name || 'No Category'}</span>
-                                                        <span>Options: {question.options.length}</span>
-                                                        <span>
-                                                            Correct: {question.options.filter(o => o.isCorrect).length}
+                                                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                                                        <span>{question.options.length} options</span>
+                                                        <span>·</span>
+                                                        <span className="text-green-600">
+                                                            {question.options.filter(o => o.isCorrect).length} correct
                                                         </span>
                                                     </div>
                                                 </div>
@@ -268,50 +375,50 @@ export default function QuestionManagementPage() {
                                                     <ActionBtn
                                                         icon={<Eye size={16} />}
                                                         onClick={() => {/* TODO: View modal */ }}
-                                                        tooltipText="View"
+                                                        tooltipText="View Details"
+                                                        className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
                                                     />
                                                     <PermissionGate permission="QUESTION_UPDATE">
                                                         <ActionBtn
                                                             icon={<SquarePen size={16} />}
                                                             onClick={() => navigate(`/questions/${question.id}/edit`)}
-                                                            tooltipText="Edit"
+                                                            tooltipText="Edit Question"
+                                                            className="hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300"
                                                         />
                                                     </PermissionGate>
                                                     <PermissionGate permission="QUESTION_DELETE">
                                                         <ActionBtn
                                                             icon={<Trash2 size={16} />}
                                                             onClick={() => handleDelete(question.id)}
-                                                            className="hover:text-red-500 hover:border-red-500"
-                                                            tooltipText="Delete"
+                                                            className="hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                                                            tooltipText="Delete Question"
                                                         />
                                                     </PermissionGate>
                                                 </div>
                                             </div>
 
                                             {/* Options Preview */}
-                                            <div className="mt-3 pt-3 border-t border-gray-100">
-                                                <p className="text-xs font-medium text-gray-600 mb-2">Options:</p>
+                                            <div className="mt-3 pt-3 border-t">
+                                                <p className="text-xs font-semibold text-gray-600 mb-2">Options</p>
                                                 <div className="space-y-1.5">
                                                     {question.options
                                                         .sort((a, b) => a.orderIndex - b.orderIndex)
                                                         .map((option, idx) => (
                                                             <div
                                                                 key={option.id}
-                                                                className={`text-xs px-3 py-2 rounded-md border-2 transition-all ${option.isCorrect
-                                                                        ? 'bg-green-100 text-green-800 border-green-400 font-bold shadow-md'
-                                                                        : 'bg-gray-50 text-gray-600 border-gray-200'
+                                                                className={`text-sm px-3 py-2 rounded-md border ${option.isCorrect
+                                                                    ? 'bg-green-50 text-green-900 border-green-300 font-medium'
+                                                                    : 'bg-gray-50 text-gray-700 border-gray-200'
                                                                     }`}
                                                             >
                                                                 <div className="flex items-center gap-2">
-                                                                    <span className={option.isCorrect ? 'text-green-600 font-bold' : 'text-gray-400 font-normal'}>
-                                                                        {idx + 1}.
+                                                                    <span className={`flex items-center justify-center h-5 w-5 rounded-full text-xs font-medium ${option.isCorrect
+                                                                        ? 'bg-green-600 text-white'
+                                                                        : 'bg-gray-300 text-gray-600'
+                                                                        }`}>
+                                                                        {String.fromCharCode(65 + idx)}
                                                                     </span>
-                                                                    {option.isCorrect && (
-                                                                        <span className="bg-green-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold">
-                                                                            ✓ CORRECT
-                                                                        </span>
-                                                                    )}
-                                                                    <span className={option.isCorrect ? 'font-bold' : ''}>{option.content}</span>
+                                                                    <span>{option.content}</span>
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -325,12 +432,12 @@ export default function QuestionManagementPage() {
 
                         {/* Pagination */}
                         {filteredQuestions.length > 0 && totalPages > 1 && (
-                            <div className="p-4 border-t border-gray-200">
+                            <div className="p-4 border-t bg-gray-50">
                                 <div className="flex items-center justify-between">
-                                    <div className="text-sm text-gray-600">
-                                        Showing {((safePage - 1) * pageSize) + 1} to {Math.min(safePage * pageSize, filteredQuestions.length)} of {filteredQuestions.length}
+                                    <div className="text-xs text-gray-600">
+                                        Showing {((safePage - 1) * pageSize) + 1}-{Math.min(safePage * pageSize, filteredQuestions.length)} of {filteredQuestions.length}
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-1">
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -342,17 +449,15 @@ export default function QuestionManagementPage() {
                                         <div className="flex items-center gap-1">
                                             {Array.from({ length: totalPages }, (_, i) => i + 1)
                                                 .filter(page => {
-                                                    // Show first page, last page, current page, and pages around current
                                                     return page === 1 ||
                                                         page === totalPages ||
                                                         Math.abs(page - safePage) <= 1;
                                                 })
                                                 .map((page, index, array) => {
-                                                    // Add ellipsis if there's a gap
                                                     const showEllipsis = index > 0 && array[index - 1] !== page - 1;
                                                     return (
                                                         <div key={page} className="flex items-center">
-                                                            {showEllipsis && <span className="px-2 text-gray-400">...</span>}
+                                                            {showEllipsis && <span className="px-1 text-gray-400">...</span>}
                                                             <Button
                                                                 variant={safePage === page ? 'default' : 'outline'}
                                                                 size="sm"

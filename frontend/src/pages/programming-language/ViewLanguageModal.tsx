@@ -1,91 +1,92 @@
 import React from 'react';
 import { Modal } from '../../components/Modal';
+import { getLanguageBadgeStyle, getSupportedBadgeStyle, formatDate, displayValue } from './utils';
 import type { ProgrammingLanguage } from '../../types/programmingLanguage';
 
 interface ViewLanguageModalProps {
+    /** Whether the modal is open */
     isOpen: boolean;
+    /** Callback when modal is closed */
     onClose: () => void;
+    /** The language to display */
     language: ProgrammingLanguage | null;
 }
 
+/**
+ * Modal for viewing programming language details (3.2.9.6)
+ * 
+ * Read-only display of all language properties including
+ * audit timestamps.
+ */
 export const ViewLanguageModal: React.FC<ViewLanguageModalProps> = ({
     isOpen,
     onClose,
     language,
 }) => {
-    if (!language) return null;
-
-    const formatDate = (date: string) => {
-        return new Date(date).toLocaleString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
     return (
         <Modal
-            isOpen={isOpen}
+            isOpen={isOpen && !!language}
             onClose={onClose}
             title="Programming Language Details"
             size="md"
             actions={
                 <button
                     onClick={onClose}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200"
+                    className="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 shadow-sm"
                 >
                     Close
                 </button>
             }
         >
-            <div className="space-y-6">
-                <div>
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Name</h4>
-                    <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg border">
-                        {language.name}
-                    </p>
-                </div>
+            {language && (
+                <div className="space-y-5">
+                    {/* Name */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                        <div className="flex items-center gap-2">
+                            <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full border ${getLanguageBadgeStyle(language.name)}`}>
+                                {language.name}
+                            </span>
+                        </div>
+                    </div>
 
-                <div>
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Version</h4>
-                    <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg border">
-                        {language.version || 'Not specified'}
-                    </p>
-                </div>
+                    {/* Version */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Version</label>
+                        <p className="text-sm text-gray-900">{displayValue(language.version)}</p>
+                    </div>
 
-                <div>
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Description</h4>
-                    <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg border whitespace-pre-wrap">
-                        {language.description || 'No description provided'}
-                    </p>
-                </div>
-
-                <div>
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Support Status</h4>
-                    <p className="text-sm">
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${
-                            language.isSupported
-                                ? 'bg-green-50 text-green-700 border-green-200'
-                                : 'bg-red-50 text-red-700 border-red-200'
-                        }`}>
+                    {/* Supported Status */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Supported</label>
+                        <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full border ${getSupportedBadgeStyle(language.isSupported)}`}>
                             {language.isSupported ? 'Supported' : 'Not Supported'}
                         </span>
-                    </p>
-                </div>
+                    </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                    {/* Description */}
                     <div>
-                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Created At</h4>
-                        <p className="text-sm text-gray-700">{formatDate(language.createdAt)}</p>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <p className="text-sm text-gray-900 whitespace-pre-wrap">{displayValue(language.description)}</p>
                     </div>
-                    <div>
-                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Last Updated</h4>
-                        <p className="text-sm text-gray-700">{formatDate(language.updatedAt)}</p>
+
+                    {/* Audit Information */}
+                    <div className="pt-4 border-t border-gray-200">
+                        <div className="grid grid-cols-2 gap-4 text-xs text-gray-500">
+                            <div>
+                                <span className="font-medium">Created:</span>
+                                <br />
+                                {formatDate(language.createdAt)}
+                            </div>
+                            <div>
+                                <span className="font-medium">Updated:</span>
+                                <br />
+                                {formatDate(language.updatedAt)}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
         </Modal>
     );
 };

@@ -5,7 +5,6 @@ import type { Role, CreateRoleRequest } from '../types/role';
 import type { Permission } from '../types/permission';
 import { PermissionGate } from '../components/PermissionGate';
 import { MainLayout } from '../components/layout/MainLayout.tsx';
-import MainHeader from "@/components/layout/MainHeader.tsx";
 
 export const RoleManagement: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -90,7 +89,7 @@ export const RoleManagement: React.FC = () => {
   return (
       <MainLayout pathName={{ roles: 'Role Management' }}>
       <div className="flex justify-between items-center mb-6">
-        <MainHeader title={"Role Management"}/>
+        {/*<h1 className="text-2xl font-bold text-gray-900">Role Management</h1>*/}
         <PermissionGate permission="ROLE_CREATE">
           <button
             onClick={() => setShowCreateModal(true)}

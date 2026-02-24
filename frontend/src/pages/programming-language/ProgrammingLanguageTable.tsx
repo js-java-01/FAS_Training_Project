@@ -21,7 +21,7 @@ import { ViewLanguageModal } from './ViewLanguageModal';
 import { ExportModal } from './ExportModal';
 
 import { DataTable } from '@/components/data_table/DataTable';
-import { getColumns } from './columns';
+import { getColumns } from './column';
 import { Button } from "@/components/ui/button";
 
 export const ProgrammingLanguageTable: React.FC = () => {

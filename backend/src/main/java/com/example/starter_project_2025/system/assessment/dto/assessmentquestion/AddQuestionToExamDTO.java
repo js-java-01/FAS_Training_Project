@@ -9,6 +9,6 @@ public class AddQuestionToExamDTO {
     private Long assessmentId; 
     
     private UUID questionId; // Cái này của ông thì giữ nguyên UUID
-    private Float score;
+    private Double score;
     private Integer orderIndex;
 }

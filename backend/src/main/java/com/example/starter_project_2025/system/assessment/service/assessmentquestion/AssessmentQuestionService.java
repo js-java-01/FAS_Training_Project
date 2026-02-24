@@ -49,4 +49,8 @@ public class AssessmentQuestionService {
     public AssessmentQuestion getById(UUID id) {
         return repo.findById(id).orElseThrow(() -> new RuntimeException("AssessmentQuestion not found"));
     }
+
+    public List<AssessmentQuestion> getByAssessmentId(Long assessmentId) {
+        return repo.findByAssessmentId(assessmentId);
+    }
 }

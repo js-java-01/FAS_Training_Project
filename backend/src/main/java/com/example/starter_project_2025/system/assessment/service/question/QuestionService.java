@@ -7,9 +7,14 @@ import com.example.starter_project_2025.system.assessment.entity.QuestionCategor
 import com.example.starter_project_2025.system.assessment.entity.QuestionOption;
 import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
 import com.example.starter_project_2025.system.assessment.repository.QuestionRepository;
+import com.example.starter_project_2025.system.assessment.spec.QuestionSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -98,6 +103,19 @@ public class QuestionService {
     public Question getQuestionById(UUID id) {
         return questionRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Question not found"));
+    }
+
+    public Page<Question> search(
+            String keyword,
+            UUID categoryId,
+            String questionType,
+            Pageable pageable
+    ) {
+        Specification<Question> spec =
+                QuestionSpecification.filter(keyword, categoryId, questionType);
+
+
+        return questionRepo.findAll(spec, pageable);
     }
 
 }
