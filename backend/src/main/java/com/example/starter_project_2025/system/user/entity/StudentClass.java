@@ -7,8 +7,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+
 @Entity
-@Table(name = "student_classes") 
+@Table(name = "student_classes")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,14 +21,13 @@ public class StudentClass {
     @Column(name = "student_class_id")
     private UUID id;
 
-   
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)
-    private Student student; 
+    private Student student;
 
     @ManyToOne
     @JoinColumn(name = "class_id", nullable = false)
-    private TrainingClass trainingClass; 
+    private TrainingClass trainingClass;
 
     @Column(name = "attending_status")
     private String attendingStatus;

@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.user.entity;
 
 import com.example.starter_project_2025.system.auth.entity.Role;
+import com.example.starter_project_2025.system.user_role.entity.UserRole;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -38,10 +40,8 @@ public class User {
     @Column(nullable = false, length = 100)
     String lastName;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-
-    @JoinColumn(name = "role_id", nullable = false)
-    Role role;
+    @OneToMany(mappedBy = "user")
+    List<UserRole> userRoles;
 
     @Column(nullable = false)
     Boolean isActive = true;

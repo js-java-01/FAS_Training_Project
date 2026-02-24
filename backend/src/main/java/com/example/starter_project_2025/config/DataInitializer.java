@@ -14,9 +14,6 @@ import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
 import com.example.starter_project_2025.system.course.repository.CourseCohortRepository;
 import com.example.starter_project_2025.system.course.repository.CourseRepository;
-import com.example.starter_project_2025.system.location.entity.Location;
-import com.example.starter_project_2025.system.location.repository.LocationRepository;
-import com.example.starter_project_2025.system.common.enums.LocationStatus;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
 import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
@@ -73,7 +70,6 @@ public class DataInitializer implements CommandLineRunner {
     private final AssessmentTypeRepository assessmentTypeRepository;
     private final CourseRepository courseRepository;
     private final CourseCohortRepository courseCohortRepository;
-    private final LocationRepository locationRepository;
 
     @Override
     @Transactional
@@ -89,7 +85,6 @@ public class DataInitializer implements CommandLineRunner {
             initializeModuleGroups();
             ensureProgrammingLanguagePermissions();
             initializeProgrammingLanguages();
-            initializeLocations();
             initializeCourses();
             initializeCohorts();
         } else {
@@ -175,7 +170,7 @@ public class DataInitializer implements CommandLineRunner {
         admin.setPasswordHash(passwordEncoder.encode("password123"));
         admin.setFirstName("Admin");
         admin.setLastName("User");
-        admin.setRole(adminRole);
+//        admin.setRole(adminRole);
         admin.setIsActive(true);
         userRepository.save(admin);
 
@@ -184,7 +179,7 @@ public class DataInitializer implements CommandLineRunner {
         student1.setPasswordHash(passwordEncoder.encode("password123"));
         student1.setFirstName("John");
         student1.setLastName("Doe");
-        student1.setRole(studentRole);
+//        student1.setRole(studentRole);
         student1.setIsActive(true);
         userRepository.save(student1);
 
@@ -193,7 +188,7 @@ public class DataInitializer implements CommandLineRunner {
         student2.setPasswordHash(passwordEncoder.encode("password123"));
         student2.setFirstName("Jane");
         student2.setLastName("Smith");
-        student2.setRole(studentRole);
+//        student2.setRole(studentRole);
         student2.setIsActive(true);
         userRepository.save(student2);
 
@@ -453,44 +448,6 @@ public class DataInitializer implements CommandLineRunner {
             boolean isSupported) {
         ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
         return language;
-    }
-
-    private void initializeLocations() {
-        if (locationRepository.count() > 0) {
-            log.info("Locations already exist, skipping initialization");
-            return;
-        }
-
-        Location fptHcm = Location.builder()
-                .name("FPT Software - TP. Hồ Chí Minh")
-                .address("Lô E2a-7, Đường D1, Khu Công nghệ cao, Phường Tăng Nhơn Phú")
-                .communeId("26842")
-                .locationStatus(LocationStatus.ACTIVE)
-                .build();
-
-        Location xavaloShtp = Location.builder()
-                .name("Xavalo - Khu Công Nghệ Cao Sài Gòn")
-                .address("Đường Số 8, Khu Công nghệ cao, Phường Linh Xuân, TP. Thủ Đức")
-                .communeId("26800")
-                .locationStatus(LocationStatus.ACTIVE)
-                .build();
-
-        Location fptHanoi = Location.builder()
-                .name("FPT Software - Hà Nội")
-                .address("Tòa nhà FPT Cầu Giấy, Phường Cầu Giấy, Quận Cầu Giấy")
-                .communeId("00166")
-                .locationStatus(LocationStatus.ACTIVE)
-                .build();
-
-        Location fptDanang = Location.builder()
-                .name("FPT Software - Đà Nẵng")
-                .address("Lô D26, Đường Số 2, Khu Công nghệ cao Đà Nẵng, Phường Hòa Khánh")
-                .communeId("20200")
-                .locationStatus(LocationStatus.ACTIVE)
-                .build();
-
-        locationRepository.saveAll(List.of(fptHcm, xavaloShtp, fptHanoi, fptDanang));
-        log.info("Initialized {} locations", 4);
     }
 
     private void initializeCourses() {

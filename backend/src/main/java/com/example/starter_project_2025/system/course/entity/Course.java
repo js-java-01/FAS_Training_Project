@@ -2,12 +2,14 @@ package com.example.starter_project_2025.system.course.entity;
 
 import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
+import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -47,6 +49,9 @@ public class Course {
     // ===== METADATA =====
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
+
+    @OneToMany(mappedBy = "course")
+    private List<CourseClass> courseClasses;
 
     @ManyToOne
     @JoinColumn(name = "creator_id")

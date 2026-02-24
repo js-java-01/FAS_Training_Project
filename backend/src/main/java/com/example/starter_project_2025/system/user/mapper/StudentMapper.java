@@ -17,6 +17,6 @@ public interface StudentMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "role", ignore = true)
+//    @Mapping(target = "role", ignore = true)
     void update(@MappingTarget Student student, StudentDTO dto);
 }

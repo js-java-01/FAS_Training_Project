@@ -25,7 +25,6 @@ export interface ModuleGroup {
     description?: string;
     isActive: boolean;
     displayOrder: number;
-    totalModules: number;
     modules: Module[];
     createdAt: string;
     updatedAt: string;
