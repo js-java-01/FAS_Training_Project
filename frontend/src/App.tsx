@@ -20,6 +20,11 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Logout } from "./pages/auth/Logout";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
+import DepartmentManagement from "@/pages/department/DepartmentManagement";
+
+
+
+
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
@@ -141,6 +146,48 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+          <Route
+            path="/roles"
+            element={
+              <ProtectedRoute requiredPermission="ROLE_READ">
+                <RoleManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/locations"
+            element={
+              <ProtectedRoute requiredPermission="LOCATION_READ">
+                <LocationManagement />
+              </ProtectedRoute>
+            }
+          />
+
+            <Route
+                path="/departments"
+                element={
+                    <ProtectedRoute requiredPermission="DEPARTMENT_READ">
+                        <DepartmentManagement/>
+                    </ProtectedRoute>
+                }
+            />
+          <Route
+            path="/programming-languages"
+            element={
+              <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
+                <ProgrammingLanguageManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/moduleGroups"
+            element={
+              <ProtectedRoute requiredPermission="ROLE_READ">
+                <ModuleGroupsManagement />
+              </ProtectedRoute>
+            }
+          />
             <Route
               path="/modules"
               element={

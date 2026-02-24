@@ -79,12 +79,14 @@ public class SecurityConfig
                         .requestMatchers(HttpMethod.PUT, "/api/programming-languages/**").hasAuthority("PROGRAMMING_LANGUAGE_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/programming-languages/**").hasAuthority("PROGRAMMING_LANGUAGE_DELETE")
                         .requestMatchers(HttpMethod.GET, "/api/programming-languages/**").hasAuthority("PROGRAMMING_LANGUAGE_READ")
+                        .requestMatchers("/api/locations/**").hasAnyAuthority("ROLE_READ", "ROLE_CREATE")
+                        .requestMatchers("/api/departments/**").hasAnyAuthority("DEPARTMENT_READ", "DEPARTMENT_CREATE", "DEPARTMENT_UPDATE", "DEPARTMENT_DELETE")
 
                         .requestMatchers(HttpMethod.GET, "/api/courses/**").hasAuthority("COURSE_READ")
                         .requestMatchers(HttpMethod.POST, "/api/courses").hasAuthority("COURSE_CREATE")
                         .requestMatchers(HttpMethod.PUT, "/api/courses/**").hasAuthority("COURSE_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/courses/**").hasAuthority("COURSE_DELETE")
-                        
+
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

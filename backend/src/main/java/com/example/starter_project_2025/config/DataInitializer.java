@@ -118,6 +118,12 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("LOCATION_DELETE", "Delete locations", "LOCATION", "DELETE"),
                 createPermission("LOCATION_IMPORT", "Import locations", "LOCATION", "IMPORT"),
                 createPermission("LOCATION_EXPORT", "Export locations", "LOCATION", "EXPORT"),
+                createPermission("DEPARTMENT_READ", "View departments", "DEPARTMENT", "READ"),
+                createPermission("DEPARTMENT_CREATE", "Create new departments", "DEPARTMENT", "CREATE"),
+                createPermission("DEPARTMENT_UPDATE", "Update existing departments", "DEPARTMENT", "UPDATE"),
+                createPermission("DEPARTMENT_DELETE", "Delete departments", "DEPARTMENT", "DELETE"),
+                createPermission("DEPARTMENT_IMPORT", "Import departments", "DEPARTMENT", "IMPORT"),
+                createPermission("DEPARTMENT_EXPORT", "Export departments", "DEPARTMENT", "EXPORT"),
                 createPermission("COURSE_CREATE", "Create new courses", "COURSE", "CREATE"),
                 createPermission("COURSE_READ", "View courses", "COURSE", "READ"),
                 createPermission("COURSE_UPDATE", "Update existing courses", "COURSE", "UPDATE"),
@@ -213,12 +219,11 @@ public class DataInitializer implements CommandLineRunner {
         adminMenu.setDisplayOrder(2);
         adminMenu = menuRepository.save(adminMenu);
 
-        MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1,
-                "USER_READ");
-        MenuItem locationManagement = createMenuItem(adminMenu, null, "Location Management", "/locations", "location",
-                3, "LOCATION_READ");
-        MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2,
-                "ROLE_READ");
+        MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1, "USER_READ");
+        MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2, "ROLE_READ");
+        MenuItem locationManagement = createMenuItem(adminMenu, null, "Location Management", "/locations", "location", 3, "LOCATION_READ");
+        MenuItem departmentManagement = createMenuItem(adminMenu, null, "Department Management", "/departments", "department", 4, "DEPARTMENT_READ");
+        menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, locationManagement, departmentManagement));
         MenuItem courseManagement = createMenuItem(adminMenu, null, "Course Management", "/courses", "security", 4,
                 "COURSE_READ");
 
@@ -227,8 +232,7 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized 2 menus with menu items");
     }
 
-    private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order,
-            String permission) {
+    private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order, String permission) {
         MenuItem item = new MenuItem();
         item.setMenu(menu);
         item.setParent(parent);
@@ -306,8 +310,9 @@ public class DataInitializer implements CommandLineRunner {
         moduleRepository.save(
                 createModule(userGroup, "Roles", "/roles", "shield", 2, "ROLE_READ", "Manage roles and permissions"));
         moduleRepository.save(
-                createModule(userGroup, "Locations", "/locations", "map-pin", 3, "LOCATION_READ",
-                        "Manage office locations"));
+                createModule(userGroup, "Locations", "/locations", "map-pin", 3, "LOCATION_READ", "Manage office locations"));
+        moduleRepository.save(
+                createModule(userGroup, "Departments", "/departments", "building", 4, "DEPARTMENT_READ", "Manage departments"));
 
         // 3. Nhóm: Role Management (deprecated - kept for backward compatibility)
         ModuleGroups roleGroup = new ModuleGroups();
@@ -420,6 +425,7 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
     }
+
 
     private void initializeProgrammingLanguages() {
         // Only initialize if no programming languages exist
