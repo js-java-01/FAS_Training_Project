@@ -40,6 +40,20 @@ export const getColumns = (actions?: TableActions) => {
             enableSorting: false,
         }),
 
+        /* ================= NUMBER ================= */
+        columnHelper.display({
+            id: "number",
+            header: "#",
+            size: 60,
+            cell: ({ row, table }) =>
+                row.index +
+                1 +
+                table.getState().pagination.pageIndex *
+                    table.getState().pagination.pageSize,
+            enableSorting: false,
+            enableHiding: false,
+        }),
+
         /* ================= NAME ================= */
         columnHelper.accessor("name", {
             header: (info) => <SortHeader info={info} title="Location Name" />,
