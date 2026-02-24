@@ -1,7 +1,9 @@
 package com.example.starter_project_2025.system.learning.service;
 
+import com.example.starter_project_2025.system.course.dto.CourseResponse;
 import com.example.starter_project_2025.system.course.entity.CourseCohort;
 import com.example.starter_project_2025.system.course.enums.CohortStatus;
+import com.example.starter_project_2025.system.course.mapper.CourseMapper;
 import com.example.starter_project_2025.system.course.repository.CourseCohortRepository;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentResponse;
@@ -16,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -26,6 +29,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     private final CourseCohortRepository cohortRepository;
     private final UserRepository userRepository;
     private final EnrollmentMapper mapper;
+    private final CourseMapper courseMapper;
 
     @Override
     public EnrollmentResponse enroll(EnrollmentRequest request) {
@@ -61,6 +65,19 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         enrollmentRepository.save(enrollment);
 
         return mapper.toResponse(enrollment);
+    }
+
+    @Override
+    public List<CourseResponse> getMyEnrolledCourses() {
+        UUID userId = getCurrentUserId();
+        List<Enrollment> enrollments = enrollmentRepository.findByUserId(userId);
+
+        return enrollments.stream()
+                .map(enrollment -> cohortRepository.findById(enrollment.getCohortId()).orElse(null))
+                .filter(cohort -> cohort != null && cohort.getCourse() != null)
+                .map(cohort -> courseMapper.toResponse(cohort.getCourse()))
+                .distinct()
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private UUID getCurrentUserId() {

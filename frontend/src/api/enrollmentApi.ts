@@ -1,4 +1,5 @@
 import axiosInstance from './axiosInstance';
+import type { Course } from '../types/course';
 
 export type EnrollmentStatus = 'ACTIVE' | 'CANCELLED' | 'COMPLETED';
 
@@ -16,6 +17,15 @@ export const enrollmentApi = {
    */
   enroll: async (cohortId: string): Promise<EnrollmentResponse> => {
     const response = await axiosInstance.post<EnrollmentResponse>('/enrollments', { cohortId });
+    return response.data;
+  },
+
+  /**
+   * Get all courses the current user is enrolled in.
+   * Requires COURSE_READ permission.
+   */
+  getMyEnrolledCourses: async (): Promise<Course[]> => {
+    const response = await axiosInstance.get<Course[]>('/enrollments/my-courses');
     return response.data;
   },
 };
