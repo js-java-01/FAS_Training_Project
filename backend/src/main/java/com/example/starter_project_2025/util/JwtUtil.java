@@ -1,82 +1,106 @@
 package com.example.starter_project_2025.util;
 
 import com.example.starter_project_2025.security.UserDetailsImpl;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
-public class JwtUtil
-{
+public class JwtUtil {
 
-    @Value("${JWT_SECRET}")
+    @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${app.jwt.at.expiration-ms:900000}")
-    private long jwtAtExp;
+    @Value("${jwt.at.expiration}")
+    private long jwtExpiration;
 
-    @Value("${app.jwt.rt.expiration-ms:604800000}")
-    private long jwtRtExp;
+    @Value("${jwt.rt.expiration}")
+    private long refreshTokenExpiration;
 
-    private Key getSigningKey()
-    {
+    private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    public String generateToken(Authentication authentication)
-    {
+    public String generateToken(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        return buildToken(userDetails, jwtAtExp);
+        return generateToken(userDetails);
     }
 
-    public String generateToken(UserDetailsImpl userDetails)
-    {
-        return buildToken(userDetails, jwtAtExp);
-    }
+    public String generateToken(UserDetailsImpl userDetails) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
-    public String generateRtToken(UserDetailsImpl userDetails)
-    {
-        return buildToken(userDetails, jwtRtExp);
-    }
-
-    private String buildToken(UserDetailsImpl userDetails, long exp)
-    {
-        var now = new Date();
-        var expDate = new Date(now.getTime() + exp);
+        var permissions = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        
+        System.out.println("token: " + userDetails.getEmail());
+        System.out.println("Permissions in token: " + permissions);
 
         return Jwts.builder()
                 .setSubject(userDetails.getEmail())
                 .claim("userId", userDetails.getId().toString())
                 .claim("role", userDetails.getRole())
-                .claim("email", userDetails.getEmail())
-                .claim("firstName", userDetails.getFirstName())
-                .claim("lastName", userDetails.getLastName())
-                .claim("permissions", userDetails.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList())
-                )
+                .claim("permissions", permissions)
                 .setIssuedAt(now)
-                .setExpiration(expDate)
+                .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 
-    public String getEmailFromToken(String token)
-    {
+    public String generateRtToken(UserDetailsImpl userDetails) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
+
+        return Jwts.builder()
+                .setSubject(userDetails.getEmail())
+                .claim("userId", userDetails.getId().toString())
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    public UserDetailsImpl getUserDetailsFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        
+        System.out.println("[DEBUG JWT] Parsing token for user: " + claims.getSubject());
+        System.out.println("[DEBUG JWT] All claims: " + claims);
+        System.out.println("[DEBUG JWT] Permissions claim: " + claims.get("permissions"));
+        
+        // Extract permissions from token claims
+        @SuppressWarnings("unchecked")
+        java.util.List<String> permissionsList = (java.util.List<String>) claims.get("permissions");
+        java.util.Set<String> permissions = permissionsList != null 
+            ? new java.util.HashSet<>(permissionsList) 
+            : new java.util.HashSet<>();
+        
+        System.out.println("[DEBUG JWT] Extracted permissions set: " + permissions);
+        
+        return new UserDetailsImpl(
+                java.util.UUID.fromString(claims.get("userId").toString()),
+                claims.getSubject(),
+                null, // password not stored in token
+                null, // firstName not stored in token
+                null, // lastName not stored in token
+                claims.get("role").toString(),
+                permissions, // NOW we actually pass the permissions!
+                true  // assume active if token is valid
+        );
+    }
+
+    public String getEmailFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
@@ -85,41 +109,15 @@ public class JwtUtil
         return claims.getSubject();
     }
 
-    public boolean validateToken(String token)
-    {
-        try
-        {
+    public boolean validateToken(String token) {
+        try {
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e)
-        {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
-
-    private Claims getClaimsFromToken(String token)
-    {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-    }
-
-    public UserDetails getUserDetailsFromToken(String token)
-    {
-        Claims claims = getClaimsFromToken(token);
-        UUID id = UUID.fromString(claims.get("userId", String.class));
-        String email = claims.getSubject();
-        String role = claims.get("role", String.class);
-
-        List<String> permissionList = (List<String>) claims.get("permissions");
-        Set<String> permissions = permissionList.stream()
-                .collect(Collectors.toSet());
-        return new UserDetailsImpl(id, email, null, null, null, role, permissions, true);
-    }
-
 }

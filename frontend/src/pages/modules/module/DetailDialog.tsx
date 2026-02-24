@@ -34,10 +34,10 @@ const DetailRow = ({
   isBadge?: boolean;
 }) => (
   <div className="space-y-1.5">
-    <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-      <Icon className="w-4 h-4 text-gray-500" /> {label}
+    <label className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
+      <Icon className="w-4 h-4 text-muted-foreground" /> {label}
     </label>
-    <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 min-h-[42px] flex items-center">
+    <div className="px-4 py-2.5 bg-muted border border-border rounded-lg text-sm text-foreground min-h-[42px] flex items-center">
       {isBadge ? (
         value ? (
           <Badge className="bg-green-100 text-green-700 border-green-200 shadow-none hover:bg-green-200">
@@ -47,7 +47,7 @@ const DetailRow = ({
           <Badge variant="destructive">Inactive</Badge>
         )
       ) : (
-        value || <span className="text-gray-400 italic">No data</span>
+        value || <span className="text-muted-foreground italic">No data</span>
       )}
     </div>
   </div>
@@ -74,8 +74,8 @@ export const ModuleDetailDialog = ({
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
       <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden gap-0">
-        <DialogHeader className="p-6 pb-4 border-b bg-gray-50/50">
-          <DialogTitle className="text-xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+        <DialogHeader className="p-6 pb-4 border-b bg-muted/70">
+          <DialogTitle className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <IconComponent className="w-5 h-5 text-blue-600" />
             Module Details
           </DialogTitle>
@@ -109,7 +109,7 @@ export const ModuleDetailDialog = ({
           </div>
         </div>
 
-        <DialogFooter className="p-6 border-t bg-gray-50/50">
+        <DialogFooter className="p-6 border-t bg-muted/70">
           <Button
             onClick={onClose}
             className="bg-blue-600 hover:bg-blue-700 text-white"

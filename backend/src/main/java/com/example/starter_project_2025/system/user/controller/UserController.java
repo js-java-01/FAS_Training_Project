@@ -1,11 +1,16 @@
 package com.example.starter_project_2025.system.user.controller;
 
+import com.example.starter_project_2025.system.export.ExportFormat;
+import com.example.starter_project_2025.system.export.ExportService;
+import com.example.starter_project_2025.system.export.configs.UserExportConfig;
 import com.example.starter_project_2025.system.user.dto.CreateUserRequest;
 import com.example.starter_project_2025.system.user.dto.UserDTO;
+import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +22,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -30,6 +37,15 @@ import java.util.UUID;
 public class UserController {
 
     UserService userService;
+    ExportService exportService;
+
+    @GetMapping("/export")
+    public void exportUsers(
+            @RequestParam ExportFormat format,
+            HttpServletResponse response
+    ) throws IOException {
+        exportService.export(format, userService.findAll(), UserExportConfig.CONFIG, response);
+    }
 
     @GetMapping
     @Operation(summary = "Get all users", description = "Retrieve all users with pagination")

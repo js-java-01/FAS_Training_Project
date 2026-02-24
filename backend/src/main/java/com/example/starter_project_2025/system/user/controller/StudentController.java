@@ -19,12 +19,11 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/students") 
+@RequestMapping("/api/v1/students")
 @RequiredArgsConstructor
 public class StudentController {
 
     private final StudentService studentService;
-
 
     @GetMapping
     @Operation(summary = "Get all students", description = "Retrieve all students with pagination")
@@ -35,8 +34,7 @@ public class StudentController {
             @RequestParam(required = false) BigDecimal maxGpa,
             @RequestParam(required = false) LocalDate dobFrom,
             @RequestParam(required = false) LocalDate dobTo,
-            @PageableDefault(size = 10) Pageable pageable
-    ) {
+            @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(studentService.getAllStudents(
                 searchContent,
                 gender,
@@ -44,8 +42,7 @@ public class StudentController {
                 maxGpa,
                 dobFrom,
                 dobTo,
-                pageable
-        ));
+                pageable));
     }
 
     @GetMapping("/{id}")
@@ -65,8 +62,7 @@ public class StudentController {
     @Operation(summary = "Update student", description = "Update an existing student")
     public ResponseEntity<StudentDTO> updateStudent(
             @PathVariable UUID id,
-            @Valid @RequestBody StudentDTO request
-    ) {
+            @Valid @RequestBody StudentDTO request) {
         return ResponseEntity.ok(studentService.updateStudent(id, request));
     }
 
