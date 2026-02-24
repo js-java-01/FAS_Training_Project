@@ -8,14 +8,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
-public class UserDetailsImpl implements UserDetails
-{
+public class UserDetailsImpl implements UserDetails {
 
     private UUID id;
     private String email;
@@ -26,13 +26,12 @@ public class UserDetailsImpl implements UserDetails
     private Set<String> permissions;
     private boolean isActive;
 
-    public static UserDetailsImpl build(User user)
-    {
-        var permissions = user.getRole().getPermissions();
-        if (permissions != null && !permissions.isEmpty())
-        {
-            System.out.println("First permission: " + permissions.iterator().next().getName());
-        }
+    public static UserDetailsImpl build(User user) {
+        // var permissions = user.getUserRoles().getPermissions();
+        // if (permissions != null && !permissions.isEmpty()) {
+        // System.out.println("First permission: " +
+        // permissions.iterator().next().getName());
+        // }
 
         return new UserDetailsImpl(
                 user.getId(),
@@ -40,24 +39,22 @@ public class UserDetailsImpl implements UserDetails
                 user.getPasswordHash(),
                 user.getFirstName(),
                 user.getLastName(),
-                user.getRole().getName(),
-                permissions.stream().map(p -> p.getName()).collect(Collectors.toSet()),
-                user.getIsActive()
-        );
+                "",
+                new HashSet<String>(),
+                user.getIsActive());
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities()
-    {
+    public Collection<? extends GrantedAuthority> getAuthorities() {
         System.out.println("[DEBUG] getAuthorities called for user: " + email);
         System.out.println("[DEBUG] permissions value: " + permissions);
         System.out.println("[DEBUG] permissions is null: " + (permissions == null));
-        
+
         if (permissions == null) {
             System.out.println("[DEBUG] Returning empty set because permissions is null");
             return Set.of();
         }
-        
+
         var authorities = permissions.stream()
                 .map(permission -> new SimpleGrantedAuthority(permission))
                 .collect(Collectors.toSet());
@@ -66,32 +63,27 @@ public class UserDetailsImpl implements UserDetails
     }
 
     @Override
-    public String getUsername()
-    {
+    public String getUsername() {
         return email;
     }
 
     @Override
-    public boolean isAccountNonExpired()
-    {
+    public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
-    public boolean isAccountNonLocked()
-    {
+    public boolean isAccountNonLocked() {
         return true;
     }
 
     @Override
-    public boolean isCredentialsNonExpired()
-    {
+    public boolean isCredentialsNonExpired() {
         return true;
     }
 
     @Override
-    public boolean isEnabled()
-    {
+    public boolean isEnabled() {
         return isActive;
     }
 }

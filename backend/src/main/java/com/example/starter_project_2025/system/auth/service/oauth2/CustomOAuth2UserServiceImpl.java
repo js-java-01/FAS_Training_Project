@@ -16,15 +16,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService
-{
+public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException
-    {
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         var oAuth2User = super.loadUser(userRequest);
         var attributes = oAuth2User.getAttributes();
 
@@ -39,7 +37,7 @@ public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService
 
                     var defaultRole = roleRepository.findByName("STUDENT")
                             .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND));
-                    newUser.setRole(defaultRole);
+                    // newUser.setRole(defaultRole);
 
                     String randomPass = UUID.randomUUID().toString();
                     newUser.setPasswordHash(passwordEncoder.encode(randomPass));

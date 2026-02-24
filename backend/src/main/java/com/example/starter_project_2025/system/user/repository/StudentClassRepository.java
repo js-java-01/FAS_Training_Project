@@ -7,10 +7,10 @@ import java.util.UUID;
 
 @Repository
 public interface StudentClassRepository extends JpaRepository<StudentClass, UUID> {
-/*
-     * NOTE:
-     * 1. File này trống vì đã kế thừa JpaRepository:
-     * 2. Spring Boot sẽ tự động tạo implementation lúc runtime.
-     * 3. Chỉ khai báo thêm hàm ở đây nếu cần query đặc biệt 
-     */
+     /*
+      * NOTE:
+      * 1. File này trống vì đã kế thừa JpaRepository:
+      * 2. Spring Boot sẽ tự động tạo implementation lúc runtime.
+      * 3. Chỉ khai báo thêm hàm ở đây nếu cần query đặc biệt
+      */
 }

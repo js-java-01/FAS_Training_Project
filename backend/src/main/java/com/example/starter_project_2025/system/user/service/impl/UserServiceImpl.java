@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userMapper.toEntity(request);
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setRole(role);
+
         user.setIsActive(true);
 
         return userMapper.toResponse(userRepository.save(user));
@@ -110,7 +110,7 @@ public class UserServiceImpl implements UserService {
         if (request.getRoleId() != null) {
             Role role = roleRepository.findById(request.getRoleId())
                     .orElseThrow(() -> new ResourceNotFoundException("Role", "id", request.getRoleId()));
-            user.setRole(role);
+
         }
 
         userMapper.update(user, request);
@@ -148,8 +148,6 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "id", roleId));
-
-        user.setRole(role);
 
         return userMapper.toResponse(userRepository.save(user));
     }
