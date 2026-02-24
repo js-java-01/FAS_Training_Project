@@ -11,11 +11,10 @@ import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.course.entity.Course;
-import com.example.starter_project_2025.system.course.entity.CourseCohort;
+
 import com.example.starter_project_2025.system.course.enums.CohortStatus;
 import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
-import com.example.starter_project_2025.system.course.repository.CourseCohortRepository;
 import com.example.starter_project_2025.system.course.repository.CourseRepository;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
@@ -74,7 +73,6 @@ public class DataInitializer implements CommandLineRunner {
         private final PasswordEncoder passwordEncoder;
         private final AssessmentTypeRepository assessmentTypeRepository;
         private final CourseRepository courseRepository;
-        private final CourseCohortRepository courseCohortRepository;
         private final AssessmentRepository assessmentRepository;
         private final QuestionCategoryRepository questionCategoryRepository;
         private final QuestionRepository questionRepository;
@@ -103,7 +101,7 @@ public class DataInitializer implements CommandLineRunner {
                         ensureProgrammingLanguagePermissions();
                         initializeProgrammingLanguages();
                         initializeCourses();
-                        initializeCohorts();
+
                 }
         }
 
@@ -746,7 +744,7 @@ public class DataInitializer implements CommandLineRunner {
                                 .allowFinalRetake(true)
 
                                 .creator(admin)
-                                .trainer(admin)
+                                // .trainer(admin)
 
                                 .build();
 
@@ -770,7 +768,7 @@ public class DataInitializer implements CommandLineRunner {
                                 .allowFinalRetake(true)
 
                                 .creator(admin)
-                                .trainer(admin)
+                                // .trainer(admin)
 
                                 .build();
 
@@ -779,54 +777,4 @@ public class DataInitializer implements CommandLineRunner {
                 log.info("Initialized {} courses", 2);
         }
 
-        private void initializeCohorts() {
-                if (courseCohortRepository.count() > 0) {
-                        log.info("Cohorts already exist, skipping initialization");
-                        return;
-                }
-
-                Course java01 = courseRepository.findAll().stream()
-                                .filter(c -> "JBM-01".equals(c.getCourseCode()))
-                                .findFirst().orElse(null);
-                Course react01 = courseRepository.findAll().stream()
-                                .filter(c -> "RFP-01".equals(c.getCourseCode()))
-                                .findFirst().orElse(null);
-
-                if (java01 != null) {
-                        CourseCohort jbm1 = CourseCohort.builder()
-                                        .code("JBM-01-2026-C1")
-                                        .startDate(java.time.LocalDate.of(2026, 3, 1))
-                                        .endDate(java.time.LocalDate.of(2026, 5, 31))
-                                        .capacity(30)
-                                        .status(CohortStatus.OPEN)
-                                        .course(java01)
-                                        .build();
-
-                        CourseCohort jbm2 = CourseCohort.builder()
-                                        .code("JBM-01-2026-C2")
-                                        .startDate(java.time.LocalDate.of(2026, 6, 1))
-                                        .endDate(java.time.LocalDate.of(2026, 8, 31))
-                                        .capacity(25)
-                                        .status(CohortStatus.DRAFT)
-                                        .course(java01)
-                                        .build();
-
-                        courseCohortRepository.saveAll(List.of(jbm1, jbm2));
-                }
-
-                if (react01 != null) {
-                        CourseCohort rfp1 = CourseCohort.builder()
-                                        .code("RFP-01-2026-C1")
-                                        .startDate(java.time.LocalDate.of(2026, 4, 1))
-                                        .endDate(java.time.LocalDate.of(2026, 5, 31))
-                                        .capacity(20)
-                                        .status(CohortStatus.OPEN)
-                                        .course(react01)
-                                        .build();
-
-                        courseCohortRepository.save(rfp1);
-                }
-
-                log.info("Initialized cohorts for courses");
-        }
 }

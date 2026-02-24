@@ -8,9 +8,9 @@ import java.util.UUID;
 
 public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
 
-    boolean existsByUserIdAndCohortId(UUID userId, UUID cohortId);
+    // boolean existsByUserIdAndCohortId(UUID userId, UUID cohortId);
 
-    long countByCohortId(UUID cohortId);
+    // long countByCohortId(UUID cohortId);
 
-    List<Enrollment> findByUserId(UUID userId);
+    // List<Enrollment> findByUserId(UUID userId);
 }
