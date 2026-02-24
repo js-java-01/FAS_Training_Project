@@ -25,6 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.example.starter_project_2025.security.UserDetailsImpl;
 
 @Service
 @Transactional
@@ -44,8 +47,7 @@ public class UserServiceImpl implements UserService {
             LocalDateTime createFrom,
             LocalDateTime createTo,
             Boolean isActive,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
         Specification<User> spec = Specification
                 .where(UserSpecification.hasUserKeyword(searchContent))
                 .and(UserSpecification.hasRoleId(roleId))
@@ -147,9 +149,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findByEmail(String email)
-    {
-        return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.USER_NOT_FOUND));
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.USER_NOT_FOUND));
+    }
+
+    @Override
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("No authenticated user found");
+        }
+
+        Object principal = authentication.getPrincipal();
+        String email;
+
+        if (principal instanceof UserDetailsImpl userDetails) {
+            email = userDetails.getEmail();
+        } else if (principal instanceof String) {
+            email = (String) principal;
+        } else {
+            throw new RuntimeException("Unable to resolve current user principal");
+        }
+
+        return findByEmail(email);
     }
 
 }

@@ -41,6 +41,7 @@ export function useSidebarMenus() {
                     .filter(
                         (module) =>
                             !module.parentId &&
+                            module.url !== "/my-courses" &&
                             canAccessMenuItem(
                                 module.requiredPermission,
                                 hasPermission
