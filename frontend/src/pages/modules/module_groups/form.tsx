@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useForm, type Resolver } from "react-hook-form"; 
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -70,7 +70,7 @@ export const ModuleGroupForm: React.FC<{
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as unknown as Resolver<FormValues>, 
+    resolver: zodResolver(formSchema) as unknown as Resolver<FormValues>,
     defaultValues: {
       name: "",
       description: "",
@@ -185,8 +185,8 @@ export const ModuleGroupForm: React.FC<{
                 {...register("name")}
                 className={`w-full px-3 py-2 border rounded-md outline-none transition
                   ${errors.name
-                      ? "border-red-500 focus:ring-red-200"
-                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
+                    ? "border-red-500 focus:ring-red-200"
+                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
                 placeholder="Enter module group name"
               />
               {errors.name && (
@@ -204,8 +204,8 @@ export const ModuleGroupForm: React.FC<{
                 rows={3}
                 className={`w-full px-3 py-2 border rounded-md outline-none transition resize-none
                   ${errors.description
-                      ? "border-red-500 focus:ring-red-200"
-                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
+                    ? "border-red-500 focus:ring-red-200"
+                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
                 placeholder="Short description..."
               />
               {errors.description && (
@@ -225,10 +225,9 @@ export const ModuleGroupForm: React.FC<{
                   type="number"
                   {...register("displayOrder")}
                   className={`w-full px-3 py-2 border rounded-md outline-none transition
-                    ${
-                      errors.displayOrder
-                        ? "border-red-500 focus:ring-red-200"
-                        : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    ${errors.displayOrder
+                      ? "border-red-500 focus:ring-red-200"
+                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     }`}
                   placeholder={`Max: ${maxAllowedOrder}`}
                 />

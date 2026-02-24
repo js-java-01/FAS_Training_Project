@@ -38,10 +38,10 @@ const DetailRow = ({
   isBadge?: boolean;
 }) => (
   <div className="space-y-1.5">
-    <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-      <Icon className="w-4 h-4 text-gray-500" /> {label}
+    <label className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
+      <Icon className="w-4 h-4 text-muted-foreground" /> {label}
     </label>
-    <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 min-h-[42px] flex items-center">
+    <div className="px-4 py-2.5 bg-muted border border-border rounded-lg text-sm text-foreground min-h-[42px] flex items-center">
       {isBadge ? (
         value ? (
           <Badge className="bg-green-100 text-green-700 border-green-200 shadow-none hover:bg-green-200">
@@ -51,7 +51,7 @@ const DetailRow = ({
           <Badge variant="destructive">Inactive</Badge>
         )
       ) : (
-        value || <span className="text-gray-400 italic">No data</span>
+        value || <span className="text-muted-foreground italic">No data</span>
       )}
     </div>
   </div>
@@ -129,8 +129,8 @@ export const ModuleGroupDetailDialog = ({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden gap-0">
-        <DialogHeader className="p-6 pb-4 border-b bg-gray-50/50">
-          <DialogTitle className="text-xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+        <DialogHeader className="p-6 pb-4 border-b bg-muted/70">
+          <DialogTitle className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Package className="w-5 h-5 text-blue-600" />
             Module Group Details
           </DialogTitle>
@@ -156,7 +156,7 @@ export const ModuleGroupDetailDialog = ({
               <DetailRow
                 icon={Layers}
                 label="Display Order"
-                value={detailGroup.displayOrder}
+                value={detailGroup.totalModules}
               />
               <DetailRow
                 icon={ToggleLeft}
@@ -167,17 +167,17 @@ export const ModuleGroupDetailDialog = ({
             </div>
           </div>
 
-          <div className="border-t border-gray-100 my-4" />
+          <div className="border-t border-border my-4" />
 
           {/* Modules Dropdown Section */}
-          <div className="border rounded-lg overflow-hidden border-gray-200">
+          <div className="border rounded-lg overflow-hidden border-border">
             <button
               onClick={() => setIsModulesOpen(!isModulesOpen)}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center justify-between p-4 bg-muted hover:bg-muted/70 transition-colors"
               type="button"
             >
-              <div className="flex items-center gap-2 font-bold text-gray-700 text-sm">
-                <Package className="w-4 h-4 text-gray-500" />
+              <div className="flex items-center gap-2 font-bold text-muted-foreground text-sm">
+                <Package className="w-4 h-4 text-muted-foreground" />
                 Included Modules
                 {!loadingModules && (
                   <Badge variant="secondary" className="ml-2 text-xs">
@@ -186,25 +186,25 @@ export const ModuleGroupDetailDialog = ({
                 )}
               </div>
               {isModulesOpen ? (
-                <ChevronUp className="w-4 h-4 text-gray-500" />
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-gray-500" />
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
               )}
             </button>
 
             {isModulesOpen && (
-              <div className="bg-white animate-in slide-in-from-top-2 duration-200">
+              <div className="bg-card animate-in slide-in-from-top-2 duration-200">
                 {loadingModules ? (
-                  <div className="p-4 flex justify-center text-gray-400 text-sm items-center">
+                  <div className="p-4 flex justify-center text-muted-foreground text-sm items-center">
                     <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading
                     modules...
                   </div>
                 ) : viewingModules.length === 0 ? (
-                  <div className="p-6 text-center text-gray-400 text-sm italic">
+                  <div className="p-6 text-center text-muted-foreground text-sm italic">
                     No modules found in this group.
                   </div>
                 ) : (
-                  <ul className="divide-y divide-gray-100">
+                  <ul className="divide-y divide-border">
                     {viewingModules.map((mod: Module) => {
                       const ModuleIcon =
                         mod.icon && iconMap[mod.icon as keyof typeof iconMap]
@@ -214,19 +214,19 @@ export const ModuleGroupDetailDialog = ({
                       return (
                         <li
                           key={mod.id}
-                          className="p-3 pl-4 hover:bg-gray-50 transition flex justify-between items-center group"
+                          className="p-3 pl-4 hover:bg-muted/70 transition flex justify-between items-center group"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded bg-blue-50 flex items-center justify-center text-blue-600">
+                            <div className="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center text-blue-600">
                               <ModuleIcon className="w-4 h-4" />
                             </div>
 
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-700">
+                              <span className="text-sm font-medium text-foreground">
                                 {mod.title}
                               </span>
                               {mod.description && (
-                                <span className="text-xs text-gray-500 line-clamp-1">
+                                <span className="text-xs text-muted-foreground line-clamp-1">
                                   {mod.description}
                                 </span>
                               )}
@@ -234,12 +234,12 @@ export const ModuleGroupDetailDialog = ({
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                               #{mod.displayOrder}
                             </span>
                             {mod.isActive !== undefined && (
                               <span
-                                className={`w-2.5 h-2.5 rounded-full ring-2 ring-white shadow-sm ${
+                                className={`w-2.5 h-2.5 rounded-full ring-2 ring-background shadow-sm ${
                                   mod.isActive ? "bg-green-500" : "bg-red-400"
                                 }`}
                               />
@@ -255,7 +255,7 @@ export const ModuleGroupDetailDialog = ({
           </div>
         </div>
 
-        <DialogFooter className="p-6 border-t bg-gray-50/50">
+        <DialogFooter className="p-6 border-t bg-muted/70">
           <Button
             onClick={onClose}
             className="bg-blue-600 hover:bg-blue-700 text-white"

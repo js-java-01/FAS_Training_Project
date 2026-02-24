@@ -80,7 +80,7 @@ export const getColumns = (actions?: TableActions) => {
 
         /* ================= DISPLAY ORDER ================= */
         columnHelper.accessor("displayOrder", {
-            header: (info) => <SortHeader title="Display order" info={info} />,
+            header: (info) => <SortHeader title="Total Modules" info={info} />,
             size: 80,
             cell: (info) => (
                 <span className="block text-center">
@@ -90,19 +90,7 @@ export const getColumns = (actions?: TableActions) => {
       meta: { title: "Display Order" },
     }),
 
-      /* ================= TOTAL MODULES ================= */
-      columnHelper.accessor("totalModules", {
-          header: (info) => <SortHeader title="Total Modules" info={info} />,
-          size: 80,
-          cell: (info) => (
-              <span className="block text-center">
-          {info.getValue()}
-        </span>
-          ),
-          meta: { title: "Total modules" },
-      }),
-
-        /* ================= STATUS ================= */
+        /* ================= STATUS (Xanh lá) ================= */
         columnHelper.accessor("isActive", {
         id: "isActive",
         header: ({ column }) => (

@@ -86,6 +86,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(role);
         user.setIsActive(true);
         user.setPasswordHash(passwordEncoder.encode(registerCreateDTO.getPassword()));
+        user.setIsActive(true);
         userRepository.save(user);
         return true;
     }

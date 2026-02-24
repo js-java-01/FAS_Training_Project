@@ -5,7 +5,6 @@ import type { Role, CreateRoleRequest } from '../types/role';
 import type { Permission } from '../types/permission';
 import { PermissionGate } from '../components/PermissionGate';
 import { MainLayout } from '../components/layout/MainLayout.tsx';
-import MainHeader from "@/components/layout/MainHeader.tsx";
 
 export const RoleManagement: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -88,13 +87,9 @@ export const RoleManagement: React.FC = () => {
   }
 
   return (
-      <MainLayout pathName={{ roles: 'Role Management' }}>
-<<<<<<< HEAD
-      <div className="flex justify-end items-center mb-6">
-=======
+    <MainLayout pathName={{ roles: 'Role Management' }}>
       <div className="flex justify-between items-center mb-6">
-        <MainHeader title={"Role Management"}/>
->>>>>>> G3-develop
+        {/*<h1 className="text-2xl font-bold text-gray-900">Role Management</h1>*/}
         <PermissionGate permission="ROLE_CREATE">
           <button
             onClick={() => setShowCreateModal(true)}
@@ -113,11 +108,10 @@ export const RoleManagement: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <h3 className="text-lg font-semibold text-gray-900">{role.name}</h3>
                   <span
-                    className={`px-2 py-1 text-xs rounded-full ${
-                      role.isActive
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}
+                    className={`px-2 py-1 text-xs rounded-full ${role.isActive
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                      }`}
                   >
                     {role.isActive ? 'Active' : 'Inactive'}
                   </span>
