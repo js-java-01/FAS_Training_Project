@@ -5,7 +5,7 @@ import type {
     CreateModuleGroupRequest,
     CreateModuleRequest,
 } from '../types/module';
-import type { ApiResponse, PagedData} from "@/types/response.ts";
+import type { ApiResponse, PagedData } from "@/types/response.ts";
 
 /* =========================
    MODULE GROUP API
@@ -78,6 +78,47 @@ export const moduleGroupApi = {
         );
         return response.data;
     },
+    exportModuleGroups: async (params?: {
+        keyword?: string;
+        status?: string;
+    }): Promise<Blob> => {
+        const res = await axiosInstance.get(
+            "/module-groups/export",
+            {
+                params,
+                responseType: "blob",
+            }
+        );
+
+        return res.data;
+    },
+    importModuleGroups: async (formData: FormData) => {
+        return axiosInstance.post(
+            "/module-groups/import",
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+    },
+
+    exportTemplateModuleGroups: async (params?: {
+        keyword?: string;
+        status?: string;
+    }): Promise<Blob> => {
+        const res = await axiosInstance.get(
+            "/module-groups/template",
+            {
+                params,
+                responseType: "blob",
+            }
+        );
+
+        return res.data;
+    },
+
 };
 
 /* =========================
@@ -158,5 +199,45 @@ export const moduleApi = {
             `/modules/${id}/toggle-status`
         );
         return response.data;
+    },
+
+    exportModules: async (params?: {
+        keyword?: string;
+        status?: string;
+    }): Promise<Blob> => {
+        const res = await axiosInstance.get(
+            "/modules/export",
+            {
+                params,
+                responseType: "blob",
+            }
+        );
+
+        return res.data;
+    },
+    importModules: async (formData: FormData) => {
+        return axiosInstance.post(
+            "/modules/import",
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+    },
+    exportTemplateModules: async (params?: {
+        keyword?: string;
+        status?: string;
+    }): Promise<Blob> => {
+        const res = await axiosInstance.get(
+            "/modules/template",
+            {
+                params,
+                responseType: "blob",
+            }
+        );
+
+        return res.data;
     },
 };

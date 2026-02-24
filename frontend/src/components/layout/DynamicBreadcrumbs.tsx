@@ -7,6 +7,9 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb.tsx";
 import { Link, useLocation } from "react-router-dom";
+import {useActiveModuleGroups} from "@/hooks/useSidebarMenus.ts";
+import {iconMap} from "@/constants/iconMap.ts";
+import {useMemo} from "react";
 
 type Props = {
     pathTitles?: Record<string, string>;
@@ -35,6 +38,20 @@ export default function DynamicBreadcrumbs({
             (p) =>
                 !ignorePaths.map((x) => x.toLowerCase()).includes(p.toLowerCase())
         );
+    const { data: moduleGroups } = useActiveModuleGroups();
+
+    const activeModule = moduleGroups
+        ?.flatMap(group => group.modules)
+        ?.find(module => module.url === location.pathname);
+
+    const iconKey: keyof typeof iconMap =
+        activeModule?.icon && activeModule.icon in iconMap
+            ? activeModule.icon
+            : "menu";
+
+    const Icon = useMemo(() => iconMap[iconKey], [iconKey]);
+
+    if (!Icon) return null;
 
     return (
         <Breadcrumb>
@@ -53,9 +70,12 @@ export default function DynamicBreadcrumbs({
                             )}
 
                             {isLast || !hasPage ? (
-                                <BreadcrumbPage className="text-foreground font-medium">
-                                    {title}
-                                </BreadcrumbPage>
+                                  <div className={"flex gap-2 items-center"}>
+                                      <Icon className="text-gray-600" />
+                                      <BreadcrumbPage className="text-foreground text-2xl font-bold">
+                                          {title}
+                                      </BreadcrumbPage>
+                                  </div>
                             ) : (
                                 <BreadcrumbLink
                                     asChild
