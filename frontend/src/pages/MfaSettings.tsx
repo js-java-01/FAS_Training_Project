@@ -32,12 +32,17 @@ export default function MfaSettings() {
   const handleInitMfa = async () => {
     try {
       setLoading(true);
+      console.log("[MFA] Calling POST /api/mfa/setup/init ...");
       const response = await mfaApi.init();
+      console.log("[MFA] /setup/init response:", response);
       setQrCodeUrl(response.qrCodeUrl);
       setSecret(response.secret);
       setSetupMode(true);
       toast.success("MFA initialized! Scan the QR code with your authenticator app.");
     } catch (error: any) {
+      console.error("[MFA] /setup/init error:", error);
+      console.error("[MFA] status:", error?.response?.status);
+      console.error("[MFA] data:", error?.response?.data);
       toast.error(error.response?.data?.message || "Failed to initialize MFA");
     } finally {
       setLoading(false);
