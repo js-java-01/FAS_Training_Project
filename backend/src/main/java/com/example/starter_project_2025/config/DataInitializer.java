@@ -566,6 +566,6 @@ public class DataInitializer implements CommandLineRunner {
             courseCohortRepository.save(rfp1);
         }
 
-        log.info("Initialized cohorts for courses");
+        log.info("Initialized cohorts for ");
     }
 }
