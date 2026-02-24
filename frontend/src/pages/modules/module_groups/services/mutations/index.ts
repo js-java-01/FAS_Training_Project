@@ -21,3 +21,10 @@ export const useImportModuleGroup = () => {
         },
     });
 };
+export const useDownloadTemplate = () => {
+    return useMutation({
+        mutationFn: async () => {
+            return await moduleGroupApi.exportTemplateModuleGroups(); // Blob
+        },
+    });
+};

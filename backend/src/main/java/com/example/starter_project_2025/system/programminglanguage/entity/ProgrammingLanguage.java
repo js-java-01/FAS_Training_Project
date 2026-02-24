@@ -1,20 +1,24 @@
 package com.example.starter_project_2025.system.programminglanguage.entity;
 
+import java.util.List;
+import java.util.Set;
+
+import com.example.starter_project_2025.system.course_programing_language.entity.CourseProgrammingLanguage;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "programming_languages",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = "name")
-            }
-        )
+@Table(name = "programming_languages", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "name")
+})
 public class ProgrammingLanguage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 255,unique = true)
+    @Column(nullable = false, length = 255, unique = true)
     private String name;
 
     @Column(length = 255)
@@ -26,13 +30,18 @@ public class ProgrammingLanguage {
     @Column(nullable = false)
     private Boolean isSupported;
 
-    public ProgrammingLanguage(){}
+    @OneToMany(mappedBy = "programmingLanguage")
+    @JsonManagedReference
+    private Set<CourseProgrammingLanguage> courseProgrammingLanguages;
+
+    public ProgrammingLanguage() {
+    }
 
     public ProgrammingLanguage(String name, String version, String description, Boolean isSupported) {
         this.name = name;
         this.version = version;
         this.description = description;
-        this.isSupported = false;
+        this.isSupported = isSupported;
     }
 
     public ProgrammingLanguage(String name, String version, String description) {

@@ -5,7 +5,7 @@ import type {
     CreateModuleGroupRequest,
     CreateModuleRequest,
 } from '../types/module';
-import type { ApiResponse, PagedData} from "@/types/response.ts";
+import type { ApiResponse, PagedData } from "@/types/response.ts";
 
 /* =========================
    MODULE GROUP API
@@ -102,6 +102,21 @@ export const moduleGroupApi = {
                 },
             }
         );
+    },
+
+    exportTemplateModuleGroups: async (params?: {
+        keyword?: string;
+        status?: string;
+    }): Promise<Blob> => {
+        const res = await axiosInstance.get(
+            "/module-groups/template",
+            {
+                params,
+                responseType: "blob",
+            }
+        );
+
+        return res.data;
     },
 
 };
@@ -211,5 +226,18 @@ export const moduleApi = {
             }
         );
     },
+    exportTemplateModules: async (params?: {
+        keyword?: string;
+        status?: string;
+    }): Promise<Blob> => {
+        const res = await axiosInstance.get(
+            "/modules/template",
+            {
+                params,
+                responseType: "blob",
+            }
+        );
 
+        return res.data;
+    },
 };

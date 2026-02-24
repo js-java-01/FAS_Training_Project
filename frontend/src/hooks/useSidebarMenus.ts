@@ -1,26 +1,31 @@
-import { useCallback, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useLocation } from "react-router-dom"
-import { useQuery } from "@tanstack/react-query"
 import type { ModuleGroup } from "@/types/module"
+
 import { usePermissions } from "@/hooks/usePermissions"
 import { canAccessMenuItem } from "@/utils/permission.utils"
 import { moduleGroupApi } from "@/api/moduleApi"
 import { iconMap } from "@/constants/iconMap"
+import { useQuery } from "@tanstack/react-query"
+
 
 /* ================= QUERY (LOCAL) ================= */
 export const useActiveModuleGroups = (enabled = true) => {
     return useQuery<ModuleGroup[]>({
         queryKey: ["module-groups", "active"],
         queryFn: moduleGroupApi.getActiveModuleGroups,
-        enabled, 
+        enabled,
         staleTime: 5 * 60 * 1000,
     });
 };
 
 
 /* ================= SIDEBAR HOOK ================= */
+
+/* ------------------------------------------ */
 export function useSidebarMenus() {
-    const { data: moduleGroups = [] } = useActiveModuleGroups()
+    
+    const [moduleGroups, setModuleGroups] = useState<ModuleGroup[]>([])
     const { hasPermission } = usePermissions()
     const location = useLocation()
 
@@ -32,6 +37,19 @@ export function useSidebarMenus() {
                 location.pathname.startsWith(url + "/")),
         [location.pathname]
     )
+    /* --------------------------------------- */
+
+    /* -------- LOAD MODULE GROUPS (API) ------ */
+    useEffect(() => {
+        moduleGroupApi
+            .getActiveModuleGroups()
+            .then(setModuleGroups)
+            .catch(() => {
+                console.warn("You don't have permission to access modules")
+                // setModuleGroups(mockMenus)
+            })
+    }, [])
+    /* --------------------------------------- */
 
     /* -------- MAP MODULE ➜ Sidebar Nav ------ */
     const navGroups = useMemo(() => {
@@ -41,6 +59,7 @@ export function useSidebarMenus() {
                     .filter(
                         (module) =>
                             !module.parentId &&
+                            module.url !== "/my-courses" &&
                             canAccessMenuItem(
                                 module.requiredPermission,
                                 hasPermission
@@ -94,5 +113,7 @@ export function useSidebarMenus() {
             .filter(Boolean)
     }, [moduleGroups, hasPermission, isActiveRoute])
 
-    return { navGroups }
+    return {
+        navGroups,
+    }
 }
