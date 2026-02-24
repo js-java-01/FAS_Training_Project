@@ -1,6 +1,8 @@
 package com.example.starter_project_2025.system.user.entity;
 
-import com.example.starter_project_2025.system.auth.entity.Role;
+import com.example.starter_project_2025.system.assessment.entity.Submission;
+import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.trainer_course.entity.TrainerCourse;
 import com.example.starter_project_2025.system.user_role.entity.UserRole;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -11,7 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -41,7 +43,19 @@ public class User {
     String lastName;
 
     @OneToMany(mappedBy = "user")
-    List<UserRole> userRoles;
+    Set<UserRole> userRoles;
+
+    @OneToMany(mappedBy = "trainer")
+    @JsonManagedReference
+    Set<CourseClass> courseClasses;
+
+    @OneToMany(mappedBy = "trainer")
+    @JsonManagedReference
+    Set<TrainerCourse> trainerCourses;
+
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference
+    private Set<Submission> submissions;
 
     @Column(nullable = false)
     Boolean isActive = true;

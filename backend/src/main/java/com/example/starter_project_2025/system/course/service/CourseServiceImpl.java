@@ -40,9 +40,9 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseResponse create(CourseCreateRequest req) {
         Course course = mapper.toEntity(req);
-        if (req.getTrainerId() != null) {
-            course.setTrainer(userRepository.findById(req.getTrainerId()).orElseThrow());
-        }
+        // if (req.getTrainerId() != null) {
+        // course.setTrainer(userRepository.findById(req.getTrainerId()).orElseThrow());
+        // }
         course.setCreator(userService.getCurrentUser());
         return mapper.toResponse(courseRepository.save(course));
     }
@@ -67,7 +67,7 @@ public class CourseServiceImpl implements CourseService {
         if (req.getStatus() != null)
             course.setStatus(req.getStatus());
         if (req.getTrainerId() != null) {
-            course.setTrainer(userRepository.findById(req.getTrainerId()).orElseThrow());
+            // course.setTrainer(userRepository.findById(req.getTrainerId()).orElseThrow());
         }
         course.setUpdater(userService.getCurrentUser());
         return mapper.toResponse(courseRepository.save(course));
@@ -142,7 +142,8 @@ public class CourseServiceImpl implements CourseService {
                 row.createCell(4).setCellValue(c.getEstimatedTime() != null ? c.getEstimatedTime() : 0);
                 row.createCell(5).setCellValue(c.getPrice() != null ? c.getPrice().doubleValue() : 0);
                 row.createCell(6).setCellValue(c.getDiscount() != null ? c.getDiscount() : 0);
-                row.createCell(7).setCellValue(c.getTrainer() != null ? c.getTrainer().getEmail() : "");
+                // row.createCell(7).setCellValue(c.getTrainer() != null ?
+                // c.getTrainer().getEmail() : "");
                 row.createCell(8).setCellValue(c.getDescription() != null ? c.getDescription() : "");
                 row.createCell(9).setCellValue(c.getNote() != null ? c.getNote() : "");
             }
@@ -269,8 +270,8 @@ public class CourseServiceImpl implements CourseService {
 
                 String trainerEmail = getCellValue(row.getCell(7));
                 if (trainerEmail != null && !trainerEmail.isBlank()) {
-                    userRepository.findByEmail(trainerEmail.trim())
-                            .ifPresent(course::setTrainer);
+                    // userRepository.findByEmail(trainerEmail.trim())
+                    // .ifPresent(course::setTrainer);
                 }
 
                 String description = getCellValue(row.getCell(8));
