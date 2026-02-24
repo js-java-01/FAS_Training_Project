@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.learning.controller;
 
-import com.example.starter_project_2025.system.course.dto.CourseResponse;
+import com.example.starter_project_2025.system.learning.dto.EnrolledCourseResponse;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentResponse;
 import com.example.starter_project_2025.system.learning.service.EnrollmentService;
@@ -28,7 +28,7 @@ public class EnrollmentController {
 
     @GetMapping("/my-courses")
     @PreAuthorize("isAuthenticated()")
-    public List<CourseResponse> getMyEnrolledCourses() {
+    public List<EnrolledCourseResponse> getMyEnrolledCourses() {
         return enrollmentService.getMyEnrolledCourses();
     }
 }

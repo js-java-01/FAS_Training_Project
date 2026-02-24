@@ -5,6 +5,7 @@ import com.example.starter_project_2025.system.course.entity.CourseCohort;
 import com.example.starter_project_2025.system.course.enums.CohortStatus;
 import com.example.starter_project_2025.system.course.mapper.CourseMapper;
 import com.example.starter_project_2025.system.course.repository.CourseCohortRepository;
+import com.example.starter_project_2025.system.learning.dto.EnrolledCourseResponse;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentResponse;
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
@@ -16,6 +17,7 @@ import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -68,15 +70,22 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     }
 
     @Override
-    public List<CourseResponse> getMyEnrolledCourses() {
+    @Transactional(readOnly = true)
+    public List<EnrolledCourseResponse> getMyEnrolledCourses() {
         UUID userId = getCurrentUserId();
         List<Enrollment> enrollments = enrollmentRepository.findByUserId(userId);
 
         return enrollments.stream()
-                .map(enrollment -> cohortRepository.findById(enrollment.getCohortId()).orElse(null))
-                .filter(cohort -> cohort != null && cohort.getCourse() != null)
-                .map(cohort -> courseMapper.toResponse(cohort.getCourse()))
-                .distinct()
+                .map(enrollment -> {
+                    CourseCohort cohort = cohortRepository.findById(enrollment.getCohortId()).orElse(null);
+                    if (cohort == null || cohort.getCourse() == null)
+                        return null;
+                    return EnrolledCourseResponse.builder()
+                            .cohortId(cohort.getId())
+                            .course(courseMapper.toResponse(cohort.getCourse()))
+                            .build();
+                })
+                .filter(r -> r != null)
                 .collect(java.util.stream.Collectors.toList());
     }
 

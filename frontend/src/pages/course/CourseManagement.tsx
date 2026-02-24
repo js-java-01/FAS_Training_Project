@@ -3,6 +3,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { DataTable } from "@/components/data_table/DataTable";
 import { courseApi } from "@/api/courseApi";
 import { enrollmentApi } from "@/api/enrollmentApi";
+import type { EnrolledCourse } from "@/api/enrollmentApi";
 import type { Course } from "@/types/course";
 import { getColumns } from "./components/columns";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ import {
   Tag,
   Loader2,
   GraduationCap,
+  Play,
 } from "lucide-react";
 import { ImportExportActions } from "@/components/import-export/ImportExportActions";
 import { BaseImportModal } from "@/components/import-export/BaseImportModal";
@@ -59,19 +61,24 @@ function fmtPrice(price?: number, discount?: number) {
 
 function CourseCard({
   course,
-  onEnroll,
+  enrolledCohortId,
 }: {
   course: Course;
-  onEnroll?: (course: Course) => void;
+  enrolledCohortId?: string;
 }) {
   const navigate = useNavigate();
+  const isEnrolled = !!enrolledCohortId;
   const hours = course.estimatedTime
     ? Math.round(course.estimatedTime / 60)
     : null;
   return (
     <div
       className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden flex flex-col cursor-pointer group"
-      onClick={() => navigate(`/courses/${course.id}`)}
+      onClick={() =>
+        isEnrolled
+          ? navigate(`/learn/${enrolledCohortId}`)
+          : navigate(`/courses/${course.id}`)
+      }
     >
       <div className="h-44 bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center relative overflow-hidden">
         {course.thumbnailUrl ? (
@@ -123,17 +130,31 @@ function CourseCard({
             </span>
           )}
         </div>
-        {onEnroll && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEnroll(course);
-            }}
-            className="mx-4 mb-4 mt-2 py-1.5 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Enroll
-          </button>
-        )}
+        {/* Action button */}
+        <div className="px-4 pb-4">
+          {isEnrolled ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/learn/${enrolledCohortId}`);
+              }}
+              className="w-full py-1.5 text-sm font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 mt-4"
+            >
+              <Play size={13} />
+              Continue Learning
+            </button>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/courses/${course.id}`);
+              }}
+              className="w-full py-1.5 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mt-4"
+            >
+              View &amp; Enroll
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -156,8 +177,19 @@ export const CourseManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"catalog" | "enrollments">(
     "catalog",
   );
-  const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [enrolledLoading, setEnrolledLoading] = useState(false);
+
+  // map courseId → cohortId for quick lookup in catalog
+  const enrolledCohortMap = useMemo(
+    () =>
+      Object.fromEntries(
+        enrolledCourses
+          .filter((ec) => ec?.course?.id)
+          .map((ec) => [ec.course.id, ec.cohortId]),
+      ) as Record<string, string>,
+    [enrolledCourses],
+  );
 
   // filters (admin)
   const [keyword, setKeyword] = useState("");
@@ -245,15 +277,24 @@ export const CourseManagement: React.FC = () => {
     try {
       setEnrolledLoading(true);
       const data = await enrollmentApi.getMyEnrolledCourses();
-      setEnrolledCourses(data);
-    } catch {
+      console.log("[enrollments] raw response:", data);
+      setEnrolledCourses(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("[enrollments] error:", err);
       toast.error("Failed to load enrolled courses");
     } finally {
       setEnrolledLoading(false);
     }
   };
 
-  // Load enrolled courses whenever the enrollments tab is active (and on student mode mount)
+  // Load enrolled courses: on mount (student) and when switching to enrollments tab
+  useEffect(() => {
+    if (isStudentMode) {
+      loadEnrolledCourses();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isStudentMode]);
+
   useEffect(() => {
     if (isStudentMode && activeTab === "enrollments") {
       loadEnrolledCourses();
@@ -412,7 +453,7 @@ export const CourseManagement: React.FC = () => {
                     <CourseCard
                       key={course.id}
                       course={course}
-                      onEnroll={(c) => setEnrollCourse(c)}
+                      enrolledCohortId={enrolledCohortMap[course.id]}
                     />
                   ))}
                 </div>
@@ -444,36 +485,46 @@ export const CourseManagement: React.FC = () => {
           )}
 
           {/* ── MY ENROLLMENTS TAB ── */}
-          {activeTab === "enrollments" && (
-            <>
-              {enrolledLoading ? (
-                <div className="flex items-center justify-center py-24 text-gray-400">
-                  <Loader2 className="animate-spin mr-2" size={24} />
-                  Loading enrolled courses...
-                </div>
-              ) : enrolledCourses.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-                  <GraduationCap size={56} className="mb-4 opacity-30" />
-                  <p className="text-lg font-medium">No enrollments yet</p>
-                  <p className="text-sm mt-1">
-                    Go to the Course Catalog to find and enroll in a course.
-                  </p>
-                </div>
-              ) : (
+          {activeTab === "enrollments" &&
+            (() => {
+              const validEnrolled = enrolledCourses.filter(
+                (ec) => ec?.course?.id,
+              );
+              return (
                 <>
-                  <p className="text-sm text-gray-500 -mt-2">
-                    {enrolledCourses.length} course
-                    {enrolledCourses.length !== 1 ? "s" : ""} enrolled
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 overflow-y-auto pb-4">
-                    {enrolledCourses.map((course) => (
-                      <CourseCard key={course.id} course={course} />
-                    ))}
-                  </div>
+                  {enrolledLoading ? (
+                    <div className="flex items-center justify-center py-24 text-gray-400">
+                      <Loader2 className="animate-spin mr-2" size={24} />
+                      Loading enrolled courses...
+                    </div>
+                  ) : validEnrolled.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                      <GraduationCap size={56} className="mb-4 opacity-30" />
+                      <p className="text-lg font-medium">No enrollments yet</p>
+                      <p className="text-sm mt-1">
+                        Go to the Course Catalog to find and enroll in a course.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm text-gray-500 -mt-2">
+                        {validEnrolled.length} course
+                        {validEnrolled.length !== 1 ? "s" : ""} enrolled
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 overflow-y-auto pb-4">
+                        {validEnrolled.map((ec) => (
+                          <CourseCard
+                            key={ec.course.id}
+                            course={ec.course}
+                            enrolledCohortId={String(ec.cohortId)}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </>
-              )}
-            </>
-          )}
+              );
+            })()}
         </div>
       ) : (
         /* ════════════════ ADMIN / TRAINER TABLE VIEW ════════════════ */
