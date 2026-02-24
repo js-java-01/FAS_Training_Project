@@ -11,7 +11,10 @@ import java.util.UUID;
 @Repository
 public interface PermissionRepository extends JpaRepository<Permission, UUID> {
     Optional<Permission> findByName(String name);
+
     List<Permission> findByResource(String resource);
+
     List<Permission> findByAction(String action);
+
     boolean existsByName(String name);
 }
