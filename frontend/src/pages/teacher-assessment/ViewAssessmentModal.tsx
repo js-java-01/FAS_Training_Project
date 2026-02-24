@@ -1,7 +1,8 @@
 import React from 'react';
-import { Modal } from '../../components/Modal';
+
 import { Badge } from '@/components/ui/badge';
 import type { Assessment } from '../../types/assessment';
+import { Modal } from '@/components/modal/Modal';
 
 interface ViewAssessmentModalProps {
     isOpen: boolean;

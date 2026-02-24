@@ -1,7 +1,7 @@
 import React from 'react';
-import { Modal } from '../../components/Modal';
 import { AlertCircle } from 'lucide-react';
 import type { QuestionCategory } from '../../types/questionCategory';
+import { Modal } from '@/components/modal/Modal';
 
 interface DeleteQuestionCategoryDialogProps {
     isOpen: boolean;

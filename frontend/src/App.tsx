@@ -24,6 +24,11 @@ import { AssessmentFormPage, TeacherAssessmentPage } from "./pages/teacher-asses
 import { QuestionCategoryManagement } from "./pages/question-category";
 import { CreateQuestionPage, EditQuestionPage, QuestionManagementPage } from "./pages/question";
 import { Logout } from "./components/auth/Logout";
+import AssessmentManagement from "./pages/AssessmentManagement";
+import { LocationManagement } from "./pages/LocationManagement";
+import CourseManagement from "./pages/course/CourseManagement";
+import CourseDetailPage from "./pages/course/CourseDetailPage";
+import StudentCourseContent from "./pages/learning/StudentCourseContent";
 
 
 function App() {
@@ -70,7 +75,57 @@ function App() {
               })
             )}
             <Route path="*" element={<NotFoundRedirect />} />
+            <Route
+              path="/assessment-type"
+              element={
+                <ProtectedRoute requiredPermission="ASSESSMENT_READ">
+                  <AssessmentManagement />
+                </ProtectedRoute>
+              }
+            />
 
+            <Route
+              path="/locations"
+              element={
+                <ProtectedRoute requiredPermission="LOCATION_READ">
+                  <LocationManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programming-languages"
+              element={
+                <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
+                  <ProgrammingLanguageManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses"
+              element={
+                <ProtectedRoute requiredPermission="COURSE_READ">
+                  <CourseManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/courses/:id" element={<CourseDetailPage />} />
+            {/* /my-courses redirects to /courses for backward compat */}
+            <Route
+              path="/my-courses"
+              element={<Navigate to="/courses" replace />}
+            />
+            <Route
+              path="/my-courses/:id"
+              element={<Navigate to="/courses" replace />}
+            />
+            <Route
+              path="/learn/:cohortId"
+              element={
+                <ProtectedRoute requiredPermission="ENROLL_COURSE">
+                  <StudentCourseContent />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/teacher-assessment"

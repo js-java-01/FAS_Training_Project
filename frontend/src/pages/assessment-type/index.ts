@@ -16,4 +16,4 @@ export { UpdateAssessmentModal } from './UpdateAssessmentModal';
 export { ViewAssessmentModal } from './ViewAssessmentModal';
 export { DeleteAssessmentDialog } from './DeleteAssessmentDialog';
 export { ImportAssessmentDialog } from './ImportAssessmentDialog';
-export { ExportModal } from './ExportModal';
+

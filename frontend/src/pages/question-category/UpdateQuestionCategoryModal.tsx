@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Modal } from '../../components/Modal';
+import { Modal } from '@/components/modal/Modal';
+
 import { QuestionCategoryFormFields } from './QuestionCategoryFormFields';
 import type { QuestionCategory, QuestionCategoryRequest } from '../../types/questionCategory';
 

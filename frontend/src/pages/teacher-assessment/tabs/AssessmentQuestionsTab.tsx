@@ -3,8 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, FileQuestion, CheckCircle2, XCircle, Save, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { assessmentQuestionApi } from '@/api/assessmentQuestionApi';
-import { useToast } from '@/hooks/use-toast';
+
 import { AddQuestionModal } from './AddQuestionModal';
+import { useToast } from '@/hooks/useToast';
 
 interface AssessmentQuestionsTabProps {
     assessmentId?: number;
@@ -105,7 +106,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                     <h3 className="text-lg font-semibold text-gray-900">Assessment Questions</h3>
                     <p className="text-sm text-gray-500 mt-1">Manage questions for this assessment</p>
                 </div>
-                <Button 
+                <Button
                     onClick={() => setShowAddModal(true)}
                     className="bg-blue-600 hover:bg-blue-700"
                     disabled={createMutation.isPending}
@@ -156,7 +157,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                     <p className="text-sm text-gray-500 mb-6">
                         Start building your assessment by adding questions from your question bank.
                     </p>
-                    <Button 
+                    <Button
                         onClick={() => setShowAddModal(true)}
                         className="bg-blue-600 hover:bg-blue-700"
                     >
@@ -169,10 +170,10 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                 <div className="space-y-3">
                     {assessmentQuestions.map((assessmentQuestion, index) => {
                         const hasCorrectAnswer = assessmentQuestion.question.options.some(opt => opt.correct);
-                        
+
                         return (
-                            <div 
-                                key={assessmentQuestion.id} 
+                            <div
+                                key={assessmentQuestion.id}
                                 className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                             >
                                 <div className="flex items-start gap-4">

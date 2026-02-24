@@ -1,6 +1,7 @@
 import React from 'react';
-import { Modal } from '../../components/Modal';
+
 import type { QuestionCategory } from '../../types/questionCategory';
+import { Modal } from '@/components/modal/Modal';
 
 interface ViewQuestionCategoryModalProps {
     isOpen: boolean;

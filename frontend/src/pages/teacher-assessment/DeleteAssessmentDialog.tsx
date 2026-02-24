@@ -1,7 +1,8 @@
 import React from 'react';
-import { Modal } from '../../components/Modal';
+
 import { AlertCircle } from 'lucide-react';
 import type { Assessment } from '../../types/assessment';
+import { Modal } from '@/components/modal/Modal';
 
 interface DeleteAssessmentDialogProps {
     isOpen: boolean;

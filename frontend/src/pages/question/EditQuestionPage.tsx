@@ -3,12 +3,13 @@ import MainHeader from '@/components/layout/MainHeader';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { questionApi } from '@/api/questionApi';
-import { useToast } from '@/hooks/use-toast';
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Save, X, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import type { QuestionCreateRequest } from '@/types/question';
 import { QuestionFormFields, QuestionOptionsManager } from './components';
+import { useToast } from '@/hooks/useToast';
 
 export default function EditQuestionPage() {
     const { id } = useParams<{ id: string }>();
@@ -165,10 +166,10 @@ export default function EditQuestionPage() {
                 <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl p-6 shadow-lg text-white">
                     <div className="flex items-center justify-between">
                         <div>
-                            <MainHeader
+                            {/* <MainHeader
                                 title="✏️ Edit Question"
                                 description="Update question details and options"
-                            />
+                            /> */}
                             <div className="mt-3 flex items-center gap-4">
                                 <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-lg backdrop-blur-sm">
                                     {Object.keys(errors).length === 0 ? (
