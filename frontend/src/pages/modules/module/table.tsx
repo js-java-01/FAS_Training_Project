@@ -80,13 +80,18 @@ export default function ModulesTable() {
             queryKey: ["modules"],
         });
     };
+const invalidateSidebar = async () => {
+        await queryClient.invalidateQueries({
+            queryKey: ["module-groups", "active"],
+        });
+    };
     const handleCreate = async (formData: Partial<Module>) => {
         try {
             await moduleApi.createModule(formData as CreateModuleRequest);
             toast.success("Created successfully");
             setIsFormOpen(false);
             await invalidateModules();
-            await reload();
+             await invalidateSidebar();
         } catch (error) {
             console.error(error);
             if (error instanceof AxiosError && error.response?.data?.message) {
@@ -104,7 +109,7 @@ export default function ModulesTable() {
             toast.success("Updated successfully");
             setIsFormOpen(false);
             await invalidateModules();
-            await reload();
+             await invalidateSidebar();
         } catch (error) {
             console.error(error);
             if (error instanceof AxiosError && error.response?.data?.message) {
@@ -121,7 +126,7 @@ export default function ModulesTable() {
             await moduleApi.deleteModule(deletingModule.id);
             toast.success("Deleted successfully");
             await invalidateModules();
-            await reload();
+             await invalidateSidebar();
         } catch (error) {
             console.error(error);
             toast.error("Failed to delete module");
@@ -151,7 +156,7 @@ export default function ModulesTable() {
             toast.success("Import modules successfully");
             setOpenBackupModal(false);
             await invalidateModules();
-            await reload();
+             await invalidateSidebar();
         } catch (err: any) {
             toast.error(err?.response?.data?.message ?? "Failed to import modules");
             throw err;
