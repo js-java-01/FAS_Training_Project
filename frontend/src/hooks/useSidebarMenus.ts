@@ -12,7 +12,7 @@ export const useActiveModuleGroups = (enabled = true) => {
     return useQuery<ModuleGroup[]>({
         queryKey: ["module-groups", "active"],
         queryFn: moduleGroupApi.getActiveModuleGroups,
-        enabled, 
+        enabled,
         staleTime: 5 * 60 * 1000,
     });
 };
@@ -41,6 +41,7 @@ export function useSidebarMenus() {
                     .filter(
                         (module) =>
                             !module.parentId &&
+                            module.url !== "/my-courses" &&
                             canAccessMenuItem(
                                 module.requiredPermission,
                                 hasPermission

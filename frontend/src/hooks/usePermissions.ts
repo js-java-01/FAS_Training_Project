@@ -1,20 +1,34 @@
 import type { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 
 export const usePermissions = () => {
   const { permissions, role, email, firstName, lastName } = useSelector((state: RootState) => state.auth);
+  const { viewRole } = useRoleSwitch();
 
   const user = { email, role, firstName, lastName, permissions };
 
+  const isViewingAsStudent = viewRole === "STUDENT";
+
   const hasPermission = (permission: string): boolean => {
+    if (isViewingAsStudent) {
+      // In student view, only READ-type accesses are allowed
+      return permission.endsWith("_READ");
+    }
     return permissions.includes(permission);
   };
 
   const hasAnyPermission = (requiredPermissions: string[]): boolean => {
+    if (isViewingAsStudent) {
+      return requiredPermissions.some((p) => p.endsWith("_READ"));
+    }
     return requiredPermissions.some((p) => permissions.includes(p));
   };
 
   const hasAllPermissions = (requiredPermissions: string[]): boolean => {
+    if (isViewingAsStudent) {
+      return requiredPermissions.every((p) => p.endsWith("_READ"));
+    }
     return requiredPermissions.every((p) => permissions.includes(p));
   };
 

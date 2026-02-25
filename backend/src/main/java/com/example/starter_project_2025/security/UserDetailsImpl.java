@@ -49,9 +49,20 @@ public class UserDetailsImpl implements UserDetails
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities()
     {
-        return permissions.stream()
+        System.out.println("[DEBUG] getAuthorities called for user: " + email);
+        System.out.println("[DEBUG] permissions value: " + permissions);
+        System.out.println("[DEBUG] permissions is null: " + (permissions == null));
+        
+        if (permissions == null) {
+            System.out.println("[DEBUG] Returning empty set because permissions is null");
+            return Set.of();
+        }
+        
+        var authorities = permissions.stream()
                 .map(permission -> new SimpleGrantedAuthority(permission))
                 .collect(Collectors.toSet());
+        System.out.println("[DEBUG] Returning authorities: " + authorities);
+        return authorities;
     }
 
     @Override

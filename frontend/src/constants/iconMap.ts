@@ -18,6 +18,7 @@ import {
     Building,
     MapPin,
     TrendingUp,
+    GraduationCap,
 } from "lucide-react"
 
 export const iconMap: Record<IconKey, LucideIcon> = {
@@ -42,4 +43,5 @@ export const iconMap: Record<IconKey, LucideIcon> = {
     building: Building,
     "map-pin": MapPin,
     "trending-up": TrendingUp,
+    "graduation-cap": GraduationCap,
 }
