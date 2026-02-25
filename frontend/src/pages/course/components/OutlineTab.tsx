@@ -67,14 +67,6 @@ function LessonFormModal({ open, courseId, initial, onClose, onSuccess }: FormMo
     } finally {
       setLoading(false);
     }
-
-    const payload: CreateLessonRequest = {
-    lessonName: form.lessonName,
-    courseId: courseId,
-    };
-    if (form.description) payload.description = form.description;
-
-    const response = await lessonApi.create(payload);
   };
 
   const inputCls = "w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
