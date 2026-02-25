@@ -34,8 +34,8 @@ public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService
                 .orElseGet(() -> {
                     var newUser = new User();
                     newUser.setEmail(email);
-                    newUser.setFirstName(attributes.get("given_name") == null ? "" : (String) attributes.get("given_name"));
-                    newUser.setLastName(attributes.get("family_name") == null ? "" : (String) attributes.get("family_name"));
+                    newUser.setFirstName((String) attributes.get("given_name"));
+                    newUser.setLastName((String) attributes.get("family_name"));
 
                     var defaultRole = roleRepository.findByName("STUDENT")
                             .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND));

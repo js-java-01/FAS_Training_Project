@@ -57,8 +57,8 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
   // Fetch users once
   useEffect(() => {
     userApi
-      .getAllUsers(0, 100)
-      .then((res) => setUsers(res.content ?? []))
+      .getAllUsers({ size: 100 })
+      .then((res) => setUsers(res.items ?? []))
       .catch(() => {});
   }, []);
 

@@ -66,8 +66,8 @@ public class CsvExportService implements ExportService {
         if (value == null) {
             return "";
         }
-        if (value instanceof Boolean) {
-            return (Boolean) value ? "Yes" : "No";
+        if (value instanceof Boolean boolean1) {
+            return boolean1 ? "Yes" : "No";
         }
         return value.toString();
     }

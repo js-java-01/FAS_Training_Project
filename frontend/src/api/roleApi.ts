@@ -1,12 +1,46 @@
 import axiosInstance from './axiosInstance';
 import type { Role, CreateRoleRequest, UpdateRoleRequest } from '../types/role';
 
+// Spring Page response shape
+interface SpringPage<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;   // current page (0-based)
+  size: number;
+}
+
+export interface RolePageResponse {
+  items: Role[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    totalElements: number;
+  };
+}
+
 export const roleApi = {
-  getAllRoles: async (page = 0, size = 20, sort = 'name,asc') => {
-    const response = await axiosInstance.get<{content: Role[], totalElements: number, totalPages: number}>(
-      `/roles?page=${page}&size=${size}&sort=${sort}`
-    );
-    return response.data;
+  getAllRoles: async (params: {
+    page?: number;
+    size?: number;
+    sort?: string;
+    keyword?: string;
+  } = {}): Promise<RolePageResponse> => {
+    const { page = 0, size = 10, sort = 'name,asc', keyword } = params;
+    const response = await axiosInstance.get<SpringPage<Role>>('/roles', {
+      params: { page, size, sort, ...(keyword?.trim() ? { keyword: keyword.trim() } : {}) },
+    });
+    const data = response.data;
+    return {
+      items: data.content,
+      pagination: {
+        page: data.number,
+        pageSize: data.size,
+        totalPages: data.totalPages,
+        totalElements: data.totalElements,
+      },
+    };
   },
 
   getRoleById: async (id: string): Promise<Role> => {

@@ -1,10 +1,9 @@
-
 import { createColumnHelper } from "@tanstack/react-table";
 import type { Module } from "@/types/module";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { EditIcon, EyeIcon, Trash } from "lucide-react";
-import { iconMap } from "@/constants/iconMap";
+import { iconMap } from "@/constants/iconMap.ts";
 import dayjs from "dayjs";
 import { Badge } from "@/components/ui/badge";
 import SortHeader from "@/components/data_table/SortHeader";
@@ -16,7 +15,9 @@ export type TableActions = {
     onDelete?: (row: Module) => void;
 };
 
-export const getColumns = (actions?: TableActions) => {
+export const getColumns = (
+    actions?: TableActions
+) => {
     const columnHelper = createColumnHelper<Module>();
 
     return [
@@ -27,62 +28,116 @@ export const getColumns = (actions?: TableActions) => {
             header: ({ table }) => (
                 <Checkbox
                     checked={table.getIsAllPageRowsSelected()}
-                    onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
+                    onCheckedChange={(v) =>
+                        table.toggleAllPageRowsSelected(!!v)
+                    }
                     aria-label="Select all"
                 />
             ),
             cell: ({ row }) => (
                 <Checkbox
                     checked={row.getIsSelected()}
-                    onCheckedChange={(v) => row.toggleSelected(!!v)}
+                    onCheckedChange={(v) =>
+                        row.toggleSelected(!!v)
+                    }
                     aria-label="Select row"
                 />
             ),
             enableSorting: false,
+            enableHiding: false,
+        }),
+
+        /* ================= NUMBER ================= */
+        columnHelper.display({
+            id: "number",
+            header: "#",
+            size: 60,
+            cell: ({ row, table }) =>
+                row.index +
+                1 +
+                table.getState().pagination.pageIndex *
+                table.getState().pagination.pageSize,
+            enableSorting: false,
         }),
 
         /* ================= NAME ================= */
-        columnHelper.accessor("title", {
-            header: (info) => <SortHeader info={info} title="Name" />,
+        columnHelper.accessor((row) => row.title || row.name || "", {
+            id: "title",
+            header: "Name",
             size: 200,
-            cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+            cell: (info) => (
+                <span className="font-medium">{info.getValue()}</span>
+            ),
+            meta: {
+                title: "Name",
+            },
         }),
 
-        /* ================= URL ================= */
+        /* ================= Url ================= */
         columnHelper.accessor("url", {
-            header: (info) => <SortHeader info={info} title="Url" />,
+            header: "Url",
             size: 200,
+            cell: (info) => (
+                <span className="font-medium">{info.getValue()}</span>
+            ),
+            meta: {
+                title: "Url",
+            },
         }),
 
-        /* ================= ICON ================= */
+        /* ================= Icon ================= */
         columnHelper.accessor("icon", {
-            header: (info) => <SortHeader info={info} title="Icon" />,
+            header: "Icon",
             size: 200,
             cell: (info) => {
-                const key = info.getValue();
-                if (!key || !(key in iconMap)) return null;
-                const Icon = iconMap[key as keyof typeof iconMap];
+                const iconKey = info.getValue();
+
+                if (!iconKey || !(iconKey in iconMap)) {
+                    return null; // or render fallback icon
+                }
+
+                const Icon = iconMap[iconKey as keyof typeof iconMap];
+
                 return (
                     <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4" />
-                        {key}
+                        <Icon className="w-4 h-4 text-gray-700" />
+                        <span className="font-medium">
+                            {info.getValue()}
+                        </span>
                     </div>
                 );
+            },
+            meta: {
+                title: "Icon",
             },
         }),
 
         /* ================= DESCRIPTION ================= */
         columnHelper.accessor("description", {
-            header: (info) => <SortHeader info={info} title="Description" />,
+            header: "Description",
             size: 300,
             cell: (info) => (
-                <span className="line-clamp-2 text-muted-foreground">
+                <span className="text-muted-foreground line-clamp-2">
                     {info.getValue() || "-"}
+                </span>
+            ),
+            meta: {
+                title: "Description",
+            },
+        }),
+
+        /* ================= DISPLAY ORDER ================= */
+        columnHelper.accessor("displayOrder", {
+            header: (info) => <SortHeader info={info} title="Display Order" />,
+            size: 100,
+            cell: (info) => (
+                <span className="block text-center">
+                    {info.getValue()}
                 </span>
             ),
         }),
 
-        /* ================= STATUS (UI ONLY) ================= */
+        /* ================= STATUS ================= */
         columnHelper.accessor("isActive", {
             id: "isActive",
             header: ({ column }) => (
@@ -102,31 +157,23 @@ export const getColumns = (actions?: TableActions) => {
                             : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none"
                     }
                 >
-                    {info.getValue() ? "Active" : "In Active"}
+                    {info.getValue() ? "Active" : "Inactive"}
                 </Badge>
             ),
             meta: {
-                filterOptions: ["ACTIVE", "INACTIVE"],
-                labelOptions: {
-                    ACTIVE: "Active",
-                    INACTIVE: "Inactive",
-                },
                 title: "Status",
             },
-            filterFn: (row, columnId, filterValue) => {
-                if (!filterValue) return true;
-                const cellValue = row.getValue(columnId) ? "ACTIVE" : "INACTIVE";
-                return cellValue === filterValue;
-            },
-            enableSorting: false,
         }),
-
 
         /* ================= CREATED AT ================= */
         columnHelper.accessor("createdAt", {
-            header: (info) => <SortHeader info={info} title="Created At" />,
+            header: "Created At",
             size: 160,
-            cell: (info) => dayjs(info.getValue()).format("YYYY-MM-DD HH:mm"),
+            cell: (info) =>
+                dayjs(info.getValue()).format("YYYY-MM-DD HH:mm"),
+            meta: {
+                title: "Created At",
+            }
         }),
 
         /* ================= ACTIONS ================= */
@@ -143,6 +190,7 @@ export const getColumns = (actions?: TableActions) => {
                             onClick={() => actions.onView!(row.original)}
                         />
                     )}
+
                     {actions?.onEdit && (
                         <ActionBtn
                             tooltipText="Edit"
@@ -150,6 +198,7 @@ export const getColumns = (actions?: TableActions) => {
                             onClick={() => actions.onEdit!(row.original)}
                         />
                     )}
+
                     {actions?.onDelete && (
                         <ActionBtn
                             tooltipText="Delete"
@@ -159,6 +208,9 @@ export const getColumns = (actions?: TableActions) => {
                     )}
                 </div>
             ),
+            meta: {
+                title: "Actions",
+            },
             enableSorting: false,
         }),
     ];
