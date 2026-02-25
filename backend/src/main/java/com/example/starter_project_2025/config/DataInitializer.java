@@ -400,7 +400,7 @@ public class DataInitializer implements CommandLineRunner {
 
                 Assessment finalAssessment = new Assessment();
                 finalAssessment.setAssessmentType(finalType);
-                finalAssessment.setCode("JAVA_FINAL_2025");
+                finalAssessment.setCode("JAVA_FINAL_2035");
                 finalAssessment.setTitle("Java Final Exam 2025");
                 finalAssessment.setDescription("Final assessment for Java course");
                 finalAssessment.setTotalScore(100);
