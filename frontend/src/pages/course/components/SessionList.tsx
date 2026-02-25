@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/data_table/DataTable";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { sessionService } from "@/api/sessionService";
 import type { SessionResponse } from "@/types/session";
@@ -22,7 +22,9 @@ type Props = {
 export function SessionList({ data, isLoading, onEdit, onDeleted }: Props) {
   const { toast } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<SessionResponse | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<SessionResponse | null>(
+    null,
+  );
 
   const typeLabelMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -42,7 +44,11 @@ export function SessionList({ data, isLoading, onEdit, onDeleted }: Props) {
       columnHelper.accessor("topic", {
         header: "Topic",
         size: 320,
-        cell: (info) => <span className="text-foreground line-clamp-2">{info.getValue() || "-"}</span>,
+        cell: (info) => (
+          <span className="text-foreground line-clamp-2">
+            {info.getValue() || "-"}
+          </span>
+        ),
       }),
       columnHelper.accessor("type", {
         header: "Learning Type",
@@ -63,7 +69,11 @@ export function SessionList({ data, isLoading, onEdit, onDeleted }: Props) {
         size: 120,
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <ActionBtn tooltipText="Edit" icon={<EditIcon size={12} />} onClick={() => onEdit?.(row.original)} />
+            <ActionBtn
+              tooltipText="Edit"
+              icon={<EditIcon size={12} />}
+              onClick={() => onEdit?.(row.original)}
+            />
             <ActionBtn
               tooltipText="Delete"
               icon={<Trash size={12} />}
@@ -101,13 +111,18 @@ export function SessionList({ data, isLoading, onEdit, onDeleted }: Props) {
 
   return (
     <div className="w-full">
-      <DataTable<SessionResponse, any> columns={columns} data={data} isLoading={isLoading} />
+      <DataTable<SessionResponse, any>
+        columns={columns}
+        data={data}
+        isLoading={isLoading}
+      />
       <ConfirmDeleteModal
         open={!!confirmDelete}
         title="Delete session?"
         message={
           <>
-            Are you sure you want to delete this session? This action cannot be undone.
+            Are you sure you want to delete this session? This action cannot be
+            undone.
           </>
         }
         onCancel={() => setConfirmDelete(null)}
