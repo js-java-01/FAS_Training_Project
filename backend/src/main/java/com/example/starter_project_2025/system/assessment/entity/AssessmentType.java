@@ -13,7 +13,6 @@ import java.time.LocalDate;
 import java.util.Set;
 
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
