@@ -6,7 +6,6 @@ import ActionBtn from "@/components/data_table/ActionBtn";
 import { EditIcon, EyeIcon, Trash } from "lucide-react";
 import dayjs from "dayjs";
 import SortHeader from "@/components/data_table/SortHeader.tsx";
-import FilterHeader from "@/components/data_table/FilterHeader.tsx";
 
 export type TableActions = {
   onView?: (row: ModuleGroup) => void;
@@ -80,7 +79,7 @@ export const getColumns = (actions?: TableActions) => {
 
         /* ================= DISPLAY ORDER ================= */
         columnHelper.accessor("displayOrder", {
-            header: (info) => <SortHeader title="Display order" info={info} />,
+            header: (info) => <SortHeader title="Total Modules" info={info} />,
             size: 80,
             cell: (info) => (
                 <span className="block text-center">
@@ -90,55 +89,21 @@ export const getColumns = (actions?: TableActions) => {
       meta: { title: "Display Order" },
     }),
 
-      /* ================= TOTAL MODULES ================= */
-      columnHelper.accessor("totalModules", {
-          header: (info) => <SortHeader title="Total Modules" info={info} />,
-          size: 80,
-          cell: (info) => (
-              <span className="block text-center">
-          {info.getValue()}
-        </span>
-          ),
-          meta: { title: "Total modules" },
-      }),
-
         /* ================= STATUS ================= */
         columnHelper.accessor("isActive", {
-        id: "isActive",
-        header: ({ column }) => (
-            <FilterHeader
-            column={column}
-            title="Status"
-            selectedValue={column.getFilterValue() as string}
-            onFilterChange={(value) => column.setFilterValue(value || undefined)}
-            />
-        ),
-        size: 120,
-        cell: (info) => (
-            <Badge
-            className={
-                info.getValue()
-                ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none"
-                : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none"
-            }
-            >
-            {info.getValue() ? "Active" : "In Active"}
-            </Badge>
-        ),
-        meta: {
-            filterOptions: ["ACTIVE", "INACTIVE"],
-            labelOptions: {
-            ACTIVE: "Active",
-            INACTIVE: "Inactive",
-            },
-            title: "Status",
-        },
-        filterFn: (row, columnId, filterValue) => {
-            if (!filterValue) return true;
-            const cellValue = row.getValue(columnId) ? "ACTIVE" : "INACTIVE";
-            return cellValue === filterValue;
-        },
-        enableSorting: false,
+          header: (info) => <SortHeader info={info} title="Status" />,
+            size: 120,
+            cell: (info) => (
+              <Badge
+                className={
+                  info.getValue()
+                    ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none"
+                    : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none"
+                }
+              >
+                {info.getValue() ? "Active" : "Inactive"}
+              </Badge>
+            ),
         }),
 
         /* ================= CREATED AT ================= */

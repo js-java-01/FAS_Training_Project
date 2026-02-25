@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -42,9 +43,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
-        entityManager.refresh(user);
+//        entityManager.refresh(user);
 
-        String rt = refreshTokenService.generateAndSaveRefreshToken(user);
+        String rt = refreshTokenService.generateAndSaveRefreshToken(user, Optional.empty());
         String at = jwtUtil.generateToken(UserDetailsImpl.build(user));
 
         cookieUtil.addCookie(response, rt);

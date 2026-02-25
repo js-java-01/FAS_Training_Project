@@ -2,13 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import type { ModuleGroup } from "@/types/module.ts";
 import { queryKeys } from "../../../keys.ts";
 import { moduleGroupApi } from "@/api/moduleApi.ts";
-import type {PagedData} from "@/types/response.ts";
+import type { PagedData } from "@/types/response.ts";
 
 export const useGetAllModuleGroups = (params: {
     page: number;
     pageSize: number;
     sort?: string;
-    keyword?: string;
+  keyword?: string;
+    isActive?: boolean;
 }) => {
     return useQuery<PagedData<ModuleGroup>>({
         queryKey: queryKeys.moduleGroups(params),
@@ -17,13 +18,11 @@ export const useGetAllModuleGroups = (params: {
                 page: params.page,
                 size: params.pageSize,
                 sort: params.sort ?? "displayOrder,asc",
-                ...(params.keyword?.trim()
-                    ? { keyword: params.keyword.trim() }
-                    : {}),
+                ...(params.keyword?.trim() ? { keyword: params.keyword.trim() } : {}),
+                ...(params.isActive !== undefined ? { isActive: params.isActive } : {}),
             }),
 
         placeholderData: (prev?: PagedData<ModuleGroup>) => prev,
         staleTime: 5 * 60 * 1000,
     });
 };
-

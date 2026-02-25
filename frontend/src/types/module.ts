@@ -25,7 +25,6 @@ export interface ModuleGroup {
     description?: string;
     isActive: boolean;
     displayOrder: number;
-    totalModules: number;
     modules: Module[];
     createdAt: string;
     updatedAt: string;
@@ -34,7 +33,8 @@ export interface ModuleGroup {
 
 export interface Module {
     id: string;
-    moduleGroupId: string;
+  moduleGroupId: string;
+  moduleGroupName: string;
     parentId?: string;
 
     title: string;

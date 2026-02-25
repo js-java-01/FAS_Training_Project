@@ -83,10 +83,12 @@ public class ModuleController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) UUID moduleGroupId,
             @RequestParam(required = false) Boolean isActive,
-            @RequestParam int page,
-            @RequestParam(defaultValue = "20") int size,
+            @RequestParam int page, // use base index 0
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "displayOrder,asc") String[] sort
     ) {
+
+
         String sortField = sort[0];
         Sort.Direction direction =
                 sort.length > 1
