@@ -2,9 +2,10 @@ package com.example.starter_project_2025.system.user.entity;
 
 import com.example.starter_project_2025.system.assessment.entity.Submission;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
-import com.example.starter_project_2025.system.trainer_course.entity.TrainerCourse;
+import com.example.starter_project_2025.system.trainer_programminglanguae.entity.TrainerProgrammingLanguage;
 import com.example.starter_project_2025.system.user_role.entity.UserRole;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -27,8 +28,7 @@ import java.util.UUID;
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class User
-{
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -55,7 +55,7 @@ public class User
 
     @OneToMany(mappedBy = "trainer")
     @JsonManagedReference
-    Set<TrainerCourse> trainerCourses;
+    Set<TrainerProgrammingLanguage> trainerProgrammingLanguages;
 
     @OneToMany(mappedBy = "user")
     @JsonManagedReference

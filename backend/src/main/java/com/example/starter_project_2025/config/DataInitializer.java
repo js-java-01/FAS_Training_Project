@@ -29,6 +29,8 @@ import com.example.starter_project_2025.system.modulegroups.repository.ModuleGro
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
 import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
+import com.example.starter_project_2025.system.semester.entity.Semester;
+import com.example.starter_project_2025.system.semester.repository.SemesterRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import com.example.starter_project_2025.system.user_role.entity.UserRole;
@@ -45,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -76,6 +79,7 @@ public class DataInitializer implements CommandLineRunner {
         private final QuestionCategoryRepository questionCategoryRepository;
         private final QuestionRepository questionRepository;
         private final UserRoleRepository userRoleRepository;
+        private final SemesterRepository semesterRepository;
 
         @Override
         @Transactional
@@ -94,6 +98,7 @@ public class DataInitializer implements CommandLineRunner {
                         initializeQuestionCategories();
                         initializeQuestions();
                         initializeUserRoles();
+                        initializeSemester();
 
                         log.info("Database initialization completed successfully!");
                 } else {
@@ -200,7 +205,10 @@ public class DataInitializer implements CommandLineRunner {
                                                 "UPDATE"),
                                 createPermission("QUESTION_CATEGORY_DELETE", "Delete question categories",
                                                 "QUESTION_CATEGORY",
-                                                "DELETE")
+                                                "DELETE"),
+                                createPermission("CLASS_CREATE", "Create new classes", "CLASS", "CREATE"),
+                                createPermission("CLASS_READ", "View classes", "CLASS", "READ"),
+                                createPermission("CLASS_UPDATE", "Update existing classes", "CLASS", "UPDATE")
 
                 );
                 permissionRepository.saveAll(permissions);
@@ -217,6 +225,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         private void initializeRoles() {
+                //ADMIN
                 Role adminRole = new Role();
                 adminRole.setName("ADMIN");
                 adminRole.setDescription("Administrator with full system access");
@@ -224,6 +233,20 @@ public class DataInitializer implements CommandLineRunner {
                 adminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
                 roleRepository.save(adminRole);
 
+                // DEPARTMENT_MANAGER
+                Role departmentManagerRole = new Role();
+                departmentManagerRole.setName("DEPARTMENT_MANAGER");
+                departmentManagerRole.setDescription("Department Manager with class management permissions");
+
+                List<Permission> departmentPermissions = permissionRepository.findAll()
+                        .stream()
+                        .filter(p -> "CLASS".equals(p.getResource()))
+                        .toList();
+
+                departmentManagerRole.setPermissions(new HashSet<>(departmentPermissions));
+                roleRepository.save(departmentManagerRole);
+
+                // STUDENT
                 Role studentRole = new Role();
                 studentRole.setName("STUDENT");
                 studentRole.setDescription("Student with limited access to educational resources");
@@ -590,6 +613,28 @@ public class DataInitializer implements CommandLineRunner {
                                                 "Manage programming languages"));
 
                 log.info("Initialized 6 module groups and their respective modules.");
+
+                // 7. Training Class Management
+                ModuleGroups classManagementGroup = new ModuleGroups();
+                classManagementGroup.setName("Class Management");
+                classManagementGroup.setDescription("Manage classes, open class requests.");
+                classManagementGroup.setDisplayOrder(7);
+                classManagementGroup.setIsActive(true);
+                classManagementGroup = moduleGroupsRepository.save(classManagementGroup);
+
+                moduleRepository.save(
+                        createModule(
+                                classManagementGroup,
+                                "Traning Classes",
+                                "/training-classes",
+                                "people",
+                                1,
+                                "CLASS_READ",
+                                "Manage Classes and Open Class Requests"
+                        )
+                );
+
+                log.info("Initialized Class Management module group and its modules.");
         }
 
         private void initializeQuestionCategories() {
@@ -828,6 +873,22 @@ public class DataInitializer implements CommandLineRunner {
 
         @JsonIgnoreProperties(ignoreUnknown = true)
         private record CommuneJson(String idProvince, String idCommune, String name) {
+        }
+
+        private void initializeSemester() {
+
+                if (semesterRepository.count() > 0) {
+                        return;
+                }
+
+                Semester spring2026 = new Semester();
+                spring2026.setName("Spring 2026");
+                spring2026.setStartDate(LocalDate.of(2026, 1, 5));
+                spring2026.setEndDate(LocalDate.of(2026, 4, 30));
+
+                semesterRepository.save(spring2026);
+
+                log.info("Initialized Semester: Spring 2026");
         }
 
 }
