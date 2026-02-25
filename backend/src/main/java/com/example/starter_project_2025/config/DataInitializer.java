@@ -12,10 +12,12 @@ import com.example.starter_project_2025.system.auth.repository.PermissionReposit
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.entity.CourseCohort;
+import com.example.starter_project_2025.system.course.entity.CourseLesson;
 import com.example.starter_project_2025.system.course.enums.CohortStatus;
 import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
 import com.example.starter_project_2025.system.course.repository.CourseCohortRepository;
+import com.example.starter_project_2025.system.course.repository.CourseLessonRepository;
 import com.example.starter_project_2025.system.course.repository.CourseRepository;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
@@ -78,6 +80,7 @@ public class DataInitializer implements CommandLineRunner {
         private final AssessmentRepository assessmentRepository;
         private final QuestionCategoryRepository questionCategoryRepository;
         private final QuestionRepository questionRepository;
+        private final CourseLessonRepository courseLessonRepository;
 
         @Override
         @Transactional
@@ -106,6 +109,7 @@ public class DataInitializer implements CommandLineRunner {
                         initializeProgrammingLanguages();
                         initializeCourses();
                         initializeCohorts();
+                        initializeLessons();
                 }
         }
 
@@ -205,7 +209,10 @@ public class DataInitializer implements CommandLineRunner {
                                                 "UPDATE"),
                                 createPermission("QUESTION_CATEGORY_DELETE", "Delete question categories",
                                                 "QUESTION_CATEGORY",
-                                                "DELETE")
+                                                "DELETE"),
+                                createPermission("LESSON_CREATE", "Create new lessons", "LESSON", "CREATE"),
+                                createPermission("LESSON_UPDATE", "Update existing lessons", "LESSON", "UPDATE"),
+                                createPermission("LESSON_DELETE", "Delete lessons", "LESSON", "DELETE")
 
                 );
                 permissionRepository.saveAll(permissions);
@@ -843,5 +850,55 @@ public class DataInitializer implements CommandLineRunner {
                 }
 
                 log.info("Initialized cohorts for ");
+        }
+
+        private void initializeLessons() {
+                if (courseLessonRepository.count() > 0) {
+                        log.info("Lessons already exist, skipping initialization");
+                        return;
+                }
+
+                // Tìm khóa học Java
+                Course java01 = courseRepository.findAll().stream()
+                                .filter(c -> "JBM-01".equals(c.getCourseCode()))
+                                .findFirst().orElse(null);
+
+                // Tìm khóa học React
+                Course react01 = courseRepository.findAll().stream()
+                                .filter(c -> "RFP-01".equals(c.getCourseCode()))
+                                .findFirst().orElse(null);
+
+                if (java01 != null) {
+                        List<CourseLesson> javaLessons = Arrays.asList(
+                                        createLesson(java01, "Introduction to Spring Boot",
+                                                        "Overview of Spring ecosystem and setup.", 1),
+                                        createLesson(java01, "Spring Data JPA & Hibernate",
+                                                        "Deep dive into database ORM mapping.", 2),
+                                        createLesson(java01, "Spring Security & JWT",
+                                                        "Securing APIs with token-based authentication.", 3));
+                        courseLessonRepository.saveAll(javaLessons);
+                }
+
+                if (react01 != null) {
+                        List<CourseLesson> reactLessons = Arrays.asList(
+                                        createLesson(react01, "React Fundamentals",
+                                                        "Components, Props, and State basics.", 1),
+                                        createLesson(react01, "Hooks & Context API",
+                                                        "Managing global state and side effects.", 2),
+                                        createLesson(react01, "TanStack Query & Axios",
+                                                        "Handling server-side state and API calls.", 3));
+                        courseLessonRepository.saveAll(reactLessons);
+                }
+
+                log.info("Initialized lessons for Java and React courses");
+        }
+
+        private CourseLesson createLesson(Course course, String name, String desc, int order) {
+                return CourseLesson.builder()
+                                .course(course)
+                                .lessonName(name)
+                                .description(desc)
+                                .sortOrder(order)
+                                .build();
         }
 }

@@ -119,7 +119,7 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
                         );
                     }
 
-                    ModuleGroups group = groups.get(0);
+                    ModuleGroups group = groups.getFirst();
                     Module module = new Module();
                     module.setTitle(title);
                     module.setUrl(url);
