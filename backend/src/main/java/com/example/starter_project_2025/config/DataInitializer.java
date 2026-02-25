@@ -212,7 +212,11 @@ public class DataInitializer implements CommandLineRunner {
                                                 "DELETE"),
                                 createPermission("LESSON_CREATE", "Create new lessons", "LESSON", "CREATE"),
                                 createPermission("LESSON_UPDATE", "Update existing lessons", "LESSON", "UPDATE"),
-                                createPermission("LESSON_DELETE", "Delete lessons", "LESSON", "DELETE")
+                                createPermission("LESSON_DELETE", "Delete lessons", "LESSON", "DELETE"),
+                                createPermission("SESSION_CREATE", "Create new sessions", "SESSION", "CREATE"),
+                                createPermission("SESSION_READ", "View sessions", "SESSION", "READ"),
+                                createPermission("SESSION_UPDATE", "Update existing sessions", "SESSION", "UPDATE"),
+                                createPermission("SESSION_DELETE", "Delete sessions", "SESSION", "DELETE")
 
                 );
                 permissionRepository.saveAll(permissions);

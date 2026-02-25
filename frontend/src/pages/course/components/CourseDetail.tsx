@@ -416,11 +416,13 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
         </form>
       )}
 
-        {activeTab === "Cohort" && <CohortTab courseId={course.id} />}
+      {activeTab === "Cohort" && <CohortTab courseId={course.id} />}
 
-        {activeTab === "Outline" && <OutlineTab courseId={course.id} />}
+      {activeTab === "Outline" && <OutlineTab courseId={course.id} />}
 
-        {activeTab !== "Overview" && activeTab !== "Cohort" && activeTab !== "Outline" && (
+      {activeTab !== "Overview" &&
+        activeTab !== "Cohort" &&
+        activeTab !== "Outline" && (
           <div className="text-gray-400 text-sm py-10 text-center border-2 border-dashed rounded-lg">
             This tab ({activeTab}) is being developed by another team.
           </div>

@@ -87,6 +87,12 @@ public class SecurityConfig
                         .requestMatchers(HttpMethod.PUT, "/api/courses/**").hasAuthority("COURSE_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/courses/**").hasAuthority("COURSE_DELETE")
 
+                        .requestMatchers(HttpMethod.GET, "/api/sessions/**").hasAuthority("SESSION_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/sessions").hasAuthority("SESSION_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/sessions/**").hasAuthority("SESSION_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/sessions/**").hasAuthority("SESSION_DELETE")
+
+                        
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
