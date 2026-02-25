@@ -4,15 +4,20 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { Plus } from "lucide-react";
 
-import { useMockLessons } from "@/hooks/useMockLessons";
+import { lessonApi, type Lesson } from "@/api/lessonApi";
 import { sessionService } from "@/api/sessionService";
 import type { SessionResponse } from "@/types/session";
 
 import SessionList from "./SessionList";
 import SessionSidePanel, { type SessionSidePanelMode } from "./SessionSidePanel";
 
-export default function CourseOutline() {
-  const { lessons } = useMockLessons();
+type Props = {
+  courseId?: string;
+};
+
+export default function CourseOutline({ courseId }: Props) {
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [lessonsLoading, setLessonsLoading] = useState(false);
 
   // Do not expand any lesson by default.
   // Sessions are only shown (and loaded) when user expands a lesson.
@@ -25,6 +30,35 @@ export default function CourseOutline() {
   const [panelMode, setPanelMode] = useState<SessionSidePanelMode>("create");
   const [panelLessonId, setPanelLessonId] = useState<string | null>(null);
   const [editingSession, setEditingSession] = useState<SessionResponse | null>(null);
+
+  useEffect(() => {
+    if (!courseId) {
+      setLessons([]);
+      setActiveLessonId(undefined);
+      return;
+    }
+
+    let cancelled = false;
+    setLessonsLoading(true);
+    lessonApi
+      .getByCourseId(courseId)
+      .then((data) => {
+        if (cancelled) return;
+        setLessons(data);
+        if (activeLessonId && !data.some((l) => l.id === activeLessonId)) {
+          setActiveLessonId(undefined);
+        }
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLessonsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseId]);
 
   const loadSessions = async (lessonId: string) => {
     setLoadingByLesson((p) => ({ ...p, [lessonId]: true }));
@@ -62,6 +96,12 @@ export default function CourseOutline() {
           />
         </div>
 
+        {!courseId ? (
+          <div className="text-sm text-muted-foreground">Select a course to view lessons.</div>
+        ) : lessonsLoading ? (
+          <div className="text-sm text-muted-foreground">Loading lessons...</div>
+        ) : null}
+
         <Accordion
           type="single"
           collapsible
@@ -73,7 +113,7 @@ export default function CourseOutline() {
             <AccordionItem key={lesson.id} value={lesson.id}>
               <AccordionTrigger>
                 <div className="flex flex-1 items-center justify-between pr-2">
-                  <span className="text-base font-semibold">{lesson.title}</span>
+                  <span className="text-base font-semibold">{lesson.lessonName}</span>
                 </div>
               </AccordionTrigger>
 
@@ -103,6 +143,7 @@ export default function CourseOutline() {
         open={panelOpen}
         onOpenChange={setPanelOpen}
         mode={panelMode}
+        courseId={courseId}
         initialSession={editingSession}
         defaultLessonId={panelMode === "create" ? panelLessonId : null}
         onSaved={(saved) => {

@@ -37,6 +37,6 @@ public class Session {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id", nullable = false)
-    private Lesson lesson;
+    private CourseLesson lesson;
 }
 

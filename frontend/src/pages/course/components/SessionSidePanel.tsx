@@ -17,7 +17,7 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: SessionSidePanelMode;
-  courseId?: string;
+  courseId: string;
   /** Prefill when editing */
   initialSession?: SessionResponse | null;
   /** Preselect when creating from a lesson context */
@@ -45,7 +45,7 @@ const EMPTY_FORM: FormState = {
   sessionOrder: "",
 };
 
-export default function SessionSidePanel({
+export function SessionSidePanel({
   open,
   onOpenChange,
   mode,
@@ -114,7 +114,6 @@ export default function SessionSidePanel({
       return;
     }
 
-    // create mode
     setForm({
       ...EMPTY_FORM,
       lessonId: defaultLessonId ?? "",
@@ -147,7 +146,11 @@ export default function SessionSidePanel({
       return;
     }
     if (!form.sessionOrder) {
-      toast({ title: "Validation", description: "Session Order is required.", variant: "destructive" });
+      toast({
+        title: "Validation",
+        description: "Session Order is required.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -164,7 +167,7 @@ export default function SessionSidePanel({
     const payload: SessionRequest = {
       lessonId: form.lessonId,
       sessionOrder,
-      topic: form.topic || "", // backend requires topic
+      topic: form.topic || "",
       ...(form.type ? { type: form.type } : {}),
       ...(form.studentTasks ? { studentTasks: form.studentTasks } : {}),
     };
@@ -183,7 +186,7 @@ export default function SessionSidePanel({
 
       onSaved?.(saved);
       onOpenChange(false);
-    } catch (e) {
+    } catch {
       toast({
         title: "Save failed",
         description: "Could not save session. Please check inputs and try again.",
@@ -202,7 +205,6 @@ export default function SessionSidePanel({
         </SheetHeader>
 
         <div className="p-4 grid gap-4">
-          {/* Lesson */}
           <div className="grid gap-2">
             <Label htmlFor="lessonId">
               Lesson <span className="text-red-500">*</span>
@@ -213,7 +215,7 @@ export default function SessionSidePanel({
               onChange={(e) => setForm((p) => ({ ...p, lessonId: e.target.value }))}
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               required
-              disabled={lessonsLoading}
+              disabled={!!lessonsLoading}
             >
               <option value="" disabled>
                 {lessonsLoading ? "Loading lessons..." : "Select Lesson"}
@@ -226,7 +228,6 @@ export default function SessionSidePanel({
             </select>
           </div>
 
-          {/* Type */}
           <div className="grid gap-2">
             <Label htmlFor="type">Learning/Teaching Type</Label>
             <select
@@ -244,7 +245,6 @@ export default function SessionSidePanel({
             </select>
           </div>
 
-          {/* Topic */}
           <div className="grid gap-2">
             <Label htmlFor="topic">Topic</Label>
             <Input
@@ -255,7 +255,6 @@ export default function SessionSidePanel({
             />
           </div>
 
-          {/* Student Tasks */}
           <div className="grid gap-2">
             <Label htmlFor="studentTasks">Student Tasks</Label>
             <textarea
@@ -267,7 +266,6 @@ export default function SessionSidePanel({
             />
           </div>
 
-          {/* Session Order */}
           <div className="grid gap-2">
             <Label htmlFor="sessionOrder">
               Session Order <span className="text-red-500">*</span>

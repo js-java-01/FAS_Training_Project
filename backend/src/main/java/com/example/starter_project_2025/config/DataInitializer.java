@@ -139,17 +139,14 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("COHORT_UPDATE", "Update existing cohorts", "COHORT", "UPDATE"),
                 createPermission("COHORT_DELETE", "Delete cohorts", "COHORT", "DELETE"),
                 createPermission("ENROLL_COURSE", "Enroll into a course cohort", "ENROLLMENT", "CREATE"),
-<<<<<<< Updated upstream
                 createPermission("LESSON_CREATE", "Create new lessons", "LESSON", "CREATE"),
                 createPermission("LESSON_UPDATE", "Update existing lessons", "LESSON", "UPDATE"),
-                createPermission("LESSON_DELETE", "Delete lessons", "LESSON", "DELETE"));
+                createPermission("LESSON_DELETE", "Delete lessons", "LESSON", "DELETE"),
                 
-=======
                 createPermission("SESSION_CREATE", "Create new sessions", "SESSION", "CREATE"),
                 createPermission("SESSION_READ", "View sessions", "SESSION", "READ"),
                 createPermission("SESSION_UPDATE", "Update existing sessions", "SESSION", "UPDATE"),
                 createPermission("SESSION_DELETE", "Delete sessions", "SESSION", "DELETE"));
->>>>>>> Stashed changes
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }

@@ -4,9 +4,11 @@ import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.course.dto.SessionRequest;
 import com.example.starter_project_2025.system.course.dto.SessionResponse;
-import com.example.starter_project_2025.system.course.entity.Lesson;
+import com.example.starter_project_2025.system.course.entity.CourseLesson;
+
 import com.example.starter_project_2025.system.course.entity.Session;
-import com.example.starter_project_2025.system.course.repository.LessonRepository;
+import com.example.starter_project_2025.system.course.repository.CourseLessonRepository;
+
 import com.example.starter_project_2025.system.course.repository.SessionRepository;
 import com.example.starter_project_2025.system.course.enums.SessionType;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,7 @@ import java.util.UUID;
 public class SessionService {
 
     private final SessionRepository sessionRepository;
-    private final LessonRepository lessonRepository;
+    private final CourseLessonRepository lessonRepository;
 
     @PreAuthorize("hasAuthority('SESSION_CREATE') or hasRole('ADMIN')")
     public SessionResponse createSession(SessionRequest request) {
@@ -31,7 +33,7 @@ public class SessionService {
             throw new BadRequestException("Thứ tự session đã tồn tại trong lesson này.");
         }
 
-        Lesson lesson = lessonRepository.findById(request.getLessonId())
+        CourseLesson lesson = lessonRepository.findById(request.getLessonId())
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson", "id", request.getLessonId()));
 
         Session session = new Session();
@@ -49,7 +51,7 @@ public class SessionService {
         mapRequestToEntity(request, session);
         
         if (request.getLessonId() != null && !request.getLessonId().equals(session.getLesson().getId())) {
-            Lesson newLesson = lessonRepository.findById(request.getLessonId())
+            CourseLesson newLesson = lessonRepository.findById(request.getLessonId())
                     .orElseThrow(() -> new ResourceNotFoundException("Lesson", "id", request.getLessonId()));
             session.setLesson(newLesson);
         }
