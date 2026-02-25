@@ -128,6 +128,13 @@ public class MfaService {
     }
 
     /**
+     * Check if user has MFA credential (even if disabled)
+     */
+    public boolean hasCredential(UUID userId) {
+        return mfaCredentialRepository.findByUserId(userId).isPresent();
+    }
+
+    /**
      * Custom exception for locked accounts
      */
     public static class MfaLockedException extends RuntimeException {

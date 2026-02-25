@@ -184,6 +184,44 @@ public class MfaController {
     }
 
     /**
+     * POST /mfa/enable
+     * Re-enable MFA without changing secret (requires verification)
+     */
+    @PostMapping("/enable")
+    public ResponseEntity<MfaVerifyResponse> enableMfa(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @Valid @RequestBody MfaVerifyRequest request
+    ) {
+        try {
+            // Verify code before enabling
+            boolean isValid = mfaService.verifyCode(userDetails.getId(), request.getCode());
+
+            if (isValid) {
+                mfaService.enableMfa(userDetails.getId());
+                return ResponseEntity.ok(MfaVerifyResponse.builder()
+                        .success(true)
+                        .message("MFA enabled successfully")
+                        .build());
+            } else {
+                return ResponseEntity.badRequest().body(MfaVerifyResponse.builder()
+                        .success(false)
+                        .message("Invalid code")
+                        .build());
+            }
+        } catch (MfaService.MfaLockedException e) {
+            return ResponseEntity.status(423).body(MfaVerifyResponse.builder()
+                    .success(false)
+                    .message(e.getMessage())
+                    .build());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(MfaVerifyResponse.builder()
+                    .success(false)
+                    .message("MFA not set up. Please initialize MFA first.")
+                    .build());
+        }
+    }
+
+    /**
      * GET /mfa/status
      * Check if MFA is enabled for current user
      */
@@ -192,9 +230,11 @@ public class MfaController {
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         boolean enabled = mfaService.isMfaEnabled(userDetails.getId());
+        boolean hasCredential = mfaService.hasCredential(userDetails.getId());
+        
         return ResponseEntity.ok(MfaVerifyResponse.builder()
                 .success(enabled)
-                .message(enabled ? "MFA is enabled" : "MFA is not enabled")
+                .message(enabled ? "MFA is enabled" : (hasCredential ? "MFA is disabled but was previously set up" : "MFA is not enabled"))
                 .build());
     }
 

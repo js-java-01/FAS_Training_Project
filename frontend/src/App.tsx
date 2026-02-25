@@ -67,6 +67,11 @@ function App() {
 
   return (
     <BrowserRouter>
+      <MfaPromptModal 
+        open={showMfaModal}
+        onStepUpSuccess={handleMfaSuccess}
+        onCancel={handleMfaCancel}
+      />
 
       <Toaster
         duration={1500}

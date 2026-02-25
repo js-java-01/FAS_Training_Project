@@ -44,6 +44,11 @@ const mfaApi = {
     const response = await axiosInstance.post<MfaVerifyResponse>("/mfa/disable", { code });
     return response.data;
   },
+
+  enable: async (code: string): Promise<MfaVerifyResponse> => {
+    const response = await axiosInstance.post<MfaVerifyResponse>("/mfa/enable", { code });
+    return response.data;
+  },
 };
 
 export default mfaApi;

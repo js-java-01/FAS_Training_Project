@@ -36,7 +36,6 @@ public class MfaStepUpFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // Skip MFA check for certain paths
         String path = request.getRequestURI();
         String method = request.getMethod();
         
@@ -47,16 +46,20 @@ public class MfaStepUpFilter extends OncePerRequestFilter {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // Skip if not authenticated
         if (authentication == null || !authentication.isAuthenticated()) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Only check for ADMIN role
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(auth -> auth.equals("ROLE_ADMIN") || auth.equals("ADMIN"));
+        Object principal = authentication.getPrincipal();
+        
+        // Check if user is ADMIN by role field
+        boolean isAdmin = false;
+        if (principal instanceof UserDetailsImpl) {
+            UserDetailsImpl userDetails = (UserDetailsImpl) principal;
+            String role = userDetails.getRole();
+            isAdmin = "ADMIN".equalsIgnoreCase(role);
+        }
 
         if (!isAdmin) {
             filterChain.doFilter(request, response);
@@ -64,33 +67,27 @@ public class MfaStepUpFilter extends OncePerRequestFilter {
         }
 
         // Check if user has MFA enabled
-        Object principal = authentication.getPrincipal();
         if (principal instanceof UserDetailsImpl) {
             UserDetailsImpl userDetails = (UserDetailsImpl) principal;
             boolean mfaEnabled = mfaService.isMfaEnabled(userDetails.getId());
 
-            // Only enforce MFA if user has it enabled
             if (!mfaEnabled) {
                 filterChain.doFilter(request, response);
                 return;
             }
         }
 
-        // Check if this is a sensitive operation
-        boolean isSensitive = isSensitiveOperation(authentication);
+        // Check if this is a sensitive operation based on HTTP method
+        boolean isSensitive = isSensitiveOperation(method);
         
         if (isSensitive) {
-            // Extract JWT token
             String token = extractToken(request);
             if (token == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            // Extract jti from token
             String jti = jwtUtil.extractJti(token);
-
-            // Check if step-up is valid
             boolean isValid = mfaSessionService.isStepUpValid(jti);
             
             if (!isValid) {
@@ -112,16 +109,12 @@ public class MfaStepUpFilter extends OncePerRequestFilter {
                path.startsWith("/register");
     }
 
-    private boolean isSensitiveOperation(Authentication authentication) {
-        return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(auth ->
-                        auth.endsWith("_CREATE") ||
-                        auth.endsWith("_UPDATE") ||
-                        auth.endsWith("_DELETE") ||
-                        auth.endsWith("_ASSIGN") ||
-                        auth.endsWith("_ACTIVATE")
-                );
+    private boolean isSensitiveOperation(String method) {
+        // Only require MFA step-up for write operations
+        return "POST".equalsIgnoreCase(method) ||
+               "PUT".equalsIgnoreCase(method) ||
+               "DELETE".equalsIgnoreCase(method) ||
+               "PATCH".equalsIgnoreCase(method);
     }
 
     private String extractToken(HttpServletRequest request) {
