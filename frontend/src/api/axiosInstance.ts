@@ -52,11 +52,4 @@ axiosInstance.interceptors.response.use(
     },
 );
 
-export const exportFileApi = (url: string, format: ExportFormat) => {
-    return axiosInstance.get(url, {
-        params: { format },
-        responseType: "blob",
-    });
-};
-
 export default axiosInstance;

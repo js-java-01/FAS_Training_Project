@@ -1,7 +1,7 @@
-package com.example.starter_project_2025.system.export.exporter;
+package com.example.starter_project_2025.system.dataio.exporter.variant;
 
-import com.example.starter_project_2025.system.export.ExportFormat;
-import com.example.starter_project_2025.system.export.components.ExportSheetConfig;
+import com.example.starter_project_2025.system.dataio.FileFormat;
+import com.example.starter_project_2025.system.dataio.exporter.components.ExportSheetConfig;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface Exporter {
 
-    ExportFormat format();
+    FileFormat format();
 
     <T> void export(
             List<T> data,

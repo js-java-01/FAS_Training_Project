@@ -1,0 +1,48 @@
+package com.example.starter_project_2025.system.dataio.importer.controller;
+
+import com.example.starter_project_2025.system.dataio.importer.service.ImportTemplateService;
+import com.example.starter_project_2025.system.user.entity.User;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/import")
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class ImportTemplateController {
+
+    ImportTemplateService templateService;
+
+    Map<String, Class<?>> entityMap = Map.of(
+            "user", User.class
+    );
+
+    @GetMapping("/template")
+    public ResponseEntity<byte[]> downloadTemplate(
+            @RequestParam String entity) {
+
+        Class<?> clazz = entityMap.get(entity.toLowerCase());
+
+        if (clazz == null) {
+            throw new RuntimeException("Unknown entity");
+        }
+
+        byte[] file = templateService.generateTemplate(clazz);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=" + entity + "-template.xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(file);
+    }
+}

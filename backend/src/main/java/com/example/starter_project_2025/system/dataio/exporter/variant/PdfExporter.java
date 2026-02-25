@@ -1,8 +1,8 @@
-package com.example.starter_project_2025.system.export.exporter;
+package com.example.starter_project_2025.system.dataio.exporter.variant;
 
-import com.example.starter_project_2025.system.export.ExportFormat;
-import com.example.starter_project_2025.system.export.components.ExportColumn;
-import com.example.starter_project_2025.system.export.components.ExportSheetConfig;
+import com.example.starter_project_2025.system.dataio.FileFormat;
+import com.example.starter_project_2025.system.dataio.exporter.components.ExportColumn;
+import com.example.starter_project_2025.system.dataio.exporter.components.ExportSheetConfig;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -17,8 +17,8 @@ import java.util.List;
 public class PdfExporter implements Exporter {
 
     @Override
-    public ExportFormat format() {
-        return ExportFormat.PDF;
+    public FileFormat format() {
+        return FileFormat.PDF;
     }
 
     @Override
@@ -32,17 +32,17 @@ public class PdfExporter implements Exporter {
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
 
-        Table table = new Table(config.getColumns().size());
+        Table table = new Table(config.columns().size());
 
         // Header
-        for (ExportColumn<T> col : config.getColumns()) {
-            table.addHeaderCell(col.getHeader());
+        for (ExportColumn<T> col : config.columns()) {
+            table.addHeaderCell(col.header());
         }
 
         // Data
         for (T item : data) {
-            for (ExportColumn<T> col : config.getColumns()) {
-                Object v = col.getValueExtractor().apply(item);
+            for (ExportColumn<T> col : config.columns()) {
+                Object v = col.valueExtractor().apply(item);
                 table.addCell(v != null ? v.toString() : "");
             }
         }

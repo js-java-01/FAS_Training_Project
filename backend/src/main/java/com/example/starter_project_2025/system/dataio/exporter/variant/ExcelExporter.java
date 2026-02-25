@@ -1,7 +1,7 @@
-package com.example.starter_project_2025.system.export.exporter;
+package com.example.starter_project_2025.system.dataio.exporter.variant;
 
-import com.example.starter_project_2025.system.export.ExportFormat;
-import com.example.starter_project_2025.system.export.components.ExportSheetConfig;
+import com.example.starter_project_2025.system.dataio.FileFormat;
+import com.example.starter_project_2025.system.dataio.exporter.components.ExportSheetConfig;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -16,8 +16,8 @@ import java.util.List;
 public class ExcelExporter implements Exporter {
 
     @Override
-    public ExportFormat format() {
-        return ExportFormat.EXCEL;
+    public FileFormat format() {
+        return FileFormat.EXCEL;
     }
 
     @Override
@@ -28,13 +28,13 @@ public class ExcelExporter implements Exporter {
     ) throws IOException {
 
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet(config.getSheetName());
+        Sheet sheet = workbook.createSheet(config.sheetName());
 
         // Header
         Row headerRow = sheet.createRow(0);
-        for (int i = 0; i < config.getColumns().size(); i++) {
+        for (int i = 0; i < config.columns().size(); i++) {
             headerRow.createCell(i)
-                    .setCellValue(config.getColumns().get(i).getHeader());
+                    .setCellValue(config.columns().get(i).header());
         }
 
         // Data
@@ -42,10 +42,10 @@ public class ExcelExporter implements Exporter {
             T item = data.get(i);
             Row row = sheet.createRow(i + 1);
 
-            for (int j = 0; j < config.getColumns().size(); j++) {
+            for (int j = 0; j < config.columns().size(); j++) {
                 Object value =
-                        config.getColumns().get(j)
-                                .getValueExtractor()
+                        config.columns().get(j)
+                                .valueExtractor()
                                 .apply(item);
 
                 row.createCell(j)

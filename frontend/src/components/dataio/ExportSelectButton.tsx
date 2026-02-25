@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Download, FileText, FileSpreadsheet, FileBarChart } from "lucide-react";
 
 type Props = {
-    exportUrl: string;
+    apiUrl: string;
     filenameMap?: Record<ExportFormat, string>;
 };
 
@@ -23,26 +23,23 @@ const exportOptions = [
         label: "Excel",
         description: "Download as Excel file (.xlsx)",
         icon: FileSpreadsheet,
-        color: "text-green-600",
     },
     {
         format: "CSV" as ExportFormat,
         label: "CSV",
         description: "Download as CSV file (.csv)",
         icon: FileText,
-        color: "text-blue-600",
     },
     {
         format: "PDF" as ExportFormat,
         label: "PDF",
         description: "Download as PDF file (.pdf)",
         icon: FileBarChart,
-        color: "text-red-600",
     },
 ];
 
-export function ExportSelectButton({ exportUrl, filenameMap = DEFAULT_FILENAME_MAP }: Props) {
-    const { exportFile, loading } = useExport(exportUrl, filenameMap);
+export function ExportSelectButton({ apiUrl, filenameMap = DEFAULT_FILENAME_MAP }: Props) {
+    const { exportFile, loading } = useExport(apiUrl, filenameMap);
     const [open, setOpen] = useState(false);
     const [selectedFormat, setSelectedFormat] = useState<ExportFormat | null>(null);
 
@@ -72,15 +69,15 @@ export function ExportSelectButton({ exportUrl, filenameMap = DEFAULT_FILENAME_M
                         return (
                             <Card
                                 key={option.format}
-                                className={`p-3 cursor-pointer transition-all hover:shadow-md ${
+                                className={`p-3 cursor-pointer transition-all hover:bg-gray-100 ${
                                     selectedFormat === option.format
-                                        ? "ring-2 ring-primary border-primary"
+                                        ? "ring-1 ring-primary bg-gray-100"
                                         : "border-border hover:border-primary/50"
                                 }`}
                                 onClick={() => setSelectedFormat(option.format)}
                             >
                                 <div className="flex items-center gap-3">
-                                    <IconComponent className={`h-8 w-8 ${option.color}`} />
+                                    <IconComponent className="h-8 w-8 text-gray-500" />
                                     <div className="flex-1">
                                         <h4 className="font-medium text-sm">{option.label}</h4>
                                         <p className="text-xs text-muted-foreground mt-1">{option.description}</p>

@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { downloadBlob } from "@/utils/downloadBlob";
+import { exportFileApi } from "@/api/dataio-api";
 import type { ExportFormat } from "@/types/export";
-import { exportFileApi } from "@/api/axiosInstance";
+import { downloadBlob } from "@/utils/downloadBlob";
+import { useState } from "react";
 
 type FilenameMap = Record<ExportFormat, string>;
 

@@ -2,8 +2,12 @@ package com.example.starter_project_2025.system.user.entity;
 
 import com.example.starter_project_2025.system.assessment.entity.Submission;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.dataio.importer.components.ImportColumn;
+import com.example.starter_project_2025.system.dataio.importer.components.ImportDefault;
+import com.example.starter_project_2025.system.dataio.importer.resolver.RoleLookupResolver;
 import com.example.starter_project_2025.system.trainer_course.entity.TrainerCourse;
 import com.example.starter_project_2025.system.user_role.entity.UserRole;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -34,18 +38,22 @@ public class User
     UUID id;
 
     @Column(unique = true, nullable = false, length = 255)
+    @ImportColumn(header = "Email", required = true)
     String email;
 
     @Column(nullable = false)
+    @ImportDefault("password123")
     String passwordHash;
 
     @Column(nullable = false, length = 100)
+    @ImportColumn(header = "FirstName", required = true)
     String firstName;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     String lastName;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ImportColumn(header = "Role",  required = true, resolver = RoleLookupResolver.class)
     Set<UserRole> userRoles;
 
     @OneToMany(mappedBy = "trainer")
@@ -61,6 +69,7 @@ public class User
     private Set<Submission> submissions;
 
     @Column(nullable = false)
+    @ImportDefault("true")
     Boolean isActive = true;
 
     @CreationTimestamp

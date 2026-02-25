@@ -1,7 +1,8 @@
-package com.example.starter_project_2025.system.export;
+package com.example.starter_project_2025.system.dataio.exporter.service;
 
-import com.example.starter_project_2025.system.export.components.ExportSheetConfig;
-import com.example.starter_project_2025.system.export.exporter.Exporter;
+import com.example.starter_project_2025.system.dataio.exporter.components.ExportSheetConfig;
+import com.example.starter_project_2025.system.dataio.FileFormat;
+import com.example.starter_project_2025.system.dataio.exporter.variant.Exporter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -14,17 +15,18 @@ import java.util.stream.Collectors;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class ExportService {
+public class GenericExportService implements ExportService {
 
-    Map<ExportFormat, Exporter> exporters;
+    Map<FileFormat, Exporter> exporters;
 
-    public ExportService(List<Exporter> exporterList) {
+    public GenericExportService(List<Exporter> exporterList) {
         this.exporters = exporterList.stream()
                 .collect(Collectors.toMap(Exporter::format, e -> e));
     }
 
+    @Override
     public <T> void export(
-            ExportFormat format,
+            FileFormat format,
             List<T> data,
             ExportSheetConfig<T> config,
             HttpServletResponse response
@@ -41,7 +43,7 @@ public class ExportService {
     }
 
     private void setResponseHeader(
-            ExportFormat format,
+            FileFormat format,
             HttpServletResponse response
     ) {
         switch (format) {
