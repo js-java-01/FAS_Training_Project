@@ -133,7 +133,7 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Import module groups failed");
+            throw new RuntimeException("Import module groups failed. Maybe wrong template format?", e);
         }
 
         return result;
