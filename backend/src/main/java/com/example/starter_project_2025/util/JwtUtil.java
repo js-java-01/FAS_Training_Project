@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -51,18 +52,22 @@ public class JwtUtil
         System.out.println("token: " + userDetails.getEmail());
         System.out.println("Permissions in token: " + permissions);
 
+        // Add a unique JWT ID (jti) so we can reference this token for step-up sessions
+        String jti = UUID.randomUUID().toString();
+
         return Jwts.builder()
-                .setSubject(userDetails.getEmail())
-                .claim("userId", userDetails.getId().toString())
-                .claim("role", userDetails.getRole())
-                .claim("permissions", permissions)
-                .claim("email", userDetails.getEmail())
-                .claim("firstName", userDetails.getFirstName())
-                .claim("lastName", userDetails.getLastName())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
-                .compact();
+            .setId(jti)
+            .setSubject(userDetails.getEmail())
+            .claim("userId", userDetails.getId().toString())
+            .claim("role", userDetails.getRole())
+            .claim("permissions", permissions)
+            .claim("email", userDetails.getEmail())
+            .claim("firstName", userDetails.getFirstName())
+            .claim("lastName", userDetails.getLastName())
+            .setIssuedAt(now)
+            .setExpiration(expiryDate)
+            .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+            .compact();
     }
 
     public String generateRtToken(UserDetailsImpl userDetails)
@@ -70,14 +75,18 @@ public class JwtUtil
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
 
+        // Also set a jti for refresh tokens for consistency
+        String jti = UUID.randomUUID().toString();
+
         return Jwts.builder()
-                .setSubject(userDetails.getEmail())
-                .claim("userId", userDetails.getId().toString())
-                .claim("role", userDetails.getRole())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
-                .compact();
+            .setId(jti)
+            .setSubject(userDetails.getEmail())
+            .claim("userId", userDetails.getId().toString())
+            .claim("role", userDetails.getRole())
+            .setIssuedAt(now)
+            .setExpiration(expiryDate)
+            .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+            .compact();
     }
 
     public UserDetailsImpl getUserDetailsFromToken(String token)

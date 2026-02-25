@@ -60,7 +60,7 @@ public class SecurityConfig
                         .requestMatchers("/api/assessments/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/locations/**").permitAll()
+//                        .requestMatchers("/api/locations/**").permitAll()
                         
                         // MFA endpoints
                         .requestMatchers("/mfa/**", "/api/mfa/**").authenticated()

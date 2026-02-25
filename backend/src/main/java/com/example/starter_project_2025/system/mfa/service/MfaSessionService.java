@@ -16,9 +16,14 @@ public class MfaSessionService {
      * Valid for 5 minutes
      */
     public void markStepUp(String jti) {
+        if (jti == null || jti.isEmpty()) {
+            System.out.println("[MFA_SESSION] markStepUp called with null/empty jti - ignoring");
+            return;
+        }
+
         Instant expiry = Instant.now().plus(5, ChronoUnit.MINUTES);
         stepUpStore.put(jti, expiry);
-        
+
         // Clean up expired entries periodically
         cleanupExpired();
     }
