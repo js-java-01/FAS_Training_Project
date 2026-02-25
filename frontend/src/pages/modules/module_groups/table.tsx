@@ -4,25 +4,23 @@ import { useQueryClient } from "@tanstack/react-query";
 import { DatabaseBackup, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
-
-import { DataTable } from "@/components/data_table/DataTable";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-
 import type { ModuleGroup } from "@/types/module";
 import { moduleGroupApi } from "@/api/moduleApi";
 import { useGetAllModuleGroups } from "@/pages/modules/module_groups/services/queries";
-
 import { getColumns } from "./column";
 import { ModuleGroupForm } from "./form";
 import type { ModuleGroupDto } from "./form";
 import { ModuleGroupDetailDialog } from "./DetailDialog";
-import ImportExportModal from "@/components/modal/ImportExportModal";
+import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import {
   useDownloadTemplate,
   useExportModuleGroup,
   useImportModuleGroup,
 } from "@/pages/modules/module_groups/services/mutations";
+import { FacetedFilter } from "@/components/FacedFilter";
+import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 
 /* ======================================================= */
 
@@ -40,6 +38,13 @@ export default function ModuleGroupsTable() {
   const [deleting, setDeleting] = useState<ModuleGroup | null>(null);
   const [viewingGroup, setViewingGroup] = useState<ModuleGroup | null>(null);
   const [openBackupModal, setOpenBackupModal] = useState(false);
+
+  /* ---------- faced filter ---------- */
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+
+  /* ---------- filter param (server side) ---------- */
+  const statusParam =
+    statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
 
   const { mutateAsync: importModuleGroup } = useImportModuleGroup();
   const { mutateAsync: exportModuleGroup } = useExportModuleGroup();
@@ -59,12 +64,12 @@ export default function ModuleGroupsTable() {
     data: tableData,
     isLoading,
     isFetching,
-    refetch: reload,
   } = useGetAllModuleGroups({
     page: pageIndex,
     pageSize,
     sort: sortParam,
     keyword: debouncedSearch,
+    isActive: statusParam,
   });
 
   const safeTableData = useMemo(
@@ -75,7 +80,7 @@ export default function ModuleGroupsTable() {
       totalPages: tableData?.pagination?.totalPages ?? 0,
       totalElements: tableData?.pagination?.totalElements ?? 0,
     }),
-    [tableData, pageIndex, pageSize]
+    [tableData, pageIndex, pageSize],
   );
 
   /* ===================== COLUMNS ===================== */
@@ -95,14 +100,15 @@ export default function ModuleGroupsTable() {
         },
         onDelete: setDeleting,
       }),
-    []
+    [],
   );
 
   /* ===================== HANDLERS ===================== */
-  const invalidateModuleGroups = async () => {
-    await queryClient.invalidateQueries({
-      queryKey: ["module-groups"],
-    });
+  const invalidateAll = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["modules"] }), // update table
+      queryClient.invalidateQueries({ queryKey: ["module-groups", "active"] }), // update sidebar
+    ]);
   };
 
   const handleSaved = async (saved: ModuleGroupDto) => {
@@ -115,8 +121,7 @@ export default function ModuleGroupsTable() {
         toast.success("Created successfully");
       }
 
-      await invalidateModuleGroups();
-      await reload();
+      await invalidateAll();
 
       setOpenForm(false);
       setEditing(null);
@@ -133,8 +138,7 @@ export default function ModuleGroupsTable() {
       await moduleGroupApi.deleteModuleGroup(deleting.id);
       toast.success("Deleted successfully");
 
-      await invalidateModuleGroups();
-      await reload();
+      await invalidateAll();
     } catch (err) {
       console.error(err);
       toast.error("Delete failed");
@@ -149,10 +153,11 @@ export default function ModuleGroupsTable() {
       await importModuleGroup(file);
       toast.success("Import module groups successfully");
       setOpenBackupModal(false);
-      await invalidateModuleGroups();
-      await reload();
+      await invalidateAll();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Failed to import module groups");
+      toast.error(
+        err?.response?.data?.message ?? "Failed to import module groups",
+      );
       throw err;
     }
   };
@@ -191,24 +196,29 @@ export default function ModuleGroupsTable() {
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
-      <DataTable<ModuleGroup, unknown>
+      <ServerDataTable<ModuleGroup, unknown>
         columns={columns as ColumnDef<ModuleGroup, unknown>[]}
         data={safeTableData.items}
         isLoading={isLoading}
         isFetching={isFetching}
-        manualPagination
+
+        /* PAGINATION */
         pageIndex={safeTableData.page}
         pageSize={safeTableData.pageSize}
         totalPage={safeTableData.totalPages}
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
+
+        /* SEARCH */
         isSearch
-        manualSearch
         searchPlaceholder="module group name"
         onSearchChange={setSearchValue}
+
+        /* SORTING */
         sorting={sorting}
         onSortingChange={setSorting}
-        manualSorting
+
+        /* ACTIONS */
         headerActions={
           <div className="flex gap-2">
             <Button
@@ -218,6 +228,7 @@ export default function ModuleGroupsTable() {
               <DatabaseBackup className="h-4 w-4" />
               Import / Export
             </Button>
+
             <Button
               onClick={() => {
                 setEditing(null);
@@ -230,8 +241,20 @@ export default function ModuleGroupsTable() {
             </Button>
           </div>
         }
-      />
 
+        facetedFilters={
+         <div> <FacetedFilter
+           title="Status"
+           options={[
+             { value: "ACTIVE", label: "Active" },
+             { value: "INACTIVE", label: "Inactive" },
+           ]}
+           value={statusFilter}
+           setValue={setStatusFilter}
+           multiple={false}
+         /></div>
+        }
+      />
       <ModuleGroupForm
         open={openForm}
         initial={editing}

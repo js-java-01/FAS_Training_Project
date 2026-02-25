@@ -4,6 +4,7 @@ import com.example.starter_project_2025.system.assessment.entity.Submission;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.trainer_course.entity.TrainerCourse;
 import com.example.starter_project_2025.system.user_role.entity.UserRole;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
