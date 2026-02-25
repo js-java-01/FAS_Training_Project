@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useForm, type Resolver } from "react-hook-form"; 
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -70,7 +70,7 @@ export const ModuleGroupForm: React.FC<{
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as unknown as Resolver<FormValues>, 
+    resolver: zodResolver(formSchema) as unknown as Resolver<FormValues>,
     defaultValues: {
       name: "",
       description: "",
@@ -171,22 +171,22 @@ export const ModuleGroupForm: React.FC<{
 
           <div className="grid gap-4 py-4">
             {serverError && (
-              <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded p-3">
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
                 {serverError}
               </div>
             )}
 
             {/* Name */}
             <div className="space-y-1">
-              <label className="text-sm font-medium text-muted-foreground">
+              <label className="text-sm font-medium text-gray-700">
                 Name <span className="text-red-500">*</span>
               </label>
               <input
                 {...register("name")}
-                className={`w-full px-3 py-2 border border-border rounded-md outline-none bg-background text-foreground transition
+                className={`w-full px-3 py-2 border rounded-md outline-none transition
                   ${errors.name
-                      ? "border-red-500 focus:ring-red-200"
-                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
+                    ? "border-red-500 focus:ring-red-200"
+                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
                 placeholder="Enter module group name"
               />
               {errors.name && (
@@ -196,16 +196,16 @@ export const ModuleGroupForm: React.FC<{
 
             {/* Description */}
             <div className="space-y-1">
-              <label className="text-sm font-medium text-muted-foreground">
+              <label className="text-sm font-medium text-gray-700">
                 Description <span className="text-red-500">*</span>
               </label>
               <textarea
                 {...register("description")}
                 rows={3}
-                className={`w-full px-3 py-2 border border-border rounded-md outline-none bg-background text-foreground transition resize-none
+                className={`w-full px-3 py-2 border rounded-md outline-none transition resize-none
                   ${errors.description
-                      ? "border-red-500 focus:ring-red-200"
-                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
+                    ? "border-red-500 focus:ring-red-200"
+                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
                 placeholder="Short description..."
               />
               {errors.description && (
@@ -218,17 +218,16 @@ export const ModuleGroupForm: React.FC<{
             {/* Order + Status Row */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-sm font-medium text-muted-foreground">
+                <label className="text-sm font-medium text-gray-700">
                   Order <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
                   {...register("displayOrder")}
-                  className={`w-full px-3 py-2 border border-border rounded-md outline-none bg-background text-foreground transition
-                    ${
-                      errors.displayOrder
-                        ? "border-red-500 focus:ring-red-200"
-                        : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={`w-full px-3 py-2 border rounded-md outline-none transition
+                    ${errors.displayOrder
+                      ? "border-red-500 focus:ring-red-200"
+                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     }`}
                   placeholder={`Max: ${maxAllowedOrder}`}
                 />
@@ -238,7 +237,7 @@ export const ModuleGroupForm: React.FC<{
                   </p>
                 )}
                 {!errors.displayOrder && (
-                  <p className="text-[10px] text-muted-foreground text-right">
+                  <p className="text-[10px] text-gray-400 text-right">
                     Max allowed: {maxAllowedOrder}
                   </p>
                 )}
@@ -247,11 +246,11 @@ export const ModuleGroupForm: React.FC<{
               {/* Status (Chỉ hiện khi Edit) */}
               {initial?.id && (
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-muted-foreground">
+                  <label className="text-sm font-medium text-gray-700">
                     Status
                   </label>
                   <select
-                    className="w-full px-3 py-2 border border-border rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-background text-foreground"
+                    className="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     defaultValue={initial.isActive ? "active" : "inactive"}
                     onChange={(e) =>
                       setValue("isActive", e.target.value === "active")

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
-import {DatabaseBackup, Plus} from "lucide-react";
+import { DatabaseBackup, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
@@ -17,7 +17,7 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { useGetAllModules } from "./services/queries";
 import { ModuleDetailDialog } from "./DetailDialog";
 import ImportExportModal from "@/components/modal/ImportExportModal.tsx";
-import {useDownloadTemplate, useExportModules, useImportModules} from "@/pages/modules/module/services/mutations";
+import { useDownloadTemplate, useExportModules, useImportModules } from "@/pages/modules/module/services/mutations";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
@@ -57,7 +57,7 @@ export default function ModulesTable() {
         isFetching,
         refetch: reload,
     } = useGetAllModules({
-        page: pageIndex ,
+        page: pageIndex,
         pageSize,
         sort: sortParam,
         keyword: debouncedSearch,

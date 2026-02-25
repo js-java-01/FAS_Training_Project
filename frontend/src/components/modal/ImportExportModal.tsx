@@ -21,13 +21,13 @@ import {
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
 export default function ImportExportModal({
-                                              title,
-                                              open,
-                                              setOpen,
-                                              onImport,
-                                              onExport,
-                                              onDownloadTemplate,
-                                          }: {
+    title,
+    open,
+    setOpen,
+    onImport,
+    onExport,
+    onDownloadTemplate,
+}: {
     title?: string;
     open: boolean;
     setOpen: (open: boolean) => void;
@@ -193,7 +193,7 @@ export default function ImportExportModal({
                                     disabled={loading}
                                     onClick={() => fileInputRef.current?.click()}
                                 >
-                                    <FileSpreadsheet/>
+                                    <FileSpreadsheet />
                                     Choose file
                                 </Button>
                                 <Button

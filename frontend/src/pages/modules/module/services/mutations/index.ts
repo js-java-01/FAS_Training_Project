@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import {moduleApi} from "@/api/moduleApi.ts";
+import { moduleApi } from "@/api/moduleApi.ts";
 
 /* ========= EXPORT ========= */
 export const useExportModules = () => {
@@ -20,8 +20,8 @@ export const useImportModules = () => {
             await moduleApi.importModules(formData);
         },
     });
-};
 
+};
 export const useDownloadTemplate = () => {
     return useMutation({
         mutationFn: async () => {

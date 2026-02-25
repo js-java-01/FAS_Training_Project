@@ -2,13 +2,24 @@ package com.example.starter_project_2025.system.course.entity;
 
 import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
+import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
+import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.course_programing_language.entity.CourseProgrammingLanguage;
+import com.example.starter_project_2025.system.trainer_course.entity.TrainerCourse;
 import com.example.starter_project_2025.system.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "courses")
@@ -45,8 +56,26 @@ public class Course {
     private String thumbnailUrl;
 
     // ===== METADATA =====
+    @CreationTimestamp
     private LocalDateTime createdDate;
+    @UpdateTimestamp
     private LocalDateTime updatedDate;
+
+    @OneToMany(mappedBy = "course")
+    @JsonManagedReference
+    private Set<CourseClass> courseClasses;
+
+    @OneToMany(mappedBy = "course")
+    @JsonManagedReference
+    private Set<CourseProgrammingLanguage> courseProgrammingLanguages;
+
+    @OneToMany(mappedBy = "course")
+    @JsonManagedReference
+    private Set<TrainerCourse> trainerCourses;
+
+    @OneToMany(mappedBy = "course")
+    @JsonManagedReference
+    private Set<CourseAssessmentTypeWeight> courseAssessmentTypeWeights;
 
     @ManyToOne
     @JoinColumn(name = "creator_id")
@@ -55,10 +84,6 @@ public class Course {
     @ManyToOne
     @JoinColumn(name = "updater_id")
     private User updater;
-
-    @ManyToOne
-    @JoinColumn(name = "trainer_id")
-    private User trainer;
 
     // ===== WORKFLOW =====
     @Enumerated(EnumType.STRING)
@@ -76,18 +101,4 @@ public class Course {
     private Double minAttendancePercent;
     private Boolean allowFinalRetake;
 
-    // ===== AUTO TIME =====
-    @PrePersist
-    public void prePersist() {
-        this.createdDate = LocalDateTime.now();
-        this.updatedDate = LocalDateTime.now();
-        if (this.status == null) {
-            this.status = CourseStatus.DRAFT;
-        }
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedDate = LocalDateTime.now();
-    }
 }

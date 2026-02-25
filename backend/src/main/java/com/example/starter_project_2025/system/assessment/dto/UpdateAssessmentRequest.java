@@ -1,13 +1,27 @@
 package com.example.starter_project_2025.system.assessment.dto;
 
-import jakarta.validation.constraints.Size;
+import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import lombok.Data;
 
 @Data
 public class UpdateAssessmentRequest {
-    @Size(min = 5, max = 255)
-    private String name;
+    private String title;
 
-    @Size(min = 10, max = 250)
     private String description;
+
+    private String assessmentTypeId;
+
+    private Integer totalScore;
+
+    private Integer passScore;
+
+    private Integer timeLimitMinutes;
+
+    private Integer attemptLimit;
+
+    private Boolean isShuffleQuestion;
+
+    private Boolean isShuffleOption;
+
+    private AssessmentStatus status;
 }

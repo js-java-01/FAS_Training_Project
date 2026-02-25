@@ -5,7 +5,7 @@ import type {
     CreateModuleGroupRequest,
     CreateModuleRequest,
 } from '../types/module';
-import type { ApiResponse, PagedData} from "@/types/response.ts";
+import type { ApiResponse, PagedData } from "@/types/response.ts";
 
 /* =========================
    MODULE GROUP API

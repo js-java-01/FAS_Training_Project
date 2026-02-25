@@ -17,18 +17,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EnrollmentController {
 
-    private final EnrollmentService enrollmentService;
+    // private final EnrollmentService enrollmentService;
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('ENROLL_COURSE')")
-    public EnrollmentResponse enroll(@Valid @RequestBody EnrollmentRequest request) {
-        return enrollmentService.enroll(request);
-    }
+    // @PostMapping
+    // @ResponseStatus(HttpStatus.CREATED)
+    // @PreAuthorize("hasAuthority('ENROLL_COURSE')")
+    // public EnrollmentResponse enroll(@Valid @RequestBody EnrollmentRequest
+    // request) {
+    // return enrollmentService.enroll(request);
+    // }
 
-    @GetMapping("/my-courses")
-    @PreAuthorize("isAuthenticated()")
-    public List<CourseResponse> getMyEnrolledCourses() {
-        return enrollmentService.getMyEnrolledCourses();
-    }
+    // @GetMapping("/my-courses")
+    // @PreAuthorize("isAuthenticated()")
+    // public List<CourseResponse> getMyEnrolledCourses() {
+    // return enrollmentService.getMyEnrolledCourses();
+    // }
 }

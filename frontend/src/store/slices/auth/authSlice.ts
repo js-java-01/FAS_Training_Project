@@ -31,7 +31,7 @@ const authSlice = createSlice({
       localStorage.setItem("firstName", firstName || "");
       localStorage.setItem("lastName", lastName || "");
       localStorage.setItem("role", role || "");
-      localStorage.setItem("permissions", JSON.stringify(permissions || []));
+      localStorage.setItem("permissions", JSON.stringify(permissions || [""]));
     },
     setLogout: (state) => {
       state.token = "";
@@ -39,7 +39,7 @@ const authSlice = createSlice({
       state.firstName = "";
       state.lastName = "";
       state.role = "";
-      state.permissions = [];
+      state.permissions = [""];
       state.isAuthenticated = false;
       localStorage.clear();
     },
