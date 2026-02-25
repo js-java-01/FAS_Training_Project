@@ -4,15 +4,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { DatabaseBackup, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
-
-import { DataTable } from "@/components/data_table/DataTable";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-
 import type { ModuleGroup } from "@/types/module";
 import { moduleGroupApi } from "@/api/moduleApi";
 import { useGetAllModuleGroups } from "@/pages/modules/module_groups/services/queries";
-
 import { getColumns } from "./column";
 import { ModuleGroupForm } from "./form";
 import type { ModuleGroupDto } from "./form";
@@ -24,6 +20,7 @@ import {
   useImportModuleGroup,
 } from "@/pages/modules/module_groups/services/mutations";
 import { FacetedFilter } from "@/components/FacedFilter";
+import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 
 /* ======================================================= */
 
@@ -199,24 +196,29 @@ export default function ModuleGroupsTable() {
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
-      <DataTable<ModuleGroup, unknown>
+      <ServerDataTable<ModuleGroup, unknown>
         columns={columns as ColumnDef<ModuleGroup, unknown>[]}
         data={safeTableData.items}
         isLoading={isLoading}
         isFetching={isFetching}
-        manualPagination
+
+        /* PAGINATION */
         pageIndex={safeTableData.page}
         pageSize={safeTableData.pageSize}
         totalPage={safeTableData.totalPages}
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
+
+        /* SEARCH */
         isSearch
-        manualSearch
         searchPlaceholder="module group name"
         onSearchChange={setSearchValue}
+
+        /* SORTING */
         sorting={sorting}
         onSortingChange={setSorting}
-        manualSorting
+
+        /* ACTIONS */
         headerActions={
           <div className="flex gap-2">
             <Button
@@ -226,6 +228,7 @@ export default function ModuleGroupsTable() {
               <DatabaseBackup className="h-4 w-4" />
               Import / Export
             </Button>
+
             <Button
               onClick={() => {
                 setEditing(null);
@@ -238,22 +241,20 @@ export default function ModuleGroupsTable() {
             </Button>
           </div>
         }
+
         facetedFilters={
-          <div>
-            <FacetedFilter
-              title="Status"
-              options={[
-                { value: "ACTIVE", label: "Active" },
-                { value: "INACTIVE", label: "Inactive" },
-              ]}
-              value={statusFilter}
-              setValue={setStatusFilter}
-              multiple={false}
-            />
-          </div>
+         <div> <FacetedFilter
+           title="Status"
+           options={[
+             { value: "ACTIVE", label: "Active" },
+             { value: "INACTIVE", label: "Inactive" },
+           ]}
+           value={statusFilter}
+           setValue={setStatusFilter}
+           multiple={false}
+         /></div>
         }
       />
-
       <ModuleGroupForm
         open={openForm}
         initial={editing}
