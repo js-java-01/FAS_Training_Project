@@ -1,7 +1,10 @@
 package com.example.starter_project_2025.util;
 
 import com.example.starter_project_2025.security.UserDetailsImpl;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -10,11 +13,11 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
-public class JwtUtil {
+public class JwtUtil
+{
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -25,16 +28,19 @@ public class JwtUtil {
     @Value("${jwt.rt.expiration}")
     private long refreshTokenExpiration;
 
-    private Key getSigningKey() {
+    private Key getSigningKey()
+    {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    public String generateToken(Authentication authentication) {
+    public String generateToken(Authentication authentication)
+    {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         return generateToken(userDetails);
     }
 
-    public String generateToken(UserDetailsImpl userDetails) {
+    public String generateToken(UserDetailsImpl userDetails)
+    {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
@@ -42,49 +48,58 @@ public class JwtUtil {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        String jti = UUID.randomUUID().toString();
+        System.out.println("token: " + userDetails.getEmail());
+        System.out.println("Permissions in token: " + permissions);
 
         return Jwts.builder()
-                .setId(jti)
                 .setSubject(userDetails.getEmail())
                 .claim("userId", userDetails.getId().toString())
                 .claim("role", userDetails.getRole())
                 .claim("permissions", permissions)
+                .claim("email", userDetails.getEmail())
+                .claim("firstName", userDetails.getFirstName())
+                .claim("lastName", userDetails.getLastName())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 
-    public String generateRtToken(UserDetailsImpl userDetails) {
+    public String generateRtToken(UserDetailsImpl userDetails)
+    {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
 
-        String jti = UUID.randomUUID().toString();
-
         return Jwts.builder()
-                .setId(jti)
                 .setSubject(userDetails.getEmail())
                 .claim("userId", userDetails.getId().toString())
+                .claim("role", userDetails.getRole())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 
-    public UserDetailsImpl getUserDetailsFromToken(String token) {
+    public UserDetailsImpl getUserDetailsFromToken(String token)
+    {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
 
+        System.out.println("[DEBUG JWT] Parsing token for user: " + claims.getSubject());
+        System.out.println("[DEBUG JWT] All claims: " + claims);
+        System.out.println("[DEBUG JWT] Permissions claim: " + claims.get("permissions"));
+
         // Extract permissions from token claims
         @SuppressWarnings("unchecked")
         java.util.List<String> permissionsList = (java.util.List<String>) claims.get("permissions");
         java.util.Set<String> permissions = permissionsList != null
-            ? new java.util.HashSet<>(permissionsList)
-            : new java.util.HashSet<>();
+                ? new java.util.HashSet<>(permissionsList)
+                : new java.util.HashSet<>();
+
+        System.out.println("[DEBUG JWT] Extracted permissions set: " + permissions);
 
         return new UserDetailsImpl(
                 java.util.UUID.fromString(claims.get("userId").toString()),
@@ -98,7 +113,8 @@ public class JwtUtil {
         );
     }
 
-    public String getEmailFromToken(String token) {
+    public String getEmailFromToken(String token)
+    {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
@@ -107,6 +123,20 @@ public class JwtUtil {
         return claims.getSubject();
     }
 
+    public boolean validateToken(String token)
+    {
+        try
+        {
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e)
+        {
+            return false;
+        }
+    }
     public String extractJti(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -114,17 +144,5 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
         return claims.getId();
-    }
-
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
     }
 }

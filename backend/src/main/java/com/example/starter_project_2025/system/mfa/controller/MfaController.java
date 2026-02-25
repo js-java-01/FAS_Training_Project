@@ -35,8 +35,15 @@ public class MfaController {
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         try {
+            System.out.println("[MFA /setup/init] userDetails = " + userDetails);
+            System.out.println("[MFA /setup/init] userId = " + (userDetails != null ? userDetails.getId() : "NULL - userDetails is null!"));
+            System.out.println("[MFA /setup/init] email  = " + (userDetails != null ? userDetails.getEmail() : "NULL"));
+
             User user = userRepository.findById(userDetails.getId())
-                    .orElseThrow(() -> new IllegalStateException("User not found"));
+                    .orElseThrow(() -> {
+                        System.out.println("[MFA /setup/init] No user found with id=" + userDetails.getId());
+                        return new IllegalStateException("User not found");
+                    });
 
             // Generate secret
             String secret = mfaService.generateSecret();
