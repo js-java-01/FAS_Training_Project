@@ -1,49 +1,46 @@
-package com.example.starter_project_2025.system.trainer_course.entity;
+package com.example.starter_project_2025.system.training_program.entity;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.example.starter_project_2025.system.course.entity.Course;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.example.starter_project_2025.system.program_courses.entity.ProgramCourse;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "trainer_courses")
+@Table(name = "training_programs")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrainerCourse {
+public class TrainingProgram {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @ManyToOne
-    @JoinColumn(name = "trainer_id", nullable = false)
-    @JsonBackReference
-    private User trainer;
-    @ManyToOne
-    @JoinColumn(name = "course_id", nullable = false)
-    @JsonBackReference
-    private Course course;
+    private String name;
+    private String description;
+    private String version;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+    @OneToMany(mappedBy = "trainingProgram")
+    @JsonManagedReference
+    private Set<ProgramCourse> programCourses;
 
 }
