@@ -63,6 +63,7 @@ export type IconKey =
 
   // Code
   | "code"
+  | "code-xml"
   | "code-2"
   | "braces"
   | "terminal"
