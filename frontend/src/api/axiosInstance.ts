@@ -10,6 +10,23 @@ const axiosInstance = axios.create({
         "Content-Type": "application/json",
     },
     withCredentials: true,
+    paramsSerializer: (params) => {
+        const searchParams = new URLSearchParams();
+
+        Object.keys(params).forEach((key) => {
+            const value = params[key];
+            if (Array.isArray(value)) {
+                // For array parameters (like sort), add each item separately
+                value.forEach((item) => {
+                    searchParams.append(key, item);
+                });
+            } else if (value !== undefined && value !== null) {
+                searchParams.append(key, value);
+            }
+        });
+
+        return searchParams.toString();
+    },
 });
 
 axiosInstance.interceptors.request.use(
