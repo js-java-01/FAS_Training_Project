@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.example.starter_project_2025.system.course_programing_language.entity.CourseProgrammingLanguage;
+import com.example.starter_project_2025.system.program_courses.entity.ProgramCourse;
+import com.example.starter_project_2025.system.trainer_programminglanguae.entity.TrainerProgrammingLanguage;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
@@ -33,6 +35,13 @@ public class ProgrammingLanguage {
     @OneToMany(mappedBy = "programmingLanguage")
     @JsonManagedReference
     private Set<CourseProgrammingLanguage> courseProgrammingLanguages;
+
+    @OneToMany(mappedBy = "programmingLanguage")
+    @JsonManagedReference
+    private Set<TrainerProgrammingLanguage> trainerProgrammingLanguages;
+    @OneToMany(mappedBy = "programmingLanguage")
+    @JsonManagedReference
+    private Set<ProgramCourse> programCourses;
 
     public ProgrammingLanguage() {
     }

@@ -5,7 +5,6 @@ import com.example.starter_project_2025.system.course.enums.CourseStatus;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.course_programing_language.entity.CourseProgrammingLanguage;
-import com.example.starter_project_2025.system.trainer_course.entity.TrainerCourse;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -14,7 +13,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
+
 import java.util.Set;
 import java.util.UUID;
 
@@ -68,10 +67,6 @@ public class Course {
     @OneToMany(mappedBy = "course")
     @JsonManagedReference
     private Set<CourseProgrammingLanguage> courseProgrammingLanguages;
-
-    @OneToMany(mappedBy = "course")
-    @JsonManagedReference
-    private Set<TrainerCourse> trainerCourses;
 
     @OneToMany(mappedBy = "course")
     @JsonManagedReference
