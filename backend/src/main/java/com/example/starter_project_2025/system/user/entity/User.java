@@ -4,9 +4,11 @@ import com.example.starter_project_2025.system.assessment.entity.Submission;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.trainer_course.entity.TrainerCourse;
 import com.example.starter_project_2025.system.user_role.entity.UserRole;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
@@ -24,7 +26,8 @@ import java.util.UUID;
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class User {
+public class User
+{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -42,7 +45,7 @@ public class User {
     @Column(nullable = false, length = 100)
     String lastName;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     Set<UserRole> userRoles;
 
     @OneToMany(mappedBy = "trainer")
