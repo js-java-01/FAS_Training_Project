@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/data_table/DataTable";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { useToast } from "@/hooks/use-toast";
+import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { sessionService } from "@/api/sessionService";
 import type { SessionResponse } from "@/types/session";
 import { SESSION_TYPE_OPTIONS } from "@/types/session";
@@ -21,6 +22,7 @@ type Props = {
 export function SessionList({ data, isLoading, onEdit, onDeleted }: Props) {
   const { toast } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<SessionResponse | null>(null);
 
   const typeLabelMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -66,37 +68,51 @@ export function SessionList({ data, isLoading, onEdit, onDeleted }: Props) {
               tooltipText="Delete"
               icon={<Trash size={12} />}
               disabled={deletingId === row.original.id}
-              onClick={async () => {
-                const ok = window.confirm(
-                  "Are you sure you want to delete this session? This action cannot be undone.",
-                );
-                if (!ok) return;
-
-                try {
-                  setDeletingId(row.original.id);
-                  await sessionService.deleteSession(row.original.id);
-                  toast({ title: "Deleted", description: "Session deleted successfully." });
-                  onDeleted?.();
-                } catch {
-                  toast({
-                    title: "Delete failed",
-                    description: "Could not delete session. Please try again.",
-                    variant: "destructive",
-                  });
-                } finally {
-                  setDeletingId(null);
-                }
-              }}
+              onClick={() => setConfirmDelete(row.original)}
             />
           </div>
         ),
       }),
     ];
-  }, [deletingId, onDeleted, onEdit, toast, typeLabelMap]);
+  }, [deletingId, onEdit, typeLabelMap]);
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete?.id) return;
+    if (deletingId) return;
+
+    const id = confirmDelete.id;
+    setConfirmDelete(null);
+
+    try {
+      setDeletingId(id);
+      await sessionService.deleteSession(id);
+      toast({ title: "Deleted", description: "Session deleted successfully." });
+      onDeleted?.();
+    } catch {
+      toast({
+        title: "Delete failed",
+        description: "Could not delete session. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="w-full">
       <DataTable<SessionResponse, any> columns={columns} data={data} isLoading={isLoading} />
+      <ConfirmDeleteModal
+        open={!!confirmDelete}
+        title="Delete session?"
+        message={
+          <>
+            Are you sure you want to delete this session? This action cannot be undone.
+          </>
+        }
+        onCancel={() => setConfirmDelete(null)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }
