@@ -106,7 +106,7 @@ export default function ModuleGroupsTable() {
   /* ===================== HANDLERS ===================== */
   const invalidateAll = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["modules"] }), // update table
+      queryClient.invalidateQueries({ queryKey: ["module-groups"] }), // update table
       queryClient.invalidateQueries({ queryKey: ["module-groups", "active"] }), // update sidebar
     ]);
   };
