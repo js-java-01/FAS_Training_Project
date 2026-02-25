@@ -107,6 +107,7 @@ export default function HeaderRight() {
           </div>
         )}
       </div>
+      <ToggleTheme />
     </div >
   );
 }

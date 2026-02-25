@@ -12,7 +12,7 @@ import { moduleApi, moduleGroupApi } from "@/api/moduleApi";
 import type { Module, CreateModuleRequest } from "@/types/module";
 import { ModuleForm } from "./ModuleForm";
 import { useDebounce } from "@uidotdev/usehooks";
-import { useGetAllModules } from "./services/queries";
+import { useGetAllModules } from "./services/queries/index";
 import { ModuleDetailDialog } from "./DetailDialog";
 import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import {
@@ -55,9 +55,17 @@ export default function ModulesTable() {
 
   /* ---------- sort param (server side) ---------- */
   const sortParam = useMemo(() => {
-    if (!sorting.length) return "displayOrder,asc";
+    if (!sorting.length) {
+      // Trả về mảng các string theo định dạng Spring hiểu
+      return ["moduleGroup.name,asc", "displayOrder,asc"];
+    }
     const { id, desc } = sorting[0];
-    return `${id},${desc ? "desc" : "asc"}`;
+    const direction = desc ? "desc" : "asc";
+
+    // Ánh xạ lại ID nếu UI khác với Entity (ví dụ: UI là moduleGroupName -> Entity là moduleGroup.name)
+    const sortField = id === "moduleGroupName" ? "moduleGroup.name" : id;
+
+    return [`${sortField},${direction}`, "displayOrder,asc"];
   }, [sorting]);
 
   const { mutateAsync: importModules } = useImportModules();
