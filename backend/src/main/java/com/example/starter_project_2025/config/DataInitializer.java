@@ -487,7 +487,7 @@ public class DataInitializer implements CommandLineRunner
 
     private void initializeModuleGroups()
     {
-        // 1. Nhóm: Main Menu
+        // Nhóm: Main Menu
         ModuleGroups mainGroup = new ModuleGroups();
         mainGroup.setName("Main Menu");
         mainGroup.setDescription("Main navigation menu of the application");
@@ -498,62 +498,42 @@ public class DataInitializer implements CommandLineRunner
         moduleRepository.save(createModule(mainGroup, "Dashboard", "/dashboard", "home", 1, "MENU_READ",
                 "System dashboard overview"));
 
-        // 2. Nhóm: User Management
-        ModuleGroups userGroup = new ModuleGroups();
-        userGroup.setName("User Management");
-        userGroup.setDescription("Manage user accounts, roles, and permissions");
-        userGroup.setDisplayOrder(2);
-        userGroup.setIsActive(true);
-        userGroup = moduleGroupsRepository.save(userGroup);
-
-        moduleRepository.save(
-                createModule(userGroup, "Users", "/users", "users", 1, "USER_READ",
-                        "Manage system users"));
-        moduleRepository.save(
-                createModule(userGroup, "Roles", "/roles", "shield", 2, "ROLE_READ",
-                        "Manage roles and permissions"));
-        moduleRepository.save(
-                createModule(userGroup, "Locations", "/locations", "map-pin", 3, "LOCATION_READ",
-                        "Manage office locations"));
-
-        // 3. Nhóm: Role Management (deprecated - kept for backward compatibility)
-        ModuleGroups roleGroup = new ModuleGroups();
-        roleGroup.setName("Role Management");
-        roleGroup.setDescription("Manage roles and role-based access control");
-        roleGroup.setDisplayOrder(3);
-        roleGroup.setIsActive(false); // Disabled - modules moved to User Management
-        roleGroup = moduleGroupsRepository.save(roleGroup);
-
-        // No modules in this group - all moved to User Management
-
-        // 4. Nhóm: System Management
+        // Nhóm: System
         ModuleGroups systemGroup = new ModuleGroups();
-        systemGroup.setName("System Management");
+        systemGroup.setName("System");
         systemGroup.setDescription("System configuration and administration");
         systemGroup.setDisplayOrder(4);
         systemGroup.setIsActive(true);
         systemGroup = moduleGroupsRepository.save(systemGroup);
 
-        // Nhóm này có 2 module con
-        Module moduleGroupsSub = createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 1,
-                "MENU_READ",
-                "Manage module groups");
-        Module modulesSub = createModule(systemGroup, "Modules", "/modules", "menu", 2, "MENU_READ",
-                "Manage system modules");
 
-        moduleRepository.saveAll(Arrays.asList(moduleGroupsSub, modulesSub));
+        moduleRepository.save(
+                createModule(systemGroup, "Modules", "/modules", "menu", 1, "MENU_READ",
+                        "Manage system modules"));
+        moduleRepository.save(
+                createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 2,
+                        "MENU_READ",
+                        "Manage module groups"));
+        moduleRepository.save(
+                createModule(systemGroup, "Users", "/users", "users", 3, "USER_READ",
+                        "Manage system users"));
+        moduleRepository.save(
+                createModule(systemGroup, "Roles", "/roles", "shield", 4, "ROLE_READ",
+                        "Manage roles and permissions"));
+        moduleRepository.save(
+                createModule(systemGroup, "Locations", "/locations", "map-pin", 5, "LOCATION_READ",
+                        "Manage office locations"));
 
-        log.info("Initialized 4 module groups and their respective modules.");
 
-        // 5. Nhóm: Training Management
+
+        // Nhóm: Training
         ModuleGroups trainingGroup = new ModuleGroups();
-        trainingGroup.setName("Training Management");
+        trainingGroup.setName("Training");
         trainingGroup.setDescription("Manage training programs and related activities");
         trainingGroup.setDisplayOrder(5);
         trainingGroup.setIsActive(true);
         trainingGroup = moduleGroupsRepository.save(trainingGroup);
 
-        // Nhóm này có 2 module con
         Module courseSub = createModule(trainingGroup, "Courses", "/courses", "book-open", 1, "COURSE_READ",
                 "Manage training courses");
         Module courseCatalogSub = createModule(trainingGroup, "Course Catalog", "/my-courses", "graduation-cap",
@@ -561,11 +541,28 @@ public class DataInitializer implements CommandLineRunner
                 "ENROLL_COURSE", "Browse and enroll in available courses");
 
         moduleRepository.saveAll(Arrays.asList(courseSub, courseCatalogSub));
+        moduleRepository.save(
+                createModule(
+                        trainingGroup,
+                        "Programming Languages",
+                        "/programming-languages",
+                        "code",
+                        1,
+                        "PROGRAMMING_LANGUAGE_READ",
+                        "Manage programming languages"));
+        moduleRepository.save(
+                createModule(
+                        trainingGroup,
+                        "Student Management",
+                        "/v1/student",
+                        "person",
+                        1,
+                        "STUDENT_READ",
+                        "Manage students"));
 
-        log.info("Initialized 5 module groups and their respective modules.");
-        // 5. Nhóm: Assessment Type Management
+        // Nhóm: Assessment
         ModuleGroups assessmentTypeGroup = new ModuleGroups();
-        assessmentTypeGroup.setName("Assessment Type Management");
+        assessmentTypeGroup.setName("Assessment");
         assessmentTypeGroup.setDescription("Manage assessment types and related permissions");
         assessmentTypeGroup.setDisplayOrder(3);
         assessmentTypeGroup.setIsActive(true);
@@ -574,51 +571,12 @@ public class DataInitializer implements CommandLineRunner
         moduleRepository.save(
                 createModule(
                         assessmentTypeGroup,
-                        "Assessment Type Management",
+                        "Assessment Type",
                         "/assessment-type",
-                        "shield", // icon (you can change if you want)
+                        "shield",
                         2,
                         "ASSESSMENT_READ",
                         "Manage assessment types"));
-
-        // 6. Nhóm: Student Management
-        ModuleGroups studentGroup = new ModuleGroups();
-        studentGroup.setName("Student Management");
-        studentGroup.setDescription("Manage students and related permissions");
-        studentGroup.setDisplayOrder(4); // next order after assessment type
-        studentGroup.setIsActive(true);
-        studentGroup = moduleGroupsRepository.save(studentGroup);
-
-        moduleRepository.save(
-                createModule(
-                        studentGroup,
-                        "Student Management",
-                        "/v1/student",
-                        "users", // icon, you can change
-                        1,
-                        "STUDENT_READ",
-                        "Manage students"));
-
-        log.info("Initialized 5 module groups and their respective modules.");
-        // 6. Programming Language Management
-        ModuleGroups programmingLanguageGroup = new ModuleGroups();
-        programmingLanguageGroup.setName("Programming Language Management");
-        programmingLanguageGroup.setDescription("Manage programming languages and their configurations");
-        programmingLanguageGroup.setDisplayOrder(6);
-        programmingLanguageGroup.setIsActive(true);
-        programmingLanguageGroup = moduleGroupsRepository.save(programmingLanguageGroup);
-
-        moduleRepository.save(
-                createModule(
-                        programmingLanguageGroup,
-                        "Programming Languages",
-                        "/programming-languages",
-                        "code",
-                        1,
-                        "PROGRAMMING_LANGUAGE_READ",
-                        "Manage programming languages"));
-
-        log.info("Initialized 6 module groups and their respective modules.");
     }
 
 
