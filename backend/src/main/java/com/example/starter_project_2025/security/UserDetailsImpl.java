@@ -65,6 +65,14 @@ public class UserDetailsImpl implements UserDetails
         );
     }
 
+    public static UserDetailsImpl build(User user, String RoleName, Set<String> permissions)
+    {
+        var userDetails = build(user);
+        userDetails.setRole(RoleName);
+        userDetails.setPermissions(permissions);
+        return userDetails;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities()
     {

@@ -8,7 +8,6 @@ import com.example.starter_project_2025.system.auth.dto.forgotpassword.ForgotPas
 import com.example.starter_project_2025.system.auth.dto.login.LoginRequest;
 import com.example.starter_project_2025.system.auth.dto.login.LoginResponse;
 import com.example.starter_project_2025.system.auth.dto.permission.GetPermissonReqDTO;
-import com.example.starter_project_2025.system.auth.dto.permission.PermissionResponseDTO;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterVerifyDTO;
 import com.example.starter_project_2025.system.auth.service.auth.AuthService;
@@ -93,11 +92,11 @@ public class AuthController
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/get-permissions")
-    public ResponseEntity<PermissionResponseDTO> getPermissions(HttpServletRequest request, GetPermissonReqDTO data)
+    @PostMapping("/switch-role")
+    public ResponseEntity<LoginResponse> getPermissions(HttpServletRequest request, HttpServletResponse response, @RequestBody GetPermissonReqDTO data)
     {
         var email = request.getUserPrincipal().getName();
-        var res = authService.getPermissionsWithRole(data, email);
+        var res = authService.switchRole(data, email, response);
         return ResponseEntity.ok(res);
     }
 }

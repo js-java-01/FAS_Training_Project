@@ -6,7 +6,6 @@ import com.example.starter_project_2025.system.auth.dto.forgotpassword.ForgotPas
 import com.example.starter_project_2025.system.auth.dto.login.LoginRequest;
 import com.example.starter_project_2025.system.auth.dto.login.LoginResponse;
 import com.example.starter_project_2025.system.auth.dto.permission.GetPermissonReqDTO;
-import com.example.starter_project_2025.system.auth.dto.permission.PermissionResponseDTO;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.mapper.AuthMapper;
@@ -160,14 +159,14 @@ public class AuthServiceImpl implements AuthService
 
         userDetails.setRole(defaultRole.getName());
 
-        var permissions = getPermissionFromDefaultRole(defaultRole);
+        var permissions = getPermissionFromRole(defaultRole);
         userDetails.setPermissions(permissions);
 
         String at = jwtUtils.generateToken(authentication);
 
         if (reqData.isRememberedMe())
         {
-            var rt = refreshTokenService.generateAndSaveRefreshToken(user);
+            var rt = refreshTokenService.generateAndSaveRefreshToken(user, Optional.empty());
             cookieUtil.addCookie(response, rt);
         }
 
@@ -194,15 +193,21 @@ public class AuthServiceImpl implements AuthService
         if (jwtUtils.validateToken(token))
         {
             String email = jwtUtils.getEmailFromToken(token);
+            var roleName = jwtUtils.getUserDetailsFromToken(token).getRole();
+
             var user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
             var userDetails = UserDetailsImpl.build(user);
 
-            var defaultRole = userRoleRepository.findByUserAndIsDefault(user, true)
-                    .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND))
-                    .getRole();
-            userDetails.setRole(defaultRole.getName());
-            var permissions = getPermissionFromDefaultRole(defaultRole);
+//            var defaultRole = userRoleRepository.findByUserAndIsDefault(user, true)
+//                    .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND))
+//                    .getRole();
+
+            var role = roleRepository.findByName(roleName)
+                    .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND));
+
+            userDetails.setRole(roleName);
+            var permissions = getPermissionFromRole(role);
             userDetails.setPermissions(permissions);
 
             String newToken = jwtUtils.generateToken(userDetails);
@@ -218,32 +223,36 @@ public class AuthServiceImpl implements AuthService
 
 
     @Override
-    public PermissionResponseDTO getPermissionsWithRole(GetPermissonReqDTO data, String email)
+    public LoginResponse switchRole(GetPermissonReqDTO data, String email, HttpServletResponse response)
     {
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
+
+        var role = roleRepository.findByName(data.roleName)
+                .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND));
+
+        var userRoles = userRoleRepository.findByUserAndRole(user, role);
+        if (userRoles == null || userRoles.isEmpty())
         {
-            var user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
-
-            var role = roleRepository.findByName(data.roleName)
-                    .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND));
-
-            var userRoles = userRoleRepository.findByUserAndRole(user, role);
-            if (userRoles == null || userRoles.isEmpty())
-            {
-                throw new RuntimeException(ErrorMessage.USER_DOES_NOT_HAVE_THE_SPECIFIED_ROLE);
-            }
-
-            var permissions = getPermissionFromDefaultRole(role);
-
-            var userDetails = UserDetailsImpl.build(user);
-            userDetails.setRole(role.getName());
-            userDetails.setPermissions(permissions);
-
-            return authMapper.toPermissionResponse(userDetails);
+            throw new RuntimeException(ErrorMessage.USER_DOES_NOT_HAVE_THE_SPECIFIED_ROLE);
         }
+
+        var permissions = getPermissionFromRole(role);
+
+        var userDetails = UserDetailsImpl.build(user);
+        userDetails.setRole(role.getName());
+        userDetails.setPermissions(permissions);
+
+        String newAt = jwtUtils.generateToken(userDetails);
+        String newRt = refreshTokenService.generateAndSaveRefreshToken(user, Optional.of(role));
+        cookieUtil.addCookie(response, newRt);
+
+        var res = authMapper.toLoginResponse(userDetails);
+        res.setToken(newAt);
+        return res;
     }
 
-    private Set<String> getPermissionFromDefaultRole(Role role)
+    private Set<String> getPermissionFromRole(Role role)
     {
         return role.getPermissions().stream().map(p -> p.getName()).collect(Collectors.toSet());
     }

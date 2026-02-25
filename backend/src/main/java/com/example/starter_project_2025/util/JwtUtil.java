@@ -73,6 +73,7 @@ public class JwtUtil
         return Jwts.builder()
                 .setSubject(userDetails.getEmail())
                 .claim("userId", userDetails.getId().toString())
+                .claim("role", userDetails.getRole())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
