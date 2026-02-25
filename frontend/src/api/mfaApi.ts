@@ -3,6 +3,7 @@ import axiosInstance from "./axiosInstance";
 export interface MfaStatusResponse {
   success: boolean;
   message: string;
+  hasCredential?: boolean;
 }
 
 export interface MfaSetupInitResponse {

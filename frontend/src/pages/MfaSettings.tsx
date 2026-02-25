@@ -7,13 +7,16 @@ import { toast } from "react-toastify";
 
 export default function MfaSettings() {
   const [mfaEnabled, setMfaEnabled] = useState<boolean>(false);
+  const [hasCredential, setHasCredential] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [checking, setChecking] = useState<boolean>(false);
   const [setupMode, setSetupMode] = useState<boolean>(false);
+  const [enableMode, setEnableMode] = useState<boolean>(false);
   const [disableMode, setDisableMode] = useState<boolean>(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [secret, setSecret] = useState<string>("");
   const [verificationCode, setVerificationCode] = useState<string>("");
+  const [enableCode, setEnableCode] = useState<string>("");
   const [disableCode, setDisableCode] = useState<string>("");
 
   const checkStatus = async () => {
@@ -21,6 +24,7 @@ export default function MfaSettings() {
       setChecking(true);
       const response = await mfaApi.status();
       setMfaEnabled(response.success);
+      setHasCredential(response.hasCredential || false);
       toast.success(response.message);
     } catch (error: any) {
       toast.error("Failed to check MFA status");
@@ -91,6 +95,26 @@ export default function MfaSettings() {
     }
   };
 
+  const handleConfirmEnable = async () => {
+    if (!enableCode || enableCode.length !== 6) {
+      toast.error("Please enter a 6-digit code");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await mfaApi.enable(enableCode);
+      toast.success("MFA re-enabled successfully!");
+      setMfaEnabled(true);
+      setEnableMode(false);
+      setEnableCode("");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to re-enable MFA");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <div className="bg-white rounded-lg shadow p-6">
@@ -113,15 +137,54 @@ export default function MfaSettings() {
           </div>
 
           {/* Setup Section */}
-          {!mfaEnabled && !setupMode && (
+          {!mfaEnabled && !setupMode && !enableMode && (
             <div className="border rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-2">Setup MFA</h3>
+              <h3 className="font-semibold text-lg mb-2">
+                {hasCredential ? "Re-enable MFA" : "Setup MFA"}
+              </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Enhance your account security by enabling two-factor authentication using an authenticator app.
+                {hasCredential 
+                  ? "Use your existing authenticator app entry to re-enable MFA."
+                  : "Enhance your account security by enabling two-factor authentication using an authenticator app."}
               </p>
-              <Button onClick={handleInitMfa} disabled={loading}>
-                {loading ? "Initializing..." : "Initialize MFA Setup"}
-              </Button>
+              <div className="flex gap-2">
+                {hasCredential && (
+                  <Button onClick={() => setEnableMode(true)} disabled={loading} variant="default">
+                    Re-enable MFA
+                  </Button>
+                )}
+                <Button onClick={handleInitMfa} disabled={loading} variant={hasCredential ? "outline" : "default"}>
+                  {loading ? "Initializing..." : hasCredential ? "Setup New MFA" : "Initialize MFA Setup"}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Re-enable Section */}
+          {enableMode && !mfaEnabled && (
+            <div className="border border-green-200 bg-green-50 rounded-lg p-4">
+              <h3 className="font-semibold text-lg mb-2">Re-enable MFA</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Enter the 6-digit code from your authenticator app:
+              </p>
+              <div className="w-full space-y-2 mb-4">
+                <Input
+                  type="text"
+                  placeholder="000000"
+                  maxLength={6}
+                  value={enableCode}
+                  onChange={(e) => setEnableCode(e.target.value.replace(/\\D/g, ""))}
+                  disabled={loading}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => { setEnableMode(false); setEnableCode(""); }} disabled={loading} className="flex-1">
+                  Cancel
+                </Button>
+                <Button onClick={handleConfirmEnable} disabled={loading || enableCode.length !== 6} className="flex-1">
+                  {loading ? "Verifying..." : "Confirm & Enable"}
+                </Button>
+              </div>
             </div>
           )}
 

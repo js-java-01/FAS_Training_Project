@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class MfaVerifyResponse {
     private boolean success;
     private String message;
+    private Boolean hasCredential;
 }

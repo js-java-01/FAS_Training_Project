@@ -234,6 +234,7 @@ public class MfaController {
         
         return ResponseEntity.ok(MfaVerifyResponse.builder()
                 .success(enabled)
+                .hasCredential(hasCredential)
                 .message(enabled ? "MFA is enabled" : (hasCredential ? "MFA is disabled but was previously set up" : "MFA is not enabled"))
                 .build());
     }
