@@ -25,6 +25,7 @@ import { LocationManagement } from "./pages/LocationManagement";
 import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
+import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
 
 
 function App() {
@@ -71,6 +72,14 @@ function App() {
               })
             )}
             <Route path="*" element={<NotFoundRedirect />} />
+            <Route
+              path="/training-classes"
+              element={
+                <ProtectedRoute requiredPermission="CLASS_CREATE">
+                  <TrainingClassesManagement />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/assessment-type"
               element={
