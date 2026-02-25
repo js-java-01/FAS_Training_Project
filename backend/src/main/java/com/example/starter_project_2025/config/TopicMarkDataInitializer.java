@@ -228,46 +228,127 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
 
         log.info("✓ Created 4 assessments with multiple submissions");
 
-        // 9. Create / update TopicMark record for this student
-        // Expected: Quiz(30%)=(90+75)/2*0.3=24.75, Exam(50%)=70*0.5=35.0, Lab(20%)=90*0.2=18.0 → 77.75
-        double finalScore = 77.75;
-        boolean isPassed = finalScore >= demoCourse.getMinGpaToPass();
-        topicMarkRepository.findByCourseClassIdAndUserId(courseClass.getId(), student.getId())
+        // 9. Upsert TopicMark for primary student (score=77.75, PASS)
+        // Quiz(30%)=(90+75)/2*0.3=24.75, Exam(50%)=70*0.5=35.0, Lab(20%)=90*0.2=18.0 → 77.75
+        upsertTopicMark(courseClass, student, 77.75, demoCourse.getMinGpaToPass());
+
+        // 10. Create 4 additional students with different scores in the same course class
+        // Alice: quiz HIGHEST=80, exam LATEST=82, lab AVERAGE=75 → 80*0.3+82*0.5+75*0.2=24+41+15=80.0 PASS
+        User alice = createOrGetUser("alice.johnson@test.com", "Alice", "Johnson");
+        createEnrollmentIfNotExists(alice, trainingClass);
+        createSubmissionsForStudent(courseClass, alice, quizType,  "Quiz 1 - Chapter 1", GradingMethod.HIGHEST, List.of(72.0, 80.0));
+        createSubmissionsForStudent(courseClass, alice, quizType,  "Quiz 2 - Chapter 2", GradingMethod.HIGHEST, List.of(78.0));
+        createSubmissionsForStudent(courseClass, alice, examType,  "Midterm Exam",        GradingMethod.LATEST,  List.of(79.0, 82.0));
+        createSubmissionsForStudent(courseClass, alice, labType,   "Lab Assignment",      GradingMethod.AVERAGE, List.of(70.0, 75.0, 80.0));
+        upsertTopicMark(courseClass, alice, 80.0, demoCourse.getMinGpaToPass());
+
+        // Bob: quiz HIGHEST=55, exam LATEST=40, lab AVERAGE=57.5 → 55*0.3+40*0.5+57.5*0.2=16.5+20+11.5=48.0 FAIL
+        User bob = createOrGetUser("bob.wilson@test.com", "Bob", "Wilson");
+        createEnrollmentIfNotExists(bob, trainingClass);
+        createSubmissionsForStudent(courseClass, bob, quizType,  "Quiz 1 - Chapter 1", GradingMethod.HIGHEST, List.of(50.0, 55.0));
+        createSubmissionsForStudent(courseClass, bob, quizType,  "Quiz 2 - Chapter 2", GradingMethod.HIGHEST, List.of(48.0));
+        createSubmissionsForStudent(courseClass, bob, examType,  "Midterm Exam",        GradingMethod.LATEST,  List.of(45.0, 40.0));
+        createSubmissionsForStudent(courseClass, bob, labType,   "Lab Assignment",      GradingMethod.AVERAGE, List.of(55.0, 60.0));
+        upsertTopicMark(courseClass, bob, 48.0, demoCourse.getMinGpaToPass());
+
+        // Carol: quiz HIGHEST=98, exam LATEST=92, lab AVERAGE=92.5 → 98*0.3+92*0.5+92.5*0.2=29.4+46+18.5=93.9 PASS
+        User carol = createOrGetUser("carol.davis@test.com", "Carol", "Davis");
+        createEnrollmentIfNotExists(carol, trainingClass);
+        createSubmissionsForStudent(courseClass, carol, quizType,  "Quiz 1 - Chapter 1", GradingMethod.HIGHEST, List.of(95.0, 98.0));
+        createSubmissionsForStudent(courseClass, carol, quizType,  "Quiz 2 - Chapter 2", GradingMethod.HIGHEST, List.of(96.0));
+        createSubmissionsForStudent(courseClass, carol, examType,  "Midterm Exam",        GradingMethod.LATEST,  List.of(88.0, 92.0));
+        createSubmissionsForStudent(courseClass, carol, labType,   "Lab Assignment",      GradingMethod.AVERAGE, List.of(90.0, 95.0));
+        upsertTopicMark(courseClass, carol, 93.9, demoCourse.getMinGpaToPass());
+
+        // David: quiz HIGHEST=62, exam LATEST=55, lab AVERAGE=61 → 62*0.3+55*0.5+61*0.2=18.6+27.5+12.2=58.3 FAIL
+        User david = createOrGetUser("david.lee@test.com", "David", "Lee");
+        createEnrollmentIfNotExists(david, trainingClass);
+        createSubmissionsForStudent(courseClass, david, quizType,  "Quiz 1 - Chapter 1", GradingMethod.HIGHEST, List.of(58.0, 62.0));
+        createSubmissionsForStudent(courseClass, david, quizType,  "Quiz 2 - Chapter 2", GradingMethod.HIGHEST, List.of(60.0));
+        createSubmissionsForStudent(courseClass, david, examType,  "Midterm Exam",        GradingMethod.LATEST,  List.of(60.0, 55.0));
+        createSubmissionsForStudent(courseClass, david, labType,   "Lab Assignment",      GradingMethod.AVERAGE, List.of(58.0, 64.0));
+        upsertTopicMark(courseClass, david, 58.3, demoCourse.getMinGpaToPass());
+
+        // Eva: quiz HIGHEST=88, exam LATEST=76, lab AVERAGE=84 → 88*0.3+76*0.5+84*0.2=26.4+38+16.8=81.2 PASS
+        User eva = createOrGetUser("eva.chen@test.com", "Eva", "Chen");
+        createEnrollmentIfNotExists(eva, trainingClass);
+        createSubmissionsForStudent(courseClass, eva, quizType,  "Quiz 1 - Chapter 1", GradingMethod.HIGHEST, List.of(85.0, 88.0));
+        createSubmissionsForStudent(courseClass, eva, quizType,  "Quiz 2 - Chapter 2", GradingMethod.HIGHEST, List.of(82.0));
+        createSubmissionsForStudent(courseClass, eva, examType,  "Midterm Exam",        GradingMethod.LATEST,  List.of(72.0, 76.0));
+        createSubmissionsForStudent(courseClass, eva, labType,   "Lab Assignment",      GradingMethod.AVERAGE, List.of(80.0, 84.0, 88.0));
+        upsertTopicMark(courseClass, eva, 81.2, demoCourse.getMinGpaToPass());
+
+        log.info("=====================================");
+        log.info("Topic mark sample data initialized successfully!");
+        log.info("5 students created with topic marks (3 PASS, 2 FAIL)");
+        log.info("  John Doe:      77.75 PASS");
+        log.info("  Alice Johnson: 80.0  PASS");
+        log.info("  Bob Wilson:    48.0  FAIL");
+        log.info("  Carol Davis:   93.9  PASS");
+        log.info("  David Lee:     58.3  FAIL");
+        log.info("  Eva Chen:      81.2  PASS");
+        log.info("=====================================");
+    }
+
+    private User createOrGetUser(String email, String firstName, String lastName) {
+        return userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    User u = User.builder()
+                            .email(email)
+                            .firstName(firstName)
+                            .lastName(lastName)
+                            .passwordHash(passwordEncoder.encode("password123"))
+                            .isActive(true)
+                            .build();
+                    return userRepository.save(u);
+                });
+    }
+
+    private void createEnrollmentIfNotExists(User user, TrainingClass trainingClass) {
+        entityManager
+                .createQuery("SELECT e FROM Enrollment e WHERE e.user.id = :userId AND e.trainingClass.id = :classId", Enrollment.class)
+                .setParameter("userId", user.getId())
+                .setParameter("classId", trainingClass.getId())
+                .getResultStream()
+                .findFirst()
+                .orElseGet(() -> {
+                    Enrollment enrollment = new Enrollment();
+                    enrollment.setUser(user);
+                    enrollment.setTrainingClass(trainingClass);
+                    enrollment.setStatus(EnrollmentStatus.ACTIVE);
+                    entityManager.persist(enrollment);
+                    return enrollment;
+                });
+    }
+
+    private void upsertTopicMark(CourseClass courseClass, User user, double score, Double minGpa) {
+        boolean passed = minGpa != null && score >= minGpa;
+        topicMarkRepository.findByCourseClassIdAndUserId(courseClass.getId(), user.getId())
                 .ifPresentOrElse(
                     tm -> {
-                        tm.setFinalScore(finalScore);
-                        tm.setIsPassed(isPassed);
+                        tm.setFinalScore(score);
+                        tm.setIsPassed(passed);
                         tm.setUpdatedAt(java.time.LocalDateTime.now());
                         topicMarkRepository.save(tm);
-                        log.info("✓ Updated existing TopicMark → score={}, passed={}", finalScore, isPassed);
                     },
                     () -> {
                         TopicMark tm = TopicMark.builder()
                                 .courseClass(courseClass)
-                                .user(student)
-                                .finalScore(finalScore)
-                                .isPassed(isPassed)
+                                .user(user)
+                                .finalScore(score)
+                                .isPassed(passed)
                                 .updatedAt(java.time.LocalDateTime.now())
                                 .build();
                         topicMarkRepository.save(tm);
-                        log.info("✓ Created TopicMark → score={}, passed={}", finalScore, isPassed);
                     }
                 );
+        log.info("✓ TopicMark: {} {} → score={}, passed={}", user.getFirstName(), user.getLastName(), score, passed);
+    }
 
-        log.info("=====================================");
-        log.info("Topic mark sample data initialized successfully!");
-        log.info("Expected calculation:");
-        log.info("  - Quiz 1 (HIGHEST): 90");
-        log.info("  - Quiz 2 (HIGHEST): 75");
-        log.info("  - Quiz type average: (90 + 75) / 2 = 82.5");
-        log.info("  - Quiz contribution: 82.5 × 0.3 = 24.75");
-        log.info("  - Midterm (LATEST): 70");
-        log.info("  - Exam contribution: 70 × 0.5 = 35.0");
-        log.info("  - Lab (AVERAGE): 90");
-        log.info("  - Lab contribution: 90 × 0.2 = 18.0");
-        log.info("  - Final score: 24.75 + 35.0 + 18.0 = 77.75");
-        log.info("  - Pass status: 77.75 >= 60.0 = PASS ✓");
-        log.info("=====================================");
+    private void createSubmissionsForStudent(CourseClass courseClass, User student,
+            AssessmentType assessmentType, String title,
+            GradingMethod gradingMethod, List<Double> scores) {
+        createAssessmentWithSubmissions(courseClass, student, assessmentType, title, gradingMethod, scores);
     }
 
     private AssessmentType createOrGetAssessmentType(String name, String description) {
