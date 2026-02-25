@@ -236,10 +236,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-            <Route path="/modules" element={<ModulesManagement />} />
-
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </RoleSwitchProvider>
       </AuthProvider >
