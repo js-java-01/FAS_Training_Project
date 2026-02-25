@@ -59,7 +59,6 @@ export default function ModulesTable() {
     data: tableData,
     isLoading,
     isFetching,
-    refetch: reload,
   } = useGetAllModules({
     page: pageIndex,
     pageSize,
@@ -79,18 +78,19 @@ export default function ModulesTable() {
   );
 
   /* ---------- CRUD ---------- */
-  const invalidateModules = async () => {
-    await queryClient.invalidateQueries({
-      queryKey: ["modules"],
-    });
+  const invalidateAll = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["modules"] }), // update table
+      queryClient.invalidateQueries({ queryKey: ["module-groups", "active"] }), // update sidebar
+    ]);
   };
+
   const handleCreate = async (formData: Partial<Module>) => {
     try {
       await moduleApi.createModule(formData as CreateModuleRequest);
       toast.success("Created successfully");
       setIsFormOpen(false);
-      await invalidateModules();
-      await reload();
+      await invalidateAll();
     } catch (error) {
       console.error(error);
       if (error instanceof AxiosError && error.response?.data?.message) {
@@ -107,8 +107,7 @@ export default function ModulesTable() {
       await moduleApi.updateModule(editingModule.id, formData);
       toast.success("Updated successfully");
       setIsFormOpen(false);
-      await invalidateModules();
-      await reload();
+      await invalidateAll();
     } catch (error) {
       console.error(error);
       if (error instanceof AxiosError && error.response?.data?.message) {
@@ -124,8 +123,7 @@ export default function ModulesTable() {
     try {
       await moduleApi.deleteModule(deletingModule.id);
       toast.success("Deleted successfully");
-      await invalidateModules();
-      await reload();
+      await invalidateAll();
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete module");
@@ -154,8 +152,7 @@ export default function ModulesTable() {
       await importModules(file);
       toast.success("Import modules successfully");
       setOpenBackupModal(false);
-      await invalidateModules();
-      await reload();
+      await invalidateAll();
     } catch (err: any) {
       toast.error(err?.response?.data?.message ?? "Failed to import modules");
       throw err;
@@ -200,11 +197,11 @@ export default function ModulesTable() {
         columns={columns as ColumnDef<Module, unknown>[]}
         data={safeTableData.items}
         /* Loading states */
-        isLoading={isLoading} // initial load
-        isFetching={isFetching} // background refetch
+        isLoading={isLoading}
+        isFetching={isFetching}
         /* Pagination (manual) */
         manualPagination
-        pageIndex={safeTableData.page} // DataTable dùng index-based
+        pageIndex={safeTableData.page}
         pageSize={safeTableData.pageSize}
         totalPage={safeTableData.totalPages}
         onPageChange={setPageIndex}
@@ -264,6 +261,7 @@ export default function ModulesTable() {
         onCancel={() => setDeletingModule(null)}
         onConfirm={() => void handleDelete()}
       />
+
       <ImportExportModal
         title="Modules"
         open={openBackupModal}

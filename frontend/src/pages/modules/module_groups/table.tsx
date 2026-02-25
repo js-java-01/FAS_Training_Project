@@ -99,10 +99,11 @@ export default function ModuleGroupsTable() {
   );
 
   /* ===================== HANDLERS ===================== */
-  const invalidateModuleGroups = async () => {
-    await queryClient.invalidateQueries({
-      queryKey: ["module-groups"],
-    });
+  const invalidateAll = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["modules"] }), // update table
+      queryClient.invalidateQueries({ queryKey: ["module-groups", "active"] }), // update sidebar
+    ]);
   };
 
   const handleSaved = async (saved: ModuleGroupDto) => {
@@ -115,8 +116,7 @@ export default function ModuleGroupsTable() {
         toast.success("Created successfully");
       }
 
-      await invalidateModuleGroups();
-      await reload();
+      await invalidateAll();
 
       setOpenForm(false);
       setEditing(null);
@@ -133,8 +133,7 @@ export default function ModuleGroupsTable() {
       await moduleGroupApi.deleteModuleGroup(deleting.id);
       toast.success("Deleted successfully");
 
-      await invalidateModuleGroups();
-      await reload();
+      await invalidateAll();
     } catch (err) {
       console.error(err);
       toast.error("Delete failed");
@@ -149,8 +148,7 @@ export default function ModuleGroupsTable() {
       await importModuleGroup(file);
       toast.success("Import module groups successfully");
       setOpenBackupModal(false);
-      await invalidateModuleGroups();
-      await reload();
+      await invalidateAll();
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message ?? "Failed to import module groups",
