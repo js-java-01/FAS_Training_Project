@@ -4,6 +4,7 @@ import { courseApi } from "@/api/courseApi";
 import { userApi } from "@/api/userApi";
 import type { User } from "@/types/auth";
 import { toast } from "sonner";
+import CourseObjectivesTab from '../CourseObjectivesTab.tsx';
 import {
   FiEdit,
   FiBookOpen,
@@ -73,7 +74,7 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
     userApi
       .getAllUsers(0, 100)
       .then((res) => setUsers(res.content ?? []))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const startEdit = () => {
@@ -167,11 +168,10 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 text-sm ${
-                activeTab === tab
-                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
-                  : "text-gray-500"
-              }`}
+              className={`pb-2 text-sm ${activeTab === tab
+                ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                : "text-gray-500"
+                }`}
             >
               {tab}
             </button>
@@ -411,8 +411,10 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
           </div>
         </form>
       )}
-
-      {activeTab !== "Overview" && (
+      {activeTab === "Objectives" && (
+        <CourseObjectivesTab courseId={course.id} />
+      )}
+      {activeTab !== "Overview" && activeTab !== "Objectives" && (
         <div className="text-gray-400 text-sm">
           This tab is implemented by another team.
         </div>
