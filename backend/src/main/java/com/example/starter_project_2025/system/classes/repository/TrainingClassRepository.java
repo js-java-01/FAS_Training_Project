@@ -16,4 +16,6 @@ public interface TrainingClassRepository extends JpaRepository<TrainingClass, UU
    * 2. Nơi định nghĩa các câu lệnh tìm kiếm lớp học tùy chỉnh
    * (Hiện tại chưa dùng nên để trống)
    */
+  
+  java.util.Optional<TrainingClass> findByClassCode(String classCode);
 }

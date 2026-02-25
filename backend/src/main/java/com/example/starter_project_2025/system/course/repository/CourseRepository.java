@@ -11,6 +11,8 @@ import java.util.UUID;
 public interface CourseRepository extends JpaRepository<Course, UUID> {
 
         boolean existsByCourseCode(String courseCode);
+        
+        java.util.Optional<Course> findByCourseCode(String courseCode);
 
         @Query("SELECT c FROM Course c " +
                         "LEFT JOIN TrainerCourse tc ON c.id = tc.course.id " +
