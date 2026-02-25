@@ -17,7 +17,7 @@ import { getColumns } from "./column";
 import { ModuleGroupForm } from "./form";
 import type { ModuleGroupDto } from "./form";
 import { ModuleGroupDetailDialog } from "./DetailDialog";
-import ImportExportModal from "@/components/modal/ImportExportModal";
+import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import {
   useDownloadTemplate,
   useExportModuleGroup,
@@ -75,7 +75,7 @@ export default function ModuleGroupsTable() {
       totalPages: tableData?.pagination?.totalPages ?? 0,
       totalElements: tableData?.pagination?.totalElements ?? 0,
     }),
-    [tableData, pageIndex, pageSize]
+    [tableData, pageIndex, pageSize],
   );
 
   /* ===================== COLUMNS ===================== */
@@ -95,7 +95,7 @@ export default function ModuleGroupsTable() {
         },
         onDelete: setDeleting,
       }),
-    []
+    [],
   );
 
   /* ===================== HANDLERS ===================== */
@@ -152,7 +152,9 @@ export default function ModuleGroupsTable() {
       await invalidateModuleGroups();
       await reload();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Failed to import module groups");
+      toast.error(
+        err?.response?.data?.message ?? "Failed to import module groups",
+      );
       throw err;
     }
   };
