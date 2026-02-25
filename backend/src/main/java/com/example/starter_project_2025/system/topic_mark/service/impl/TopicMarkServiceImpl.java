@@ -61,7 +61,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         }
 
         // Build map: assessmentTypeId -> weight
-        Map<Long, Double> typeWeightMap = weights.stream()
+        Map<String, Double> typeWeightMap = weights.stream()
             .collect(Collectors.toMap(
                 w -> w.getAssessmentType().getId(),
                 CourseAssessmentTypeWeight::getWeight,
@@ -81,7 +81,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             submissions.size(), userId, courseClassId);
 
         // 4. Group submissions by AssessmentType
-        Map<Long, List<Submission>> submissionsByType = submissions.stream()
+        Map<String, List<Submission>> submissionsByType = submissions.stream()
             .filter(s -> s.getAssessment() != null && s.getAssessment().getAssessmentType() != null)
             .collect(Collectors.groupingBy(
                 s -> s.getAssessment().getAssessmentType().getId()
@@ -90,8 +90,8 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         // 5. Calculate final score
         double finalScore = 0.0;
 
-        for (Map.Entry<Long, Double> entry : typeWeightMap.entrySet()) {
-            Long assessmentTypeId = entry.getKey();
+        for (Map.Entry<String, Double> entry : typeWeightMap.entrySet()) {
+            String assessmentTypeId = entry.getKey();
             Double weight = entry.getValue();
 
             if (weight == null || weight == 0) {
