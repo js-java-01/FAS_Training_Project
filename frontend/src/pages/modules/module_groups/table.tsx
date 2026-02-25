@@ -23,6 +23,7 @@ import {
   useExportModuleGroup,
   useImportModuleGroup,
 } from "@/pages/modules/module_groups/services/mutations";
+import { FacetedFilter } from "@/components/FacedFilter";
 
 /* ======================================================= */
 
@@ -40,6 +41,13 @@ export default function ModuleGroupsTable() {
   const [deleting, setDeleting] = useState<ModuleGroup | null>(null);
   const [viewingGroup, setViewingGroup] = useState<ModuleGroup | null>(null);
   const [openBackupModal, setOpenBackupModal] = useState(false);
+
+  /* ---------- faced filter ---------- */
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+
+  /* ---------- filter param (server side) ---------- */
+  const statusParam =
+    statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
 
   const { mutateAsync: importModuleGroup } = useImportModuleGroup();
   const { mutateAsync: exportModuleGroup } = useExportModuleGroup();
@@ -59,12 +67,12 @@ export default function ModuleGroupsTable() {
     data: tableData,
     isLoading,
     isFetching,
-    refetch: reload,
   } = useGetAllModuleGroups({
     page: pageIndex,
     pageSize,
     sort: sortParam,
     keyword: debouncedSearch,
+    isActive: statusParam,
   });
 
   const safeTableData = useMemo(
@@ -228,6 +236,20 @@ export default function ModuleGroupsTable() {
               <Plus className="h-4 w-4" />
               Add New Group
             </Button>
+          </div>
+        }
+        facetedFilters={
+          <div>
+            <FacetedFilter
+              title="Status"
+              options={[
+                { value: "ACTIVE", label: "Active" },
+                { value: "INACTIVE", label: "Inactive" },
+              ]}
+              value={statusFilter}
+              setValue={setStatusFilter}
+              multiple={false}
+            />
           </div>
         }
       />

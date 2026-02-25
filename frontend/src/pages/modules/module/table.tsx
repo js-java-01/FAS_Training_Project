@@ -1,16 +1,14 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { DatabaseBackup, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-
 import { DataTable } from "@/components/data_table/DataTable";
 import { getColumns } from "./column";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-
-import { moduleApi } from "@/api/moduleApi";
+import { moduleApi, moduleGroupApi } from "@/api/moduleApi";
 import type { Module, CreateModuleRequest } from "@/types/module";
 import { ModuleForm } from "./ModuleForm";
 import { useDebounce } from "@uidotdev/usehooks";
@@ -22,6 +20,7 @@ import {
   useExportModules,
   useImportModules,
 } from "@/pages/modules/module/services/mutations";
+import { FacetedFilter } from "@/components/FacedFilter";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
@@ -42,6 +41,17 @@ export default function ModulesTable() {
   /* ---------- search ---------- */
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
+
+  /* ---------- faced filter ---------- */
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [moduleGroupFilter, setModuleGroupFilter] = useState<string[]>([]);
+
+  /* ---------- filter param (server side) ---------- */
+  const statusParam =
+    statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
+
+  const moduleGroupParam =
+    moduleGroupFilter.length === 1 ? moduleGroupFilter[0] : undefined;
 
   /* ---------- sort param (server side) ---------- */
   const sortParam = useMemo(() => {
@@ -64,7 +74,14 @@ export default function ModulesTable() {
     pageSize,
     sort: sortParam,
     keyword: debouncedSearch,
+    isActive: statusParam,
+    moduleGroupId: moduleGroupParam,
   });
+
+  /* ---------- Reset table when filter changes ---------- */
+  useEffect(() => {
+    setPageIndex(0);
+  }, [debouncedSearch, statusFilter, moduleGroupFilter]);
 
   const safeTableData = useMemo(
     () => ({
@@ -190,6 +207,11 @@ export default function ModulesTable() {
     window.URL.revokeObjectURL(url);
   };
 
+  const { data: moduleGroups } = useQuery({
+    queryKey: ["module-groups-list"],
+    queryFn: moduleGroupApi.getAllModuleGroupsList,
+  });
+
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
@@ -235,6 +257,33 @@ export default function ModulesTable() {
               <Plus className="h-4 w-4" />
               Add New Module
             </Button>
+          </div>
+        }
+        /*Faced filter */
+        facetedFilters={
+          <div className="flex gap-1">
+            <FacetedFilter
+              title="Status"
+              options={[
+                { value: "ACTIVE", label: "Active" },
+                { value: "INACTIVE", label: "Inactive" },
+              ]}
+              value={statusFilter}
+              setValue={setStatusFilter}
+              multiple={false}
+            />
+            <FacetedFilter
+              title="Module Group"
+              options={
+                moduleGroups?.map(g => ({
+                  value: g.id,
+                  label: g.name,
+                })) ?? []
+              }
+              value={moduleGroupFilter}
+              setValue={setModuleGroupFilter}
+              multiple={false}
+            />
           </div>
         }
       />
