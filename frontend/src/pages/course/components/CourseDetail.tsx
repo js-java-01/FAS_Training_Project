@@ -6,6 +6,7 @@ import type { User } from "@/types/auth";
 import { toast } from "sonner";
 import { CohortTab } from "./CohortTab";
 import { OutlineTab } from "./OutlineTab";
+import CourseObjectivesTab from './CourseObjectivesTab';
 import {
   FiEdit,
   FiBookOpen,
@@ -76,7 +77,7 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
     userApi
       .getAllUsers(0, 100)
       .then((res) => setUsers(res.content ?? []))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const startEdit = () => {
@@ -170,11 +171,10 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 text-sm ${
-                activeTab === tab
-                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
-                  : "text-gray-500"
-              }`}
+              className={`pb-2 text-sm ${activeTab === tab
+                ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                : "text-gray-500"
+                }`}
             >
               {tab}
             </button>
@@ -416,17 +416,11 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
         </form>
       )}
 
-      {activeTab === "Cohort" && <CohortTab courseId={course.id} />}
-
-      {activeTab === "Outline" && <OutlineTab courseId={course.id} />}
-
-      {activeTab !== "Overview" &&
-        activeTab !== "Cohort" &&
-        activeTab !== "Outline" && (
-          <div className="text-gray-400 text-sm py-10 text-center border-2 border-dashed rounded-lg">
-            This tab ({activeTab}) is being developed by another team.
-          </div>
-        )}
+      {activeTab !== "Overview" && (
+        <div className="text-gray-400 text-sm">
+          This tab is implemented by another team.
+        </div>
+      )}
     </div>
   );
 }

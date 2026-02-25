@@ -1,5 +1,10 @@
 import axiosInstance from './axiosInstance';
 import type { Course, CreateCourseRequest, UpdateCourseRequest } from '../types/course';
+import type {
+  CourseObjective,
+  CreateCourseObjectiveRequest,
+  UpdateCourseObjectiveRequest,
+} from '../types/courseObjective';
 
 export interface CoursePageResponse {
   items: Course[];
@@ -84,5 +89,50 @@ export const courseApi = {
     await axiosInstance.post('/courses/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+  },
+
+  // =============================
+  // COURSE OBJECTIVES
+  // =============================
+
+  getObjectivesByCourse: async (
+    courseId: string
+  ): Promise<CourseObjective[]> => {
+    const response = await axiosInstance.get(
+      `/courses/${courseId}/objectives`
+    );
+    return response.data;
+  },
+
+  createObjective: async (
+    courseId: string,
+    payload: CreateCourseObjectiveRequest
+  ): Promise<CourseObjective> => {
+    const response = await axiosInstance.post(
+      `/courses/${courseId}/objectives`,
+      payload
+    );
+    return response.data;
+  },
+
+  updateObjective: async (
+    courseId: string,
+    objectiveId: string,
+    payload: UpdateCourseObjectiveRequest
+  ): Promise<CourseObjective> => {
+    const response = await axiosInstance.put(
+      `/courses/${courseId}/objectives/${objectiveId}`,
+      payload
+    );
+    return response.data;
+  },
+
+  deleteObjective: async (
+    courseId: string,
+    objectiveId: string
+  ): Promise<void> => {
+    await axiosInstance.delete(
+      `/courses/${courseId}/objectives/${objectiveId}`
+    );
   },
 };
