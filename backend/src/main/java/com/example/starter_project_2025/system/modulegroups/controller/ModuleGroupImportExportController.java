@@ -11,6 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/module-groups")
 @RequiredArgsConstructor
@@ -35,7 +37,16 @@ public class ModuleGroupImportExportController {
     public ResponseEntity<ImportResultResponse> importModuleGroups(
             @RequestParam("file") MultipartFile file
     ) {
-        return ResponseEntity.ok(service.importExcel(file));
+
+        ImportResultResponse response = service.importExcel(file);
+
+        if (response.getFailedCount() > 0) {
+            response.setMessage("Import module groups doned. Some records failed to import.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        response.setMessage("Import module groups successfully");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/export")
