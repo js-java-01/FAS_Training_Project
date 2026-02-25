@@ -3,7 +3,7 @@ import type { TrainingClass } from "@/types/trainingClass";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { EyeIcon } from "lucide-react";
+import { Check, EditIcon, EyeIcon, X } from "lucide-react";
 import dayjs from "dayjs";
 import SortHeader from "@/components/data_table/SortHeader";
 
@@ -139,7 +139,7 @@ export const getColumns = (actions?: TableActions) => {
         columnHelper.display({
             id: "actions",
             header: "Actions",
-            size: 80,
+            size: 180,
             cell: ({ row }) => (
                 <div className="flex gap-2">
                     {actions?.onView && (
@@ -149,6 +149,21 @@ export const getColumns = (actions?: TableActions) => {
                             onClick={() => actions.onView!(row.original)}
                         />
                     )}
+                    <ActionBtn
+                        tooltipText="Update"
+                        icon={<EditIcon size={12} />}
+                        onClick={() => {}}
+                    />
+                    <ActionBtn
+                        tooltipText="Approve"
+                        icon={<Check size={12} />}
+                        onClick={() => {}}
+                    />
+                    <ActionBtn
+                        tooltipText="Reject"
+                        icon={<X size={12} />}
+                        onClick={() => {}}
+                    />
                 </div>
             ),
             enableSorting: false,
