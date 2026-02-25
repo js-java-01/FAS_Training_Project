@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
 import { DatabaseBackup, Plus } from "lucide-react";
@@ -11,28 +11,38 @@ import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
 import ImportExportModal from "@/components/modal/ImportExportModal";
 
-import type { Department } from "@/types/department";
-import type { CreateDepartmentRequest } from "@/types/department";
-import { departmentApi } from "@/api/departmentApi";
+import { roleApi } from "@/api/roleApi";
+import { permissionApi } from "@/api/permissionApi";
+import type { Role, CreateRoleRequest } from "@/types/role";
+import type { Permission } from "@/types/permission";
 
-import { getColumns } from "./column";
-import { DepartmentForm } from "./DepartmentForm";
-import { DepartmentDetailDialog } from "./DetailDialog";
-import { DEPARTMENT_QUERY_KEY, useGetAllDepartments } from "./services/queries";
+import { getColumns } from "./columns";
+import { RoleFormModal } from "./components/RoleFormModal";
+import { RoleDetailDialog } from "./components/RoleDetailDialog";
+import { ROLE_QUERY_KEY, useGetAllRoles } from "./services/queries";
 import {
-  useExportDepartments,
-  useImportDepartments,
-  useDownloadDepartmentTemplate,
+  useExportRoles,
+  useImportRoles,
+  useDownloadRoleTemplate,
 } from "./services/mutations";
 
 /* ===================== MAIN ===================== */
-export default function DepartmentsTable() {
+export default function RoleTable() {
   /* ---------- modal & view ---------- */
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingDept, setEditingDept] = useState<Department | null>(null);
-  const [viewingDept, setViewingDept] = useState<Department | null>(null);
-  const [deletingDept, setDeletingDept] = useState<Department | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [viewingRole, setViewingRole] = useState<Role | null>(null);
+  const [deletingRole, setDeletingRole] = useState<Role | null>(null);
   const [openBackupModal, setOpenBackupModal] = useState(false);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
+
+  const [roleForm, setRoleForm] = useState<CreateRoleRequest>({
+    name: "",
+    description: "",
+    hierarchyLevel: 1,
+    permissionIds: [],
+  });
 
   /* ---------- table state ---------- */
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -53,9 +63,9 @@ export default function DepartmentsTable() {
   }, [sorting]);
 
   /* ---------- mutations ---------- */
-  const { mutateAsync: importDepartments } = useImportDepartments();
-  const { mutateAsync: exportDepartments } = useExportDepartments();
-  const { mutateAsync: downloadTemplate } = useDownloadDepartmentTemplate();
+  const { mutateAsync: importRoles } = useImportRoles();
+  const { mutateAsync: exportRoles } = useExportRoles();
+  const { mutateAsync: downloadTemplate } = useDownloadRoleTemplate();
 
   /* ---------- query ---------- */
   const {
@@ -63,7 +73,7 @@ export default function DepartmentsTable() {
     isLoading,
     isFetching,
     refetch: reload,
-  } = useGetAllDepartments({
+  } = useGetAllRoles({
     page: pageIndex,
     pageSize,
     sort: sortParam,
@@ -82,8 +92,8 @@ export default function DepartmentsTable() {
   );
 
   /* ---------- helpers ---------- */
-  const invalidateDepartments = async () => {
-    await queryClient.invalidateQueries({ queryKey: [DEPARTMENT_QUERY_KEY] });
+  const invalidateRoles = async () => {
+    await queryClient.invalidateQueries({ queryKey: [ROLE_QUERY_KEY] });
   };
 
   const downloadBlob = (blob: Blob, filename: string) => {
@@ -97,86 +107,119 @@ export default function DepartmentsTable() {
     window.URL.revokeObjectURL(url);
   };
 
-  /* ---------- CRUD ---------- */
-  const handleCreate = async (formData: Partial<Department>) => {
+  /* ---------- open create ---------- */
+  const openCreate = async () => {
+    setIsEditMode(false);
+    setEditingRole(null);
+    setRoleForm({
+      name: "",
+      description: "",
+      hierarchyLevel: 1,
+      permissionIds: [],
+    });
+    const perms = await permissionApi.getAllPermissionsList();
+    setPermissions(perms);
+    setIsFormOpen(true);
+  };
+
+  /* ---------- open edit ---------- */
+  const openEdit = async (role: Role) => {
+    setIsEditMode(true);
+    setEditingRole(role);
+    setRoleForm({
+      name: role.name,
+      description: role.description || "",
+      hierarchyLevel: role.hierarchyLevel,
+      permissionIds: role.permissionIds,
+    });
+    const perms = await permissionApi.getAllPermissionsList();
+    setPermissions(perms);
+    setIsFormOpen(true);
+  };
+
+  /* ---------- submit ---------- */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      await departmentApi.create(formData as CreateDepartmentRequest);
-      toast.success("Department created successfully");
+      if (isEditMode && editingRole) {
+        await roleApi.updateRole(editingRole.id, roleForm);
+        toast.success("Role updated successfully");
+      } else {
+        await roleApi.createRole(roleForm);
+        toast.success("Role created successfully");
+      }
       setIsFormOpen(false);
-      await invalidateDepartments();
+      await invalidateRoles();
       await reload();
     } catch (error) {
       if (error instanceof AxiosError && error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
-        toast.error("Failed to create department");
+        toast.error("Failed to save role");
       }
     }
   };
 
-  const handleUpdate = async (formData: Partial<Department>) => {
-    if (!editingDept?.id) return;
-    try {
-      await departmentApi.update(editingDept.id, formData);
-      toast.success("Department updated successfully");
-      setIsFormOpen(false);
-      setEditingDept(null);
-      await invalidateDepartments();
-      await reload();
-    } catch (error) {
-      if (error instanceof AxiosError && error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error("Failed to update department");
-      }
-    }
-  };
-
+  /* ---------- delete ---------- */
   const handleDelete = async () => {
-    if (!deletingDept?.id) return;
+    if (!deletingRole) return;
     try {
-      await departmentApi.delete(deletingDept.id);
-      toast.success("Department deleted successfully");
-      await invalidateDepartments();
+      await roleApi.deleteRole(deletingRole.id);
+      toast.success("Role deleted successfully");
+      await invalidateRoles();
       await reload();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to delete department");
+      toast.error("Failed to delete role");
     } finally {
-      setDeletingDept(null);
+      setDeletingRole(null);
+    }
+  };
+
+  /* ---------- toggle status ---------- */
+  const handleToggleStatus = async (id: string) => {
+    try {
+      await roleApi.toggleRoleStatus(id);
+      toast.success("Role status updated");
+      await invalidateRoles();
+      await reload();
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to update status");
+      }
     }
   };
 
   /* ---------- import / export ---------- */
   const handleImport = async (file: File) => {
     try {
-      await importDepartments(file);
-      toast.success("Import departments successfully");
+      await importRoles(file);
+      toast.success("Import roles successfully");
       setOpenBackupModal(false);
-      await invalidateDepartments();
+      await invalidateRoles();
       await reload();
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ?? "Failed to import departments",
-      );
+      toast.error(err?.response?.data?.message ?? "Failed to import roles");
       throw err;
     }
   };
 
   const handleExport = async () => {
     try {
-      const blob = await exportDepartments();
-      downloadBlob(blob, "departments.xlsx");
-      toast.success("Export departments successfully");
+      const blob = await exportRoles();
+      downloadBlob(blob, `roles_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      toast.success("Export roles successfully");
     } catch {
-      toast.error("Failed to export departments");
+      toast.error("Failed to export roles");
     }
   };
 
   const handleDownloadTemplate = async () => {
     try {
       const blob = await downloadTemplate();
-      downloadBlob(blob, "department_import_template.xlsx");
+      downloadBlob(blob, "roles_template.xlsx");
       toast.success("Download template successfully");
     } catch {
       toast.error("Failed to download template");
@@ -187,12 +230,10 @@ export default function DepartmentsTable() {
   const columns = useMemo(
     () =>
       getColumns({
-        onView: setViewingDept,
-        onEdit: (dept) => {
-          setEditingDept(dept);
-          setIsFormOpen(true);
-        },
-        onDelete: setDeletingDept,
+        onView: setViewingRole,
+        onEdit: openEdit,
+        onDelete: setDeletingRole,
+        onToggleStatus: handleToggleStatus,
       }),
     [],
   );
@@ -200,8 +241,8 @@ export default function DepartmentsTable() {
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
-      <DataTable<Department, unknown>
-        columns={columns as ColumnDef<Department, unknown>[]}
+      <DataTable<Role, unknown>
+        columns={columns as ColumnDef<Role, unknown>[]}
         data={safeTableData.items}
         isLoading={isLoading}
         isFetching={isFetching}
@@ -213,7 +254,7 @@ export default function DepartmentsTable() {
         onPageSizeChange={setPageSize}
         isSearch
         manualSearch
-        searchPlaceholder="name, code, location"
+        searchPlaceholder="role name"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}
@@ -228,49 +269,54 @@ export default function DepartmentsTable() {
               Import / Export
             </Button>
             <Button
-              onClick={() => {
-                setEditingDept(null);
-                setIsFormOpen(true);
-              }}
+              onClick={openCreate}
               className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
             >
               <Plus className="h-4 w-4" />
-              Add Department
+              Add New Role
             </Button>
           </div>
         }
       />
 
       {/* ===== Create / Update ===== */}
-      <DepartmentForm
+      <RoleFormModal
         open={isFormOpen}
-        initial={editingDept}
-        onClose={() => {
-          setIsFormOpen(false);
-          setEditingDept(null);
-        }}
-        onSaved={editingDept ? handleUpdate : handleCreate}
+        isEditMode={isEditMode}
+        roleForm={roleForm}
+        permissions={permissions}
+        onChange={setRoleForm}
+        onTogglePermission={(id) =>
+          setRoleForm((prev) => ({
+            ...prev,
+            permissionIds: prev.permissionIds.includes(id)
+              ? prev.permissionIds.filter((p) => p !== id)
+              : [...prev.permissionIds, id],
+          }))
+        }
+        onSubmit={handleSubmit}
+        onClose={() => setIsFormOpen(false)}
       />
 
       {/* ===== View detail ===== */}
-      <DepartmentDetailDialog
-        open={!!viewingDept}
-        department={viewingDept}
-        onClose={() => setViewingDept(null)}
+      <RoleDetailDialog
+        open={!!viewingRole}
+        role={viewingRole}
+        onClose={() => setViewingRole(null)}
       />
 
       {/* ===== Delete confirm ===== */}
       <ConfirmDialog
-        open={!!deletingDept}
-        title="Delete Department"
-        description={`Are you sure you want to delete "${deletingDept?.name}"?`}
-        onCancel={() => setDeletingDept(null)}
+        open={!!deletingRole}
+        title="Delete Role"
+        description={`Are you sure you want to delete "${deletingRole?.name}"?`}
+        onCancel={() => setDeletingRole(null)}
         onConfirm={() => void handleDelete()}
       />
 
       {/* ===== Import / Export modal ===== */}
       <ImportExportModal
-        title="Departments"
+        title="Roles"
         open={openBackupModal}
         setOpen={setOpenBackupModal}
         onImport={handleImport}

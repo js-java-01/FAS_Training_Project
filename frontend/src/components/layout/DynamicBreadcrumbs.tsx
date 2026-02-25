@@ -15,6 +15,7 @@ type Props = {
     pathTitles?: Record<string, string>;
     hasPage?: boolean;
     ignorePaths?: string[];
+    hideIcon?: boolean;
 };
 
 function formatPath(path: string) {
@@ -28,6 +29,7 @@ export default function DynamicBreadcrumbs({
                                                pathTitles,
                                                hasPage = true,
                                                ignorePaths = [],
+                                               hideIcon = false,
                                            }: Props) {
     const location = useLocation();
 
@@ -51,7 +53,7 @@ export default function DynamicBreadcrumbs({
 
     const Icon = useMemo(() => iconMap[iconKey], [iconKey]);
 
-    if (!Icon) return null;
+    if (!hideIcon && !Icon) return null;
 
     return (
         <Breadcrumb>
@@ -64,25 +66,34 @@ export default function DynamicBreadcrumbs({
                     return (
                         <BreadcrumbItem key={href} className="flex items-center">
                             {index > 0 && (
-                                <BreadcrumbSeparator className="mx-2 text-muted-foreground">
+                                <BreadcrumbSeparator className={`mx-2 text-muted-foreground${hideIcon ? " text-2xl font-bold" : ""}`}>
                                     &gt;
                                 </BreadcrumbSeparator>
                             )}
 
                             {isLast || !hasPage ? (
                                   <div className={"flex gap-2 items-center"}>
-                                      <Icon className="text-gray-600" />
+                                      {!hideIcon && <Icon className="text-gray-600" />}
                                       <BreadcrumbPage className="text-foreground text-2xl font-bold">
                                           {title}
                                       </BreadcrumbPage>
                                   </div>
                             ) : (
-                                <BreadcrumbLink
-                                    asChild
-                                    className="text-muted-foreground hover:text-foreground transition-colors"
-                                >
-                                    <Link to={href}>{title}</Link>
-                                </BreadcrumbLink>
+                                hideIcon ? (
+                                    <BreadcrumbLink
+                                        asChild
+                                        className="text-foreground text-2xl font-bold hover:text-muted-foreground transition-colors"
+                                    >
+                                        <Link to={href}>{title}</Link>
+                                    </BreadcrumbLink>
+                                ) : (
+                                    <BreadcrumbLink
+                                        asChild
+                                        className="text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        <Link to={href}>{title}</Link>
+                                    </BreadcrumbLink>
+                                )
                             )}
                         </BreadcrumbItem>
                     );

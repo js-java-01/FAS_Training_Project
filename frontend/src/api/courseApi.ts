@@ -1,24 +1,52 @@
 import axiosInstance from './axiosInstance';
 import type { Course, CreateCourseRequest, UpdateCourseRequest } from '../types/course';
 
-export type CourseFilterParams = {
-  keyword?: string;
-  topicCode?: string;
-  trainerId?: string;
-  status?: string;
-  sort?: string;
-};
+export interface CoursePageResponse {
+  items: Course[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    totalElements: number;
+  };
+}
 
 export const courseApi = {
-  getCourses: async (page = 0, size = 10, filters?: CourseFilterParams) => {
-    const q = new URLSearchParams({ page: String(page), size: String(size) });
-    if (filters?.keyword) q.set('keyword', filters.keyword);
-    if (filters?.topicCode) q.set('topicCode', filters.topicCode);
-    if (filters?.trainerId) q.set('trainerId', filters.trainerId);
-    if (filters?.status) q.set('status', filters.status);
-    if (filters?.sort) q.set('sort', filters.sort);
-    const response = await axiosInstance.get(`/courses?${q.toString()}`);
-    return response.data; // Spring Page<Course>
+  getCourses: async (params: {
+    page?: number;
+    size?: number;
+    sort?: string;
+    keyword?: string;
+    status?: string;
+    trainerId?: string;
+  } = {}): Promise<CoursePageResponse> => {
+    const { page = 0, size = 10, sort, keyword, status, trainerId } = params;
+    const response = await axiosInstance.get<{
+      content: Course[];
+      number: number;
+      size: number;
+      totalPages: number;
+      totalElements: number;
+    }>('/courses', {
+      params: {
+        page,
+        size,
+        ...(sort ? { sort } : {}),
+        ...(keyword?.trim() ? { keyword: keyword.trim() } : {}),
+        ...(status ? { status } : {}),
+        ...(trainerId ? { trainerId } : {}),
+      },
+    });
+    const d = response.data;
+    return {
+      items: d.content,
+      pagination: {
+        page: d.number,
+        pageSize: d.size,
+        totalPages: d.totalPages,
+        totalElements: d.totalElements,
+      },
+    };
   },
 
   getCourseById: async (id: string): Promise<Course> => {

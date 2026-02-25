@@ -4,7 +4,7 @@ import { Dashboard } from "@/pages/Dashboard";
 import ModulesManagement from "@/pages/modules/module/ModulesManagement.tsx";
 import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsManagement.tsx";
 import NotFoundPage from "@/pages/NotFoundPage.tsx";
-import {RoleManagement} from "@/pages/RoleManagement.tsx";
+import {RoleManagement} from "@/pages/role/RoleManagement.tsx";
 
 export const componentRegistry: Record<string, ComponentType> = {
     "/dashboard": Dashboard,
