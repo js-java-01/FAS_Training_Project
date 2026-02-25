@@ -4,7 +4,6 @@ import type { RootState } from "./store/store";
 import { useActiveModuleGroups } from "./hooks/useSidebarMenus";
 import NotFoundPage from "./pages/NotFoundPage";
 import { AuthProvider } from "./contexts/AuthContext";
-
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Login } from "./pages/auth/Login";
 import { Unauthorized } from "./pages/Unauthorized";
@@ -12,12 +11,9 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
-
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
-
 import ModulesManagement from "./pages/modules/module/ModulesManagement";
 import { componentRegistry } from "./router/componentRegistry";
-
 import { Toaster } from "sonner";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
 import { AssessmentFormPage, TeacherAssessmentPage } from "./pages/teacher-assessment";
@@ -198,10 +194,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-            <Route path="/modules" element={<ModulesManagement />} />
-
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </RoleSwitchProvider>
       </AuthProvider >

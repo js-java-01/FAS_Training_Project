@@ -8,7 +8,8 @@ export const useGetAllModuleGroups = (params: {
     page: number;
     pageSize: number;
     sort?: string;
-    keyword?: string;
+  keyword?: string;
+    isActive?: boolean;
 }) => {
     return useQuery<PagedData<ModuleGroup>>({
         queryKey: queryKeys.moduleGroups(params),
@@ -17,11 +18,11 @@ export const useGetAllModuleGroups = (params: {
                 page: params.page,
                 size: params.pageSize,
                 sort: params.sort ?? "displayOrder,asc",
-                keyword: params.keyword,
+                ...(params.keyword?.trim() ? { keyword: params.keyword.trim() } : {}),
+                ...(params.isActive !== undefined ? { isActive: params.isActive } : {}),
             }),
 
         placeholderData: (prev?: PagedData<ModuleGroup>) => prev,
         staleTime: 5 * 60 * 1000,
     });
 };
-

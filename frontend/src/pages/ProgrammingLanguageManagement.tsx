@@ -6,7 +6,7 @@ import { ProgrammingLanguageTable } from './programming-language/ProgrammingLang
 
 /**
  * Programming Language Management Page
- * 
+ *
  * Uses the same layout pattern as AssessmentManagement
  * with MainLayout wrapper and ProgrammingLanguageTable component.
  */
