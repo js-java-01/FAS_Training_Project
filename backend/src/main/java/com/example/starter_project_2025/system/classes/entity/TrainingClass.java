@@ -37,6 +37,7 @@ public class TrainingClass {
 
     @Column(name = "class_code", unique = true)
     private String classCode;
+
     @Column(name = "is_active")
     private Boolean isActive = false;
     @ManyToOne(fetch = FetchType.LAZY)
