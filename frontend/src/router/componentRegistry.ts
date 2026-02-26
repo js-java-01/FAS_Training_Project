@@ -7,6 +7,7 @@ import TrainingClassesManagement from "@/pages/training-classes/TrainingClassesM
 import NotFoundPage from "@/pages/NotFoundPage.tsx";
 import { RoleManagement } from "@/pages/RoleManagement.tsx";
 import LocationsManagement from "@/pages/locations/LocationsManagement.tsx";
+import MfaSettings from "@/pages/MfaSettings.tsx";
 
 export const componentRegistry: Record<string, ComponentType> = {
     "/dashboard": Dashboard,
@@ -17,4 +18,5 @@ export const componentRegistry: Record<string, ComponentType> = {
     "/notFoundPage": NotFoundPage,
     "/roles": RoleManagement,
     "/locations": LocationsManagement,
+    "/mfa-setting": MfaSettings,
 };

@@ -25,6 +25,7 @@ import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
+import MfaSettings from "./pages/MfaSettings";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -186,10 +187,19 @@ function App() {
             />
 
             <Route
-              path='questions/:id/edit'
+              path='/questions/:id/edit'
               element={
                 <ProtectedRoute requiredPermission="QUESTION_UPDATE">
                   <EditQuestionPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/mfa-setting"
+              element={
+                <ProtectedRoute>
+                  <MfaSettings />
                 </ProtectedRoute>
               }
             />
