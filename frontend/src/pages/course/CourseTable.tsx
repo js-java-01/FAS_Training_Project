@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/data_table/DataTable";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-import ImportExportModal from "@/components/modal/ImportExportModal";
+import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 
 import { courseApi } from "@/api/courseApi";
 import type { Course } from "@/types/course";

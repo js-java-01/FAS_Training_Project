@@ -13,7 +13,7 @@ import { DataTable } from "@/components/data_table/DataTable";
 import SortHeader from "@/components/data_table/SortHeader";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { type ColumnDef, type SortingState } from "@tanstack/react-table";
-import ImportExportModal from "@/components/modal/ImportExportModal";
+import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import { Button } from "@/components/ui/button";
 import { useDebounce } from "@uidotdev/usehooks";
 

@@ -8,6 +8,7 @@ import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
 import com.example.starter_project_2025.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,6 +38,7 @@ public class RoleService {
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
+    private final UserRoleRepository userRoleRepository;
 
     @PreAuthorize("hasAuthority('ROLE_READ')")
     public Page<RoleDTO> getAllRoles(Pageable pageable) {
@@ -143,24 +145,23 @@ public class RoleService {
     }
 
     /**
-     * Returns all roles the current user can switch to.
-     * - If user has SWITCH_ROLE permission → return all active roles with their
-     * permissions.
-     * - Otherwise → return only their own role.
+     * Returns all roles the current user is assigned to (from user_roles table).
+     * Users with multiple roles (ADMIN, SUPER_ADMIN) can switch between them.
      */
     public List<RoleSummaryDTO> getMyRoles(UserDetailsImpl userDetails) {
-        if (userDetails.getPermissions().contains("SWITCH_ROLE")) {
-            return roleRepository.findAllActiveWithPermissions().stream()
-                    .map(r -> new RoleSummaryDTO(
-                            r.getId(),
-                            r.getName(),
-                            r.getPermissions().stream()
+        var assigned = userRoleRepository.findByUserIdWithPermissions(userDetails.getId());
+        if (!assigned.isEmpty()) {
+            return assigned.stream()
+                    .map(ur -> new RoleSummaryDTO(
+                            ur.getRole().getId(),
+                            ur.getRole().getName(),
+                            ur.getRole().getPermissions().stream()
                                     .map(Permission::getName)
                                     .collect(Collectors.toSet())))
                     .collect(Collectors.toList());
         }
 
-        // Fallback: only own role
+        // Fallback: build from current JWT context
         Role ownRole = roleRepository.findByName(userDetails.getRole()).orElse(null);
         if (ownRole == null)
             return List.of();

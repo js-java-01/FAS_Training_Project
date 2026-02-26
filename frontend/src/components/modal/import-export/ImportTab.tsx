@@ -28,7 +28,7 @@ export default function ImportTab({
   onImport,
   onDownloadTemplate,
 }: {
-  onImport: (file: File) => Promise<ImportResult>;
+  onImport: (file: File) => Promise<ImportResult | void>;
   onDownloadTemplate: () => Promise<void>;
 }) {
   /* ================= STATE ================= */
@@ -79,10 +79,13 @@ export default function ImportTab({
       setResult(null);
 
       const res = await onImport(file);
-      setResult(res);
 
-      // ✅ Clear file only if fully success
-      if (res.failedCount === 0) {
+      if (res) {
+        setResult(res as ImportResult);
+      }
+
+      // ✅ Clear file only if fully success (or void = success)
+      if (!res || (res as ImportResult).failedCount === 0) {
         setFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
@@ -95,7 +98,7 @@ export default function ImportTab({
       } else {
         setError(
           errorData?.message ??
-            "Import failed. Please check your file and try again."
+            "Import failed. Please check your file and try again.",
         );
       }
     } finally {
@@ -271,14 +274,16 @@ export default function ImportTab({
         <div className="border rounded-xl p-6 bg-white shadow-sm space-y-5">
           <div>
             <h3 className="font-semibold text-base">Import Result</h3>
-            <p className="text-sm text-muted-foreground">
-              {result.message}
-            </p>
+            <p className="text-sm text-muted-foreground">{result.message}</p>
           </div>
 
           <div className="grid grid-cols-3 gap-4 text-center">
             <StatCard label="Total" value={result.totalRows} />
-            <StatCard label="Success" value={result.successCount} color="green" />
+            <StatCard
+              label="Success"
+              value={result.successCount}
+              color="green"
+            />
             <StatCard label="Failed" value={result.failedCount} color="red" />
           </div>
 
@@ -299,9 +304,7 @@ export default function ImportTab({
                       Row <span className="font-medium">{err.row}</span> —{" "}
                       <span className="font-medium">{err.field}</span>
                     </p>
-                    <p className="text-red-600 text-xs">
-                      {err.message}
-                    </p>
+                    <p className="text-red-600 text-xs">{err.message}</p>
                   </div>
                 ))}
               </div>
@@ -333,9 +336,7 @@ function StatCard({
     <div className="bg-gray-50 rounded-lg p-4">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p
-        className={`text-xl font-semibold mt-1 ${
-          color ? colorMap[color] : ""
-        }`}
+        className={`text-xl font-semibold mt-1 ${color ? colorMap[color] : ""}`}
       >
         {value}
       </p>

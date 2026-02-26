@@ -15,7 +15,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data_table/DataTable";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
-import ImportExportModal from "@/components/modal/ImportExportModal";
+import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 
 import { courseApi } from "@/api/courseApi";
 import type { CourseObjective } from "@/types/courseObjective";

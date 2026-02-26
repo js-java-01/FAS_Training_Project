@@ -9,7 +9,7 @@ import { AxiosError } from "axios";
 import { DataTable } from "@/components/data_table/DataTable";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-import ImportExportModal from "@/components/modal/ImportExportModal";
+import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 
 import type { Department } from "@/types/department";
 import type { CreateDepartmentRequest } from "@/types/department";

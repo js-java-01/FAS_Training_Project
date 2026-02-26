@@ -40,13 +40,21 @@ function getRoleColor(name: string): {
       hover: "hover:bg-purple-100",
       dot: "text-purple-500",
     };
-  if (upper === "MANAGER")
+  if (upper === "MANAGER" || upper === "DEPARTMENT_MANAGER")
     return {
       bg: "bg-orange-50",
       text: "text-orange-700",
       border: "border-orange-200",
       hover: "hover:bg-orange-100",
       dot: "text-orange-500",
+    };
+  if (upper === "SUPER_ADMIN")
+    return {
+      bg: "bg-red-50",
+      text: "text-red-700",
+      border: "border-red-200",
+      hover: "hover:bg-red-100",
+      dot: "text-red-500",
     };
   return {
     bg: "bg-gray-50",
@@ -86,7 +94,6 @@ export default function HeaderRight() {
   if (!canSwitch) {
     return (
       <div className="flex items-center gap-3">
-<<<<<<< HEAD
         {isLoading ? (
           <Loader2 size={16} className="animate-spin text-muted-foreground" />
         ) : (
@@ -97,14 +104,6 @@ export default function HeaderRight() {
             {displayRole.toLowerCase()}
           </Badge>
         )}
-=======
-        <Badge
-          variant="secondary"
-          className="capitalize text-sm text-blue-500 bg-blue-100"
-        >
-          {role.toLowerCase()}
-        </Badge>
->>>>>>> G3-PhucSanh
         <ToggleTheme />
       </div>
     );
@@ -121,7 +120,7 @@ export default function HeaderRight() {
           <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold bg-white/60">
             {displayRole[0].toUpperCase()}
           </span>
-          <span className="capitalize">{displayRole.toLowerCase()} View</span>
+          <span className="capitalize">{displayRole.toLowerCase()}</span>
           <ChevronDown
             size={13}
             className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -162,13 +161,8 @@ export default function HeaderRight() {
           </div>
         )}
       </div>
-<<<<<<< HEAD
 
       <ToggleTheme />
     </div>
-=======
-      <ToggleTheme />
-    </div >
->>>>>>> G3-PhucSanh
   );
 }

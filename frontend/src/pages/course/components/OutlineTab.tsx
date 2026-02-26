@@ -26,7 +26,7 @@ import {
   SessionSidePanel,
   type SessionSidePanelMode,
 } from "./SessionSidePanel";
-import ImportExportModal from "@/components/modal/ImportExportModal";
+import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 
 // ─── Type badge ────────────────────────────────────────────────
 const TYPE_COLORS: Record<string, string> = {

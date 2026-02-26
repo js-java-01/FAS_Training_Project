@@ -228,9 +228,8 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("CLASS_CREATE", "Create new classes", "CLASS", "CREATE"),
                                 createPermission("CLASS_READ", "View classes", "CLASS", "READ"),
                                 createPermission("CLASS_UPDATE", "Update existing classes", "CLASS", "UPDATE"),
-                                createPermission("CLASS_USER_READ", "User can view classes", "CLASS_USER", "READ")
-
-                );
+                                createPermission("CLASS_USER_READ", "User can view classes", "CLASS_USER", "READ"),
+                                createPermission("SWITCH_ROLE", "Switch to another role view", "ROLE", "SWITCH"));
                 permissionRepository.saveAll(permissions);
                 log.info("Initialized {} permissions", permissions.size());
         }
@@ -271,34 +270,71 @@ public class DataInitializer implements CommandLineRunner {
                 studentRole.setName("STUDENT");
                 studentRole.setDescription("Student with limited access to educational resources");
                 List<Permission> studentPermissions = new java.util.ArrayList<>(
-
                                 permissionRepository.findByAction("READ"));
                 permissionRepository.findByName("ENROLL_COURSE").ifPresent(studentPermissions::add);
                 studentRole.setPermissions(new HashSet<>(studentPermissions));
                 roleRepository.save(studentRole);
 
-                log.info("Initialized 2 roles: ADMIN, STUDENT");
+                // TRAINER
+                Role trainerRole = new Role();
+                trainerRole.setName("TRAINER");
+                trainerRole.setDescription("Trainer with course/lesson/assessment management access");
+                List<Permission> trainerPermissions = new java.util.ArrayList<>(
+                                permissionRepository.findByAction("READ"));
+                for (String pn : Arrays.asList(
+                                "LESSON_CREATE", "LESSON_UPDATE", "LESSON_DELETE",
+                                "SESSION_CREATE", "SESSION_UPDATE", "SESSION_DELETE",
+                                "COURSE_OUTLINE_EDIT",
+                                "ASSESSMENT_CREATE", "ASSESSMENT_UPDATE", "ASSESSMENT_DELETE",
+                                "ASSESSMENT_ASSIGN", "ASSESSMENT_PUBLISH", "ASSESSMENT_SUBMIT",
+                                "QUESTION_CREATE", "QUESTION_UPDATE", "QUESTION_DELETE",
+                                "QUESTION_CATEGORY_CREATE", "QUESTION_CATEGORY_UPDATE", "QUESTION_CATEGORY_DELETE",
+                                "ENROLL_COURSE")) {
+                        permissionRepository.findByName(pn).ifPresent(trainerPermissions::add);
+                }
+                trainerRole.setPermissions(new HashSet<>(trainerPermissions));
+                roleRepository.save(trainerRole);
+
+                // SUPER_ADMIN
+                Role superAdminRole = new Role();
+                superAdminRole.setName("SUPER_ADMIN");
+                superAdminRole.setDescription("Super Administrator with all permissions and role-switch capability");
+                superAdminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
+                roleRepository.save(superAdminRole);
+
+                log.info("Initialized 4 roles: ADMIN, DEPARTMENT_MANAGER, STUDENT, TRAINER, SUPER_ADMIN");
         }
 
         private void initializeUsers() {
-                Role adminRole = roleRepository.findByName("ADMIN").orElseThrow();
-                Role studentRole = roleRepository.findByName("STUDENT").orElseThrow();
-
                 User admin = new User();
                 admin.setEmail("admin@example.com");
                 admin.setPasswordHash(passwordEncoder.encode("password123"));
                 admin.setFirstName("Admin");
                 admin.setLastName("User");
-                // admin.setRole(adminRole);
                 admin.setIsActive(true);
                 userRepository.save(admin);
+
+                User superAdmin = new User();
+                superAdmin.setEmail("superadmin@example.com");
+                superAdmin.setPasswordHash(passwordEncoder.encode("password123"));
+                superAdmin.setFirstName("Super");
+                superAdmin.setLastName("Admin");
+                superAdmin.setIsActive(true);
+                userRepository.save(superAdmin);
+
+                User trainer = new User();
+                trainer.setEmail("trainer@example.com");
+                trainer.setPasswordHash(passwordEncoder.encode("password123"));
+                trainer.setFirstName("Trainer");
+                trainer.setLastName("User");
+                trainer.setIsActive(true);
+                userRepository.save(trainer);
 
                 User student1 = new User();
                 student1.setEmail("student@example.com");
                 student1.setPasswordHash(passwordEncoder.encode("password123"));
                 student1.setFirstName("John");
                 student1.setLastName("Doe");
-                // student1.setRole(studentRole);
                 student1.setIsActive(true);
                 userRepository.save(student1);
 
@@ -307,51 +343,65 @@ public class DataInitializer implements CommandLineRunner {
                 student2.setPasswordHash(passwordEncoder.encode("password123"));
                 student2.setFirstName("Jane");
                 student2.setLastName("Smith");
-                // student2.setRole(studentRole);
                 student2.setIsActive(true);
                 userRepository.save(student2);
 
-                log.info("Initialized 3 users (admin@example.com, student@example.com, jane.smith@example.com)");
+                log.info("Initialized 5 users: admin, superadmin, trainer, student, jane.smith");
         }
 
         private void initializeUserRoles() {
                 Role adminRole = roleRepository.findByName("ADMIN")
                                 .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
+                Role superAdminRole = roleRepository.findByName("SUPER_ADMIN")
+                                .orElseThrow(() -> new RuntimeException("Role SUPER_ADMIN not found"));
+                Role trainerRole = roleRepository.findByName("TRAINER")
+                                .orElseThrow(() -> new RuntimeException("Role TRAINER not found"));
+                Role departmentManagerRole = roleRepository.findByName("DEPARTMENT_MANAGER")
+                                .orElseThrow(() -> new RuntimeException("Role DEPARTMENT_MANAGER not found"));
                 Role studentRole = roleRepository.findByName("STUDENT")
                                 .orElseThrow(() -> new RuntimeException("Role STUDENT not found"));
 
                 User adminUser = userRepository.findByEmail("admin@example.com")
                                 .orElseThrow(() -> new RuntimeException("Admin user not found"));
+                User superAdminUser = userRepository.findByEmail("superadmin@example.com")
+                                .orElseThrow(() -> new RuntimeException("Super admin user not found"));
+                User trainerUser = userRepository.findByEmail("trainer@example.com")
+                                .orElseThrow(() -> new RuntimeException("Trainer user not found"));
                 User student1 = userRepository.findByEmail("student@example.com")
                                 .orElseThrow(() -> new RuntimeException("Student 1 not found"));
                 User student2 = userRepository.findByEmail("jane.smith@example.com")
                                 .orElseThrow(() -> new RuntimeException("Student 2 not found"));
 
-                UserRole adminUserRole = new UserRole();
-                adminUserRole.setUser(adminUser);
-                adminUserRole.setRole(adminRole);
-                adminUserRole.setDefault(true);
-                userRoleRepository.save(adminUserRole);
+                // Admin user: all roles, ADMIN is default
+                saveUserRole(adminUser, adminRole, true);
+                saveUserRole(adminUser, superAdminRole, false);
+                saveUserRole(adminUser, trainerRole, false);
+                saveUserRole(adminUser, departmentManagerRole, false);
+                saveUserRole(adminUser, studentRole, false);
 
-                UserRole adminUserRole02 = new UserRole();
-                adminUserRole02.setUser(adminUser);
-                adminUserRole02.setRole(studentRole);
-                adminUserRole02.setDefault(false);
-                userRoleRepository.save(adminUserRole02);
+                // Super Admin user: all roles, SUPER_ADMIN is default
+                saveUserRole(superAdminUser, superAdminRole, true);
+                saveUserRole(superAdminUser, adminRole, false);
+                saveUserRole(superAdminUser, trainerRole, false);
+                saveUserRole(superAdminUser, departmentManagerRole, false);
+                saveUserRole(superAdminUser, studentRole, false);
 
-                UserRole student1Role = new UserRole();
-                student1Role.setUser(student1);
-                student1Role.setRole(studentRole);
-                student1Role.setDefault(true);
-                userRoleRepository.save(student1Role);
+                // Trainer user: only TRAINER
+                saveUserRole(trainerUser, trainerRole, true);
 
-                UserRole student2Role = new UserRole();
-                student2Role.setUser(student2);
-                student2Role.setRole(studentRole);
-                student2Role.setDefault(true);
-                userRoleRepository.save(student2Role);
+                // Student users
+                saveUserRole(student1, studentRole, true);
+                saveUserRole(student2, studentRole, true);
 
                 log.info("Successfully assigned roles to users in UserRole table.");
+        }
+
+        private void saveUserRole(User user, Role role, boolean isDefault) {
+                UserRole ur = new UserRole();
+                ur.setUser(user);
+                ur.setRole(role);
+                ur.setDefault(isDefault);
+                userRoleRepository.save(ur);
         }
 
         private void initializeMenus() {
@@ -578,12 +628,6 @@ public class DataInitializer implements CommandLineRunner {
                                 "Manage system modules"));
                 moduleRepository.save(createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 2,
                                 "MENU_READ", "Manage module groups"));
-                moduleRepository.save(createModule(systemGroup, "Users", "/users", "users", 3, "USER_READ",
-                                "Manage system users"));
-                moduleRepository.save(createModule(systemGroup, "Roles", "/roles", "shield", 4, "ROLE_READ",
-                                "Manage roles and permissions"));
-                moduleRepository.save(createModule(systemGroup, "Locations", "/locations", "map-pin", 5,
-                                "LOCATION_READ", "Manage office locations"));
 
                 log.info("Initialized 4 module groups and their respective modules.");
 
