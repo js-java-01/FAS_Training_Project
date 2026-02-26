@@ -7,9 +7,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public interface UserService {
+
+    List<User> findAll();
 
     Page<UserDTO> getAllUsers(
             String searchContent,
@@ -33,4 +36,6 @@ public interface UserService {
     UserDTO assignRole(UUID userId, UUID roleId);
 
     User findByEmail(String email);
+
+    User getCurrentUser();
 }

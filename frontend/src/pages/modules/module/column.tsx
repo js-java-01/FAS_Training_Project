@@ -1,11 +1,13 @@
-import { createColumnHelper} from "@tanstack/react-table";
-import type { Module} from "@/types/module";
+import { createColumnHelper } from "@tanstack/react-table";
+import type { Module } from "@/types/module";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import {EditIcon, EyeIcon, Trash} from "lucide-react";
-import {iconMap} from "@/constants/iconMap.ts";
+import { EditIcon, EyeIcon, Trash } from "lucide-react";
+import { iconMap } from "@/constants/iconMap.ts";
 import dayjs from "dayjs";
 import { Badge } from "@/components/ui/badge";
+import SortHeader from "@/components/data_table/SortHeader";
+import FilterHeader from "@/components/data_table/FilterHeader";
 
 export type TableActions = {
     onView?: (row: Module) => void;
@@ -45,6 +47,19 @@ export const getColumns = (
             enableHiding: false,
         }),
 
+        /* ================= NUMBER ================= */
+        columnHelper.display({
+            id: "number",
+            header: "#",
+            size: 60,
+            cell: ({ row, table }) =>
+                row.index +
+                1 +
+                table.getState().pagination.pageIndex *
+                table.getState().pagination.pageSize,
+            enableSorting: false,
+        }),
+
         /* ================= NAME ================= */
         columnHelper.accessor((row) => row.title || row.name || "", {
             id: "title",
@@ -71,58 +86,80 @@ export const getColumns = (
         }),
 
         /* ================= Icon ================= */
-    columnHelper.accessor("icon", {
-        header: "Icon",
-        size: 200,
-        cell: (info) => {
-            const iconKey = info.getValue();
+        columnHelper.accessor("icon", {
+            header: "Icon",
+            size: 200,
+            cell: (info) => {
+                const iconKey = info.getValue();
 
-            if (!iconKey || !(iconKey in iconMap)) {
-                return null; // or render fallback icon
-            }
+                if (!iconKey || !(iconKey in iconMap)) {
+                    return null; // or render fallback icon
+                }
 
-            const Icon = iconMap[iconKey as keyof typeof iconMap];
+                const Icon = iconMap[iconKey as keyof typeof iconMap];
 
-            return (
-                <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 text-gray-700" />
-                    <span className="font-medium">
-        {info.getValue()}
-      </span>
-                </div>
-            );
-        },
-        meta: {
-            title: "Icon",
-        },
-    }),
+                return (
+                    <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4 text-gray-700" />
+                        <span className="font-medium">
+                            {info.getValue()}
+                        </span>
+                    </div>
+                );
+            },
+            meta: {
+                title: "Icon",
+            },
+        }),
 
-    /* ================= DESCRIPTION ================= */
+        /* ================= DESCRIPTION ================= */
         columnHelper.accessor("description", {
             header: "Description",
             size: 300,
             cell: (info) => (
                 <span className="text-muted-foreground line-clamp-2">
-          {info.getValue() || "-"}
-        </span>
+                    {info.getValue() || "-"}
+                </span>
             ),
             meta: {
                 title: "Description",
             },
         }),
 
+        /* ================= DISPLAY ORDER ================= */
+        columnHelper.accessor("displayOrder", {
+            header: (info) => <SortHeader info={info} title="Display Order" />,
+            size: 100,
+            cell: (info) => (
+                <span className="block text-center">
+                    {info.getValue()}
+                </span>
+            ),
+        }),
+
         /* ================= STATUS ================= */
         columnHelper.accessor("isActive", {
-            header: "Status",
-            size: 100,
-            cell: (info) => {
-                const isActive = info.getValue();
-                return (
-                    <Badge className={`${isActive ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-200" : "bg-red-100 text-red-700 hover:bg-red-200 border-red-200"}`} variant="outline">
-                        {isActive ? "Active" : "Inactive"}
-                    </Badge>
-                );
-            },
+            id: "isActive",
+            header: ({ column }) => (
+                <FilterHeader
+                    column={column}
+                    title="Status"
+                    selectedValue={column.getFilterValue() as string}
+                    onFilterChange={(value) => column.setFilterValue(value || undefined)}
+                />
+            ),
+            size: 120,
+            cell: (info) => (
+                <Badge
+                    className={
+                        info.getValue()
+                            ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none"
+                            : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none"
+                    }
+                >
+                    {info.getValue() ? "Active" : "Inactive"}
+                </Badge>
+            ),
             meta: {
                 title: "Status",
             },

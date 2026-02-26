@@ -1,18 +1,18 @@
 import { MainLayout } from '@/components/layout/MainLayout';
-import MainHeader from '@/components/layout/MainHeader';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Eye, SquarePen, Trash2, Search, Filter, LayoutGrid, List, ChevronRight } from 'lucide-react';
+import { Plus, Eye, SquarePen, Trash2, Search, LayoutGrid, List } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { PermissionGate } from '@/components/PermissionGate';
-import { useToast } from '@/hooks/use-toast';
+
 import { questionApi } from '@/api/questionApi';
 import { questionCategoryApi } from '@/api/questionCategoryApi';
 import type { Question } from '@/types/question';
 import type { QuestionCategory } from '@/types/questionCategory';
 import { Badge } from '@/components/ui/badge';
 import ActionBtn from '@/components/data_table/ActionBtn';
+import { useToast } from '@/hooks/useToast';
 
 export default function QuestionManagementPage() {
     const { toast } = useToast();
@@ -135,10 +135,10 @@ export default function QuestionManagementPage() {
             <div className="h-full flex flex-col overflow-hidden gap-6 p-6">
                 {/* Header Section */}
                 <div className="flex items-center justify-between">
-                    <MainHeader
+                    {/* <MainHeader
                         title="Question Bank"
                         description="Manage your assessment questions"
-                    />
+                    /> */}
                     <PermissionGate permission="QUESTION_CREATE">
                         <Button onClick={() => navigate('/questions/create')}>
                             <Plus className="mr-2 h-4 w-4" />

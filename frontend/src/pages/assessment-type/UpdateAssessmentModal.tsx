@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal } from '../../components/Modal';
+import { Modal } from '@/components/modal/Modal';
 import { AssessmentFormFields } from './AssessmentFormFields';
 import type { AssessmentType, AssessmentTypeRequest } from '../../types/assessmentType';
 

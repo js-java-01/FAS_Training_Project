@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { assessmentApi } from '@/api/assessmentApi';
 import { assessmentQuestionApi } from '@/api/assessmentQuestionApi';
-import { useToast } from '@/hooks/use-toast';
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Save, X } from 'lucide-react';
@@ -12,6 +12,7 @@ import type { AssessmentCreateRequest, AssessmentUpdateRequest } from '@/types/a
 import { AssessmentBasicInfoTab } from './tabs/AssessmentBasicInfoTab';
 import { AssessmentChallengesTab } from './tabs/AssessmentChallengesTab';
 import { AssessmentQuestionsTab } from './tabs/AssessmentQuestionsTab';
+import { useToast } from '@/hooks/useToast';
 
 type TabType = 'basic' | 'challenges' | 'questions';
 
@@ -158,12 +159,12 @@ export default function AssessmentFormPage() {
             form: isEditMode ? (assessment?.title || "Edit Assessment") : "Create Assessment"
         }}>
             <div className="h-full flex-1 flex flex-col gap-4">
-                <MainHeader
+                {/* <MainHeader
                     title={isEditMode ? `Update Assessment ${assessment?.code ? `(${assessment.code})` : ''}` : "Create New Assessment"}
                     description={isEditMode
                         ? "Adjust assessment details within the teacher workspace. You are editing as Superadmin."
                         : "Create a new assessment for the teacher workspace."}
-                />
+                /> */}
 
                 {/* Action Buttons */}
                 <div className="flex justify-end gap-2">
@@ -219,11 +220,10 @@ export default function AssessmentFormPage() {
                             </button>
                             <button
                                 onClick={() => setActiveTab('questions')}
-                                className={`px-6 py-3 border-b-2 font-medium text-sm ${
-                                    activeTab === 'questions'
-                                        ? 'border-blue-600 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
+                                className={`px-6 py-3 border-b-2 font-medium text-sm ${activeTab === 'questions'
+                                    ? 'border-blue-600 text-blue-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    }`}
                             >
                                 Questions {isEditMode && `(${assessmentQuestions.length})`}
                             </button>

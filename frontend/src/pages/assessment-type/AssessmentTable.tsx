@@ -9,7 +9,7 @@ import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
 import { assessmentTypeApi } from '../../api/assessmentTypeApi';
 import { PermissionGate } from '../../components/PermissionGate';
-import { useToast } from '../../hooks/use-toast';
+
 import type { AssessmentTypeRequest, ImportResult } from '../../types/assessmentType';
 import type { AssessmentType } from '../../types/assessmentType';
 
@@ -18,11 +18,12 @@ import { DeleteAssessmentDialog } from './DeleteAssessmentDialog';
 import { ImportAssessmentDialog } from './ImportAssessmentDialog';
 import { UpdateAssessmentModal } from './UpdateAssessmentModal';
 import { ViewAssessmentModal } from './ViewAssessmentModal';
-import { ExportModal } from './ExportModal';
+
 
 import { DataTable } from '@/components/data_table/DataTable';
 import { getColumns } from './columns';
 import { Button } from "@/components/ui/button";
+import { useToast } from '@/hooks/useToast';
 
 export const AssessmentTable: React.FC = () => {
     const { toast } = useToast();
@@ -271,10 +272,10 @@ export const AssessmentTable: React.FC = () => {
                 onSuccess={() => queryClient.invalidateQueries({ queryKey: ['assessments'] })}
             />
 
-            <ExportModal
+            {/* <ExportModal
                 isOpen={showExportModal}
                 onClose={() => setShowExportModal(false)}
-            />
+            /> */}
         </div>
     );
 };

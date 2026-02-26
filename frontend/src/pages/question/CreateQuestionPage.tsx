@@ -3,12 +3,13 @@ import MainHeader from '@/components/layout/MainHeader';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { questionApi } from '@/api/questionApi';
-import { useToast } from '@/hooks/use-toast';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Save, X, Plus, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { QuestionCreateRequest } from '@/types/question';
 import { QuestionFormFields, QuestionOptionsManager } from './components';
+import { useToast } from '@/hooks/useToast';
 
 export default function CreateQuestionPage() {
     const navigate = useNavigate();
@@ -159,10 +160,10 @@ export default function CreateQuestionPage() {
             <div className="h-full flex-1 flex flex-col gap-6 p-6">
                 {/* Header Section */}
                 <div className="flex items-center justify-between">
-                    <MainHeader
+                    {/* <MainHeader
                         title="Create New Questions"
                         description={`${questions.length} question${questions.length > 1 ? 's' : ''} to create`}
-                    />
+                    /> */}
                     <div className="flex gap-3">
                         <Button
                             variant="outline"

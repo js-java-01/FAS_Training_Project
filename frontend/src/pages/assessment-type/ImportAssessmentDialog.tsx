@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Download, FileCheck, AlertCircle, X } from 'lucide-react';
-import { Modal } from '../../components/Modal';
-import { Button } from '../../components/ui/button';
+
 import { downloadTemplate } from '../../hooks/useAssessment';
-import { useToast } from '../../hooks/use-toast';
+import { useToast } from '../../hooks/useToast.ts';
 import type { ImportResult } from '../../types/assessmentType';
+import { Modal } from '@/components/modal/Modal.tsx';
+import { Button } from '@/components/ui/button.tsx';
 
 interface ImportAssessmentDialogProps {
     isOpen: boolean;

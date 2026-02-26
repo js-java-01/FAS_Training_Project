@@ -117,7 +117,7 @@ export function ModuleForm({ open, onClose, onSubmit, initialData }: ModuleFormP
 
                     {/* Title */}
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="title" className="text-right">Name <span className="text-red-500">*</span></Label>
+                        <Label htmlFor="title" className="text-right text-muted-foreground">Name <span className="text-red-500">*</span></Label>
                         <Input
                             id="title"
                             value={formData.title || ""}
@@ -129,12 +129,12 @@ export function ModuleForm({ open, onClose, onSubmit, initialData }: ModuleFormP
 
                     {/* Module Group Select */}
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="moduleGroupId" className="text-right">Group <span className="text-red-500">*</span></Label>
+                        <Label htmlFor="moduleGroupId" className="text-right text-muted-foreground">Group <span className="text-red-500">*</span></Label>
                         <select
                             id="moduleGroupId"
                             value={formData.moduleGroupId || ""}
                             onChange={(e) => setFormData({ ...formData, moduleGroupId: e.target.value })}
-                            className="col-span-3 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            className="col-span-3 flex h-9 w-full rounded-md border border-border bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             required
                         >
                             <option value="" disabled>Select Module Group</option>
@@ -148,7 +148,7 @@ export function ModuleForm({ open, onClose, onSubmit, initialData }: ModuleFormP
 
                     {/* URL */}
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="url" className="text-right">URL <span className="text-red-500">*</span></Label>
+                        <Label htmlFor="url" className="text-right text-muted-foreground">URL <span className="text-red-500">*</span></Label>
                         <Input
                             id="url"
                             value={formData.url || ""}
@@ -160,7 +160,7 @@ export function ModuleForm({ open, onClose, onSubmit, initialData }: ModuleFormP
 
                     {/* Icon */}
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="icon" className="text-right">Icon</Label>
+                        <Label htmlFor="icon" className="text-right text-muted-foreground">Icon</Label>
                         <select
                             id="icon"
                             // Value của select HTML phải là string, nếu undefined thì mapping về ""
@@ -173,7 +173,7 @@ export function ModuleForm({ open, onClose, onSubmit, initialData }: ModuleFormP
                                     icon: val === "" ? undefined : (val as IconKey),
                                 });
                             }}
-                            className="col-span-3 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                            className="col-span-3 flex h-9 w-full rounded-md border border-border bg-background text-foreground px-3 py-1 text-sm shadow-sm"
                         >
                             <option value="">No Icon</option>
                             {Object.keys(iconMap).map((key) => (
@@ -184,7 +184,7 @@ export function ModuleForm({ open, onClose, onSubmit, initialData }: ModuleFormP
 
                     {/* Description */}
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="description" className="text-right">Description</Label>
+                        <Label htmlFor="description" className="text-right text-muted-foreground">Description</Label>
                         <Input
                             id="description"
                             value={formData.description || ""}
@@ -195,7 +195,7 @@ export function ModuleForm({ open, onClose, onSubmit, initialData }: ModuleFormP
 
                     {/* Permission */}
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="permission" className="text-right">Permission</Label>
+                        <Label htmlFor="permission" className="text-right text-muted-foreground">Permission</Label>
                         <Input
                             id="permission"
                             value={formData.requiredPermission || ""}
@@ -207,7 +207,7 @@ export function ModuleForm({ open, onClose, onSubmit, initialData }: ModuleFormP
 
                     {/* Order */}
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="displayOrder" className="text-right">Order</Label>
+                        <Label htmlFor="displayOrder" className="text-right text-muted-foreground">Order</Label>
                         <Input
                             id="displayOrder"
                             type="number"
@@ -219,14 +219,14 @@ export function ModuleForm({ open, onClose, onSubmit, initialData }: ModuleFormP
 
                     {/* Active */}
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="isActive" className="text-right">Active</Label>
+                        <Label htmlFor="isActive" className="text-right text-muted-foreground">Active</Label>
                         <div className="col-span-3 flex items-center space-x-2">
                             <Checkbox
                                 id="isActive"
                                 checked={formData.isActive}
                                 onCheckedChange={(checked) => setFormData({ ...formData, isActive: !!checked })}
                             />
-                            <label htmlFor="isActive" className="text-sm font-medium leading-none cursor-pointer">
+                            <label htmlFor="isActive" className="text-sm font-medium leading-none cursor-pointer text-foreground">
                                 Enable
                             </label>
                         </div>

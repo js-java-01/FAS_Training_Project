@@ -16,6 +16,7 @@ export type IconKey =
     | "building"
     | "map-pin"
     | "trending-up"
+    | "graduation-cap"
 
 
 export interface ModuleGroup {

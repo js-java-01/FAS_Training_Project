@@ -9,6 +9,7 @@ public class ErrorMessage
     public static final String ACCOUNT_HAS_BEEN_LOCKED = "Your account has been locked.";
     public static final String REFRESH_TOKEN_HAS_EXPIRED = "Refresh Token has expired or is invalid!";
     public static final String REFRESH_TOKEN_MISSING = "Refresh Token is missing";
+    public static final String USER_DOES_NOT_HAVE_THE_SPECIFIED_ROLE = "Unauthorized: User does not have the specified role";
 
     // ROLE
     public static final String ROLE_NOT_FOUND = "Default Role not found";

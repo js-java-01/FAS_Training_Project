@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Modal } from '../../components/Modal';
+
+
 import { AssessmentFormFields } from './AssessmentFormFields';
 import type { AssessmentTypeRequest } from '../../types/assessmentType';
+import { Modal } from '@/components/modal/Modal';
 
 interface CreateAssessmentModalProps {
     isOpen: boolean;

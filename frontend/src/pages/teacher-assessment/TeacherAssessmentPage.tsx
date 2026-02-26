@@ -8,13 +8,14 @@ import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { DataTable } from '@/components/data_table/DataTable';
 import { PermissionGate } from '@/components/PermissionGate';
-import { useToast } from '@/hooks/use-toast';
+
 import { assessmentApi } from '@/api/assessmentApi';
 import type { Assessment, AssessmentStatus } from '@/types/assessment';
 import { AssessmentGrid } from './AssessmentGrid';
 import { getColumns } from './columns';
 import { ViewAssessmentModal } from './ViewAssessmentModal';
 import { DeleteAssessmentDialog } from './DeleteAssessmentDialog';
+import { useToast } from '@/hooks/useToast';
 
 type ViewMode = 'card' | 'table';
 
@@ -146,7 +147,7 @@ export default function TeacherAssessmentPage() {
     return (
         <MainLayout pathName={{ assessments: "Teacher Assessment" }}>
             <div className="h-full flex-1 flex flex-col gap-4">
-                <MainHeader title="Teacher Assessment" description="Teacher assessment" />
+                {/* <MainHeader title="Teacher Assessment" description="Teacher assessment" /> */}
 
                 {viewMode === 'table' ? (
                     <DataTable<Assessment, unknown>

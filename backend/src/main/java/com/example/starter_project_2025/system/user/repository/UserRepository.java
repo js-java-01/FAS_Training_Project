@@ -14,8 +14,7 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends
         JpaRepository<User, UUID>,
-        JpaSpecificationExecutor<User>
-{
+        JpaSpecificationExecutor<User> {
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);
@@ -24,9 +23,12 @@ public interface UserRepository extends
 
     Long countByIsActive(Boolean isActive);
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.role r LEFT JOIN FETCH r.permissions WHERE u.email = :email")
+    @Query("SELECT u FROM User u " +
+            "LEFT JOIN FETCH u.userRoles ur " +
+            "LEFT JOIN FETCH ur.role r " +
+            "LEFT JOIN FETCH r.permissions " +
+            "WHERE u.email = :email")
     Optional<User> findByEmailWithRoleAndPermissions(@Param("email") String email);
 
-    @Query("SELECT u FROM User u WHERE u.role.name = :roleName")
-    List<User> findByRoleName(@Param("roleName") String roleName);
+    // List<User> findByRoleName(@Param("roleName") String roleName);
 }

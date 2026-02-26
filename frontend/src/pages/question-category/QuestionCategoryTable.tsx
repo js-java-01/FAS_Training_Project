@@ -7,7 +7,7 @@ import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
 import { questionCategoryApi } from '../../api/questionCategoryApi';
 import { PermissionGate } from '../../components/PermissionGate';
-import { useToast } from '../../hooks/use-toast';
+
 import type { QuestionCategoryRequest } from '../../types/questionCategory';
 import type { QuestionCategory } from '../../types/questionCategory';
 
@@ -19,6 +19,7 @@ import { ViewQuestionCategoryModal } from './ViewQuestionCategoryModal';
 import { DataTable } from '@/components/data_table/DataTable';
 import { getColumns } from './columns';
 import { Button } from "@/components/ui/button";
+import { useToast } from '@/hooks/useToast';
 
 export const QuestionCategoryTable: React.FC = () => {
     const { toast } = useToast();
