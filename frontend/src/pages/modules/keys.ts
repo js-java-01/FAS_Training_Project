@@ -2,7 +2,7 @@ export const queryKeys = {
     moduleGroups: (params: {
         page?: number;
         pageSize?: number;
-        sort?: string;
+        sort?: string | string[];
         keyword?: string;
     }) => ['module-groups', params] as const,
 
@@ -11,7 +11,9 @@ export const queryKeys = {
     modules: (params: {
         page?: number;
         pageSize?: number;
-        sort?: string;
+        sort?: string | string[];
         keyword?: string;
+        isActive?: boolean;
+        moduleGroupId?: string;
     }) => ['modules', params] as const,
 };

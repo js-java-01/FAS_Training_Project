@@ -12,7 +12,7 @@ import { moduleApi, moduleGroupApi } from "@/api/moduleApi";
 import type { Module, CreateModuleRequest } from "@/types/module";
 import { ModuleForm } from "./ModuleForm";
 import { useDebounce } from "@uidotdev/usehooks";
-import { useGetAllModules } from "./services/queries";
+import { useGetAllModules } from "./services/queries/index";
 import { ModuleDetailDialog } from "./DetailDialog";
 import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import {
@@ -54,6 +54,7 @@ export default function ModulesTable() {
     moduleGroupFilter.length === 1 ? moduleGroupFilter[0] : undefined;
 
   /* ---------- sort param (server side) ---------- */
+  /* ===================== SORT ===================== */
   const sortParam = useMemo(() => {
     if (!sorting.length) return "displayOrder,asc";
     const { id, desc } = sorting[0];

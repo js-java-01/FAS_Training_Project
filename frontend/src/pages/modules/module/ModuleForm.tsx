@@ -9,12 +9,27 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Module, ModuleGroup, CreateModuleRequest } from "@/types/module";
 import { moduleGroupApi } from "@/api/moduleApi";
 import { iconMap } from "@/constants/iconMap";
+import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react";
 
 // Định nghĩa kiểu cho các Key của Icon để TypeScript hiểu
 type IconKey = keyof typeof iconMap;
@@ -40,6 +55,7 @@ const defaultFormData: Partial<Module> = {
 
 export function ModuleForm({ open, onClose, onSubmit, initialData }: ModuleFormProps) {
     const [moduleGroups, setModuleGroups] = useState<ModuleGroup[]>([]);
+    const [openIconSelect, setOpenIconSelect] = useState(false);
 
     // 1. Khởi tạo state: Nếu có initialData thì dùng luôn, không thì dùng default
     const [formData, setFormData] = useState<Partial<Module>>(() => {
@@ -161,25 +177,81 @@ export function ModuleForm({ open, onClose, onSubmit, initialData }: ModuleFormP
                     {/* Icon */}
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="icon" className="text-right text-muted-foreground">Icon</Label>
-                        <select
-                            id="icon"
-                            // Value của select HTML phải là string, nếu undefined thì mapping về ""
-                            value={formData.icon || ""}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                setFormData({
-                                    ...formData,
-                                    // Fix: Nếu chọn default "" thì set về undefined, ngược lại ép kiểu
-                                    icon: val === "" ? undefined : (val as IconKey),
-                                });
-                            }}
-                            className="col-span-3 flex h-9 w-full rounded-md border border-border bg-background text-foreground px-3 py-1 text-sm shadow-sm"
-                        >
-                            <option value="">No Icon</option>
-                            {Object.keys(iconMap).map((key) => (
-                                <option key={key} value={key}>{key}</option>
-                            ))}
-                        </select>
+                        <Popover open={openIconSelect} onOpenChange={setOpenIconSelect}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={openIconSelect}
+                                    className="col-span-3 w-full justify-between"
+                                >
+                                    {formData.icon ? (
+                                        <div className="flex items-center gap-2">
+                                            {(() => {
+                                                const Icon = iconMap[formData.icon as IconKey];
+                                                return Icon ? <Icon className="h-4 w-4" /> : null;
+                                            })()}
+                                            {formData.icon}
+                                        </div>
+                                    ) : (
+                                        "Select icon..."
+                                    )}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search icon..." />
+                                    <CommandList>
+                                        <CommandEmpty>No icon found.</CommandEmpty>
+                                        <CommandGroup>
+                                            <CommandItem
+                                                value="No Icon"
+                                                onSelect={() => {
+                                                    setFormData({ ...formData, icon: undefined });
+                                                    setOpenIconSelect(false);
+                                                }}
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        !formData.icon ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                No Icon
+                                            </CommandItem>
+                                            {Object.keys(iconMap).map((key) => {
+                                                const Icon = iconMap[key as IconKey];
+                                                return (
+                                                    <CommandItem
+                                                        key={key}
+                                                        value={key}
+                                                        onSelect={(currentValue) => {
+                                                            setFormData({
+                                                                ...formData,
+                                                                icon: currentValue as IconKey,
+                                                            });
+                                                            setOpenIconSelect(false);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                formData.icon === key ? "opacity-100" : "opacity-0"
+                                                            )}
+                                                        />
+                                                        <div className="flex items-center gap-2">
+                                                            <Icon className="h-4 w-4" />
+                                                            {key}
+                                                        </div>
+                                                    </CommandItem>
+                                                );
+                                            })}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
                     </div>
 
                     {/* Description */}
