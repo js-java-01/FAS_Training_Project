@@ -21,7 +21,6 @@ import { QuestionCategoryManagement } from "./pages/question-category";
 import { CreateQuestionPage, EditQuestionPage, QuestionManagementPage } from "./pages/question";
 import { Logout } from "./components/auth/Logout";
 import AssessmentManagement from "./pages/AssessmentManagement";
-import { LocationManagement } from "./pages/LocationManagement";
 import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
