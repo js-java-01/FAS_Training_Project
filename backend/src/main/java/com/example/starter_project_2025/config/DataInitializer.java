@@ -106,6 +106,7 @@ public class DataInitializer implements CommandLineRunner {
                         log.info("Database already initialized, checking for missing permissions...");
                         // Check if programming language permissions exist, if not, add them
                         ensureProgrammingLanguagePermissions();
+                        ensureOutlinePermissions();
                         initializeProgrammingLanguages();
                         initializeCourses();
                         initializeCohorts();
@@ -216,7 +217,8 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("SESSION_CREATE", "Create new sessions", "SESSION", "CREATE"),
                                 createPermission("SESSION_READ", "View sessions", "SESSION", "READ"),
                                 createPermission("SESSION_UPDATE", "Update existing sessions", "SESSION", "UPDATE"),
-                                createPermission("SESSION_DELETE", "Delete sessions", "SESSION", "DELETE")
+                                createPermission("SESSION_DELETE", "Delete sessions", "SESSION", "DELETE"),
+                                createPermission("COURSE_OUTLINE_EDIT", "Edit course outline", "COURSE", "EDIT")
 
                 );
                 permissionRepository.saveAll(permissions);
@@ -667,6 +669,32 @@ public class DataInitializer implements CommandLineRunner {
                                 adminRole.getPermissions().addAll(progLangPermissions);
                                 roleRepository.save(adminRole);
                                 log.info("Added programming language permissions to ADMIN role");
+                        }
+                }
+        }
+
+        private void ensureOutlinePermissions() {
+                boolean hasOutlinePerm = permissionRepository.existsByName("COURSE_OUTLINE_EDIT");
+
+                if (!hasOutlinePerm) {
+                        log.info("Course outline permissions not found, adding them...");
+
+                        List<Permission> outlinePermissions = Arrays.asList(
+                                        createPermission("COURSE_OUTLINE_EDIT", "Edit course outline", "COURSE",
+                                                        "EDIT"));
+
+                        permissionRepository.saveAll(outlinePermissions);
+
+                        // Add to all existing roles that have COURSE_UPDATE
+                        List<Role> roles = roleRepository.findAll();
+                        for (Role role : roles) {
+                                boolean hasCourseUpdate = role.getPermissions().stream()
+                                                .anyMatch(p -> "COURSE_UPDATE".equals(p.getName()));
+                                if (hasCourseUpdate || "ADMIN".equals(role.getName())) {
+                                        role.getPermissions().addAll(outlinePermissions);
+                                        roleRepository.save(role);
+                                        log.info("Added outline permissions to role: {}", role.getName());
+                                }
                         }
                 }
         }

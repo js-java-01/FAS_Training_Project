@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
 
-import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
@@ -10,6 +7,7 @@ import { lessonApi, type Lesson } from "@/api/lessonApi";
 import { sessionService } from "@/api/sessionService";
 import type { SessionRequest, SessionResponse } from "@/types/session";
 import { SESSION_TYPE_OPTIONS } from "@/types/session";
+import { SideFormPanel } from "./SideFormPanel";
 
 export type SessionSidePanelMode = "create" | "edit";
 
@@ -26,7 +24,9 @@ type Props = {
 };
 
 function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value,
+  );
 }
 
 type FormState = {
@@ -56,7 +56,10 @@ export function SessionSidePanel({
 }: Props) {
   const { toast } = useToast();
 
-  const title = useMemo(() => (mode === "edit" ? "Edit Session" : "Add Session"), [mode]);
+  const title = useMemo(
+    () => (mode === "edit" ? "Edit Session" : "Add Session"),
+    [mode],
+  );
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -107,7 +110,8 @@ export function SessionSidePanel({
         topic: initialSession.topic ?? "",
         studentTasks: initialSession.studentTasks ?? "",
         sessionOrder:
-          initialSession.sessionOrder !== undefined && initialSession.sessionOrder !== null
+          initialSession.sessionOrder !== undefined &&
+          initialSession.sessionOrder !== null
             ? String(initialSession.sessionOrder)
             : "",
       });
@@ -124,7 +128,11 @@ export function SessionSidePanel({
 
   const onSave = async () => {
     if (!form.lessonId) {
-      toast({ title: "Validation", description: "Lesson is required.", variant: "destructive" });
+      toast({
+        title: "Validation",
+        description: "Lesson is required.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -181,7 +189,10 @@ export function SessionSidePanel({
 
       toast({
         title: "Success",
-        description: mode === "edit" ? "Session updated successfully." : "Session created successfully.",
+        description:
+          mode === "edit"
+            ? "Session updated successfully."
+            : "Session created successfully.",
       });
 
       onSaved?.(saved);
@@ -189,7 +200,8 @@ export function SessionSidePanel({
     } catch {
       toast({
         title: "Save failed",
-        description: "Could not save session. Please check inputs and try again.",
+        description:
+          "Could not save session. Please check inputs and try again.",
         variant: "destructive",
       });
     } finally {
@@ -198,107 +210,92 @@ export function SessionSidePanel({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="p-0 sm:max-w-md" side="right">
-        <SheetHeader className="border-b">
-          <SheetTitle>{title}</SheetTitle>
-        </SheetHeader>
+    <SideFormPanel
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      saving={saving}
+      onSave={onSave}
+      onCancel={onCancel}
+    >
+      <div className="grid gap-2">
+        <Label htmlFor="lessonId">
+          Lesson <span className="text-red-500">*</span>
+        </Label>
+        <select
+          id="lessonId"
+          value={form.lessonId}
+          onChange={(e) => setForm((p) => ({ ...p, lessonId: e.target.value }))}
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          required
+          disabled={!!lessonsLoading}
+        >
+          <option value="" disabled>
+            {lessonsLoading ? "Loading lessons..." : "Select Lesson"}
+          </option>
+          {lessons.map((l) => (
+            <option key={l.id} value={l.id}>
+              {l.lessonName}
+            </option>
+          ))}
+        </select>
+      </div>
 
-        <div className="p-4 grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="lessonId">
-              Lesson <span className="text-red-500">*</span>
-            </Label>
-            <select
-              id="lessonId"
-              value={form.lessonId}
-              onChange={(e) => setForm((p) => ({ ...p, lessonId: e.target.value }))}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              required
-              disabled={!!lessonsLoading}
-            >
-              <option value="" disabled>
-                {lessonsLoading ? "Loading lessons..." : "Select Lesson"}
-              </option>
-              {lessons.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.lessonName}
-                </option>
-              ))}
-            </select>
-          </div>
+      <div className="grid gap-2">
+        <Label htmlFor="type">Learning/Teaching Type</Label>
+        <select
+          id="type"
+          value={form.type}
+          onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          <option value="">Select Type</option>
+          {SESSION_TYPE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="type">Learning/Teaching Type</Label>
-            <select
-              id="type"
-              value={form.type}
-              onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              <option value="">Select Type</option>
-              {SESSION_TYPE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
+      <div className="grid gap-2">
+        <Label htmlFor="topic">Topic</Label>
+        <Input
+          id="topic"
+          value={form.topic}
+          onChange={(e) => setForm((p) => ({ ...p, topic: e.target.value }))}
+          placeholder="e.g. Introduction"
+        />
+      </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="topic">Topic</Label>
-            <Input
-              id="topic"
-              value={form.topic}
-              onChange={(e) => setForm((p) => ({ ...p, topic: e.target.value }))}
-              placeholder="e.g. Introduction"
-            />
-          </div>
+      <div className="grid gap-2">
+        <Label htmlFor="studentTasks">Student Tasks</Label>
+        <textarea
+          id="studentTasks"
+          value={form.studentTasks}
+          onChange={(e) =>
+            setForm((p) => ({ ...p, studentTasks: e.target.value }))
+          }
+          placeholder="Describe tasks for students..."
+          className="min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        />
+      </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="studentTasks">Student Tasks</Label>
-            <textarea
-              id="studentTasks"
-              value={form.studentTasks}
-              onChange={(e) => setForm((p) => ({ ...p, studentTasks: e.target.value }))}
-              placeholder="Describe tasks for students..."
-              className="min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="sessionOrder">
-              Session Order <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="sessionOrder"
-              type="number"
-              value={form.sessionOrder}
-              onChange={(e) => setForm((p) => ({ ...p, sessionOrder: e.target.value }))}
-              min={1}
-              required
-            />
-          </div>
-        </div>
-
-        <SheetFooter className="border-t">
-          <div className="flex w-full justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
-              Cancel
-            </Button>
-            <Button type="button" onClick={onSave} disabled={saving}>
-              {saving ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving...
-                </span>
-              ) : (
-                "Save"
-              )}
-            </Button>
-          </div>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+      <div className="grid gap-2">
+        <Label htmlFor="sessionOrder">
+          Session Order <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          id="sessionOrder"
+          type="number"
+          value={form.sessionOrder}
+          onChange={(e) =>
+            setForm((p) => ({ ...p, sessionOrder: e.target.value }))
+          }
+          min={1}
+          required
+        />
+      </div>
+    </SideFormPanel>
   );
 }
