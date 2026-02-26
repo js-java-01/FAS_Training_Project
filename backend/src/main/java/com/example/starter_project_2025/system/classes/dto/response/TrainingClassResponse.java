@@ -20,6 +20,8 @@ public class TrainingClassResponse {
     private String classCode;
     private Boolean isActive;
 
+    private String status; // Add this field
+
     private String creatorName;
     private String approverName;
 

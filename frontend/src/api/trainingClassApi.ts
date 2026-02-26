@@ -52,4 +52,20 @@ export const trainingClassApi = {
         );
         return res.data.data;
     },
+
+    /* ============ APPROVE ============ */
+    approveClass: async (id: string): Promise<TrainingClass> => {
+        const res = await axiosInstance.put<TrainingClass>(
+            `/classes/${id}/approve`,
+        );
+        return res.data;
+    },
+
+    /* ============ REJECT ============ */
+    rejectClass: async (id: string): Promise<TrainingClass> => {
+        const res = await axiosInstance.put<TrainingClass>(
+            `/classes/${id}/reject`,
+        );
+        return res.data;
+    },
 };

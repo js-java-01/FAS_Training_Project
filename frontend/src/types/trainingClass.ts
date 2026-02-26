@@ -13,6 +13,7 @@ export interface TrainingClass {
     semesterName?: string;
     startDate: string;
     endDate: string;
+    status:  "PENDING_APPROVAL" | "APPROVED" | "REJECTED";
 }
 
 export interface CreateTrainingClassRequest {

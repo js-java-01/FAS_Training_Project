@@ -12,6 +12,8 @@ import { getColumns } from "./column";
 import { TrainingClassForm } from "./form";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
+import { ConfirmActionModal } from "@/components/ConfirmActionModal";
+import { trainingClassApi } from "@/api/trainingClassApi";
 
 /* ======================================================= */
 
@@ -26,6 +28,11 @@ export default function TrainingClassesTable() {
 
     const [openForm, setOpenForm] = useState(false);
     const navigate = useNavigate();
+
+    /* ---------- approve / reject ---------- */
+    const [approveTarget, setApproveTarget] = useState<TrainingClass | null>(null);
+    const [rejectTarget, setRejectTarget] = useState<TrainingClass | null>(null);
+    const [actionLoading, setActionLoading] = useState(false);
 
     /* ---------- faceted filter ---------- */
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
@@ -72,6 +79,8 @@ export default function TrainingClassesTable() {
         () =>
             getColumns({
                 onNavigate: (row) => navigate(`/training-classes/${row.id}`, { state: { trainingClass: row } }),
+                onApprove: (row) => setApproveTarget(row),
+                onReject: (row) => setRejectTarget(row),
             }),
         [navigate],
     );
@@ -85,6 +94,44 @@ export default function TrainingClassesTable() {
         toast.success("Class request submitted successfully");
         await invalidateAll();
         setOpenForm(false);
+    };
+
+    const handleApprove = async () => {
+        if (!approveTarget) return;
+        setActionLoading(true);
+        try {
+            await trainingClassApi.approveClass(approveTarget.id);
+            toast.success(`Class "${approveTarget.className}" approved successfully`);
+            await invalidateAll();
+        } catch (err: unknown) {
+            const msg =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                (err as { message?: string })?.message ||
+                "Failed to approve class";
+            toast.error(msg);
+        } finally {
+            setActionLoading(false);
+            setApproveTarget(null);
+        }
+    };
+
+    const handleReject = async () => {
+        if (!rejectTarget) return;
+        setActionLoading(true);
+        try {
+            await trainingClassApi.rejectClass(rejectTarget.id);
+            toast.success(`Class "${rejectTarget.className}" rejected`);
+            await invalidateAll();
+        } catch (err: unknown) {
+            const msg =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                (err as { message?: string })?.message ||
+                "Failed to reject class";
+            toast.error(msg);
+        } finally {
+            setActionLoading(false);
+            setRejectTarget(null);
+        }
     };
 
     /* ===================== RENDER ===================== */
@@ -145,6 +192,41 @@ export default function TrainingClassesTable() {
                 open={openForm}
                 onClose={() => setOpenForm(false)}
                 onSaved={handleSaved}
+            />
+
+            {/* ── Approve confirmation ── */}
+            <ConfirmActionModal
+                open={!!approveTarget}
+                title="Approve Class"
+                message={
+                    <span>
+                        Are you sure you want to approve class{" "}
+                        <strong>{approveTarget?.className}</strong> ({approveTarget?.classCode})?
+                    </span>
+                }
+                confirmText="Approve"
+                variant="default"
+                loading={actionLoading}
+                onConfirm={handleApprove}
+                onCancel={() => setApproveTarget(null)}
+            />
+
+            {/* ── Reject confirmation ── */}
+            <ConfirmActionModal
+                open={!!rejectTarget}
+                title="Reject Class"
+                message={
+                    <span>
+                        Are you sure you want to reject class{" "}
+                        <strong>{rejectTarget?.className}</strong> ({rejectTarget?.classCode})?
+                        This action cannot be undone.
+                    </span>
+                }
+                confirmText="Reject"
+                variant="destructive"
+                loading={actionLoading}
+                onConfirm={handleReject}
+                onCancel={() => setRejectTarget(null)}
             />
         </div>
     );

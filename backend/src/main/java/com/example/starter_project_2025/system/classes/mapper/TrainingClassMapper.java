@@ -14,7 +14,7 @@ public class TrainingClassMapper {
                 .className(entity.getClassName())
                 .classCode(entity.getClassCode())
                 .isActive(entity.getIsActive())
-
+                .status(entity.getClassStatus() != null ? entity.getClassStatus().name() : null) // Add status mapping
                 .creatorName(entity.getCreator() != null
                         ? entity.getCreator().getFirstName() + " " + entity.getCreator().getLastName()
                         : null)
