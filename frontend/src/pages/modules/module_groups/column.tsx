@@ -6,7 +6,6 @@ import ActionBtn from "@/components/data_table/ActionBtn";
 import { EditIcon, EyeIcon, Trash } from "lucide-react";
 import dayjs from "dayjs";
 import SortHeader from "@/components/data_table/SortHeader.tsx";
-import { USER_ROLE } from "@/types/auth";
 
 export type TableActions = {
   onView?: (row: ModuleGroup) => void;
