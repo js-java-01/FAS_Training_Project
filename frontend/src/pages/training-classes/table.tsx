@@ -4,12 +4,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import type { TrainingClass } from "@/types/trainingClass";
 import { useGetAllTrainingClasses } from "./services/queries";
 import { getColumns } from "./column";
 import { TrainingClassForm } from "./form";
-import { TrainingClassDetailDialog } from "./DetailDialog";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 
@@ -25,7 +25,7 @@ export default function TrainingClassesTable() {
     const debouncedSearch = useDebounce(searchValue, 300);
 
     const [openForm, setOpenForm] = useState(false);
-    const [viewingClass, setViewingClass] = useState<TrainingClass | null>(null);
+    const navigate = useNavigate();
 
     /* ---------- faceted filter ---------- */
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
@@ -71,9 +71,9 @@ export default function TrainingClassesTable() {
     const columns = useMemo(
         () =>
             getColumns({
-                onView: setViewingClass,
+                onNavigate: (row) => navigate(`/training-classes/${row.id}`, { state: { trainingClass: row } }),
             }),
-        [],
+        [navigate],
     );
 
     /* ===================== HANDLERS ===================== */
@@ -145,12 +145,6 @@ export default function TrainingClassesTable() {
                 open={openForm}
                 onClose={() => setOpenForm(false)}
                 onSaved={handleSaved}
-            />
-
-            <TrainingClassDetailDialog
-                open={!!viewingClass}
-                trainingClass={viewingClass}
-                onClose={() => setViewingClass(null)}
             />
         </div>
     );

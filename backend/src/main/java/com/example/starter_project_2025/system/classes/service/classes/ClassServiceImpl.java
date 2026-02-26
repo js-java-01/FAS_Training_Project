@@ -32,6 +32,13 @@ public class ClassServiceImpl implements ClassService {
     private final TrainingClassMapper mapper;
 
     @Override
+    public TrainingClassResponse getTrainingClassById(UUID id) {
+        TrainingClass trainingClass = trainingClassRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Training class not found"));
+        return mapper.toResponse(trainingClass);
+    }
+
+    @Override
     public TrainingClassResponse openClassRequest(CreateTrainingClassRequest request, String email) {
 
         // ===== NORMALIZE =====
@@ -191,8 +198,17 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     public Page<TrainingClassResponse> searchTrainingClasses(SearchClassRequest request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'searchTrainingClasses'");
+        String keyword = request.getKeyword();
+        if (keyword != null) {
+            keyword = keyword.trim();
+            if (keyword.isEmpty()) {
+                keyword = null;
+            }
+        }
+
+        return trainingClassRepository
+                .search(keyword, request.getIsActive(), request.getPageable())
+                .map(mapper::toResponse);
     }
 
 }

@@ -1,4 +1,4 @@
-import type { CreateLocationRequest, LocationImportResult, LocationStatus, UpdateLocationRequest } from '@/types/location';
+import type { Location, CreateLocationRequest, LocationImportResult, LocationStatus, UpdateLocationRequest } from '@/types/location';
 import axiosInstance from './axiosInstance';
 // import { Location, CreateLocationRequest, UpdateLocationRequest, LocationStatus,LocationImportResult } from '../types/location';
 

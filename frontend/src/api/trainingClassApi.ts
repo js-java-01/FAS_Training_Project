@@ -15,8 +15,16 @@ export const trainingClassApi = {
         isActive?: boolean;
     }) => {
         const res = await axiosInstance.get<ApiResponse<PagedData<TrainingClass>>>(
-            "/v1/open-class-requests",
+            "/classes",
             { params },
+        );
+        return res.data.data;
+    },
+
+    /* ============ GET BY ID ============ */
+    getTrainingClassById: async (id: string): Promise<TrainingClass> => {
+        const res = await axiosInstance.get<ApiResponse<TrainingClass>>(
+            `/classes/${id}`,
         );
         return res.data.data;
     },
@@ -26,7 +34,7 @@ export const trainingClassApi = {
         data: CreateTrainingClassRequest,
     ): Promise<TrainingClass> => {
         const res = await axiosInstance.post<TrainingClass>(
-            "/v1/open-class-requests",
+            "/classes",
             data,
         );
         return res.data;

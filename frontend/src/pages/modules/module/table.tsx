@@ -21,9 +21,15 @@ import {
   useImportModules,
 } from "@/pages/modules/module/services/mutations";
 import { FacetedFilter } from "@/components/FacedFilter";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+import dayjs from "dayjs";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
+  /* ---------- get role ---------- */
+  const role = useSelector((state: RootState) => state.auth.role);
+
   /* ---------- modal & view ---------- */
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
@@ -160,8 +166,8 @@ export default function ModulesTable() {
           setIsFormOpen(true);
         },
         onDelete: setDeletingModule,
-      }),
-    [],
+      }, role),
+    [role],
   );
 
   /* ================= IMPORT / EXPORT / TEMPLATE ================= */
@@ -187,7 +193,7 @@ export default function ModulesTable() {
   const handleExport = async () => {
     try {
       const blob = await exportModules();
-      downloadBlob(blob, "modules.xlsx");
+      downloadBlob(blob, `modules_${dayjs().format("DD/MM/YYYY hh:mm:ss")}.xlsx`);
       toast.success("Export modules successfully");
     } catch {
       toast.error("Failed to export modules");
@@ -197,7 +203,7 @@ export default function ModulesTable() {
   const handleDownloadTemplate = async () => {
     try {
       const blob = await downloadTemplate();
-      downloadBlob(blob, "modules_template.xlsx");
+      downloadBlob(blob, `modules_template_${dayjs().format("DD/MM/YYYY hh:mm:ss")}.xlsx`);
       toast.success("Download template successfully");
     } catch {
       toast.error("Failed to download template");
@@ -247,25 +253,28 @@ export default function ModulesTable() {
         manualSorting
         /* Header */
         headerActions={
-          <div className={"flex flex-row gap-2"}>
-            <Button
-              variant="secondary"
-              onClick={() => setOpenBackupModal(true)}
-            >
-              <DatabaseBackup className="h-4 w-4" />
-              Import / Export
-            </Button>
-            <Button
-              onClick={() => {
-                setEditingModule(null);
-                setIsFormOpen(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add New Module
-            </Button>
-          </div>
+          role === "ADMIN" && (
+            <div className="flex flex-row gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setOpenBackupModal(true)}
+              >
+                <DatabaseBackup className="h-4 w-4" />
+                Import / Export
+              </Button>
+
+              <Button
+                onClick={() => {
+                  setEditingModule(null);
+                  setIsFormOpen(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add New Module
+              </Button>
+            </div>
+          )
         }
         /*Faced filter */
         facetedFilters={

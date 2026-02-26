@@ -1,7 +1,4 @@
-export enum LocationStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-}
+export type LocationStatus = 'ACTIVE' | 'INACTIVE';
 
 export interface Location {
   id: string;
@@ -11,6 +8,8 @@ export interface Location {
   communeName: string;
   provinceName: string;
   status: LocationStatus;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateLocationRequest {

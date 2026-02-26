@@ -21,11 +21,11 @@ import { QuestionCategoryManagement } from "./pages/question-category";
 import { CreateQuestionPage, EditQuestionPage, QuestionManagementPage } from "./pages/question";
 import { Logout } from "./components/auth/Logout";
 import AssessmentManagement from "./pages/AssessmentManagement";
-import { LocationManagement } from "./pages/LocationManagement";
 import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
+import ClassDetailPage from "./pages/training-classes/ClassDetailPage";
 
 
 function App() {
@@ -81,6 +81,14 @@ function App() {
               }
             />
             <Route
+              path="/training-classes/:id"
+              element={
+                <ProtectedRoute requiredPermission="CLASS_CREATE">
+                  <ClassDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/assessment-type"
               element={
                 <ProtectedRoute requiredPermission="ASSESSMENT_READ">
@@ -89,14 +97,6 @@ function App() {
               }
             />
 
-            <Route
-              path="/locations"
-              element={
-                <ProtectedRoute requiredPermission="LOCATION_READ">
-                  <LocationManagement />
-                </ProtectedRoute>
-              }
-            />
             <Route
               path="/programming-languages"
               element={
