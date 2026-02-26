@@ -1,7 +1,14 @@
+import { useState, useCallback } from "react";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useGetTrainingClassById } from "./services/queries";
+import { useGetAllSemesters } from "./services/queries/useSemesters";
+import { trainingClassApi } from "@/api/trainingClassApi";
+import { trainingClassKeys } from "./keys";
 import type { TrainingClass } from "@/types/trainingClass";
+import type { ClassInfoFormData } from "./components/ClassInfoTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
     Breadcrumb,
@@ -13,7 +20,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil, Save, X } from "lucide-react";
 import ClassInfoTab from "./components/ClassInfoTab";
 
 function ClassBreadcrumb() {
@@ -43,10 +50,33 @@ const TABS = [
     { value: "activities", label: "Activities" },
 ] as const;
 
+/* ── helpers ── */
+const buildFormData = (tc: TrainingClass): ClassInfoFormData => ({
+    className: tc.className ?? "",
+    classCode: tc.classCode ?? "",
+    description: tc.description ?? "",
+    startDate: tc.startDate ? tc.startDate.slice(0, 10) : "",
+    endDate: tc.endDate ? tc.endDate.slice(0, 10) : "",
+    semesterId: "",
+});
+
+const validateForm = (data: ClassInfoFormData): Record<string, string> => {
+    const errs: Record<string, string> = {};
+    if (!data.className.trim()) errs.className = "Class name is required";
+    if (!data.classCode.trim()) errs.classCode = "Class code is required";
+    if (!data.startDate) errs.startDate = "Start date is required";
+    if (!data.endDate) errs.endDate = "End date is required";
+    if (data.startDate && data.endDate && new Date(data.startDate) >= new Date(data.endDate)) {
+        errs.endDate = "End date must be after start date";
+    }
+    return errs;
+};
+
 export default function ClassDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const location = useLocation();
+    const queryClient = useQueryClient();
 
     /* Data passed from the table via navigate state */
     const stateClass = (location.state as { trainingClass?: TrainingClass })?.trainingClass ?? null;
@@ -56,6 +86,75 @@ export default function ClassDetailPage() {
 
     /* Prefer fetched data, fall back to route state */
     const trainingClass = fetchedClass ?? stateClass;
+
+    /* ── Edit mode state ── */
+    const [isEditing, setIsEditing] = useState(false);
+    const [formData, setFormData] = useState<ClassInfoFormData>(() =>
+        trainingClass ? buildFormData(trainingClass) : {
+            className: "", classCode: "", description: "", startDate: "", endDate: "", semesterId: "",
+        },
+    );
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [saving, setSaving] = useState(false);
+
+    /* Semesters for edit mode */
+    const { data: semesters = [], isLoading: loadingSemesters } = useGetAllSemesters();
+
+    const handleEdit = useCallback(() => {
+        if (trainingClass) {
+            setFormData(buildFormData(trainingClass));
+            setFormErrors({});
+            setIsEditing(true);
+        }
+    }, [trainingClass]);
+
+    const handleCancel = useCallback(() => {
+        setIsEditing(false);
+        setFormErrors({});
+        if (trainingClass) setFormData(buildFormData(trainingClass));
+    }, [trainingClass]);
+
+    const handleFieldChange = useCallback((name: string, value: string) => {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormErrors((prev) => {
+            const next = { ...prev };
+            delete next[name];
+            return next;
+        });
+    }, []);
+
+    const handleSave = useCallback(async () => {
+        const errs = validateForm(formData);
+        if (Object.keys(errs).length > 0) {
+            setFormErrors(errs);
+            return;
+        }
+
+        if (!id) return;
+        setSaving(true);
+        try {
+            await trainingClassApi.updateTrainingClass(id, {
+                className: formData.className,
+                classCode: formData.classCode,
+                description: formData.description || undefined,
+                startDate: formData.startDate,
+                endDate: formData.endDate,
+                semesterId: formData.semesterId || undefined,
+            });
+            toast.success("Class updated successfully");
+            await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(id) });
+            await queryClient.invalidateQueries({ queryKey: ["training-classes"] });
+            setIsEditing(false);
+        } catch (err: unknown) {
+            const msg =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                (err as { message?: string })?.message ||
+                "Failed to update class";
+            toast.error(msg);
+        } finally {
+            setSaving(false);
+        }
+    }, [formData, id, queryClient]);
 
     return (
         <MainLayout customBreadcrumb={<ClassBreadcrumb />}>
@@ -81,15 +180,49 @@ export default function ClassDetailPage() {
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="gap-1.5"
-                                onClick={() => navigate("/training-classes")}
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                                Back to list
-                            </Button>
+                            {isEditing ? (
+                                <>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-1.5"
+                                        onClick={handleCancel}
+                                        disabled={saving}
+                                    >
+                                        <X className="h-4 w-4" />
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                                        onClick={handleSave}
+                                        disabled={saving}
+                                    >
+                                        <Save className="h-4 w-4" />
+                                        {saving ? "Saving..." : "Save"}
+                                    </Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="gap-1.5"
+                                        onClick={() => navigate("/training-classes")}
+                                    >
+                                        <ArrowLeft className="h-4 w-4" />
+                                        Back to list
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                                        onClick={handleEdit}
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                        Edit
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -124,7 +257,15 @@ export default function ClassDetailPage() {
 
                         {/* Class Info */}
                         <TabsContent value="class-info" className="pt-6 overflow-y-auto flex-1">
-                            <ClassInfoTab trainingClass={trainingClass} />
+                            <ClassInfoTab
+                                trainingClass={trainingClass}
+                                isEditing={isEditing}
+                                formData={formData}
+                                onFieldChange={handleFieldChange}
+                                errors={formErrors}
+                                semesters={semesters}
+                                loadingSemesters={loadingSemesters}
+                            />
                         </TabsContent>
 
                         {/* Placeholder tabs */}

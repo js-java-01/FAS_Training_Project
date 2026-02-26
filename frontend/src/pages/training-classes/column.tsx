@@ -3,7 +3,7 @@ import type { TrainingClass } from "@/types/trainingClass";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { Check, EditIcon, EyeIcon, X } from "lucide-react";
+import { Check, EyeIcon, X } from "lucide-react";
 import dayjs from "dayjs";
 import SortHeader from "@/components/data_table/SortHeader";
 
@@ -149,11 +149,6 @@ export const getColumns = (actions?: TableActions) => {
                             onClick={() => actions.onNavigate!(row.original)}
                         />
                     )}
-                    <ActionBtn
-                        tooltipText="Update"
-                        icon={<EditIcon size={12} />}
-                        onClick={() => {}}
-                    />
                     <ActionBtn
                         tooltipText="Approve"
                         icon={<Check size={12} />}

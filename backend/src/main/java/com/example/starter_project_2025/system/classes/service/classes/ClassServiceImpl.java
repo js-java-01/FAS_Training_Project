@@ -3,6 +3,7 @@ package com.example.starter_project_2025.system.classes.service.classes;
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
 import com.example.starter_project_2025.system.classes.dto.request.CreateTrainingClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
+import com.example.starter_project_2025.system.classes.dto.request.UpdateTrainingClassRequest;
 import com.example.starter_project_2025.system.classes.entity.ClassStatus;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.classes.mapper.TrainingClassMapper;
@@ -94,7 +95,7 @@ public class ClassServiceImpl implements ClassService {
     @Override
     public TrainingClassResponse updateClass(
             UUID id,
-            CreateTrainingClassRequest request,
+            UpdateTrainingClassRequest request,
             String email
     ) {
 
@@ -102,32 +103,38 @@ public class ClassServiceImpl implements ClassService {
                 .orElseThrow(() -> new RuntimeException("Training class not found"));
 
         // ===== NORMALIZE =====
-        String className = StringNormalizer.normalize(request.getClassName());
-        String classCode = StringNormalizer.normalize(request.getClassCode());
+        String className = request.getClassName() != null ? StringNormalizer.normalize(request.getClassName()) : existing.getClassName();
+        String classCode = request.getClassCode() != null ? StringNormalizer.normalize(request.getClassCode()) : existing.getClassCode();
 
         // ===== DUPLICATE CHECK (exclude itself) =====
-        if (trainingClassRepository.existsByClassNameIgnoreCaseAndIdNot(className, id)) {
+        if (request.getClassName() != null && trainingClassRepository.existsByClassNameIgnoreCaseAndIdNot(className, id)) {
             throw new RuntimeException("Class name already exists");
         }
 
-        if (trainingClassRepository.existsByClassCodeIgnoreCaseAndIdNot(classCode, id)) {
+        if (request.getClassCode() != null && trainingClassRepository.existsByClassCodeIgnoreCaseAndIdNot(classCode, id)) {
             throw new RuntimeException("Class code already exists");
         }
 
         // ===== DATE CHECK =====
-        if (request.getStartDate().isAfter(request.getEndDate())) {
+        LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : existing.getStartDate();
+        LocalDate endDate = request.getEndDate() != null ? request.getEndDate() : existing.getEndDate();
+
+        if (startDate.isAfter(endDate)) {
             throw new RuntimeException("Start date must be before end date");
         }
 
-        Semester semester = semesterRepository.findById(request.getSemesterId())
-                .orElseThrow(() -> new RuntimeException("Semester not found"));
+        Semester semester = existing.getSemester();
+        if (request.getSemesterId() != null) {
+            semester = semesterRepository.findById(request.getSemesterId())
+                    .orElseThrow(() -> new RuntimeException("Semester not found"));
 
-        if (semester.getEndDate().isBefore(LocalDate.now())) {
-            throw new RuntimeException("Cannot assign class to past semester");
+            if (semester.getEndDate().isBefore(LocalDate.now())) {
+                throw new RuntimeException("Cannot assign class to past semester");
+            }
         }
 
-        if (request.getStartDate().isBefore(semester.getStartDate())
-                || request.getEndDate().isAfter(semester.getEndDate())) {
+        if (startDate.isBefore(semester.getStartDate())
+                || endDate.isAfter(semester.getEndDate())) {
             throw new RuntimeException("Class duration must be within semester period");
         }
 
@@ -135,12 +142,13 @@ public class ClassServiceImpl implements ClassService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // ===== UPDATE DATA =====
-        existing.setClassName(className);
-        existing.setClassCode(classCode);
-        existing.setSemester(semester);
-        existing.setStartDate(request.getStartDate());
-        existing.setEndDate(request.getEndDate());
-        existing.setCreator(user);
+        if (request.getClassName() != null) existing.setClassName(className);
+        if (request.getClassCode() != null) existing.setClassCode(classCode);
+        if (request.getSemesterId() != null) existing.setSemester(semester);
+        if (request.getStartDate() != null) existing.setStartDate(startDate);
+        if (request.getEndDate() != null) existing.setEndDate(endDate);
+
+        // existing.setCreator(user); // Usually creator doesn't change on update.
 
         TrainingClass saved = trainingClassRepository.save(existing);
 

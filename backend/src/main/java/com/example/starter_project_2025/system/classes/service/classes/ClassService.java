@@ -3,6 +3,7 @@ package com.example.starter_project_2025.system.classes.service.classes;
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
 import com.example.starter_project_2025.system.classes.dto.request.CreateTrainingClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
+import com.example.starter_project_2025.system.classes.dto.request.UpdateTrainingClassRequest;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,7 @@ public interface ClassService {
 
     TrainingClassResponse updateClass(
             UUID id,
-            CreateTrainingClassRequest request,
+            UpdateTrainingClassRequest request,
             String email
     );
 

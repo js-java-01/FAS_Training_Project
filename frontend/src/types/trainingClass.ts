@@ -23,6 +23,15 @@ export interface CreateTrainingClassRequest {
     endDate: string;
 }
 
+export interface UpdateTrainingClassRequest {
+    className?: string;
+    classCode?: string;
+    semesterId?: string;
+    startDate?: string;
+    endDate?: string;
+    description?: string;
+}
+
 /* ========================
    Semester Types
 ======================== */

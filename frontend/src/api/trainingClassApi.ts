@@ -2,6 +2,7 @@ import axiosInstance from "./axiosInstance";
 import type {
     TrainingClass,
     CreateTrainingClassRequest,
+    UpdateTrainingClassRequest,
 } from "@/types/trainingClass";
 import type { ApiResponse, PagedData } from "@/types/response";
 
@@ -38,5 +39,17 @@ export const trainingClassApi = {
             data,
         );
         return res.data;
+    },
+
+    /* ============ UPDATE ============ */
+    updateTrainingClass: async (
+        id: string,
+        data: UpdateTrainingClassRequest,
+    ): Promise<TrainingClass> => {
+        const res = await axiosInstance.put<ApiResponse<TrainingClass>>(
+            `/classes/${id}`,
+            data,
+        );
+        return res.data.data;
     },
 };

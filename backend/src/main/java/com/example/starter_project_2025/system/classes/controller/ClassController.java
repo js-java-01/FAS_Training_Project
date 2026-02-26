@@ -2,6 +2,7 @@ package com.example.starter_project_2025.system.classes.controller;
 
 import com.example.starter_project_2025.system.classes.dto.request.CreateTrainingClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
+import com.example.starter_project_2025.system.classes.dto.request.UpdateTrainingClassRequest;
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
 import com.example.starter_project_2025.system.classes.service.classes.ClassService;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ApiResponse;
@@ -66,7 +67,7 @@ public class ClassController {
         @PreAuthorize("hasAuthority('CLASS_UPDATE')")
         public ResponseEntity<TrainingClassResponse> updateClass(
                 @PathVariable UUID id,
-                @Valid @RequestBody CreateTrainingClassRequest request,
+                @Valid @RequestBody UpdateTrainingClassRequest request,
                 Authentication authentication
         ) {
                 String email = authentication.getName();
