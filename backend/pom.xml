@@ -17,7 +17,7 @@
     <name>starter_project_2025</name>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>23</java.version>
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <lombok.version>1.18.34</lombok.version>
     </properties>
@@ -124,6 +124,12 @@
             <groupId>com.itextpdf</groupId>
             <artifactId>layout</artifactId>
             <version>7.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 

@@ -23,6 +23,7 @@ import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
+import dayjs from "dayjs";
 
 /* ======================================================= */
 
@@ -170,7 +171,7 @@ export default function ModuleGroupsTable() {
   const handleExport = async () => {
     try {
       const blob = await exportModuleGroup();
-      downloadBlob(blob, "module_groups.xlsx");
+      downloadBlob(blob, `module_groups_template_${dayjs().format("DD/MM/YYYY hh:mm:ss")}.xlsx`);
       toast.success("Export module groups successfully");
     } catch {
       toast.error("Failed to export module groups");
@@ -180,7 +181,7 @@ export default function ModuleGroupsTable() {
   const handleDownloadTemplate = async () => {
     try {
       const blob = await downloadTemplate();
-      downloadBlob(blob, "module_groups_template.xlsx");
+      downloadBlob(blob, `module_groups_template_${dayjs().format("DD/MM/YYYY hh:mm:ss")}.xlsx`);
       toast.success("Download template successfully");
     } catch {
       toast.error("Failed to download template");
