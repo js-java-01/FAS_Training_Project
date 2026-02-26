@@ -5,12 +5,13 @@ export interface Lesson {
   lessonName: string;
   description?: string;
   courseId: string;
+  duration?: number | null;
 }
 
 export interface CreateLessonRequest {
   lessonName: string;
   description?: string;
-  courseId: string; 
+  courseId: string;
 }
 
 export type UpdateLessonRequest = Partial<Omit<CreateLessonRequest, 'courseId'>>;

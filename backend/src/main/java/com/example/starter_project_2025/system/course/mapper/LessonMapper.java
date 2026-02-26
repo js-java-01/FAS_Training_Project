@@ -14,12 +14,13 @@ public class LessonMapper {
                 .build();
     }
 
-    public LessonResponse toResponse(CourseLesson entity) {
+    public LessonResponse toResponse(CourseLesson entity, Integer computedDuration) {
         return LessonResponse.builder()
                 .id(entity.getId())
                 .lessonName(entity.getLessonName())
                 .description(entity.getDescription())
                 .courseId(entity.getCourse().getId())
+                .duration(computedDuration)
                 .build();
     }
 }

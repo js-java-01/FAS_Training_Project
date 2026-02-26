@@ -8,6 +8,7 @@ import com.example.starter_project_2025.system.course.entity.CourseLesson;
 import com.example.starter_project_2025.system.course.mapper.LessonMapper;
 import com.example.starter_project_2025.system.course.repository.CourseLessonRepository;
 import com.example.starter_project_2025.system.course.repository.CourseRepository;
+import com.example.starter_project_2025.system.course.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ public class LessonServiceImpl implements LessonService {
     private final CourseLessonRepository lessonRepository;
     private final CourseRepository courseRepository;
     private final LessonMapper lessonMapper;
+    private final SessionRepository sessionRepository;
 
     @Override
     public LessonResponse create(LessonCreateRequest request) {
@@ -27,7 +29,8 @@ public class LessonServiceImpl implements LessonService {
                 .orElseThrow(() -> new RuntimeException("Course not found"));
         CourseLesson lesson = lessonMapper.toEntity(request);
         lesson.setCourse(course);
-        return lessonMapper.toResponse(lessonRepository.save(lesson));
+        CourseLesson saved = lessonRepository.save(lesson);
+        return lessonMapper.toResponse(saved, 0);
     }
 
     @Override
@@ -36,7 +39,9 @@ public class LessonServiceImpl implements LessonService {
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
         if (request.getLessonName() != null) lesson.setLessonName(request.getLessonName());
         if (request.getDescription() != null) lesson.setDescription(request.getDescription());
-        return lessonMapper.toResponse(lessonRepository.save(lesson));
+        CourseLesson saved = lessonRepository.save(lesson);
+        Integer computed = sessionRepository.sumDurationByLessonId(saved.getId());
+        return lessonMapper.toResponse(saved, computed != null ? computed : 0);
     }
 
     @Override
@@ -47,6 +52,11 @@ public class LessonServiceImpl implements LessonService {
     @Override
     public List<LessonResponse> getByCourseId(UUID courseId) {
         return lessonRepository.findByCourseIdOrderBySortOrderAsc(courseId)
-                .stream().map(lessonMapper::toResponse).toList();
+                .stream()
+                .map(lesson -> {
+                    Integer computed = sessionRepository.sumDurationByLessonId(lesson.getId());
+                    return lessonMapper.toResponse(lesson, computed != null ? computed : 0);
+                })
+                .toList();
     }
 }

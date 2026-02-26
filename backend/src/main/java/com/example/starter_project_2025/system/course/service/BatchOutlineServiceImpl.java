@@ -37,8 +37,8 @@ public class BatchOutlineServiceImpl implements BatchOutlineService {
     private final BatchOutlineMapper mapper;
 
     private static final String[] TEMPLATE_HEADERS = {
-            "lessonName", "lessonDescription", "sessionTopic",
-            "sessionType", "studentTasks", "sessionOrder"
+            "lessonName", "lessonDescription", "lessonDuration",
+            "sessionTopic", "sessionType", "studentTasks", "sessionOrder"
     };
 
     @Override
@@ -97,20 +97,22 @@ public class BatchOutlineServiceImpl implements BatchOutlineService {
                     Row row = sheet.createRow(rowIdx++);
                     row.createCell(0).setCellValue(lesson.getLessonName());
                     row.createCell(1).setCellValue(lesson.getDescription() != null ? lesson.getDescription() : "");
-                    row.createCell(2).setCellValue("");
+                    row.createCell(2).setCellValue(lesson.getDuration() != null ? lesson.getDuration() : 0);
                     row.createCell(3).setCellValue("");
                     row.createCell(4).setCellValue("");
                     row.createCell(5).setCellValue("");
+                    row.createCell(6).setCellValue("");
                 } else {
                     for (Session session : sessions) {
                         Row row = sheet.createRow(rowIdx++);
                         row.createCell(0).setCellValue(lesson.getLessonName());
                         row.createCell(1).setCellValue(lesson.getDescription() != null ? lesson.getDescription() : "");
-                        row.createCell(2).setCellValue(session.getTopic() != null ? session.getTopic() : "");
-                        row.createCell(3).setCellValue(session.getType() != null ? session.getType().name() : "");
-                        row.createCell(4)
-                                .setCellValue(session.getStudentTasks() != null ? session.getStudentTasks() : "");
+                        row.createCell(2).setCellValue(lesson.getDuration() != null ? lesson.getDuration() : 0);
+                        row.createCell(3).setCellValue(session.getTopic() != null ? session.getTopic() : "");
+                        row.createCell(4).setCellValue(session.getType() != null ? session.getType().name() : "");
                         row.createCell(5)
+                                .setCellValue(session.getStudentTasks() != null ? session.getStudentTasks() : "");
+                        row.createCell(6)
                                 .setCellValue(session.getSessionOrder() != null ? session.getSessionOrder() : 0);
                     }
                 }
@@ -145,18 +147,20 @@ public class BatchOutlineServiceImpl implements BatchOutlineService {
             Row sample = sheet.createRow(1);
             sample.createCell(0).setCellValue("Lesson 1 - Introduction");
             sample.createCell(1).setCellValue("Introduction to the course");
-            sample.createCell(2).setCellValue("Overview");
-            sample.createCell(3).setCellValue("VIDEO_LECTURE");
-            sample.createCell(4).setCellValue("Watch the video and take notes");
-            sample.createCell(5).setCellValue(1);
+            sample.createCell(2).setCellValue(120);
+            sample.createCell(3).setCellValue("Overview");
+            sample.createCell(4).setCellValue("VIDEO_LECTURE");
+            sample.createCell(5).setCellValue("Watch the video and take notes");
+            sample.createCell(6).setCellValue(1);
 
             Row sample2 = sheet.createRow(2);
             sample2.createCell(0).setCellValue("Lesson 1 - Introduction");
             sample2.createCell(1).setCellValue("Introduction to the course");
-            sample2.createCell(2).setCellValue("Live Q&A");
-            sample2.createCell(3).setCellValue("LIVE_SESSION");
-            sample2.createCell(4).setCellValue("Prepare questions");
-            sample2.createCell(5).setCellValue(2);
+            sample2.createCell(2).setCellValue(120);
+            sample2.createCell(3).setCellValue("Live Q&A");
+            sample2.createCell(4).setCellValue("LIVE_SESSION");
+            sample2.createCell(5).setCellValue("Prepare questions");
+            sample2.createCell(6).setCellValue(2);
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             workbook.write(out);
@@ -201,15 +205,17 @@ public class BatchOutlineServiceImpl implements BatchOutlineService {
                     continue;
 
                 String lessonDesc = getString(row, 1);
-                String sessionTopic = getString(row, 2);
-                String sessionType = getString(row, 3);
-                String studentTasks = getString(row, 4);
-                Integer sessionOrder = getInteger(row, 5);
+                Integer lessonDuration = getInteger(row, 2);
+                String sessionTopic = getString(row, 3);
+                String sessionType = getString(row, 4);
+                String studentTasks = getString(row, 5);
+                Integer sessionOrder = getInteger(row, 6);
 
                 LessonBatchItem lessonItem = lessonMap.computeIfAbsent(lessonName, k -> {
                     LessonBatchItem item = new LessonBatchItem();
                     item.setLessonName(k);
                     item.setDescription(lessonDesc);
+                    item.setDuration(lessonDuration);
                     item.setSessions(new ArrayList<>());
                     return item;
                 });

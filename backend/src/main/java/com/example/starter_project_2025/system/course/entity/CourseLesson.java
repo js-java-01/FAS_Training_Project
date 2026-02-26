@@ -25,6 +25,8 @@ public class CourseLesson {
 
     private Integer sortOrder; // Để sắp xếp thứ tự bài học
 
+    private Integer duration; // Tổng thời lượng bài học (phút)
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "course_id")
     private Course course;

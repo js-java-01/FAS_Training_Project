@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import lombok.Data;
+
 @Data
 public class SessionResponse {
     private UUID id;
@@ -11,6 +12,7 @@ public class SessionResponse {
     private String type;
     private String studentTasks;
     private Integer sessionOrder;
+    private Integer duration;
     private UUID lessonId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

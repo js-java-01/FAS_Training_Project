@@ -35,6 +35,7 @@ type FormState = {
   topic: string;
   studentTasks: string;
   sessionOrder: string;
+  duration: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -43,6 +44,7 @@ const EMPTY_FORM: FormState = {
   topic: "",
   studentTasks: "",
   sessionOrder: "",
+  duration: "",
 };
 
 export function SessionSidePanel({
@@ -114,6 +116,11 @@ export function SessionSidePanel({
           initialSession.sessionOrder !== null
             ? String(initialSession.sessionOrder)
             : "",
+        duration:
+          initialSession.duration !== undefined &&
+          initialSession.duration !== null
+            ? String(initialSession.duration)
+            : "",
       });
       return;
     }
@@ -178,6 +185,7 @@ export function SessionSidePanel({
       topic: form.topic || "",
       ...(form.type ? { type: form.type } : {}),
       ...(form.studentTasks ? { studentTasks: form.studentTasks } : {}),
+      duration: form.duration !== "" ? Number(form.duration) : null,
     };
 
     try {
@@ -294,6 +302,18 @@ export function SessionSidePanel({
           }
           min={1}
           required
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="duration">Duration (minutes)</Label>
+        <Input
+          id="duration"
+          type="number"
+          value={form.duration}
+          onChange={(e) => setForm((p) => ({ ...p, duration: e.target.value }))}
+          min={0}
+          placeholder="e.g. 90"
         />
       </div>
     </SideFormPanel>

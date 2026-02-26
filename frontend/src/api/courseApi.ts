@@ -135,4 +135,30 @@ export const courseApi = {
       `/courses/${courseId}/objectives/${objectiveId}`
     );
   },
+
+  exportObjectives: async (courseId: string): Promise<Blob> => {
+    const response = await axiosInstance.get(
+      `/courses/${courseId}/objectives/export`,
+      { responseType: 'blob' }
+    );
+    return response.data;
+  },
+
+  downloadObjectivesTemplate: async (courseId: string): Promise<Blob> => {
+    const response = await axiosInstance.get(
+      `/courses/${courseId}/objectives/template`,
+      { responseType: 'blob' }
+    );
+    return response.data;
+  },
+
+  importObjectives: async (courseId: string, file: File): Promise<void> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    await axiosInstance.post(
+      `/courses/${courseId}/objectives/import`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+  },
 };

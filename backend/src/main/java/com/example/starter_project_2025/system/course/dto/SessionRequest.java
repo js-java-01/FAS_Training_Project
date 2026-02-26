@@ -20,6 +20,8 @@ public class SessionRequest {
 
     @NotNull(message = "Lesson ID is required")
     private UUID lessonId;
-    
+
     private UUID assessmentId;
+
+    private Integer duration;
 }

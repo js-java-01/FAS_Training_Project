@@ -15,5 +15,7 @@ public class LessonBatchItem {
 
     private Integer order;
 
+    private Integer duration;
+
     private List<SessionBatchItem> sessions;
 }

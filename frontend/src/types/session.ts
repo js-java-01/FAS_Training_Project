@@ -6,6 +6,7 @@ export interface SessionRequest {
   sessionOrder: number;
   lessonId: string;
   assessmentId?: string | null;
+  duration?: number | null;
 }
 
 export interface SessionResponse {
@@ -14,6 +15,7 @@ export interface SessionResponse {
   type: string | null;
   studentTasks: string | null;
   sessionOrder: number;
+  duration?: number | null;
   lessonId: string;
   createdAt?: string;
   updatedAt?: string;

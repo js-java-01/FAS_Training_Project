@@ -16,6 +16,7 @@ public class BatchOutlineMapper {
                 return CourseLesson.builder()
                                 .lessonName(dto.getLessonName())
                                 .description(dto.getDescription())
+                                .duration(dto.getDuration())
                                 .course(course)
                                 .sortOrder(dto.getOrder() != null ? dto.getOrder() : order)
                                 .build();

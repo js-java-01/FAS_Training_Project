@@ -984,14 +984,45 @@ export function OutlineTab({ courseId }: { courseId: string }) {
     }
   };
 
-  const stubSessionImport = async (_file: File) => {
-    toast.info("Session import coming soon");
+  const handleSessionImport = async (file: File) => {
+    if (!sessionLessonId) return;
+    try {
+      await sessionService.importSessions(sessionLessonId, file);
+      toast.success("Sessions imported successfully");
+      await loadSessions(sessionLessonId);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to import sessions");
+    }
   };
-  const stubSessionExport = async () => {
-    toast.info("Session export coming soon");
+
+  const handleSessionExport = async () => {
+    if (!sessionLessonId) return;
+    try {
+      const blob = await sessionService.exportSessions(sessionLessonId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `sessions_${sessionLessonId}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success("Sessions exported");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to export sessions");
+    }
   };
-  const stubSessionTemplate = async () => {
-    toast.info("Session template coming soon");
+
+  const handleSessionTemplate = async () => {
+    try {
+      const blob = await sessionService.downloadSessionTemplate();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sessions_template.xlsx";
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Failed to download template");
+    }
   };
 
   return (
@@ -1166,9 +1197,9 @@ export function OutlineTab({ courseId }: { courseId: string }) {
         title="Sessions"
         open={sessionImportExportOpen}
         setOpen={setSessionImportExportOpen}
-        onImport={stubSessionImport}
-        onExport={stubSessionExport}
-        onDownloadTemplate={stubSessionTemplate}
+        onImport={handleSessionImport}
+        onExport={handleSessionExport}
+        onDownloadTemplate={handleSessionTemplate}
       />
     </div>
   );

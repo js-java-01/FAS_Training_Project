@@ -12,4 +12,5 @@ public class LessonResponse {
     private String lessonName;
     private String description;
     private UUID courseId;
+    private Integer duration;
 }

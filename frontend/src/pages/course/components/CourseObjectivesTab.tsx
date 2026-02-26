@@ -183,16 +183,52 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
     },
   ];
 
-  // ─── Import / Export stubs ──────────────────────────────
+  // ─── Import / Export ──────────────────────────────────
   const [importExportOpen, setImportExportOpen] = useState(false);
-  const stubImport = async () => {
-    toast.info("Objective import coming soon");
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
   };
-  const stubExport = async () => {
-    toast.info("Objective export coming soon");
+
+  const handleImport = async (file: File) => {
+    try {
+      await courseApi.importObjectives(courseId, file);
+      toast.success("Objectives imported successfully");
+      setImportExportOpen(false);
+      fetchObjectives();
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message ?? "Failed to import objectives",
+      );
+      throw err;
+    }
   };
-  const stubTemplate = async () => {
-    toast.info("Objective template coming soon");
+
+  const handleExport = async () => {
+    try {
+      const blob = await courseApi.exportObjectives(courseId);
+      downloadBlob(blob, "objectives_export.xlsx");
+      toast.success("Exported successfully");
+    } catch {
+      toast.error("Failed to export objectives");
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await courseApi.downloadObjectivesTemplate(courseId);
+      downloadBlob(blob, "objectives_template.xlsx");
+      toast.success("Template downloaded");
+    } catch {
+      toast.error("Failed to download template");
+    }
   };
 
   // ─── Render ──────────────────────────────────────────────
@@ -310,9 +346,9 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
         title="Objectives"
         open={importExportOpen}
         setOpen={setImportExportOpen}
-        onImport={stubImport}
-        onExport={stubExport}
-        onDownloadTemplate={stubTemplate}
+        onImport={handleImport}
+        onExport={handleExport}
+        onDownloadTemplate={handleDownloadTemplate}
       />
     </>
   );

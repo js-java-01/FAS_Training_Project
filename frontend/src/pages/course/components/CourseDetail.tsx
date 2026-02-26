@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { CohortTab } from "./CohortTab";
 import { OutlineTab } from "./OutlineTab";
 import CourseObjectivesTab from "./CourseObjectivesTab";
+import { TimeAllocationTab } from "./TimeAllocationTab";
 import {
   FiEdit,
   FiBookOpen,
@@ -425,7 +426,17 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
         <CourseObjectivesTab courseId={course.id} />
       )}
 
-      {!["Overview", "Cohort", "Outline", "Objectives"].includes(activeTab) && (
+      {activeTab === "Time Allocation" && (
+        <TimeAllocationTab courseId={course.id} />
+      )}
+
+      {![
+        "Overview",
+        "Cohort",
+        "Outline",
+        "Objectives",
+        "Time Allocation",
+      ].includes(activeTab) && (
         <div className="text-gray-400 text-sm">
           This tab is implemented by another team.
         </div>
