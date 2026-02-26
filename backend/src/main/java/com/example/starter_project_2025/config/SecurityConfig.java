@@ -52,6 +52,7 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                                 .requestMatchers("/", "/index.html", "/login", "/oauth2/**").permitAll()
                                                 .requestMatchers("/api/auth/logout").authenticated()
+                                                .requestMatchers(HttpMethod.GET, "/api/auth/my-roles").authenticated()
                                                 .requestMatchers("/api/auth/**").permitAll()
                                                 .requestMatchers("/api/assessments/**").permitAll()
                                                 .requestMatchers("/h2-console/**").permitAll()

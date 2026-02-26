@@ -1,12 +1,14 @@
 package com.example.starter_project_2025.system.auth.service;
 
 import com.example.starter_project_2025.system.auth.dto.role.RoleDTO;
+import com.example.starter_project_2025.system.auth.dto.role.RoleSummaryDTO;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,13 +59,13 @@ public class RoleService {
         Role role = new Role();
         role.setName(roleDTO.getName());
         role.setDescription(roleDTO.getDescription());
-//        role.setHierarchyLevel(roleDTO.getHierarchyLevel() != null ? roleDTO.getHierarchyLevel() : 0);
+        // role.setHierarchyLevel(roleDTO.getHierarchyLevel() != null ?
+        // roleDTO.getHierarchyLevel() : 0);
         role.setIsActive(true);
 
         if (roleDTO.getPermissionIds() != null && !roleDTO.getPermissionIds().isEmpty()) {
             Set<Permission> permissions = new HashSet<>(
-                    permissionRepository.findAllById(roleDTO.getPermissionIds())
-            );
+                    permissionRepository.findAllById(roleDTO.getPermissionIds()));
             role.setPermissions(permissions);
         }
 
@@ -87,14 +89,13 @@ public class RoleService {
             role.setDescription(roleDTO.getDescription());
         }
 
-//        if (roleDTO.getHierarchyLevel() != null) {
-//            role.setHierarchyLevel(roleDTO.getHierarchyLevel());
-//        }
+        // if (roleDTO.getHierarchyLevel() != null) {
+        // role.setHierarchyLevel(roleDTO.getHierarchyLevel());
+        // }
 
         if (roleDTO.getPermissionIds() != null) {
             Set<Permission> permissions = new HashSet<>(
-                    permissionRepository.findAllById(roleDTO.getPermissionIds())
-            );
+                    permissionRepository.findAllById(roleDTO.getPermissionIds()));
             role.setPermissions(permissions);
         }
 
@@ -140,47 +141,76 @@ public class RoleService {
         Role updatedRole = roleRepository.save(role);
         return convertToDTO(updatedRole);
     }
-    //EXPORT ROLE RA FILE EXCEL
+
+    /**
+     * Returns all roles the current user can switch to.
+     * - If user has SWITCH_ROLE permission → return all active roles with their
+     * permissions.
+     * - Otherwise → return only their own role.
+     */
+    public List<RoleSummaryDTO> getMyRoles(UserDetailsImpl userDetails) {
+        if (userDetails.getPermissions().contains("SWITCH_ROLE")) {
+            return roleRepository.findAllActiveWithPermissions().stream()
+                    .map(r -> new RoleSummaryDTO(
+                            r.getId(),
+                            r.getName(),
+                            r.getPermissions().stream()
+                                    .map(Permission::getName)
+                                    .collect(Collectors.toSet())))
+                    .collect(Collectors.toList());
+        }
+
+        // Fallback: only own role
+        Role ownRole = roleRepository.findByName(userDetails.getRole()).orElse(null);
+        if (ownRole == null)
+            return List.of();
+
+        return List.of(new RoleSummaryDTO(
+                ownRole.getId(),
+                ownRole.getName(),
+                userDetails.getPermissions()));
+    }
+
     @PreAuthorize("hasAuthority('ROLE_READ')")
     public ByteArrayInputStream exportRoles() throws IOException {
-    // 1. Khai báo 5 cột
-    String[] columns = {"ID", "Role Name", "Description", "Status", "Permissions"};
+        // 1. Khai báo 5 cột
+        String[] columns = { "ID", "Role Name", "Description", "Status", "Permissions" };
 
-    List<Role> roles = roleRepository.findAll();
+        List<Role> roles = roleRepository.findAll();
 
-    try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-        Sheet sheet = workbook.createSheet("Roles Data");
-        
-        // ... (Code tạo Header giữ nguyên) ...
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Roles Data");
 
-        int rowIdx = 1;
-        for (Role role : roles) {
-            Row row = sheet.createRow(rowIdx++);
+            // ... (Code tạo Header giữ nguyên) ...
 
-            // 2. Đổ dữ liệu đúng 5 cột (0 -> 4)
-            row.createCell(0).setCellValue(role.getId().toString());
-            row.createCell(1).setCellValue(role.getName());
-            row.createCell(2).setCellValue(role.getDescription() != null ? role.getDescription() : "");
-            // Cột 3 là Status (Level đã bị xóa)
-            row.createCell(3).setCellValue(role.getIsActive() ? "Active" : "Inactive");
-            // Cột 4 là Permissions
-            String perms = role.getPermissions().stream()
-                    .map(Permission::getName)
-                    .collect(Collectors.joining(", "));
-            row.createCell(4).setCellValue(perms);
+            int rowIdx = 1;
+            for (Role role : roles) {
+                Row row = sheet.createRow(rowIdx++);
+
+                // 2. Đổ dữ liệu đúng 5 cột (0 -> 4)
+                row.createCell(0).setCellValue(role.getId().toString());
+                row.createCell(1).setCellValue(role.getName());
+                row.createCell(2).setCellValue(role.getDescription() != null ? role.getDescription() : "");
+                // Cột 3 là Status (Level đã bị xóa)
+                row.createCell(3).setCellValue(role.getIsActive() ? "Active" : "Inactive");
+                // Cột 4 là Permissions
+                String perms = role.getPermissions().stream()
+                        .map(Permission::getName)
+                        .collect(Collectors.joining(", "));
+                row.createCell(4).setCellValue(perms);
+            }
+            // ...
+            workbook.write(out);
+            return new ByteArrayInputStream(out.toByteArray());
         }
-        // ...
-        workbook.write(out);
-        return new ByteArrayInputStream(out.toByteArray());
     }
-}
 
     private RoleDTO convertToDTO(Role role) {
         RoleDTO dto = new RoleDTO();
         dto.setId(role.getId());
         dto.setName(role.getName());
         dto.setDescription(role.getDescription());
-//        dto.setHierarchyLevel(role.getHierarchyLevel());
+        // dto.setHierarchyLevel(role.getHierarchyLevel());
         dto.setIsActive(role.getIsActive());
         dto.setCreatedAt(role.getCreatedAt());
         dto.setUpdatedAt(role.getUpdatedAt());
@@ -189,19 +219,18 @@ public class RoleService {
             dto.setPermissionIds(
                     role.getPermissions().stream()
                             .map(Permission::getId)
-                            .collect(Collectors.toSet())
-            );
+                            .collect(Collectors.toSet()));
             dto.setPermissionNames(
                     role.getPermissions().stream()
                             .map(Permission::getName)
-                            .collect(Collectors.toSet())
-            );
+                            .collect(Collectors.toSet()));
         }
 
         return dto;
     }
+
     public ByteArrayInputStream downloadTemplate() throws IOException {
-        String[] columns = {"Role Name", "Description", "Modules (Permissions)"};
+        String[] columns = { "Role Name", "Description", "Modules (Permissions)" };
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Roles Template");
@@ -224,7 +253,8 @@ public class RoleService {
             Row sampleRow = sheet.createRow(1);
             sampleRow.createCell(0).setCellValue("MANAGER");
             sampleRow.createCell(1).setCellValue("Quản lý bộ phận");
-            sampleRow.createCell(2).setCellValue("USER_READ, USER_CREATE, REPORT_VIEW"); // Ví dụ các quyền cách nhau dấu phẩy
+            sampleRow.createCell(2).setCellValue("USER_READ, USER_CREATE, REPORT_VIEW"); // Ví dụ các quyền cách nhau
+                                                                                         // dấu phẩy
 
             // Auto-size cột
             for (int i = 0; i < columns.length; i++) {
@@ -241,19 +271,21 @@ public class RoleService {
     public void importRoles(MultipartFile file) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
-            
+
             // Bỏ qua dòng Header (index 0), bắt đầu từ dòng 1
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
-                if (row == null) continue;
+                if (row == null)
+                    continue;
 
                 // Cột 0: Name
                 String name = getCellValue(row.getCell(0));
-                if (name == null || name.isEmpty()) continue; // Bỏ qua nếu không có tên
+                if (name == null || name.isEmpty())
+                    continue; // Bỏ qua nếu không có tên
 
                 // Validate: Nếu Role đã tồn tại thì bỏ qua (hoặc update tùy logic của bạn)
                 if (roleRepository.existsByName(name)) {
-                    continue; 
+                    continue;
                 }
 
                 // Cột 1: Description
@@ -286,11 +318,15 @@ public class RoleService {
 
     // Helper lấy giá trị từ Cell an toàn
     private String getCellValue(Cell cell) {
-        if (cell == null) return "";
+        if (cell == null)
+            return "";
         switch (cell.getCellType()) {
-            case STRING: return cell.getStringCellValue();
-            case NUMERIC: return String.valueOf((int) cell.getNumericCellValue());
-            default: return "";
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                return String.valueOf((int) cell.getNumericCellValue());
+            default:
+                return "";
         }
     }
 }

@@ -9,7 +9,10 @@ import com.example.starter_project_2025.system.auth.dto.login.LoginRequest;
 import com.example.starter_project_2025.system.auth.dto.login.LoginResponse;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterVerifyDTO;
+import com.example.starter_project_2025.system.auth.dto.role.RoleSummaryDTO;
+import com.example.starter_project_2025.system.auth.service.RoleService;
 import com.example.starter_project_2025.system.auth.service.auth.AuthService;
+import com.example.starter_project_2025.security.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +21,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final RoleService roleService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
@@ -78,5 +83,15 @@ public class AuthController {
         }
         var res = authService.refresh(rtToken);
         return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/my-roles")
+    @Operation(summary = "Get roles the current user can switch to")
+    public ResponseEntity<java.util.List<RoleSummaryDTO>> getMyRoles(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.ok(java.util.List.of());
+        }
+        return ResponseEntity.ok(roleService.getMyRoles(userDetails));
     }
 }
