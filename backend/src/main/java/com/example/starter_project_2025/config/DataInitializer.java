@@ -38,7 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
- import org.springframework.core.annotation.Order;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -103,7 +103,6 @@ public class DataInitializer implements CommandLineRunner {
                         initializeQuestionCategories();
                         initializeQuestions();
                         initializeUserRoles();
-                        
                         log.info("Database initialization completed successfully!");
                 } else {
                         log.info("Database already initialized, checking for missing permissions...");
@@ -112,13 +111,12 @@ public class DataInitializer implements CommandLineRunner {
                         initializeProgrammingLanguages();
                         initializeCourses();
                 }
-
-                if (userRoleRepository.count() == 0)
-
-                {
-                        initializeUserRoles();
                 }
-        }
+//                if (userRoleRepository.count() == 0)
+//                {
+//                        initializeUserRoles();
+//                }
+
 
         private void initializePermissions() {
                 List<Permission> permissions = Arrays.asList(
