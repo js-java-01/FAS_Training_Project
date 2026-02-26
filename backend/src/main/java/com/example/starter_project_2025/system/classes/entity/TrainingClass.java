@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,6 +38,7 @@ public class TrainingClass {
 
     @Column(name = "class_code", unique = true)
     private String classCode;
+
     @Column(name = "is_active")
     private Boolean isActive = false;
     @ManyToOne(fetch = FetchType.LAZY)
