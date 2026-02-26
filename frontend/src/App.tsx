@@ -4,7 +4,6 @@ import type { RootState } from "./store/store";
 import { useActiveModuleGroups } from "./hooks/useSidebarMenus";
 import NotFoundPage from "./pages/NotFoundPage";
 import { AuthProvider } from "./contexts/AuthContext";
-
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Login } from "./pages/auth/Login";
 import { Unauthorized } from "./pages/Unauthorized";
@@ -14,10 +13,8 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import DepartmentManagement from "@/pages/department/DepartmentManagement";
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
-
 import ModulesManagement from "./pages/modules/module/ModulesManagement";
 import { componentRegistry } from "./router/componentRegistry";
-
 import { Toaster } from "sonner";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
 import {
@@ -38,6 +35,7 @@ import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import { RoleManagement } from "./pages/role/RoleManagement";
 import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
+import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -90,6 +88,14 @@ function App() {
             )}
             <Route path="*" element={<NotFoundRedirect />} />
             <Route
+              path="/training-classes"
+              element={
+                <ProtectedRoute requiredPermission="CLASS_CREATE">
+                  <TrainingClassesManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/assessment-type"
               element={
                 <ProtectedRoute requiredPermission="ASSESSMENT_READ">
@@ -133,7 +139,7 @@ function App() {
               element={<Navigate to="/courses" replace />}
             />
             <Route
-              path="/learn/:cohortId"
+              path="/learn/:courseId"
               element={
                 <ProtectedRoute requiredPermission="ENROLL_COURSE">
                   <StudentCourseContent />
@@ -253,10 +259,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-            <Route path="/modules" element={<ModulesManagement />} />
-
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </RoleSwitchProvider>
       </AuthProvider>

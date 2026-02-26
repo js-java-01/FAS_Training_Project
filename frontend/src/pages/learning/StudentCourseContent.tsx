@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { cohortApi } from "@/api/cohortApi";
-import type { Cohort } from "@/api/cohortApi";
+import { courseApi } from "@/api/courseApi";
+import type { Course } from "@/types/course";
 import { lessonApi } from "@/api/lessonApi";
 import type { Lesson } from "@/api/lessonApi";
 import { sessionService } from "@/api/sessionService";
@@ -311,9 +311,9 @@ function EmptyContent() {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function StudentCourseContent() {
-  const { cohortId } = useParams<{ cohortId: string }>();
+  const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
-  const [cohort, setCohort] = useState<Cohort | null>(null);
+  const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -324,21 +324,21 @@ export default function StudentCourseContent() {
     null,
   );
 
-  // Load cohort
+  // Load course
   useEffect(() => {
-    if (!cohortId) return;
-    cohortApi
-      .getById(cohortId)
-      .then(setCohort)
-      .catch(() => toast.error("Failed to load cohort"))
+    if (!courseId) return;
+    courseApi
+      .getCourseById(courseId)
+      .then(setCourse)
+      .catch(() => toast.error("Failed to load course"))
       .finally(() => setLoading(false));
-  }, [cohortId]);
+  }, [courseId]);
 
-  // Load lessons when cohort is loaded (courseId available)
+  // Load lessons when course is loaded (courseId available)
   useEffect(() => {
-    if (!cohort?.courseId) return;
+    if (!courseId) return;
     lessonApi
-      .getByCourseId(cohort.courseId)
+      .getByCourseId(courseId)
       .then((lessons) => {
         const items: LessonWithSessions[] = lessons.map((l) => ({
           lesson: l,
@@ -353,7 +353,7 @@ export default function StudentCourseContent() {
         }
       })
       .catch(() => toast.error("Failed to load course lessons"));
-  }, [cohort?.courseId]);
+  }, [courseId]);
 
   const loadSessionsForLesson = async (lessonId: string) => {
     setLessonItems((prev) =>
@@ -409,7 +409,7 @@ export default function StudentCourseContent() {
     );
   }
 
-  const courseName = cohort?.courseName || "Course Learning";
+  const courseName = course?.courseName || "Course Learning";
 
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden">
@@ -437,9 +437,6 @@ export default function StudentCourseContent() {
           <span className="font-semibold text-gray-900 text-sm truncate">
             {courseName}
           </span>
-          {cohort?.code && (
-            <span className="text-xs text-gray-400 ml-2">{cohort.code}</span>
-          )}
         </div>
 
         {/* Info */}

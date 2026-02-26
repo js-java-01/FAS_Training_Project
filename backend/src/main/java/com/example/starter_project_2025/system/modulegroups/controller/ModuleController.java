@@ -10,9 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -83,25 +81,9 @@ public class ModuleController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) UUID moduleGroupId,
             @RequestParam(required = false) Boolean isActive,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "displayOrder,asc") String[] sort
+            Pageable pageable // Để Spring tự động xử lý page, size, sort từ URL
     ) {
-        // ---- page: convert 1-based -> 0-based ----
-        int pageIndex = Math.max(page - 1, 0);
-
-        String sortField = sort[0];
-        Sort.Direction direction =
-                sort.length > 1
-                        ? Sort.Direction.fromString(sort[1])
-                        : Sort.Direction.ASC;
-
-        Pageable pageable = PageRequest.of(
-                pageIndex,
-                size,
-                Sort.by(direction, sortField)
-        );
-
+        // Không cần tạo Pageable thủ công nữa
         Page<ModuleDetail> pageResult =
                 moduleService.searchModules(keyword, moduleGroupId, isActive, pageable);
 

@@ -1,7 +1,11 @@
 package com.example.starter_project_2025.system.user.entity;
 
-import com.example.starter_project_2025.system.auth.entity.Role;
+import com.example.starter_project_2025.system.assessment.entity.Submission;
+import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.trainer_programminglanguae.entity.TrainerProgrammingLanguage;
+import com.example.starter_project_2025.system.user_role.entity.UserRole;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -13,6 +17,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -41,10 +46,20 @@ public class User {
     @Column(nullable = false, length = 100)
     String lastName;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    Set<UserRole> userRoles;
 
-    @JoinColumn(name = "role_id", nullable = false)
-    Role role;
+    @OneToMany(mappedBy = "trainer")
+    @JsonManagedReference
+    Set<CourseClass> courseClasses;
+
+    @OneToMany(mappedBy = "trainer")
+    @JsonManagedReference
+    Set<TrainerProgrammingLanguage> trainerProgrammingLanguages;
+
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference
+    private Set<Submission> submissions;
 
     @Column(nullable = false)
     Boolean isActive = true;

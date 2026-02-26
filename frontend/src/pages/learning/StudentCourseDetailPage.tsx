@@ -2,10 +2,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { courseApi } from "@/api/courseApi";
-import { cohortApi } from "@/api/cohortApi";
 import { enrollmentApi } from "@/api/enrollmentApi";
 import type { Course } from "@/types/course";
-import type { Cohort } from "@/api/cohortApi";
 import { toast } from "sonner";
 import {
   ChevronLeft,
@@ -14,7 +12,6 @@ import {
   User,
   Star,
   Users,
-  Calendar,
   CheckCircle,
   Loader2,
   X,
@@ -114,35 +111,26 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-// ── Enroll Modal (Cohort Selection + Confirmation) ────────────────────────────
-interface EnrollModalProps {
+// ── Enroll Modal (Direct Course Enrollment Confirmation) ──────────────────────
+interface ConfirmEnrollModalProps {
   course: Course;
   onClose: () => void;
-  onEnrolled: (cohortId: string) => void;
+  onEnrolled: () => void;
 }
 
-function EnrollModal({ course, onClose, onEnrolled }: EnrollModalProps) {
-  const [cohorts, setCohorts] = useState<Cohort[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCohort, setSelectedCohort] = useState<Cohort | null>(null);
-  const [confirming, setConfirming] = useState(false);
+function ConfirmEnrollModal({
+  course,
+  onClose,
+  onEnrolled,
+}: ConfirmEnrollModalProps) {
   const [enrolling, setEnrolling] = useState(false);
 
-  useEffect(() => {
-    cohortApi
-      .getByCourseId(course.id)
-      .then(setCohorts)
-      .catch(() => toast.error("Failed to load cohorts"))
-      .finally(() => setLoading(false));
-  }, [course.id]);
-
-  const handleConfirmEnroll = async () => {
-    if (!selectedCohort) return;
+  const handleEnroll = async () => {
     try {
       setEnrolling(true);
-      await enrollmentApi.enroll(selectedCohort.id);
-      toast.success(`Enrolled in ${selectedCohort.code} successfully!`);
-      onEnrolled(selectedCohort.id);
+      await enrollmentApi.enroll(course.id);
+      toast.success(`Enrolled in ${course.courseName} successfully!`);
+      onEnrolled();
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ??
@@ -160,15 +148,13 @@ function EnrollModal({ course, onClose, onEnrolled }: EnrollModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+        className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="bg-linear-to-r from-blue-600 to-blue-500 px-6 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-white font-bold text-lg">
-              {confirming ? "Confirm Enrollment" : "Select a Cohort"}
-            </h2>
+            <h2 className="text-white font-bold text-lg">Confirm Enrollment</h2>
             <p className="text-blue-100 text-sm mt-0.5">{course.courseName}</p>
           </div>
           <button
@@ -180,156 +166,51 @@ function EnrollModal({ course, onClose, onEnrolled }: EnrollModalProps) {
         </div>
 
         {/* Body */}
-        <div className="p-6">
-          {confirming && selectedCohort ? (
-            /* Confirmation step */
-            <div className="space-y-5">
-              <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                <p className="text-sm font-semibold text-gray-700 mb-3">
-                  You are about to enroll in:
-                </p>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Course</span>
-                    <span className="font-medium text-gray-800">
-                      {course.courseName}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Cohort</span>
-                    <span className="font-mono font-semibold text-blue-600">
-                      {selectedCohort.code}
-                    </span>
-                  </div>
-                  {selectedCohort.startDate && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Start Date</span>
-                      <span>{fmtDate(selectedCohort.startDate)}</span>
-                    </div>
-                  )}
-                  {selectedCohort.endDate && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">End Date</span>
-                      <span>{fmtDate(selectedCohort.endDate)}</span>
-                    </div>
-                  )}
-                  {selectedCohort.capacity && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Capacity</span>
-                      <span>{selectedCohort.capacity} students</span>
-                    </div>
-                  )}
-                </div>
+        <div className="p-6 space-y-5">
+          <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+            <p className="text-sm font-semibold text-gray-700 mb-3">
+              You are about to enroll in:
+            </p>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Course</span>
+                <span className="font-medium text-gray-800">
+                  {course.courseName}
+                </span>
               </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setConfirming(false)}
-                  className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={handleConfirmEnroll}
-                  disabled={enrolling}
-                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
-                >
-                  {enrolling ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" />
-                      Enrolling...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle size={14} />
-                      Confirm Enrollment
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* Cohort selection step */
-            <>
-              {loading ? (
-                <div className="flex items-center justify-center py-12 text-gray-400">
-                  <Loader2 className="animate-spin mr-2" size={20} />
-                  Loading cohorts...
-                </div>
-              ) : cohorts.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">
-                  <Calendar size={40} className="mx-auto mb-3 opacity-40" />
-                  <p>No cohorts available for this course yet.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {cohorts.map((cohort) => {
-                    const isOpen = cohort.status === "OPEN";
-                    const isSelected = selectedCohort?.id === cohort.id;
-                    return (
-                      <div
-                        key={cohort.id}
-                        onClick={() => isOpen && setSelectedCohort(cohort)}
-                        className={`border-2 rounded-xl p-4 transition-all ${
-                          !isOpen
-                            ? "border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed"
-                            : isSelected
-                              ? "border-blue-500 bg-blue-50 cursor-pointer"
-                              : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/40 cursor-pointer"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-4">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-semibold text-sm text-gray-900">
-                                {cohort.code}
-                              </span>
-                              <span
-                                className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                  cohort.status === "OPEN"
-                                    ? "bg-green-100 text-green-700"
-                                    : cohort.status === "CLOSED"
-                                      ? "bg-red-100 text-red-700"
-                                      : "bg-gray-100 text-gray-600"
-                                }`}
-                              >
-                                {cohort.status}
-                              </span>
-                            </div>
-                            {(cohort.startDate || cohort.endDate) && (
-                              <p className="text-xs text-gray-500 flex items-center gap-1">
-                                <Calendar size={11} />
-                                {fmtDate(cohort.startDate)} –{" "}
-                                {fmtDate(cohort.endDate)}
-                              </p>
-                            )}
-                            {cohort.capacity && (
-                              <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                                <Users size={11} />
-                                {cohort.capacity} seats
-                              </p>
-                            )}
-                          </div>
-                          {isSelected && (
-                            <CheckCircle
-                              size={20}
-                              className="text-blue-500 shrink-0"
-                            />
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <button
-                    disabled={!selectedCohort}
-                    onClick={() => setConfirming(true)}
-                    className="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors"
-                  >
-                    Continue
-                  </button>
+              {course.level && (
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Level</span>
+                  <span>{course.level}</span>
                 </div>
               )}
-            </>
-          )}
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleEnroll}
+              disabled={enrolling}
+              className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
+            >
+              {enrolling ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Enrolling...
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={14} />
+                  Confirm Enrollment
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -353,7 +234,7 @@ export default function StudentCourseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("about");
   const [showEnrollModal, setShowEnrollModal] = useState(false);
-  const [enrolledCohortId, setEnrolledCohortId] = useState<string | null>(null);
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -365,7 +246,7 @@ export default function StudentCourseDetailPage() {
       .then(([courseData, enrolled]) => {
         setCourse(courseData);
         const match = enrolled.find((ec) => ec?.course?.id === id);
-        if (match) setEnrolledCohortId(match.cohortId);
+        if (match) setIsEnrolled(true);
       })
       .catch(() => {
         toast.error("Failed to load course");
@@ -374,10 +255,10 @@ export default function StudentCourseDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  const handleEnrolled = (cohortId: string) => {
+  const handleEnrolled = () => {
     setShowEnrollModal(false);
-    setEnrolledCohortId(cohortId);
-    navigate(`/learn/${cohortId}`);
+    setIsEnrolled(true);
+    navigate(`/learn/${id}`);
   };
 
   if (loading) {
@@ -458,17 +339,17 @@ export default function StudentCourseDetailPage() {
 
                 <button
                   onClick={() =>
-                    enrolledCohortId
-                      ? navigate(`/learn/${enrolledCohortId}`)
+                    isEnrolled
+                      ? navigate(`/learn/${id}`)
                       : setShowEnrollModal(true)
                   }
                   className={
-                    enrolledCohortId
+                    isEnrolled
                       ? "px-8 py-3 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 active:scale-95 transition shadow-md hover:shadow-lg flex items-center gap-2"
                       : "px-8 py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition shadow-md hover:shadow-lg"
                   }
                 >
-                  {enrolledCohortId ? (
+                  {isEnrolled ? (
                     <>
                       <Play size={16} />
                       Continue Learning
@@ -815,7 +696,7 @@ export default function StudentCourseDetailPage() {
 
       {/* Enroll Modal */}
       {showEnrollModal && (
-        <EnrollModal
+        <ConfirmEnrollModal
           course={course}
           onClose={() => setShowEnrollModal(false)}
           onEnrolled={handleEnrolled}

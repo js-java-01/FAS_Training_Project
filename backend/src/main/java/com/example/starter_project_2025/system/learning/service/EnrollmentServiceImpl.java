@@ -1,16 +1,14 @@
 package com.example.starter_project_2025.system.learning.service;
 
 import com.example.starter_project_2025.system.course.dto.CourseResponse;
-import com.example.starter_project_2025.system.course.entity.CourseCohort;
-import com.example.starter_project_2025.system.course.enums.CohortStatus;
+import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.mapper.CourseMapper;
-import com.example.starter_project_2025.system.course.repository.CourseCohortRepository;
+import com.example.starter_project_2025.system.course.repository.CourseRepository;
 import com.example.starter_project_2025.system.learning.dto.EnrolledCourseResponse;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentResponse;
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
-import com.example.starter_project_2025.system.learning.mapper.EnrollmentMapper;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
@@ -28,71 +26,56 @@ import java.util.UUID;
 public class EnrollmentServiceImpl implements EnrollmentService {
 
     private final EnrollmentRepository enrollmentRepository;
-    private final CourseCohortRepository cohortRepository;
+    private final CourseRepository courseRepository;
     private final UserRepository userRepository;
-    private final EnrollmentMapper mapper;
     private final CourseMapper courseMapper;
 
     @Override
+    @Transactional
     public EnrollmentResponse enroll(EnrollmentRequest request) {
 
-        UUID userId = getCurrentUserId();
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        CourseCohort cohort = cohortRepository.findById(request.cohortId())
-                .orElseThrow(() -> new RuntimeException("Cohort not found"));
+        Course course = courseRepository.findById(request.courseId())
+                .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // already enrolled
-        if (enrollmentRepository.existsByUserIdAndCohortId(userId, cohort.getId())) {
-            throw new RuntimeException("You already enrolled in this cohort");
-        }
-
-        // not OPEN
-        if (cohort.getStatus() != CohortStatus.OPEN) {
-            throw new RuntimeException("Cohort is not open for enrollment");
-        }
-
-        // full capacity
-        long enrolled = enrollmentRepository.countByCohortId(cohort.getId());
-        if (enrolled >= cohort.getCapacity()) {
-            throw new RuntimeException("Cohort is full");
+        if (enrollmentRepository.existsByUserIdAndCourseId(user.getId(), course.getId())) {
+            throw new RuntimeException("You are already enrolled in this course");
         }
 
         Enrollment enrollment = Enrollment.builder()
-                .userId(userId)
-                .cohortId(cohort.getId())
+                .user(user)
+                .course(course)
                 .enrolledAt(Instant.now())
                 .status(EnrollmentStatus.ACTIVE)
                 .build();
 
         enrollmentRepository.save(enrollment);
 
-        return mapper.toResponse(enrollment);
+        return new EnrollmentResponse(
+                enrollment.getId(),
+                course.getId(),
+                enrollment.getEnrolledAt(),
+                enrollment.getStatus());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<EnrolledCourseResponse> getMyEnrolledCourses() {
-        UUID userId = getCurrentUserId();
-        List<Enrollment> enrollments = enrollmentRepository.findByUserId(userId);
-
-        return enrollments.stream()
-                .map(enrollment -> {
-                    CourseCohort cohort = cohortRepository.findById(enrollment.getCohortId()).orElse(null);
-                    if (cohort == null || cohort.getCourse() == null)
-                        return null;
-                    return EnrolledCourseResponse.builder()
-                            .cohortId(cohort.getId())
-                            .course(courseMapper.toResponse(cohort.getCourse()))
-                            .build();
-                })
-                .filter(r -> r != null)
-                .collect(java.util.stream.Collectors.toList());
-    }
-
-    private UUID getCurrentUserId() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow();
-        return user.getId();
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Enrollment> enrollments = enrollmentRepository.findByUserId(user.getId());
+
+        return enrollments.stream()
+                .filter(e -> e.getCourse() != null)
+                .map(e -> EnrolledCourseResponse.builder()
+                        .courseId(e.getCourse().getId())
+                        .course(courseMapper.toResponse(e.getCourse()))
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
     }
 }

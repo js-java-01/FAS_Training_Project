@@ -5,28 +5,28 @@ export type EnrollmentStatus = 'ACTIVE' | 'CANCELLED' | 'COMPLETED';
 
 export interface EnrollmentResponse {
   id: string;
-  cohortId: string;
+  courseId: string;
   enrolledAt: string;
   status: EnrollmentStatus;
 }
 
 export interface EnrolledCourse {
-  cohortId: string;
+  courseId: string;
   course: Course;
 }
 
 export const enrollmentApi = {
   /**
-   * Enroll the current logged-in user into a cohort.
+   * Enroll the current logged-in user into a course directly.
    * Requires ENROLL_COURSE permission.
    */
-  enroll: async (cohortId: string): Promise<EnrollmentResponse> => {
-    const response = await axiosInstance.post<EnrollmentResponse>('/enrollments', { cohortId });
+  enroll: async (courseId: string): Promise<EnrollmentResponse> => {
+    const response = await axiosInstance.post<EnrollmentResponse>('/enrollments', { courseId });
     return response.data;
   },
 
   /**
-   * Get all courses the current user is enrolled in, with cohortId.
+   * Get all courses the current user is enrolled in.
    */
   getMyEnrolledCourses: async (): Promise<EnrolledCourse[]> => {
     const response = await axiosInstance.get<EnrolledCourse[]>('/enrollments/my-courses');

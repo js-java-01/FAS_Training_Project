@@ -86,6 +86,7 @@ export default function HeaderRight() {
   if (!canSwitch) {
     return (
       <div className="flex items-center gap-3">
+<<<<<<< HEAD
         {isLoading ? (
           <Loader2 size={16} className="animate-spin text-muted-foreground" />
         ) : (
@@ -96,6 +97,14 @@ export default function HeaderRight() {
             {displayRole.toLowerCase()}
           </Badge>
         )}
+=======
+        <Badge
+          variant="secondary"
+          className="capitalize text-sm text-blue-500 bg-blue-100"
+        >
+          {role.toLowerCase()}
+        </Badge>
+>>>>>>> G3-PhucSanh
         <ToggleTheme />
       </div>
     );
@@ -153,8 +162,13 @@ export default function HeaderRight() {
           </div>
         )}
       </div>
+<<<<<<< HEAD
 
       <ToggleTheme />
     </div>
+=======
+      <ToggleTheme />
+    </div >
+>>>>>>> G3-PhucSanh
   );
 }

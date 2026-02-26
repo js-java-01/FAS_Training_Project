@@ -23,4 +23,8 @@ public final class StringNormalizer {
 
         return normalized;
     }
+
+    public static String trim(String value) {
+        return value == null ? null : value.trim();
+    }
 }

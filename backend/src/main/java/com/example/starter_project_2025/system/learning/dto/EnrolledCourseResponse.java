@@ -9,6 +9,6 @@ import java.util.UUID;
 @Data
 @Builder
 public class EnrolledCourseResponse {
-    private UUID cohortId;
+    private UUID courseId;
     private CourseResponse course;
 }
