@@ -17,6 +17,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/classes")
 @RequiredArgsConstructor
@@ -46,6 +48,49 @@ public class ClassController {
                 String email = authentication.getName();
 
                 TrainingClassResponse response = classService.openClassRequest(request, email);
+
+                return ResponseEntity.ok(response);
+        }
+
+        @PutMapping("/{id}")
+        @PreAuthorize("hasAuthority('CLASS_UPDATE')")
+        public ResponseEntity<TrainingClassResponse> updateClass(
+                @PathVariable UUID id,
+                @Valid @RequestBody CreateTrainingClassRequest request,
+                Authentication authentication
+        ) {
+                String email = authentication.getName();
+
+                TrainingClassResponse response =
+                        classService.updateClass(id, request, email);
+
+                return ResponseEntity.ok(response);
+        }
+
+        @PutMapping("/{id}/approve")
+        @PreAuthorize("hasAuthority('CLASS_UPDATE')")
+        public ResponseEntity<TrainingClassResponse> approveClass(
+                @PathVariable UUID id,
+                Authentication authentication
+        ) {
+                String email = authentication.getName();
+
+                TrainingClassResponse response =
+                        classService.approveClass(id, email);
+
+                return ResponseEntity.ok(response);
+        }
+
+        @PutMapping("/{id}/reject")
+        @PreAuthorize("hasAuthority('CLASS_UPDATE')")
+        public ResponseEntity<TrainingClassResponse> rejectClass(
+                @PathVariable UUID id,
+                Authentication authentication
+        ) {
+                String email = authentication.getName();
+
+                TrainingClassResponse response =
+                        classService.rejectClass(id, email);
 
                 return ResponseEntity.ok(response);
         }

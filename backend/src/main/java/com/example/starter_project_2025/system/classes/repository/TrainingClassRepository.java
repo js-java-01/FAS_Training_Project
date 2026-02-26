@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.classes.repository;
 
+import com.example.starter_project_2025.system.classes.entity.ClassStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Repository;
 
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -31,5 +34,14 @@ public interface TrainingClassRepository extends JpaRepository<TrainingClass, UU
             @Param("keyword") String keyword,
             @Param("isActive") Boolean isActive,
             Pageable pageable
+    );
+
+    boolean existsByClassNameIgnoreCaseAndIdNot(String className, UUID id);
+
+    boolean existsByClassCodeIgnoreCaseAndIdNot(String classCode, UUID id);
+
+    List<TrainingClass> findByClassStatusAndStartDateLessThanEqual(
+            ClassStatus status,
+            LocalDate date
     );
 }
