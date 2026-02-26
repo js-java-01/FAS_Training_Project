@@ -13,7 +13,6 @@ import {
 interface ClassProps {
     code: string
     name: string
-    credits: number
     instructor: string
     schedule: string
     capacity: string
@@ -23,7 +22,6 @@ interface ClassProps {
 export const ClassCard = ({
     code,
     name,
-    credits,
     instructor,
     schedule,
     capacity,
@@ -44,9 +42,7 @@ export const ClassCard = ({
                     </Badge>
                 </div>
                 <CardTitle className="text-xl line-clamp-1">{name}</CardTitle>
-                <CardDescription className="flex items-center gap-1">
-                    <BookOpen className="h-3 w-3" /> {credits} Tín chỉ
-                </CardDescription>
+
             </CardHeader>
 
             <CardContent className="grid gap-4 text-sm text-muted-foreground flex-1">

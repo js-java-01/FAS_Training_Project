@@ -1,7 +1,8 @@
-package com.example.starter_project_2025.system.classes.service.openclassrequest;
+package com.example.starter_project_2025.system.classes.service.classes;
 
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
 import com.example.starter_project_2025.system.classes.dto.request.CreateTrainingClassRequest;
+import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.classes.mapper.TrainingClassMapper;
 import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
@@ -13,7 +14,7 @@ import com.example.starter_project_2025.system.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -21,7 +22,7 @@ import java.time.LocalDate;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class OpenClassRequestServiceImpl implements OpenClassRequestService {
+public class ClassServiceImpl implements ClassService {
 
     private final TrainingClassRepository trainingClassRepository;
     private final SemesterRepository semesterRepository;
@@ -81,8 +82,9 @@ public class OpenClassRequestServiceImpl implements OpenClassRequestService {
     }
 
     @Override
-    public Page<TrainingClassResponse> searchTrainingClasses(String keyword, Boolean isActive, Pageable pageable) {
-        Page<TrainingClass> page = trainingClassRepository.search(keyword, isActive, pageable);
-        return page.map(mapper::toResponse);
+    public Page<TrainingClassResponse> searchTrainingClasses(SearchClassRequest request) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'searchTrainingClasses'");
     }
+
 }
