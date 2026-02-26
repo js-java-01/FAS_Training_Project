@@ -85,7 +85,12 @@ public class SecurityConfig
                         .requestMatchers(HttpMethod.POST, "/api/courses").hasAuthority("COURSE_CREATE")
                         .requestMatchers(HttpMethod.PUT, "/api/courses/**").hasAuthority("COURSE_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/courses/**").hasAuthority("COURSE_DELETE")
-                        
+
+                        .requestMatchers(HttpMethod.GET, "/api/course-classes/**").hasAuthority("COURSE_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/course-classes/**").hasAuthority("COURSE_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/course-classes/**").hasAuthority("COURSE_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/course-classes/**").hasAuthority("COURSE_DELETE")
+
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
