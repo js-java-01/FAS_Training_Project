@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.modulegroups.controller;
 
 import com.example.starter_project_2025.system.modulegroups.dto.request.CreateModuleGroup;
+import com.example.starter_project_2025.system.modulegroups.dto.request.SearchModuleGroupRequest;
 import com.example.starter_project_2025.system.modulegroups.dto.request.UpdateModuleGroup;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ApiResponse;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ModuleGroupDetailResponse;
@@ -91,29 +92,29 @@ public class ModuleGroupsController {
     }
 
     @GetMapping(params = "page")
-    @Operation(summary = "Search module groups with pagination")
     @PreAuthorize("hasAuthority('MENU_READ')")
     public ResponseEntity<ApiResponse<PageResponse<ModuleGroupDetailResponse>>> searchModuleGroups(
-            @RequestParam int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "displayOrder,asc") String[] sort,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Boolean isActive
+            @ModelAttribute SearchModuleGroupRequest request
     ) {
-        String sortField = sort[0];
+
+        String sortField = request.getSort()[0];
         Sort.Direction direction =
-                sort.length > 1
-                        ? Sort.Direction.fromString(sort[1])
+                request.getSort().length > 1
+                        ? Sort.Direction.fromString(request.getSort()[1])
                         : Sort.Direction.ASC;
 
         Pageable pageable = PageRequest.of(
-                page,
-                size,
+                request.getPage(),
+                request.getSize(),
                 Sort.by(direction, sortField)
         );
 
         Page<ModuleGroupDetailResponse> pageResult =
-                moduleGroupsService.searchModuleGroups(keyword, isActive, pageable);
+                moduleGroupsService.searchModuleGroups(
+                        request.getKeyword(),
+                        request.getIsActive(),
+                        pageable
+                );
 
         return ResponseEntity.ok(
                 ApiResponse.success(

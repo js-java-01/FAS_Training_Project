@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.modulegroups.controller;
 
 import com.example.starter_project_2025.system.modulegroups.dto.request.CreateModuleRequest;
+import com.example.starter_project_2025.system.modulegroups.dto.request.SearchModuleRequest;
 import com.example.starter_project_2025.system.modulegroups.dto.request.UpdateModuleRequest;
 import com.example.starter_project_2025.system.modulegroups.dto.response.*;
 import com.example.starter_project_2025.system.modulegroups.service.ModuleService;
@@ -78,14 +79,17 @@ public class ModuleController {
     @Operation(summary = "Search modules with pagination")
     @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
     public ResponseEntity<ApiResponse<PageResponse<ModuleDetail>>> searchModules(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) UUID moduleGroupId,
-            @RequestParam(required = false) Boolean isActive,
-            Pageable pageable // Để Spring tự động xử lý page, size, sort từ URL
+            @ModelAttribute SearchModuleRequest request,
+            Pageable pageable
     ) {
-        // Không cần tạo Pageable thủ công nữa
+
         Page<ModuleDetail> pageResult =
-                moduleService.searchModules(keyword, moduleGroupId, isActive, pageable);
+                moduleService.searchModules(
+                        request.getKeyword(),
+                        request.getModuleGroupId(),
+                        request.getIsActive(),
+                        pageable
+                );
 
         return ResponseEntity.ok(
                 ApiResponse.success(
