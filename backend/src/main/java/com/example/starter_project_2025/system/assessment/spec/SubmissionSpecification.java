@@ -19,7 +19,7 @@ public class SubmissionSpecification {
                         : cb.equal(root.get("user").get("id"), userId);
     }
 
-    public static Specification<Submission> hasAssessmentId(UUID assessmentId) {
+    public static Specification<Submission> hasAssessmentId(Long assessmentId) {
         return (root, query, cb) ->
                 assessmentId == null
                         ? null

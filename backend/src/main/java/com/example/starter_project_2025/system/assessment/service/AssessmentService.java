@@ -100,7 +100,6 @@ public class AssessmentService {
                 .map(assessmentMapper::toDto);
     }
     @PreAuthorize("hasAuthority('ASSESSMENT_DELETE')")
-
     public void delete(Long id) {
         Assessment assessment = assessmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Assessment not found"));

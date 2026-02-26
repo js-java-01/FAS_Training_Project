@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -18,6 +19,6 @@ public class SubmissionResponse {
     private LocalDateTime submittedAt;
     private Double totalScore;
     private Boolean isPassed;
-
+    private List<SubmissionQuestionResponse> submissionQuestions;
 
 }

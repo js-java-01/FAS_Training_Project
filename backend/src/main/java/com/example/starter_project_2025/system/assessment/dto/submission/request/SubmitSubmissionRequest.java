@@ -2,9 +2,11 @@ package com.example.starter_project_2025.system.assessment.dto.submission.reques
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class SubmitSubmissionRequest {
 
-    private String confirm;
+    private List<AnswerSubmission> answers;
 
 }

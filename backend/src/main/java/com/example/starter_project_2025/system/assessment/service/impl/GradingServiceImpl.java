@@ -64,7 +64,7 @@ public class GradingServiceImpl implements GradingService {
 
         submission.setTotalScore(totalScore);
 
-        // Pass / fail decision is NOT handled here
-        // (requires assessment rules, not available)
+        Double passScore = submission.getAssessment().getPassScore().doubleValue();
+        submission.setIsPassed(totalScore >= passScore);
     }
 }

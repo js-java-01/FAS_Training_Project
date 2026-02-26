@@ -8,8 +8,10 @@ import com.example.starter_project_2025.system.assessment.dto.submission.respons
 import com.example.starter_project_2025.system.assessment.entity.Submission;
 import com.example.starter_project_2025.system.assessment.mapper.SubmissionMapper;
 import com.example.starter_project_2025.system.assessment.service.SubmissionService;
+import com.example.starter_project_2025.security.UserDetailsImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -32,13 +34,10 @@ public class SubmissionController {
     // Start submission
     @PostMapping
     public SubmissionResponse startSubmission(
-            @RequestParam UUID userId,
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
             @RequestBody StartSubmissionRequest request
     ) {
-        Submission submission =
-                submissionService.startSubmission(userId, request);
-
-        return submissionMapper.toSubmissionResponse(submission);
+        return submissionService.startSubmissionAndGetResponse(currentUser.getId(), request);
     }
 
     // Submit answer
@@ -47,10 +46,8 @@ public class SubmissionController {
             @PathVariable UUID submissionId,
             @RequestBody SubmitAnswerRequest request
     ) {
-        Submission submission =
-                submissionService.submitAnswer(submissionId, request);
-
-        return submissionMapper.toSubmissionResponse(submission);
+        submissionService.submitAnswer(submissionId, request);
+        return submissionService.getSubmissionResponseById(submissionId);
     }
 
     // Submit submission (finish)
@@ -70,23 +67,20 @@ public class SubmissionController {
     public SubmissionResponse getSubmissionById(
             @PathVariable UUID submissionId
     ) {
-        Submission submission =
-                submissionService.getSubmissionById(submissionId);
-
-        return submissionMapper.toSubmissionResponse(submission);
+        return submissionService.getSubmissionResponseById(submissionId);
     }
 
-    // Search submissions (paged)
+    // Search submissions (paged) — defaults to current user
     @GetMapping
     public Page<SubmissionResponse> searchSubmissions(
-            @RequestParam(required = false) UUID userId,
-            @RequestParam(required = false) UUID assessmentTypeId,
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
+            @RequestParam(required = false) Long assessmentId,
             Pageable pageable
     ) {
         Page<Submission> page =
                 submissionService.searchSubmissions(
-                        userId,
-                        assessmentTypeId,
+                        currentUser.getId(),
+                        assessmentId,
                         pageable
                 );
 
