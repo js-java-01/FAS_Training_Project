@@ -174,12 +174,19 @@ export default function ModulesTable() {
   /* ================= IMPORT / EXPORT / TEMPLATE ================= */
   const handleImport = async (file: File) => {
     try {
-      await importModules(file);
-      toast.success("Import modules successfully");
-      setOpenBackupModal(false);
-      await invalidateAll();
+      const res = await importModules(file);
+      return res;
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Failed to import modules");
+      const errorData = err?.response?.data;
+
+      if (errorData?.totalRows !== undefined) {
+        return errorData;
+      }
+
+      toast.error(
+        errorData?.message ?? "Failed to import modules"
+      );
+
       throw err;
     }
   };
