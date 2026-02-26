@@ -40,8 +40,6 @@ export default function HeaderRight() {
         >
           {role.toLowerCase()}
         </Badge>
-
-
         <ToggleTheme />
       </div>
     );

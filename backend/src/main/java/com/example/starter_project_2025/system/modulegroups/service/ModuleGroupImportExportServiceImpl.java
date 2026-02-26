@@ -23,8 +23,12 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
 
     private final ModuleGroupsRepository repository;
 
+    private static final String NAME_REGEX = "^[A-Za-z\\s]+$";
+
     private static final String[] TEMPLATE_HEADERS =
             {"name", "description", "displayOrder", "isActive"};
+
+    // ================= TEMPLATE DOWNLOAD =================
 
     @Override
     public ResponseEntity<byte[]> downloadTemplate() {
@@ -44,39 +48,53 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
                             "attachment; filename=module-groups-template.xlsx")
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(out.toByteArray());
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate template", e);
         }
     }
 
+    // ================= IMPORT =================
+
     @Override
     public ImportResultResponse importExcel(MultipartFile file) {
-        ImportResultResponse result = new ImportResultResponse();
 
-        // ===== BASIC VALIDATION =====
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("File is empty");
+            throw new RuntimeException("File is empty");
         }
 
-        if (!file.getOriginalFilename().endsWith(".xlsx")) {
-            throw new IllegalArgumentException("Only .xlsx file is supported");
+        if (!file.getOriginalFilename().toLowerCase().endsWith(".xlsx")) {
+            throw new RuntimeException("Invalid file format. Only .xlsx is allowed");
         }
+
+        ImportResultResponse result = new ImportResultResponse();
 
         try (InputStream is = file.getInputStream();
              Workbook workbook = new XSSFWorkbook(is)) {
 
             Sheet sheet = workbook.getSheetAt(0);
-            Iterator<Row> rows = sheet.iterator();
 
-            if (!rows.hasNext()) {
-                return result;
+            if (sheet.getPhysicalNumberOfRows() == 0) {
+                throw new RuntimeException("File is empty");
             }
 
-            rows.next(); // skip header
-            int rowIndex = 1; // excel row index (0-based)
+            Iterator<Row> rows = sheet.iterator();
+
+            // ===== HEADER VALIDATION =====
+            Row header = rows.next();
+            validateHeader(header);
+
+            int rowIndex = 1;
 
             while (rows.hasNext()) {
                 Row row = rows.next();
+                rowIndex++;
+
+                // Skip row trống
+                if (isRowEmpty(row)) {
+                    continue;
+                }
+
                 result.setTotalRows(result.getTotalRows() + 1);
 
                 try {
@@ -86,24 +104,33 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
                     Boolean isActive = getBoolean(row, 3, true);
 
                     // ===== VALIDATION =====
+
                     if (name == null || name.isBlank()) {
                         throw new IllegalArgumentException("name|Name is required");
                     }
 
-                    if (repository.existsByName(name)) {
+                    if (!name.matches(NAME_REGEX)) {
+                        throw new IllegalArgumentException("name|Only letters and spaces are allowed");
+                    }
+
+                    if (repository.existsByNameIgnoreCase(name.trim())) {
                         throw new IllegalArgumentException("name|Name already exists");
                     }
 
+                    // ===== SAVE =====
+
                     ModuleGroups group = new ModuleGroups();
-                    group.setName(name);
+                    group.setName(name.trim());
                     group.setDescription(description);
                     group.setDisplayOrder(displayOrder);
                     group.setIsActive(isActive);
 
                     repository.save(group);
+
                     result.setSuccessCount(result.getSuccessCount() + 1);
 
                 } catch (Exception ex) {
+
                     result.setFailedCount(result.getFailedCount() + 1);
 
                     String msg = ex.getMessage() == null ? "Unknown error" : ex.getMessage();
@@ -111,29 +138,56 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
 
                     result.getErrors().add(
                             new ImportErrorDetail(
-                                    rowIndex + 1, // excel row number
+                                    rowIndex,
                                     err[0],
                                     err.length > 1 ? err[1] : msg
                             )
                     );
                 }
-                rowIndex++;
             }
 
+            // Nếu file chỉ có header
+            if (result.getTotalRows() == 0) {
+                throw new RuntimeException("File contains no data rows");
+            }
+
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Import failed", e);
+            throw new RuntimeException("Import module groups failed. Maybe wrong template format?", e);
         }
 
         return result;
     }
 
+    // ================= HEADER CHECK =================
+
+    private void validateHeader(Row header) {
+
+        if (header.getLastCellNum() != TEMPLATE_HEADERS.length) {
+            throw new RuntimeException("Invalid template format");
+        }
+
+        for (int i = 0; i < TEMPLATE_HEADERS.length; i++) {
+            Cell cell = header.getCell(i);
+
+            if (cell == null || !cell.getStringCellValue().trim()
+                    .equalsIgnoreCase(TEMPLATE_HEADERS[i])) {
+
+                throw new RuntimeException("Invalid template header. Expected: "
+                        + TEMPLATE_HEADERS[i] + " at column " + (i + 1));
+            }
+        }
+    }
+
+    // ================= EXPORT =================
 
     @Override
     public ResponseEntity<byte[]> exportExcel() {
+
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("ModuleGroups");
 
-            // ===== HEADER =====
             String[] headers = {
                     "moduleGroupName",
                     "moduleGroupDescription",
@@ -154,24 +208,18 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
 
             int rowIdx = 1;
 
-            // ===== DATA =====
             for (ModuleGroups group : repository.findAllWithModules()) {
 
-                // Không có module
                 if (group.getModules() == null || group.getModules().isEmpty()) {
                     Row row = sheet.createRow(rowIdx++);
                     writeGroup(row, group);
                     continue;
                 }
 
-                // Có module
                 for (var module : group.getModules()) {
                     Row row = sheet.createRow(rowIdx++);
-
-                    // Module Group
                     writeGroup(row, group);
 
-                    // Module
                     row.createCell(4).setCellValue(module.getTitle());
                     row.createCell(5).setCellValue(module.getUrl());
                     row.createCell(6).setCellValue(module.getIcon());
@@ -181,7 +229,6 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
                 }
             }
 
-            // Auto size
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
             }
@@ -190,10 +237,8 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
             workbook.write(out);
 
             return ResponseEntity.ok()
-                    .header(
-                            HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=module-groups-with-modules.xlsx"
-                    )
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=module-groups-with-modules.xlsx")
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(out.toByteArray());
 
@@ -202,6 +247,7 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
         }
     }
 
+    // ================= HELPERS =================
 
     private String getString(Row row, int index) {
         Cell cell = row.getCell(index);
@@ -235,12 +281,11 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
                 String val = cell.getStringCellValue().trim();
                 return val.isEmpty() ? def : Integer.parseInt(val);
             }
-        } catch (Exception e) {
-            return def;
-        }
+        } catch (Exception ignored) {}
 
         return def;
     }
+
     private Boolean getBoolean(Row row, int index, Boolean def) {
         Cell cell = row.getCell(index);
         if (cell == null) return def;
@@ -269,4 +314,21 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
         row.createCell(3).setCellValue(group.getIsActive());
     }
 
+    private boolean isRowEmpty(Row row) {
+        if (row == null) return true;
+
+        for (int i = 0; i < TEMPLATE_HEADERS.length; i++) {
+            Cell cell = row.getCell(i);
+            if (cell != null && cell.getCellType() != CellType.BLANK) {
+                if (cell.getCellType() == CellType.STRING &&
+                        !cell.getStringCellValue().trim().isEmpty()) {
+                    return false;
+                }
+                if (cell.getCellType() != CellType.STRING) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }

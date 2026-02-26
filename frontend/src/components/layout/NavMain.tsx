@@ -7,9 +7,8 @@ import {
 } from "@/components/ui/collapsible";
 
 import {
-
-    SidebarMenuButton,
     SidebarMenuItem,
+    SidebarMenuButton,
     SidebarMenuSub,
     SidebarMenuSubButton,
     SidebarMenuSubItem,
