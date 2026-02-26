@@ -2,6 +2,7 @@ package com.example.starter_project_2025.config;
 
 import com.example.starter_project_2025.system.assessment.entity.*;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
+import com.example.starter_project_2025.system.assessment.repository.AssessmentQuestionRepository;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
@@ -68,6 +69,7 @@ public class DataInitializer implements CommandLineRunner
     private final AssessmentRepository assessmentRepository;
     private final QuestionCategoryRepository questionCategoryRepository;
     private final QuestionRepository questionRepository;
+    private final AssessmentQuestionRepository assessmentQuestionRepository;
     private final UserRoleRepository userRoleRepository;
 
     @Override
@@ -88,6 +90,7 @@ public class DataInitializer implements CommandLineRunner
             initializeAssessments();
             initializeQuestionCategories();
             initializeQuestions();
+            linkQuestionsToAssessments();
             initializeUserRoles();
 
             log.info("Database initialization completed successfully!");
@@ -563,24 +566,70 @@ public class DataInitializer implements CommandLineRunner
         moduleRepository.saveAll(Arrays.asList(courseSub, courseCatalogSub));
 
         log.info("Initialized 5 module groups and their respective modules.");
-        // 5. Nhóm: Assessment Type Management
-        ModuleGroups assessmentTypeGroup = new ModuleGroups();
-        assessmentTypeGroup.setName("Assessment Type Management");
-        assessmentTypeGroup.setDescription("Manage assessment types and related permissions");
-        assessmentTypeGroup.setDisplayOrder(3);
-        assessmentTypeGroup.setIsActive(true);
-        assessmentTypeGroup = moduleGroupsRepository.save(assessmentTypeGroup);
+        // 5. Nhóm: Assessment Management
+        ModuleGroups assessmentGroup = new ModuleGroups();
+        assessmentGroup.setName("Assessment Management");
+        assessmentGroup.setDescription("Manage assessments, questions, and exam configurations");
+        assessmentGroup.setDisplayOrder(3);
+        assessmentGroup.setIsActive(true);
+        assessmentGroup = moduleGroupsRepository.save(assessmentGroup);
 
-        moduleRepository.save(
-                createModule(
-                        assessmentTypeGroup,
-                        "Assessment Type Management",
-                        "/assessment-type",
-                        "shield", // icon (you can change if you want)
-                        2,
-                        "ASSESSMENT_READ",
-                        "Manage assessment types"));
+        // Assessment sub-modules
+        Module assessmentTypeModule = createModule(
+                assessmentGroup,
+                "Assessment Types",
+                "/assessment-type",
+                "file-badge",
+                1,
+                "ASSESSMENT_READ",
+                "Manage assessment types and categories");
 
+        Module teacherAssessmentModule = createModule(
+                assessmentGroup,
+                "Assessments",
+                "/teacher-assessment",
+                "clipboard-list",
+                2,
+                "ASSESSMENT_READ",
+                "Create and manage assessments");
+
+        Module questionCategoryModule = createModule(
+                assessmentGroup,
+                "Question Categories",
+                "/question-categories",
+                "folder-tree",
+                3,
+                "QUESTION_CATEGORY_READ",
+                "Manage question categories");
+
+        Module questionModule = createModule(
+                assessmentGroup,
+                "Questions",
+                "/questions",
+                "help-circle",
+                4,
+                "QUESTION_READ",
+                "Manage question bank");
+
+        Module examModule = createModule(
+                assessmentGroup,
+                "Take Exam",
+                "/exam",
+                "pencil",
+                5,
+                "ASSESSMENT_SUBMIT",
+                "Take assessments and view results");
+
+        moduleRepository.saveAll(Arrays.asList(
+                assessmentTypeModule,
+                teacherAssessmentModule,
+                questionCategoryModule,
+                questionModule,
+                examModule
+        ));
+
+        log.info("Initialized Assessment Management group with 5 modules.");
+        
         // 6. Nhóm: Student Management
         ModuleGroups studentGroup = new ModuleGroups();
         studentGroup.setName("Student Management");
@@ -599,8 +648,9 @@ public class DataInitializer implements CommandLineRunner
                         "STUDENT_READ",
                         "Manage students"));
 
-        log.info("Initialized 5 module groups and their respective modules.");
-        // 6. Programming Language Management
+        log.info("Initialized Student Management group.");
+        
+        // 7. Programming Language Management
         ModuleGroups programmingLanguageGroup = new ModuleGroups();
         programmingLanguageGroup.setName("Programming Language Management");
         programmingLanguageGroup.setDescription("Manage programming languages and their configurations");
@@ -618,7 +668,7 @@ public class DataInitializer implements CommandLineRunner
                         "PROGRAMMING_LANGUAGE_READ",
                         "Manage programming languages"));
 
-        log.info("Initialized 6 module groups and their respective modules.");
+        log.info("Initialized Programming Language Management group.");
     }
 
 
@@ -708,34 +758,224 @@ public class DataInitializer implements CommandLineRunner
                 .findByName("Java Core")
                 .orElseThrow(() -> new RuntimeException("Java Core category not found"));
 
-        // ===== QUESTION =====
+        QuestionCategory oop = questionCategoryRepository
+                .findByName("OOP")
+                .orElseThrow(() -> new RuntimeException("OOP category not found"));
+
+        QuestionCategory sql = questionCategoryRepository
+                .findByName("SQL")
+                .orElseThrow(() -> new RuntimeException("SQL category not found"));
+
+        // ===== QUESTION 1 =====
         Question q1 = new Question();
         q1.setContent("Which keyword is used to inherit a class in Java?");
         q1.setQuestionType("SINGLE");
         q1.setCategory(javaCore);
+        q1.setOptions(List.of(
+            createOption(q1, "extends", true, 1),
+            createOption(q1, "implements", false, 2),
+            createOption(q1, "inherits", false, 3),
+            createOption(q1, "super", false, 4)
+        ));
 
-        // ===== OPTIONS =====
-        List<QuestionOption> options = new ArrayList<>();
+        // ===== QUESTION 2 =====
+        Question q2 = new Question();
+        q2.setContent("What is the default value of a boolean variable in Java?");
+        q2.setQuestionType("SINGLE");
+        q2.setCategory(javaCore);
+        q2.setOptions(List.of(
+            createOption(q2, "true", false, 1),
+            createOption(q2, "false", true, 2),
+            createOption(q2, "null", false, 3),
+            createOption(q2, "0", false, 4)
+        ));
 
-        QuestionOption o1 = new QuestionOption();
-        o1.setContent("extends");
-        o1.setCorrect(true);
-        o1.setOrderIndex(1);
-        o1.setQuestion(q1);
-        options.add(o1);
+        // ===== QUESTION 3 =====
+        Question q3 = new Question();
+        q3.setContent("Which method must be implemented by all threads in Java?");
+        q3.setQuestionType("SINGLE");
+        q3.setCategory(javaCore);
+        q3.setOptions(List.of(
+            createOption(q3, "start()", false, 1),
+            createOption(q3, "run()", true, 2),
+            createOption(q3, "execute()", false, 3),
+            createOption(q3, "begin()", false, 4)
+        ));
 
-        QuestionOption o2 = new QuestionOption();
-        o2.setContent("implements");
-        o2.setCorrect(false);
-        o2.setOrderIndex(2);
-        o2.setQuestion(q1);
-        options.add(o2);
+        // ===== QUESTION 4 =====
+        Question q4 = new Question();
+        q4.setContent("What are the principles of OOP? (Select all that apply)");
+        q4.setQuestionType("MULTIPLE");
+        q4.setCategory(oop);
+        q4.setOptions(List.of(
+            createOption(q4, "Encapsulation", true, 1),
+            createOption(q4, "Inheritance", true, 2),
+            createOption(q4, "Polymorphism", true, 3),
+            createOption(q4, "Compilation", false, 4),
+            createOption(q4, "Abstraction", true, 5)
+        ));
 
-        q1.setOptions(options);
+        // ===== QUESTION 5 =====
+        Question q5 = new Question();
+        q5.setContent("Which keyword is used to prevent method overriding in Java?");
+        q5.setQuestionType("SINGLE");
+        q5.setCategory(oop);
+        q5.setOptions(List.of(
+            createOption(q5, "static", false, 1),
+            createOption(q5, "final", true, 2),
+            createOption(q5, "abstract", false, 3),
+            createOption(q5, "private", false, 4)
+        ));
 
-        questionRepository.save(q1); // 🔥 cascade save options
+        // ===== QUESTION 6 =====
+        Question q6 = new Question();
+        q6.setContent("What is the purpose of a constructor in Java?");
+        q6.setQuestionType("SINGLE");
+        q6.setCategory(oop);
+        q6.setOptions(List.of(
+            createOption(q6, "To initialize an object", true, 1),
+            createOption(q6, "To destroy an object", false, 2),
+            createOption(q6, "To copy an object", false, 3),
+            createOption(q6, "To compile a class", false, 4)
+        ));
 
-        log.info("Initialized 1 question with options");
+        // ===== QUESTION 7 =====
+        Question q7 = new Question();
+        q7.setContent("Which SQL command is used to retrieve data from a database?");
+        q7.setQuestionType("SINGLE");
+        q7.setCategory(sql);
+        q7.setOptions(List.of(
+            createOption(q7, "GET", false, 1),
+            createOption(q7, "SELECT", true, 2),
+            createOption(q7, "FETCH", false, 3),
+            createOption(q7, "RETRIEVE", false, 4)
+        ));
+
+        // ===== QUESTION 8 =====
+        Question q8 = new Question();
+        q8.setContent("Which SQL clause is used to filter records?");
+        q8.setQuestionType("SINGLE");
+        q8.setCategory(sql);
+        q8.setOptions(List.of(
+            createOption(q8, "FILTER", false, 1),
+            createOption(q8, "WHERE", true, 2),
+            createOption(q8, "HAVING", false, 3),
+            createOption(q8, "SORT", false, 4)
+        ));
+
+        // ===== QUESTION 9 =====
+        Question q9 = new Question();
+        q9.setContent("What does JVM stand for?");
+        q9.setQuestionType("SINGLE");
+        q9.setCategory(javaCore);
+        q9.setOptions(List.of(
+            createOption(q9, "Java Virtual Machine", true, 1),
+            createOption(q9, "Java Visual Monitor", false, 2),
+            createOption(q9, "Java Verified Method", false, 3),
+            createOption(q9, "Java Variable Manager", false, 4)
+        ));
+
+        // ===== QUESTION 10 =====
+        Question q10 = new Question();
+        q10.setContent("Which of the following are access modifiers in Java? (Select all that apply)");
+        q10.setQuestionType("MULTIPLE");
+        q10.setCategory(javaCore);
+        q10.setOptions(List.of(
+            createOption(q10, "public", true, 1),
+            createOption(q10, "private", true, 2),
+            createOption(q10, "protected", true, 3),
+            createOption(q10, "default", false, 4),
+            createOption(q10, "internal", false, 5)
+        ));
+
+        questionRepository.saveAll(List.of(q1, q2, q3, q4, q5, q6, q7, q8, q9, q10));
+
+        log.info("Initialized 10 questions with options");
+    }
+
+    private QuestionOption createOption(Question question, String content, boolean isCorrect, int order)
+    {
+        QuestionOption option = new QuestionOption();
+        option.setContent(content);
+        option.setCorrect(isCorrect);
+        option.setOrderIndex(order);
+        option.setQuestion(question);
+        return option;
+    }
+
+    private void linkQuestionsToAssessments()
+    {
+        if (assessmentQuestionRepository.count() > 0)
+        {
+            return;
+        }
+
+        List<Assessment> assessments = assessmentRepository.findAll();
+        List<Question> questions = questionRepository.findAll();
+
+        if (assessments.isEmpty() || questions.isEmpty())
+        {
+            log.warn("Cannot link questions to assessments - missing data");
+            return;
+        }
+
+        Assessment entranceAssessment = assessments.stream()
+            .filter(a -> a.getCode().equals("JAVA_ENTRANCE_2025"))
+            .findFirst()
+            .orElse(null);
+
+        Assessment midtermAssessment = assessments.stream()
+            .filter(a -> a.getCode().equals("JAVA_MIDTERM_2025"))
+            .findFirst()
+            .orElse(null);
+
+        Assessment finalAssessment = assessments.stream()
+            .filter(a -> a.getCode().equals("JAVA_FINAL_2025"))
+            .findFirst()
+            .orElse(null);
+
+        List<AssessmentQuestion> assessmentQuestions = new ArrayList<>();
+
+        // Link first 4 questions to Entrance Assessment (40 points total)
+        if (entranceAssessment != null && questions.size() >= 4)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                assessmentQuestions.add(createAssessmentQuestion(entranceAssessment, questions.get(i), 10.0, i + 1));
+            }
+        }
+
+        // Link questions 3-7 to Midterm Assessment (50 points total)
+        if (midtermAssessment != null && questions.size() >= 7)
+        {
+            for (int i = 2; i < 7; i++)
+            {
+                assessmentQuestions.add(createAssessmentQuestion(midtermAssessment, questions.get(i), 10.0, i - 1));
+            }
+        }
+
+        // Link all 10 questions to Final Assessment (100 points total)
+        if (finalAssessment != null)
+        {
+            for (int i = 0; i < questions.size(); i++)
+            {
+                assessmentQuestions.add(createAssessmentQuestion(finalAssessment, questions.get(i), 10.0, i + 1));
+            }
+        }
+
+        assessmentQuestionRepository.saveAll(assessmentQuestions);
+
+        log.info("Linked {} questions to {} assessments", questions.size(), assessments.size());
+    }
+
+    private AssessmentQuestion createAssessmentQuestion(Assessment assessment, Question question, Double score, int order)
+    {
+        AssessmentQuestion aq = new AssessmentQuestion();
+        aq.setAssessment(assessment);
+        aq.setQuestion(question);
+        aq.setScore(score);
+        aq.setOrderIndex(order);
+        return aq;
     }
 
     private void initializeProgrammingLanguages()
