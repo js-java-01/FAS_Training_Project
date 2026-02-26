@@ -10,7 +10,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data_table/DataTable";
 import { Eye } from "lucide-react";
 import ViewObjectiveDrawer from './ViewObjectivesDrawer.tsx';
-
+import { ImportExportActions } from "@/components/import-export/ImportExportActions";
+import { BaseImportModal } from "@/components/import-export/BaseImportModal";
 interface Props {
     courseId: string;
 }
@@ -23,6 +24,7 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
         useState<CourseObjective | null>(null);
     const [editOpen, setEditOpen] = useState(false);
     const [detailOpen, setDetailOpen] = useState(false);
+    const [importOpen, setImportOpen] = useState(false);
     const fetchObjectives = async () => {
         if (!courseId) return;
         try {
@@ -84,28 +86,47 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
     };
 
     const handleDelete = (objective: CourseObjective) => {
-    Modal.confirm({
-        title: "Confirm delete",
-        content: `Are you sure you want to delete "${objective.name}"? This action cannot be undone.`,
-        okText: "Delete",
-        okType: "danger",
-        cancelText: "Cancel",
+        Modal.confirm({
+            title: "Confirm delete",
+            content: `Are you sure you want to delete "${objective.name}"? This action cannot be undone.`,
+            okText: "Delete",
+            okType: "danger",
+            cancelText: "Cancel",
 
-        async onOk() {
-            try {
-                await courseApi.deleteObjective(courseId, objective.id);
-                message.success("Deleted successfully");
-                fetchObjectives();
-            } catch (error) {
-                message.error("Delete failed");
-            }
-        },
-    });
-};
+            async onOk() {
+                try {
+                    await courseApi.deleteObjective(courseId, objective.id);
+                    message.success("Deleted successfully");
+                    fetchObjectives();
+                } catch (error) {
+                    message.error("Delete failed");
+                }
+            },
+        });
+    };
 
     const handleView = (objective: CourseObjective) => {
         setSelectedObjective(objective);
         setDetailOpen(true);
+    };
+
+    const downloadBlob = (blob: Blob, filename: string) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
+
+    const handleExport = async () => {
+        try {
+            const blob = await courseApi.exportObjectives(courseId);
+            downloadBlob(blob, "objectives.xlsx");
+            message.success("Export successful");
+        } catch {
+            message.error("Export failed");
+        }
     };
 
     useEffect(() => {
@@ -114,11 +135,19 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
 
     return (
         <>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <h3>Course Objectives</h3>
-                <Button type="primary" onClick={() => setOpen(true)}>
-                    Add Objective
-                </Button>
+
+                <div style={{ display: "flex", gap: 8 }}>
+                    <ImportExportActions
+                        onImportClick={() => setImportOpen(true)}
+                        onExportClick={handleExport}
+                    />
+
+                    <Button type="primary" onClick={() => setOpen(true)}>
+                        Add Objective
+                    </Button>
+                </div>
             </div>
 
             {loading ? (
@@ -153,6 +182,21 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
                 open={detailOpen}
                 onClose={() => setDetailOpen(false)}
                 objective={selectedObjective}
+            />
+
+            <BaseImportModal
+                open={importOpen}
+                onClose={() => setImportOpen(false)}
+                onSuccess={fetchObjectives}
+                title="Import Objectives"
+                description="Download template, fill in data, then upload to import."
+                templateFileName="objective_template.xlsx"
+                onDownloadTemplate={async () => {
+                    return await courseApi.downloadObjectiveTemplate(courseId);
+                }}
+                onImport={async (file) => {
+                    await courseApi.importObjectives(courseId, file);
+                }}
             />
         </>
     );
