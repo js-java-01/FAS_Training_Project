@@ -519,7 +519,7 @@ public class DataInitializer implements CommandLineRunner {
                         createModule(systemGroup, "Locations", "/locations", "map-pin", 5, "LOCATION_READ",
                                 "Manage office locations"));
 
-                moduleRepository.saveAll(Arrays.asList(moduleGroupsSub, modulesSub));
+               // moduleRepository.saveAll(Arrays.asList(moduleGroupsSub, modulesSub));
 
                 log.info("Initialized 4 module groups and their respective modules.");
 
@@ -556,6 +556,20 @@ public class DataInitializer implements CommandLineRunner {
                                 1,
                                 "STUDENT_READ",
                                 "Manage students"));
+
+                moduleRepository.save(
+                        createModule(
+                                trainingGroup,
+                                "Traning Classes",
+                                "/training-classes",
+                                "people",
+                                1,
+                                "CLASS_READ",
+                                "Manage Classes and Open Class Requests"
+                        )
+
+
+                );
 
                 // Nhóm: Assessment
                 ModuleGroups assessmentTypeGroup = new ModuleGroups();
