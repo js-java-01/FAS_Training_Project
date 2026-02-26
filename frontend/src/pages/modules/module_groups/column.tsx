@@ -13,7 +13,7 @@ export type TableActions = {
   onDelete?: (row: ModuleGroup) => void;
 };
 
-export const getColumns = (actions?: TableActions) => {
+export const getColumns = (actions?: TableActions, role?: string) => {
   const columnHelper = createColumnHelper<ModuleGroup>();
 
   return [
@@ -79,7 +79,7 @@ export const getColumns = (actions?: TableActions) => {
 
         /* ================= DISPLAY ORDER ================= */
         columnHelper.accessor("displayOrder", {
-            header: (info) => <SortHeader title="Total Modules" info={info} />,
+            header: (info) => <SortHeader title="Display Order" info={info} />,
             size: 80,
             cell: (info) => (
                 <span className="block text-center">
@@ -132,7 +132,7 @@ export const getColumns = (actions?: TableActions) => {
             />
           )}
 
-          {actions?.onEdit && (
+          {role === "ADMIN" && actions?.onEdit && (
             <ActionBtn
               tooltipText="Edit"
               icon={<EditIcon size={12} />}
@@ -140,7 +140,7 @@ export const getColumns = (actions?: TableActions) => {
             />
           )}
 
-          {actions?.onDelete && (
+          {role === "ADMIN" && actions?.onDelete && (
             <ActionBtn
               tooltipText="Delete"
               icon={<Trash size={12} />}

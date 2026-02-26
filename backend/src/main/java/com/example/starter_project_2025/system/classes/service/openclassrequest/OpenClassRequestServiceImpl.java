@@ -12,6 +12,8 @@ import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -76,5 +78,11 @@ public class OpenClassRequestServiceImpl implements OpenClassRequestService {
         TrainingClass saved = trainingClassRepository.save(entity);
 
         return mapper.toResponse(saved);
+    }
+
+    @Override
+    public Page<TrainingClassResponse> searchTrainingClasses(String keyword, Boolean isActive, Pageable pageable) {
+        Page<TrainingClass> page = trainingClassRepository.search(keyword, isActive, pageable);
+        return page.map(mapper::toResponse);
     }
 }
