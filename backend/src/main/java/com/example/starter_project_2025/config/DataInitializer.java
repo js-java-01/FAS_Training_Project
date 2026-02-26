@@ -865,6 +865,7 @@ public class DataInitializer implements CommandLineRunner {
                         .address("Lo E2a-7, Duong D1, Khu Cong nghe cao, Phuong Tang Nhon Phu")
                         .communeId("26842")
                         .locationStatus(LocationStatus.ACTIVE)
+                        .createdAt(LocalDateTime.now())
                         .build();
 
                 Location xavaloShtp = Location.builder()
@@ -872,6 +873,7 @@ public class DataInitializer implements CommandLineRunner {
                         .address("Duong So 8, Khu Cong nghe cao, Phuong Linh Xuan, TP. Thu Duc")
                         .communeId("26800")
                         .locationStatus(LocationStatus.INACTIVE)
+                        .createdAt(LocalDateTime.of(2025,04,25,12,45,24))
                         .build();
 
                 Location fptHanoi = Location.builder()
@@ -879,6 +881,7 @@ public class DataInitializer implements CommandLineRunner {
                         .address("Toa nha FPT Cau Giay, Phuong Cau Giay, Quan Cau Giay")
                         .communeId("00166")
                         .locationStatus(LocationStatus.ACTIVE)
+                        .createdAt(LocalDateTime.of(2005,02,12,6,12,24))
                         .build();
 
                 Location fptDanang = Location.builder()
@@ -886,6 +889,7 @@ public class DataInitializer implements CommandLineRunner {
                         .address("Lo D26, Duong So 2, Khu Cong nghe cao Da Nang, Phuong Hoa Khanh")
                         .communeId("20200")
                         .locationStatus(LocationStatus.ACTIVE)
+                        .createdAt(LocalDateTime.of(2012,01,2,5,11,29))
                         .build();
 
                 locationRepository.saveAll(List.of(fptHcm, xavaloShtp, fptHanoi, fptDanang));

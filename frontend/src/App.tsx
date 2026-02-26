@@ -90,14 +90,6 @@ function App() {
             />
 
             <Route
-              path="/locations"
-              element={
-                <ProtectedRoute requiredPermission="LOCATION_READ">
-                  <LocationManagement />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/programming-languages"
               element={
                 <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
