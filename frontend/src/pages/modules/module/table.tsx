@@ -54,18 +54,11 @@ export default function ModulesTable() {
     moduleGroupFilter.length === 1 ? moduleGroupFilter[0] : undefined;
 
   /* ---------- sort param (server side) ---------- */
+  /* ===================== SORT ===================== */
   const sortParam = useMemo(() => {
-    if (!sorting.length) {
-      // Trả về mảng các string theo định dạng Spring hiểu
-      return ["moduleGroup.name,asc", "displayOrder,asc"];
-    }
+    if (!sorting.length) return "displayOrder,asc";
     const { id, desc } = sorting[0];
-    const direction = desc ? "desc" : "asc";
-
-    // Ánh xạ lại ID nếu UI khác với Entity (ví dụ: UI là moduleGroupName -> Entity là moduleGroup.name)
-    const sortField = id === "moduleGroupName" ? "moduleGroup.name" : id;
-
-    return [`${sortField},${direction}`, "displayOrder,asc"];
+    return `${id},${desc ? "desc" : "asc"}`;
   }, [sorting]);
 
   const { mutateAsync: importModules } = useImportModules();
