@@ -78,7 +78,6 @@ public class ExamController {
         );
     }
 
-    // 🔄 Update status
     @PutMapping("/{id}/status")
     public ResponseEntity<AssessmentDTO> updateStatus(
             @PathVariable Long id,

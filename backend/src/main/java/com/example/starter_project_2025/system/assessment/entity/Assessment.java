@@ -3,6 +3,8 @@ package com.example.starter_project_2025.system.assessment.entity;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,6 +38,8 @@ public class Assessment {
     private String code;
 
     @Column(nullable = false)
+    @NotBlank
+    @Size(max = 255)
     private String title;
 
     @Column(columnDefinition = "TEXT")
