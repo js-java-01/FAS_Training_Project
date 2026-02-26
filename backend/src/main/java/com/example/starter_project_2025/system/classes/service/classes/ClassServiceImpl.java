@@ -191,8 +191,17 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     public Page<TrainingClassResponse> searchTrainingClasses(SearchClassRequest request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'searchTrainingClasses'");
+        String keyword = request.getKeyword();
+        if (keyword != null) {
+            keyword = keyword.trim();
+            if (keyword.isEmpty()) {
+                keyword = null;
+            }
+        }
+
+        return trainingClassRepository
+                .search(keyword, request.getIsActive(), request.getPageable())
+                .map(mapper::toResponse);
     }
 
 }

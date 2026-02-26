@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import SortHeader from "@/components/data_table/SortHeader";
 
 export type TableActions = {
-    onView?: (row: TrainingClass) => void;
+    onNavigate?: (id: string) => void;
 };
 
 export const getColumns = (actions?: TableActions) => {
@@ -142,11 +142,11 @@ export const getColumns = (actions?: TableActions) => {
             size: 180,
             cell: ({ row }) => (
                 <div className="flex gap-2">
-                    {actions?.onView && (
+                    {actions?.onNavigate && (
                         <ActionBtn
                             tooltipText="View"
                             icon={<EyeIcon size={12} />}
-                            onClick={() => actions.onView!(row.original)}
+                            onClick={() => actions.onNavigate!(row.original.id)}
                         />
                     )}
                     <ActionBtn

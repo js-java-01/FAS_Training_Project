@@ -9,9 +9,7 @@ import com.example.starter_project_2025.system.modulegroups.dto.response.PageRes
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -29,7 +27,10 @@ public class ClassController {
         @GetMapping(params = "page")
         @PreAuthorize("hasAuthority('CLASS_CREATE')")
         public ResponseEntity<ApiResponse<PageResponse<TrainingClassResponse>>> searchTrainingClasses(
-                        @Valid @ModelAttribute SearchClassRequest request) {
+                        @Valid @ModelAttribute SearchClassRequest request,
+                        Pageable pageable) {
+
+                request.setPageable(pageable);
 
                 Page<TrainingClassResponse> pageResult = classService.searchTrainingClasses(request);
 

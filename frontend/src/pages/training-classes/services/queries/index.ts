@@ -4,6 +4,8 @@ import type { PagedData } from "@/types/response";
 import { trainingClassApi } from "@/api/trainingClassApi";
 import { trainingClassKeys } from "../../keys";
 
+export { useGetTrainingClassById } from "./useTrainingClassDetail";
+
 export const useGetAllTrainingClasses = (params: {
     page: number;
     pageSize: number;

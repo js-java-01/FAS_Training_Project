@@ -25,6 +25,7 @@ import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
+import ClassDetailPage from "./pages/training-classes/ClassDetailPage";
 
 
 function App() {
@@ -76,6 +77,14 @@ function App() {
               element={
                 <ProtectedRoute requiredPermission="CLASS_CREATE">
                   <TrainingClassesManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/training-classes/:id"
+              element={
+                <ProtectedRoute requiredPermission="CLASS_CREATE">
+                  <ClassDetailPage />
                 </ProtectedRoute>
               }
             />
