@@ -9,13 +9,8 @@ import java.util.UUID;
 
 @Repository
 public interface TrainingClassRepository extends JpaRepository<TrainingClass, UUID> {
-  /*
-   * NOTE:
-   * 1. Thừa hưởng toàn bộ hàm CRUD (Thêm, Sửa, Xóa, Xem) từ JpaRepository.
-   *
-   * 2. Nơi định nghĩa các câu lệnh tìm kiếm lớp học tùy chỉnh
-   * (Hiện tại chưa dùng nên để trống)
-   */
-  
-  java.util.Optional<TrainingClass> findByClassCode(String classCode);
+
+    boolean existsByClassNameIgnoreCase(String className);
+
+    boolean existsByClassCodeIgnoreCase(String classCode);
 }
