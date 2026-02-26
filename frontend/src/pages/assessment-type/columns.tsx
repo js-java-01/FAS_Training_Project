@@ -13,6 +13,11 @@ export type AssessmentTableActions = {
     onDelete?: (row: AssessmentType) => void;
 };
 
+export type AssessmentTableContext = {
+    page?: number;
+    pageSize?: number;
+};
+
 const getBadgeStyle = (name: string) => {
     const lowerName = name.toLowerCase();
     if (lowerName.includes('test')) return 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100';
@@ -24,7 +29,8 @@ const getBadgeStyle = (name: string) => {
 };
 
 export const getColumns = (
-    actions?: AssessmentTableActions
+    actions?: AssessmentTableActions,
+    context?: AssessmentTableContext
 ) => {
     const columnHelper = createColumnHelper<AssessmentType>();
 
@@ -51,6 +57,27 @@ export const getColumns = (
                     aria-label="Select row"
                 />
             ),
+            enableSorting: false,
+            enableHiding: false,
+        }),
+
+        /* ================= NUMBER ================= */
+        columnHelper.display({
+            id: "no",
+            size: 60,
+            header: () => <div className="text-center font-semibold">No.</div>,
+            cell: ({ row }) => {
+                const pageNumber = context?.page ?? 0;
+                const pageSize = context?.pageSize ?? 10;
+                const rowIndex = row.index;
+                const position = pageNumber * pageSize + rowIndex + 1;
+
+                return (
+                    <div className="text-center font-medium text-gray-700">
+                        {position}
+                    </div>
+                );
+            },
             enableSorting: false,
             enableHiding: false,
         }),
@@ -99,7 +126,7 @@ export const getColumns = (
         /* ================= ACTIONS ================= */
         columnHelper.display({
             id: "actions",
-            header: "Actions",
+            header: () => <div className="text-center font-semibold">Actions</div>,
             size: 100,
             cell: ({ row }) => (
                 <div className="flex gap-2 justify-center">

@@ -367,7 +367,7 @@ export default function QuestionManagementPage() {
                                                         <span>{question.options.length} options</span>
                                                         <span>·</span>
                                                         <span className="text-green-600">
-                                                            {question.options.filter(o => o.isCorrect).length} correct
+                                                            {question.options.filter(o => o.correct).length} correct
                                                         </span>
                                                     </div>
                                                 </div>
@@ -406,13 +406,13 @@ export default function QuestionManagementPage() {
                                                         .map((option, idx) => (
                                                             <div
                                                                 key={option.id}
-                                                                className={`text-sm px-3 py-2 rounded-md border ${option.isCorrect
+                                                                className={`text-sm px-3 py-2 rounded-md border ${option.correct
                                                                     ? 'bg-green-50 text-green-900 border-green-300 font-medium'
                                                                     : 'bg-gray-50 text-gray-700 border-gray-200'
                                                                     }`}
                                                             >
                                                                 <div className="flex items-center gap-2">
-                                                                    <span className={`flex items-center justify-center h-5 w-5 rounded-full text-xs font-medium ${option.isCorrect
+                                                                    <span className={`flex items-center justify-center h-5 w-5 rounded-full text-xs font-medium ${option.correct
                                                                         ? 'bg-green-600 text-white'
                                                                         : 'bg-gray-300 text-gray-600'
                                                                         }`}>

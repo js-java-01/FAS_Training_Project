@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.assessment.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,10 +32,12 @@ public class Question {
 
     @ManyToOne
     @JoinColumn(name = "question_category_id")
+    @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
     private QuestionCategory category;
 
     // Quan trọng: Cái này để lưu luôn Option khi tạo câu hỏi
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonIgnoreProperties({ "question" })
     private List<QuestionOption> options;
 
     @PrePersist

@@ -155,7 +155,10 @@ export const AssessmentTable: React.FC = () => {
         onView: handleView,
         onEdit: handleEdit,
         onDelete: handleDelete
-    }), [handleView, handleEdit, handleDelete]);
+    }, {
+        page: safeTableData.page,
+        pageSize: safeTableData.pageSize
+    }), [handleView, handleEdit, handleDelete, safeTableData.page, safeTableData.pageSize]);
 
     const headerActions = (
         <div className="flex gap-2">

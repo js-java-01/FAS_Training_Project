@@ -1,7 +1,7 @@
 export interface QuestionOption {
   id: string;
   content: string;
-  isCorrect: boolean;
+  correct: boolean;
   orderIndex: number;
   questionId: string;
 
@@ -11,7 +11,7 @@ export interface QuestionOption {
 
 export interface QuestionOptionRequest {
   content: string;
-  isCorrect: boolean;
+  correct: boolean;
   orderIndex: number;
   questionId: string;
 }

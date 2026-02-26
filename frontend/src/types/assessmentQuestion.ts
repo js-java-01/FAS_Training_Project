@@ -9,6 +9,7 @@ export interface AssessmentType {
 export interface Assessment {
     id: number;
     assessmentType: AssessmentType;
+    assessmentQuestions: string[];
     code: string;
     title: string;
     description: string;

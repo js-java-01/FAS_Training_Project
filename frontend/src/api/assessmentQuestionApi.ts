@@ -35,11 +35,22 @@ export const assessmentQuestionApi = {
     create: async (
         data: AssessmentQuestionCreateRequest
     ): Promise<AssessmentQuestion> => {
-        const response = await axiosInstance.post<AssessmentQuestion>(
-            '/v1/assessment-questions',
-            data
-        );
-        return response.data;
+        console.log('CREATE Assessment Question - Payload:', JSON.stringify(data, null, 2));
+        try {
+            const response = await axiosInstance.post<AssessmentQuestion>(
+                '/v1/assessment-questions',
+                data
+            );
+            return response.data;
+        } catch (error: any) {
+            console.error('CREATE Assessment Question - Error:', {
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                message: error.message
+            });
+            throw error;
+        }
     },
 
     // ==================== UPDATE ====================

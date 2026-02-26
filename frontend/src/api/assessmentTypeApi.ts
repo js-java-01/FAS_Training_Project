@@ -1,6 +1,7 @@
 import axiosInstance from './axiosInstance';
 import { type AssessmentType, type AssessmentTypeRequest } from '../types/assessmentType';
 import { type PaginatedResponse } from '../types/assessmentType';
+import { type ExportRequest, type ExportPreviewResponse } from '../types/assessmentExport';
 
 export const assessmentTypeApi = {
   getAll: async (params?: {
@@ -93,13 +94,23 @@ export const assessmentTypeApi = {
     window.URL.revokeObjectURL(url);
   },
 
-  downloadTemplate: async (): Promise<Blob> => {
-    const response = await axiosInstance.get('/assessment-type/template', {
+  // New methods for Export Modal
+  getExportPreview: async (request: ExportRequest): Promise<ExportPreviewResponse> => {
+    const response = await axiosInstance.post<ExportPreviewResponse>('/assessment-type/export/preview', request);
+    return response.data;
+  },
+
+  export: async (request: ExportRequest): Promise<Blob> => {
+    const response = await axiosInstance.post('/assessment-type/export', request, {
       responseType: 'blob'
     });
     return response.data;
   },
 
-
+  downloadTemplate: async (): Promise<Blob> => {
+    const response = await axiosInstance.get('/assessment-type/template', {
+      responseType: 'blob'
+    });
+    return response.data;
+  }
 };
-

@@ -5,6 +5,7 @@ import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +22,7 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
 public class Assessment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,9 +30,11 @@ public class Assessment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assessment_type_id", nullable = false)
+    @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
     private AssessmentType assessmentType;
 
     @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({ "assessment" })
     private List<AssessmentQuestion> assessmentQuestions = new ArrayList<>();
 
     @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)

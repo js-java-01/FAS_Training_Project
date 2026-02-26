@@ -13,14 +13,15 @@ import java.util.UUID;
 public interface AssessmentQuestionRepository extends JpaRepository<AssessmentQuestion, UUID> {
     // Sau này cần tìm câu hỏi trong 1 đề thi thì viết hàm findByAssessmentId ở đây
 
-
     @Query("""
-        SELECT aq
-        FROM AssessmentQuestion aq
-        JOIN FETCH aq.question q
-        WHERE aq.assessment.id = :assessmentId
-        ORDER BY aq.orderIndex
-    """)
+                SELECT DISTINCT aq
+                FROM AssessmentQuestion aq
+                JOIN FETCH aq.question q
+                LEFT JOIN FETCH q.category
+                LEFT JOIN FETCH q.options
+                WHERE aq.assessment.id = :assessmentId
+                ORDER BY aq.orderIndex
+            """)
     List<AssessmentQuestion> findByAssessmentId(@Param("assessmentId") Long assessmentId);
 
 }

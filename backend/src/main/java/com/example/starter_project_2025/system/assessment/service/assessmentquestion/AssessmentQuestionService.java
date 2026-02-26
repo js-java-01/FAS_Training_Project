@@ -9,6 +9,7 @@ import com.example.starter_project_2025.system.assessment.repository.AssessmentR
 import com.example.starter_project_2025.system.assessment.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,6 +22,7 @@ public class AssessmentQuestionService {
     private final AssessmentRepository assessmentRepo;
     private final QuestionRepository questionRepo;
 
+    @Transactional
     public AssessmentQuestion addQuestionToExam(AddQuestionToExamDTO dto) {
         Assessment assessment = assessmentRepo.findById(dto.getAssessmentId())
                 .orElseThrow(() -> new RuntimeException("Assessment not found"));
@@ -34,9 +36,15 @@ public class AssessmentQuestionService {
         aq.setScore(dto.getScore());
         aq.setOrderIndex(dto.getOrderIndex());
 
-        return repo.save(aq);
-    }
+        AssessmentQuestion saved = repo.save(aq);
 
+        // Force initialization of lazy-loaded relationships to avoid serialization
+        // issues
+        saved.getQuestion().getCategory().getName();
+        saved.getQuestion().getOptions().size();
+
+        return saved;
+    }
 
     public List<AssessmentQuestion> getAll() {
         return repo.findAll();
