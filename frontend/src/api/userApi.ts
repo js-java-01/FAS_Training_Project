@@ -12,12 +12,12 @@ export interface UserPageResponse {
 }
 
 export const userApi = {
-  getAllUsers: async (params: {
-    page?: number;
-    size?: number;
-    sort?: string;
-    searchContent?: string;
-  } = {}): Promise<UserPageResponse> => {
+  getAllUsers: async (p0: number, p1: number, params: {
+  page?: number;
+  size?: number;
+  sort?: string;
+  searchContent?: string;
+} = {}): Promise<UserPageResponse> => {
     const { page = 0, size = 10, sort = 'createdAt,desc', searchContent } = params;
     const response = await axiosInstance.get<{
       content: User[];

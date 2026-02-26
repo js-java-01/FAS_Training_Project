@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { CohortTab } from "./CohortTab";
 import { OutlineTab } from "./OutlineTab";
 import CourseObjectivesTab from "./CourseObjectivesTab";
+import { MaterialTab } from "./material/MaterialTab";
 import {
   FiEdit,
   FiBookOpen,
@@ -421,15 +422,16 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
       {activeTab === "Outline" && <OutlineTab courseId={course.id} />}
 
-      {activeTab === "Objectives" && (
-        <CourseObjectivesTab courseId={course.id} />
-      )}
+      {activeTab === "Materials" && <MaterialTab courseId={course.id} />}
 
-      {!["Overview", "Cohort", "Outline", "Objectives"].includes(activeTab) && (
-        <div className="text-gray-400 text-sm">
-          This tab is implemented by another team.
-        </div>
-      )}
+      {activeTab !== "Overview" &&
+        activeTab !== "Cohort" &&
+        activeTab !== "Outline" &&
+        activeTab !== "Materials" && (
+          <div className="text-gray-400 text-sm py-10 text-center border-2 border-dashed rounded-lg">
+            This tab ({activeTab}) is being developed by another team.
+          </div>
+        )}
     </div>
   );
 }
