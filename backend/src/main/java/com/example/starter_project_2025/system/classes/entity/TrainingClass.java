@@ -5,12 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.semester.entity.Semester;
 import com.example.starter_project_2025.system.user.entity.User;
@@ -38,6 +35,9 @@ public class TrainingClass {
 
     @Column(name = "class_code", unique = true)
     private String classCode;
+
+    @Enumerated(EnumType.STRING)
+    private ClassStatus classStatus;
 
     @Column(name = "is_active")
     private Boolean isActive = false;

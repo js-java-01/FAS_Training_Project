@@ -60,7 +60,6 @@ export const StudentClassManagement = () => {
                         <ClassCard key={i}
                             code={`CS${100 + i}`}
                             name={`Lập trình nâng cao ${i}`}
-                            credits={3}
                             instructor={`Giảng viên ${i}`}
                             schedule={`Thứ ${i} 8:00 - 10:00`}
                             capacity={`${20 + i}/30`}
@@ -69,10 +68,9 @@ export const StudentClassManagement = () => {
                     ))}
                 </div>
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground whitespace-nowrap">
                         Hiển thị <b>1-6</b> trong tổng số <b>24</b> lớp học
                     </p>
-
                     <Pagination className="justify-end">
                         <PaginationContent>
                             <PaginationItem>
