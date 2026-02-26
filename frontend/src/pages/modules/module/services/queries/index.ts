@@ -16,7 +16,7 @@ export const useGetAllModules = (params: {
       moduleApi.getAllModules({
         page: params.page,
         size: params.pageSize,
-        sort: params.sort ?? ["moduleGroup.name,asc", "displayOrder,asc"],
+        sort: params.sort ?? "displayOrder,asc",
         ...(params.keyword?.trim() ? { keyword: params.keyword.trim() } : {}),
         ...(params.isActive !== undefined ? { isActive: params.isActive } : {}),
         ...(params.moduleGroupId
