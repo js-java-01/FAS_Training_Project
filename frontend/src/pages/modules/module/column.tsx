@@ -14,7 +14,7 @@ export type TableActions = {
   onDelete?: (row: Module) => void;
 };
 
-export const getColumns = (actions?: TableActions) => {
+export const getColumns = (actions?: TableActions, role?: string) => {
   const columnHelper = createColumnHelper<Module>();
 
   return [
@@ -138,14 +138,14 @@ export const getColumns = (actions?: TableActions) => {
               onClick={() => actions.onView!(row.original)}
             />
           )}
-          {actions?.onEdit && (
+          {role === "ADMIN" && actions?.onEdit && (
             <ActionBtn
               tooltipText="Edit"
               icon={<EditIcon size={12} />}
               onClick={() => actions.onEdit!(row.original)}
             />
           )}
-          {actions?.onDelete && (
+          {role === "ADMIN" && actions?.onDelete && (
             <ActionBtn
               tooltipText="Delete"
               icon={<Trash size={12} />}
