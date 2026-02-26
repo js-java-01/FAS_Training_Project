@@ -5,7 +5,7 @@ import { queryKeys } from "@/pages/modules/keys.ts";
 export const useGetAllModules = (params: {
   page: number;
   pageSize: number;
-  sort?: string;
+  sort?: string | string[];
   keyword?: string;
   isActive?: boolean;
   moduleGroupId?: string;
@@ -16,7 +16,7 @@ export const useGetAllModules = (params: {
       moduleApi.getAllModules({
         page: params.page,
         size: params.pageSize,
-        sort: params.sort ?? "displayOrder,asc",
+        sort: params.sort ?? ["moduleGroup.name,asc", "displayOrder,asc"],
         ...(params.keyword?.trim() ? { keyword: params.keyword.trim() } : {}),
         ...(params.isActive !== undefined ? { isActive: params.isActive } : {}),
         ...(params.moduleGroupId
