@@ -12,7 +12,7 @@ import { getColumns } from "./column";
 import { TrainingClassForm } from "./form";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
-import { ConfirmActionModal } from "@/components/ConfirmActionModal";
+import { ReviewActionModal } from "@/components/ReviewActionModal";
 import { trainingClassApi } from "@/api/trainingClassApi";
 
 /* ======================================================= */
@@ -96,13 +96,14 @@ export default function TrainingClassesTable() {
         setOpenForm(false);
     };
 
-    const handleApprove = async () => {
+    const handleApprove = async (reason: string) => {
         if (!approveTarget) return;
         setActionLoading(true);
         try {
-            await trainingClassApi.approveClass(approveTarget.id);
+            await trainingClassApi.approveClass(approveTarget.id, reason);
             toast.success(`Class "${approveTarget.className}" approved successfully`);
             await invalidateAll();
+            setApproveTarget(null); // Move hide after success to prevent flicker before refresh in optimistic scenarios
         } catch (err: unknown) {
             const msg =
                 (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -111,17 +112,20 @@ export default function TrainingClassesTable() {
             toast.error(msg);
         } finally {
             setActionLoading(false);
-            setApproveTarget(null);
+            // setApproveTarget(null); // Moved to try block to keep modal on error? No, typically hide or retry. Let's hide on success only or error.
+            // On error, we usually want to let user retry or see what happened. But modal is simple.
+            // I'll keep it hiding on close/cancel.
         }
     };
 
-    const handleReject = async () => {
+    const handleReject = async (reason: string) => {
         if (!rejectTarget) return;
         setActionLoading(true);
         try {
-            await trainingClassApi.rejectClass(rejectTarget.id);
+            await trainingClassApi.rejectClass(rejectTarget.id, reason);
             toast.success(`Class "${rejectTarget.className}" rejected`);
             await invalidateAll();
+            setRejectTarget(null); // Hide on success
         } catch (err: unknown) {
             const msg =
                 (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -130,7 +134,6 @@ export default function TrainingClassesTable() {
             toast.error(msg);
         } finally {
             setActionLoading(false);
-            setRejectTarget(null);
         }
     };
 
@@ -195,39 +198,38 @@ export default function TrainingClassesTable() {
             />
 
             {/* ── Approve confirmation ── */}
-            <ConfirmActionModal
-                open={!!approveTarget}
-                title="Approve Class"
-                message={
-                    <span>
-                        Are you sure you want to approve class{" "}
-                        <strong>{approveTarget?.className}</strong> ({approveTarget?.classCode})?
-                    </span>
-                }
-                confirmText="Approve"
-                variant="default"
-                loading={actionLoading}
-                onConfirm={handleApprove}
-                onCancel={() => setApproveTarget(null)}
-            />
+            {approveTarget && (
+                <ReviewActionModal
+                    open={!!approveTarget}
+                    title="Approve Training Request"
+                    description="Please provide approval notes for this request."
+                    label="Approval Note"
+                    placeholder="Enter approval notes..."
+                    confirmText="Approve"
+                    variant="approve"
+                    loading={actionLoading}
+                    requireReason={true} // Screenshot shows *
+                    onConfirm={handleApprove}
+                    onCancel={() => setApproveTarget(null)}
+                />
+            )}
 
             {/* ── Reject confirmation ── */}
-            <ConfirmActionModal
-                open={!!rejectTarget}
-                title="Reject Class"
-                message={
-                    <span>
-                        Are you sure you want to reject class{" "}
-                        <strong>{rejectTarget?.className}</strong> ({rejectTarget?.classCode})?
-                        This action cannot be undone.
-                    </span>
-                }
-                confirmText="Reject"
-                variant="destructive"
-                loading={actionLoading}
-                onConfirm={handleReject}
-                onCancel={() => setRejectTarget(null)}
-            />
+            {rejectTarget && (
+                <ReviewActionModal
+                    open={!!rejectTarget}
+                    title="Reject Training Request"
+                    description="Please provide a reason for rejecting this request."
+                    label="Rejection Reason"
+                    placeholder="Enter rejection reason..."
+                    confirmText="Reject"
+                    variant="destructive"
+                    loading={actionLoading}
+                    requireReason={true}
+                    onConfirm={handleReject}
+                    onCancel={() => setRejectTarget(null)}
+                />
+            )}
         </div>
     );
 }

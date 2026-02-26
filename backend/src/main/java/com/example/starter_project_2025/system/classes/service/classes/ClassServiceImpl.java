@@ -4,6 +4,7 @@ import com.example.starter_project_2025.system.classes.dto.response.TrainingClas
 import com.example.starter_project_2025.system.classes.dto.request.CreateTrainingClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.UpdateTrainingClassRequest;
+import com.example.starter_project_2025.system.classes.dto.request.ReviewClassRequest;
 import com.example.starter_project_2025.system.classes.entity.ClassStatus;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.classes.mapper.TrainingClassMapper;
@@ -156,7 +157,7 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
-    public TrainingClassResponse approveClass(UUID id, String approverEmail) {
+    public TrainingClassResponse approveClass(UUID id, String approverEmail, ReviewClassRequest request) {
 
         TrainingClass trainingClass = trainingClassRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Class not found"));
@@ -170,6 +171,9 @@ public class ClassServiceImpl implements ClassService {
 
         trainingClass.setClassStatus(ClassStatus.APPROVED);
         trainingClass.setApprover(approver);
+        if (request != null) {
+            trainingClass.setReviewReason(request.getReviewReason());
+        }
 
         // 🔥 NEW LOGIC
         if (!trainingClass.getStartDate().isAfter(LocalDate.now())) {
@@ -183,7 +187,7 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     @Transactional
-    public TrainingClassResponse rejectClass(UUID id, String approverEmail) {
+    public TrainingClassResponse rejectClass(UUID id, String approverEmail, ReviewClassRequest request) {
 
         TrainingClass trainingClass = trainingClassRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Class not found"));
@@ -198,6 +202,9 @@ public class ClassServiceImpl implements ClassService {
         trainingClass.setClassStatus(ClassStatus.REJECTED);
         trainingClass.setApprover(approver);
         trainingClass.setIsActive(false);
+        if (request != null) {
+            trainingClass.setReviewReason(request.getReviewReason());
+        }
 
         trainingClassRepository.save(trainingClass);
 

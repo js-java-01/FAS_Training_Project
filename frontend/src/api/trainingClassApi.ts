@@ -54,17 +54,19 @@ export const trainingClassApi = {
     },
 
     /* ============ APPROVE ============ */
-    approveClass: async (id: string): Promise<TrainingClass> => {
+    approveClass: async (id: string, reason?: string): Promise<TrainingClass> => {
         const res = await axiosInstance.put<TrainingClass>(
             `/classes/${id}/approve`,
+            { reviewReason: reason },
         );
         return res.data;
     },
 
     /* ============ REJECT ============ */
-    rejectClass: async (id: string): Promise<TrainingClass> => {
+    rejectClass: async (id: string, reason: string): Promise<TrainingClass> => {
         const res = await axiosInstance.put<TrainingClass>(
             `/classes/${id}/reject`,
+            { reviewReason: reason },
         );
         return res.data;
     },

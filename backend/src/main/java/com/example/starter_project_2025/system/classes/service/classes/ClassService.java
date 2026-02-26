@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
 
+import com.example.starter_project_2025.system.classes.dto.request.ReviewClassRequest;
+
 public interface ClassService {
 
     TrainingClassResponse getTrainingClassById(UUID id);
@@ -24,7 +26,7 @@ public interface ClassService {
             String email
     );
 
-    TrainingClassResponse approveClass(UUID id, String approverEmail);
-    TrainingClassResponse rejectClass(UUID id, String approverEmail);
+    TrainingClassResponse approveClass(UUID id, String approverEmail, ReviewClassRequest request);
+    TrainingClassResponse rejectClass(UUID id, String approverEmail, ReviewClassRequest request);
 
 }

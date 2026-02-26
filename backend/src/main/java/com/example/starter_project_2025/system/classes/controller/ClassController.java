@@ -3,6 +3,7 @@ package com.example.starter_project_2025.system.classes.controller;
 import com.example.starter_project_2025.system.classes.dto.request.CreateTrainingClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.UpdateTrainingClassRequest;
+import com.example.starter_project_2025.system.classes.dto.request.ReviewClassRequest;
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
 import com.example.starter_project_2025.system.classes.service.classes.ClassService;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ApiResponse;
@@ -82,12 +83,13 @@ public class ClassController {
         @PreAuthorize("hasAuthority('CLASS_UPDATE')")
         public ResponseEntity<TrainingClassResponse> approveClass(
                 @PathVariable UUID id,
+                @RequestBody(required = false) ReviewClassRequest request,
                 Authentication authentication
         ) {
                 String email = authentication.getName();
 
                 TrainingClassResponse response =
-                        classService.approveClass(id, email);
+                        classService.approveClass(id, email, request);
 
                 return ResponseEntity.ok(response);
         }
@@ -96,12 +98,13 @@ public class ClassController {
         @PreAuthorize("hasAuthority('CLASS_UPDATE')")
         public ResponseEntity<TrainingClassResponse> rejectClass(
                 @PathVariable UUID id,
+                @RequestBody(required = false) ReviewClassRequest request,
                 Authentication authentication
         ) {
                 String email = authentication.getName();
 
                 TrainingClassResponse response =
-                        classService.rejectClass(id, email);
+                        classService.rejectClass(id, email, request);
 
                 return ResponseEntity.ok(response);
         }
