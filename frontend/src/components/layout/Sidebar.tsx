@@ -13,6 +13,8 @@ import { useSidebarMenus } from "@/hooks/useSidebarMenus";
 import { TooltipWrapper } from "@/components/TooltipWrapper";
 import { Button } from "@/components/ui/button";
 import { LogOutIcon } from "lucide-react";
+
+// import { useAuth } from "@/hooks/useAuth"
 import { useNavigate } from "react-router-dom";
 import { authApi } from "@/api/authApi";
 

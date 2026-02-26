@@ -3,40 +3,53 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Upload,
-  Trash2,
   ImportIcon,
   FileSpreadsheet,
   Download,
   AlertCircle,
   XCircle,
 } from "lucide-react";
-import { TooltipWrapper } from "@/components/TooltipWrapper";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
+
+interface ImportResult {
+  message: string;
+  totalRows: number;
+  successCount: number;
+  failedCount: number;
+  errors: {
+    row: number;
+    field: string;
+    message: string;
+  }[];
+}
 
 export default function ImportTab({
   onImport,
   onDownloadTemplate,
 }: {
-  onImport: (file: File) => Promise<void>;
+  onImport: (file: File) => Promise<ImportResult>;
   onDownloadTemplate: () => Promise<void>;
 }) {
+  /* ================= STATE ================= */
+
   const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // ✅ no more boolean | null
   const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ImportResult | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /* ================= VALIDATE FILE ================= */
-  const validateFile = (file: File): boolean => {
-    if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
-      setError(
-        "Invalid file format. Only Excel files (.xlsx, .xls) are allowed.",
-      );
+
+  const validateFile = (selected: File): boolean => {
+    if (!selected.name.endsWith(".xlsx") && !selected.name.endsWith(".xls")) {
+      setError("Invalid file format. Only Excel files (.xlsx, .xls) allowed.");
       return false;
     }
 
-    if (file.size > MAX_FILE_SIZE) {
+    if (selected.size > MAX_FILE_SIZE) {
       setError("File size exceeds 50MB limit.");
       return false;
     }
@@ -44,11 +57,11 @@ export default function ImportTab({
     return true;
   };
 
-  /* ================= FILE SELECT ================= */
   const handleFileSelect = (selected: File | null) => {
     if (!selected) return;
 
     setError(null);
+    setResult(null);
 
     if (!validateFile(selected)) return;
 
@@ -56,37 +69,53 @@ export default function ImportTab({
   };
 
   /* ================= IMPORT ================= */
+
   const handleImportClick = async () => {
     if (!file || loading) return;
 
     try {
       setLoading(true);
       setError(null);
+      setResult(null);
 
-      await onImport(file);
+      const res = await onImport(file);
+      setResult(res);
 
-      setFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      // ✅ Clear file only if fully success
+      if (res.failedCount === 0) {
+        setFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
     } catch (err: any) {
-      setError(
-        err?.response?.data?.message ??
-          "Import failed. Please check your file and try again.",
-      );
+      const errorData = err?.response?.data;
+
+      if (errorData && typeof errorData.totalRows === "number") {
+        // API trả về result dù có lỗi
+        setResult(errorData);
+      } else {
+        setError(
+          errorData?.message ??
+            "Import failed. Please check your file and try again."
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  /* ================= REMOVE FILE ================= */
   const handleRemoveFile = () => {
     setFile(null);
     setError(null);
+    setResult(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  /* ================= UI ================= */
+
   return (
     <div className="space-y-6">
-      {/* ================= REQUIREMENT BOX ================= */}
+      {/* ================= REQUIREMENTS ================= */}
+
       <div className="bg-blue-50 border border-blue-200 rounded-lg text-sm">
         <div className="flex gap-3 p-4">
           <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
@@ -96,7 +125,7 @@ export default function ImportTab({
             </p>
             <ul className="mt-2 space-y-1 text-blue-800 text-xs">
               <li>• Excel files only (.xlsx, .xls)</li>
-              <li>• Maximum file size: 50MB</li>
+              <li>• Maximum size: 50MB</li>
               <li>• Follow template structure strictly</li>
             </ul>
           </div>
@@ -104,10 +133,11 @@ export default function ImportTab({
       </div>
 
       {/* ================= STEP 1 ================= */}
+
       <div>
         <h3 className="font-semibold text-sm">Step 1: Download Template</h3>
         <p className="text-xs text-muted-foreground mb-2">
-          Download the official Excel template to ensure correct structure.
+          Download official template to ensure correct structure.
         </p>
 
         <Button
@@ -122,6 +152,7 @@ export default function ImportTab({
       </div>
 
       {/* ================= STEP 2 ================= */}
+
       <div>
         <h3 className="font-semibold text-sm">Step 2: Select File</h3>
         <p className="text-xs text-muted-foreground mb-3">
@@ -151,7 +182,7 @@ export default function ImportTab({
                 Click or drag & drop file
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Supported formats: .xlsx, .xls
+                Supported: .xlsx, .xls
               </p>
             </>
           ) : (
@@ -159,12 +190,13 @@ export default function ImportTab({
               <div className="bg-green-100 p-2 rounded-lg">
                 <FileSpreadsheet className="h-5 w-5 text-green-600" />
               </div>
+
               <div className="text-left">
                 <p className="text-sm font-semibold truncate max-w-[220px]">
                   {file.name}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {(file.size / 1024).toFixed(1)} KB • Ready to import
+                  {(file.size / 1024).toFixed(1)} KB
                 </p>
               </div>
             </div>
@@ -185,10 +217,22 @@ export default function ImportTab({
           >
             {file ? "Change File" : "Choose File"}
           </Button>
+
+          {file && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-2 text-red-500"
+              onClick={handleRemoveFile}
+            >
+              Remove file
+            </Button>
+          )}
         </div>
       </div>
 
       {/* ================= ERROR ALERT ================= */}
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm flex justify-between items-start gap-3">
           <div className="flex gap-2">
@@ -196,63 +240,105 @@ export default function ImportTab({
             <span>{error}</span>
           </div>
 
-          <button
-            onClick={() => setError(null)}
-            className="text-red-500 hover:text-red-700"
-          >
+          <button onClick={() => setError(null)}>
             <XCircle className="h-4 w-4" />
           </button>
         </div>
       )}
 
       {/* ================= STEP 3 ================= */}
+
       {file && (
-        <div className="mt-6">
-          <h3 className="font-semibold text-sm mb-3">
-            Step 3: Confirm & Import
-          </h3>
+        <div className="border rounded-xl p-5 bg-white shadow-sm space-y-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm font-semibold">{file.name}</p>
 
-          <div className="border rounded-xl p-5 bg-white shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-blue-100 p-3 rounded-xl">
-                  <FileSpreadsheet className="h-5 w-5 text-blue-600" />
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold">{file.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {(file.size / 1024).toFixed(1)} KB
-                  </p>
-                </div>
-              </div>
-
-              <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
-                Ready
-              </span>
-            </div>
-
-            <div className="h-px bg-gray-100" />
-
-            <div className="flex justify-between items-center">
-              <Button
-                onClick={handleImportClick}
-                disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-6"
-              >
-                <ImportIcon className="h-4 w-4 mr-1" />
-                {loading ? "Importing..." : "Start Import"}
-              </Button>
-
-              <TooltipWrapper content="Remove file">
-                <Button variant="ghost" size="icon" onClick={handleRemoveFile}>
-                  <Trash2 className="h-4 w-4 text-red-500" />
-                </Button>
-              </TooltipWrapper>
-            </div>
+            <Button
+              onClick={handleImportClick}
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-6"
+            >
+              <ImportIcon className="h-4 w-4 mr-1" />
+              {loading ? "Importing..." : "Start Import"}
+            </Button>
           </div>
         </div>
       )}
+
+      {/* ================= RESULT ================= */}
+
+      {result && (
+        <div className="border rounded-xl p-6 bg-white shadow-sm space-y-5">
+          <div>
+            <h3 className="font-semibold text-base">Import Result</h3>
+            <p className="text-sm text-muted-foreground">
+              {result.message}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <StatCard label="Total" value={result.totalRows} />
+            <StatCard label="Success" value={result.successCount} color="green" />
+            <StatCard label="Failed" value={result.failedCount} color="red" />
+          </div>
+
+          {result.failedCount > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm font-semibold text-red-700 mb-3 flex gap-2">
+                <AlertCircle size={18} />
+                Failed Records
+              </p>
+
+              <div className="max-h-56 overflow-y-auto space-y-2 text-sm">
+                {result.errors.map((err, index) => (
+                  <div
+                    key={index}
+                    className="bg-white border rounded-md px-3 py-2"
+                  >
+                    <p>
+                      Row <span className="font-medium">{err.row}</span> —{" "}
+                      <span className="font-medium">{err.field}</span>
+                    </p>
+                    <p className="text-red-600 text-xs">
+                      {err.message}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ================= STAT CARD ================= */
+
+function StatCard({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number;
+  color?: "green" | "red";
+}) {
+  const colorMap = {
+    green: "text-green-600",
+    red: "text-red-600",
+  };
+
+  return (
+    <div className="bg-gray-50 rounded-lg p-4">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p
+        className={`text-xl font-semibold mt-1 ${
+          color ? colorMap[color] : ""
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

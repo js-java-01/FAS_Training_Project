@@ -12,15 +12,16 @@ export const useExportModules = () => {
 
 /* ========= IMPORT ========= */
 export const useImportModules = () => {
-    return useMutation({
-        mutationFn: async (file: File) => {
-            const formData = new FormData();
-            formData.append("file", file);
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
 
-            await moduleApi.importModules(formData);
-        },
-    });
-
+      const res = await moduleApi.importModules(formData);
+      console.log(res.data)
+      return res.data;
+    },
+  });
 };
 export const useDownloadTemplate = () => {
     return useMutation({

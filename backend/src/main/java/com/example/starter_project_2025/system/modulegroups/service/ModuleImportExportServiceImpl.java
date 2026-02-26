@@ -64,6 +64,15 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
 
     @Override
     public ImportResultResponse importExcel(MultipartFile file) {
+
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("File is empty");
+        }
+
+        if (!file.getOriginalFilename().toLowerCase().endsWith(".xlsx")) {
+            throw new RuntimeException("Invalid file format. Only .xlsx is allowed");
+        }
+
         ImportResultResponse result = new ImportResultResponse();
 
         try (InputStream is = file.getInputStream();
@@ -73,10 +82,15 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
             Iterator<Row> rows = sheet.iterator();
 
             if (!rows.hasNext()) {
-                return result;
+                throw new RuntimeException("File is empty");
             }
 
-            rows.next(); // skip header
+            Row header = rows.next();
+
+            if (header.getPhysicalNumberOfCells() != 8) {
+                throw new RuntimeException("Invalid template format");
+            }
+
             int rowIndex = 1;
 
             while (rows.hasNext()) {
@@ -84,6 +98,7 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
                 result.setTotalRows(result.getTotalRows() + 1);
 
                 try {
+
                     String title = getString(row, 0);
                     String url = getString(row, 1);
                     String icon = getString(row, 2);
@@ -94,38 +109,48 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
                     String requiredPermission = getString(row, 7);
 
                     // ===== VALIDATION =====
+
                     if (title == null || title.isBlank()) {
                         throw new IllegalArgumentException("title|Title is required");
                     }
+
+                    if (!title.matches("^[A-Za-z\\s]+$")) {
+                        throw new IllegalArgumentException("title|Only letters and spaces are allowed");
+                    }
+
+                    if (moduleRepository.existsByTitleIgnoreCase(title.trim())) {
+                        throw new IllegalArgumentException("title|Title already exists");
+                    }
+
                     if (url == null || url.isBlank()) {
                         throw new IllegalArgumentException("url|URL is required");
                     }
+
+                    if (url.contains(" ")) {
+                        throw new IllegalArgumentException("url|URL must not contain spaces");
+                    }
+
+                    if (moduleRepository.existsByUrlIgnoreCase(url.trim())) {
+                        throw new IllegalArgumentException("url|URL already exists");
+                    }
+
                     if (moduleGroupName == null || moduleGroupName.isBlank()) {
                         throw new IllegalArgumentException("moduleGroup|Module group is required");
                     }
 
                     List<ModuleGroups> groups =
-                            moduleGroupsRepository.findAllByNameAndIsActiveTrue(moduleGroupName);
+                            moduleGroupsRepository.findAllByNameAndIsActiveTrue(moduleGroupName.trim());
 
                     if (groups.isEmpty()) {
-                        throw new IllegalArgumentException(
-                                "moduleGroup|Module group not found: " + moduleGroupName
-                        );
+                        throw new IllegalArgumentException("moduleGroup|Module group not found");
                     }
 
-                    if (groups.size() > 1) {
-                        throw new IllegalArgumentException(
-                                "moduleGroup|Duplicate module group name: " + moduleGroupName
-                        );
-                    }
-
-                    ModuleGroups group = groups.get(0);
                     Module module = new Module();
-                    module.setTitle(title);
-                    module.setUrl(url);
+                    module.setTitle(title.trim());
+                    module.setUrl(url.trim());
                     module.setIcon(icon);
                     module.setDescription(description);
-                    module.setModuleGroup(group);
+                    module.setModuleGroup(groups.get(0));
                     module.setDisplayOrder(displayOrder);
                     module.setIsActive(isActive);
                     module.setRequiredPermission(requiredPermission);
@@ -134,14 +159,17 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
                     result.setSuccessCount(result.getSuccessCount() + 1);
 
                 } catch (Exception ex) {
+
                     result.setFailedCount(result.getFailedCount() + 1);
 
-                    String[] err = ex.getMessage().split("\\|");
+                    String msg = ex.getMessage() == null ? "Unknown error" : ex.getMessage();
+                    String[] err = msg.split("\\|");
+
                     result.getErrors().add(
                             new ImportErrorDetail(
                                     rowIndex + 1,
                                     err[0],
-                                    err.length > 1 ? err[1] : ex.getMessage()
+                                    err.length > 1 ? err[1] : msg
                             )
                     );
                 }
@@ -150,11 +178,12 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Module import failed", e);
+            throw new RuntimeException("Import modules failed");
         }
 
         return result;
     }
+
 
     @Override
     public ResponseEntity<byte[]> exportExcel() {
