@@ -11,6 +11,7 @@ import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
+import com.example.starter_project_2025.system.common.enums.LocationStatus;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
@@ -19,6 +20,8 @@ import com.example.starter_project_2025.system.location.data.entity.Commune;
 import com.example.starter_project_2025.system.location.data.entity.Province;
 import com.example.starter_project_2025.system.location.data.repository.CommuneRepository;
 import com.example.starter_project_2025.system.location.data.repository.ProvinceRepository;
+import com.example.starter_project_2025.system.location.entity.Location;
+import com.example.starter_project_2025.system.location.repository.LocationRepository;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
 import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
@@ -80,6 +83,7 @@ public class DataInitializer implements CommandLineRunner {
         private final QuestionRepository questionRepository;
         private final UserRoleRepository userRoleRepository;
         private final SemesterRepository semesterRepository;
+        private final LocationRepository locationRepository;
 
         @Override
         @Transactional
@@ -91,7 +95,8 @@ public class DataInitializer implements CommandLineRunner {
                         initializeRoles();
                         initializeUsers();
                         initializeMenus();
-                        // initializeLocationData();
+                        initializeLocationData();
+                        initializeLocations();
                         initializeModuleGroups();
                         initializeAssessmentType();
                         initializeAssessments();
@@ -827,6 +832,45 @@ public class DataInitializer implements CommandLineRunner {
         @JsonIgnoreProperties(ignoreUnknown = true)
         private record CommuneJson(String idProvince, String idCommune, String name) {
         }
+
+        private void initializeLocations() {
+                if (locationRepository.count() > 0) {
+                        log.info("Locations already exist, skipping initialization");
+                        return;
+                }
+
+                Location fptHcm = Location.builder()
+                        .name("FPT Software - TP. Ho Chi Minh")
+                        .address("Lo E2a-7, Duong D1, Khu Cong nghe cao, Phuong Tang Nhon Phu")
+                        .communeId("26842")
+                        .locationStatus(LocationStatus.ACTIVE)
+                        .build();
+
+                Location xavaloShtp = Location.builder()
+                        .name("Xavalo - Khu Cong Nghe Cao Sai Gon")
+                        .address("Duong So 8, Khu Cong nghe cao, Phuong Linh Xuan, TP. Thu Duc")
+                        .communeId("26800")
+                        .locationStatus(LocationStatus.INACTIVE)
+                        .build();
+
+                Location fptHanoi = Location.builder()
+                        .name("FPT Software - Ha Noi")
+                        .address("Toa nha FPT Cau Giay, Phuong Cau Giay, Quan Cau Giay")
+                        .communeId("00166")
+                        .locationStatus(LocationStatus.ACTIVE)
+                        .build();
+
+                Location fptDanang = Location.builder()
+                        .name("FPT Software - Da Nang")
+                        .address("Lo D26, Duong So 2, Khu Cong nghe cao Da Nang, Phuong Hoa Khanh")
+                        .communeId("20200")
+                        .locationStatus(LocationStatus.ACTIVE)
+                        .build();
+
+                locationRepository.saveAll(List.of(fptHcm, xavaloShtp, fptHanoi, fptDanang));
+                log.info("Initialized {} locations", 4);
+        }
+
 
         private void initializeSemester() {
 
