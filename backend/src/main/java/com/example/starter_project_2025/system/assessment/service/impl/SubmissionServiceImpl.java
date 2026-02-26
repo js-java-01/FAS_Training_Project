@@ -2,14 +2,21 @@ package com.example.starter_project_2025.system.assessment.service.impl;
 
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
+import com.example.starter_project_2025.system.assessment.dto.UserAssessmentDTO;
 import com.example.starter_project_2025.system.assessment.entity.*;
+import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.enums.QuestionType;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.assessment.dto.submission.request.StartSubmissionRequest;
 import com.example.starter_project_2025.system.assessment.dto.submission.request.SubmitAnswerRequest;
 import com.example.starter_project_2025.system.assessment.dto.submission.request.SubmitSubmissionRequest;
+import com.example.starter_project_2025.system.assessment.dto.submission.response.QuestionOptionResponse;
+import com.example.starter_project_2025.system.assessment.dto.submission.response.SubmissionQuestionResponse;
+import com.example.starter_project_2025.system.assessment.dto.submission.response.SubmissionResponse;
 import com.example.starter_project_2025.system.assessment.enums.SubmissionStatus;
+import com.example.starter_project_2025.system.assessment.mapper.SubmissionMapper;
+import com.example.starter_project_2025.system.assessment.repository.QuestionOptionRepository;
 import com.example.starter_project_2025.system.assessment.repository.SubmissionRepository;
 import com.example.starter_project_2025.system.assessment.service.GradingService;
 import com.example.starter_project_2025.system.assessment.service.SubmissionService;
@@ -20,12 +27,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +45,8 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     private final SubmissionRepository submissionRepository;
     private final UserRepository userRepository;
+    private final SubmissionMapper submissionMapper;
+    private final QuestionOptionRepository questionOptionRepository;
     @Autowired
     private AssessmentRepository assessmentRepository;
     @Autowired
@@ -47,7 +60,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Assessment assessment = assessmentRepository.findById(request.getAssessmentId())
+        Assessment assessment = assessmentRepository.findByIdWithQuestions(request.getAssessmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Assessment not found"));
 
         Submission submission = Submission.builder()
@@ -96,20 +109,24 @@ public class SubmissionServiceImpl implements SubmissionService {
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Submission question not found"));
 
-        // ===== PREVENT MULTIPLE ANSWERS =====
+        SubmissionAnswer answer;
+
+        // ===== AUTO-SAVE: UPDATE OR CREATE =====
         if (!question.getSubmissionAnswers().isEmpty()) {
-            throw new BadRequestException("Question already answered");
+            // Update existing answer (auto-save support)
+            answer = question.getSubmissionAnswers().get(0);
+            answer.setAnswerValue(request.getAnswerValue());
+        } else {
+            // Create new answer
+            answer = SubmissionAnswer.builder()
+                    .submission(submission)
+                    .submissionQuestion(question)
+                    .answerValue(request.getAnswerValue())
+                    .build();
+            question.getSubmissionAnswers().add(answer);
         }
 
-        SubmissionAnswer answer = SubmissionAnswer.builder()
-                .submission(submission)
-                .submissionQuestion(question)
-                .answerValue(request.getAnswerValue())
-                .build();
-
         gradingService.gradeAnswer(question, answer);
-
-        question.getSubmissionAnswers().add(answer);
 
         return submission;
     }
@@ -121,6 +138,35 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         if (submission.getStatus() != SubmissionStatus.IN_PROGRESS) {
             throw new BadRequestException("Submission already submitted");
+        }
+
+        // Process bulk answers if provided
+        if (request.getAnswers() != null && !request.getAnswers().isEmpty()) {
+            request.getAnswers().forEach(answerSubmission -> {
+                SubmissionQuestion question = submission.getSubmissionQuestions()
+                        .stream()
+                        .filter(q -> q.getId().equals(answerSubmission.getSubmissionQuestionId()))
+                        .findFirst()
+                        .orElseThrow(() -> new ResourceNotFoundException("Submission question not found"));
+
+                SubmissionAnswer answer;
+
+                if (!question.getSubmissionAnswers().isEmpty()) {
+                    // Update existing answer
+                    answer = question.getSubmissionAnswers().get(0);
+                    answer.setAnswerValue(answerSubmission.getAnswerValue());
+                } else {
+                    // Create new answer
+                    answer = SubmissionAnswer.builder()
+                            .submission(submission)
+                            .submissionQuestion(question)
+                            .answerValue(answerSubmission.getAnswerValue())
+                            .build();
+                    question.getSubmissionAnswers().add(answer);
+                }
+
+                gradingService.gradeAnswer(question, answer);
+            });
         }
 
         submission.setStatus(SubmissionStatus.SUBMITTED);
@@ -136,7 +182,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     @Transactional(readOnly = true)
     public Page<Submission> searchSubmissions(
             UUID userId,
-            UUID assessmentId,
+            Long assessmentId,
             Pageable pageable
     ) {
 
@@ -150,7 +196,88 @@ public class SubmissionServiceImpl implements SubmissionService {
     @Override
     @Transactional(readOnly = true)
     public Submission getSubmissionById(UUID submissionId) {
-        return submissionRepository.findById(submissionId)
+        return submissionRepository.findByIdWithQuestions(submissionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Submission not found"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserAssessmentDTO> getUserAssessments(UUID userId) {
+        List<Assessment> assessments = assessmentRepository.findAll(
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        ).stream()
+                .filter(a -> a.getStatus() == AssessmentStatus.ACTIVE)
+                .collect(Collectors.toList());
+
+        return assessments.stream().map(assessment -> {
+            long attemptCount = submissionRepository.countByUserIdAndAssessmentId(userId, assessment.getId());
+
+            List<Submission> userSubmissions = submissionRepository.findAll().stream()
+                    .filter(s -> s.getUser().getId().equals(userId) && s.getAssessment().getId().equals(assessment.getId()))
+                    .sorted(Comparator.comparing(Submission::getStartedAt).reversed())
+                    .collect(Collectors.toList());
+
+            Submission latest = userSubmissions.isEmpty() ? null : userSubmissions.get(0);
+
+            UserAssessmentDTO dto = new UserAssessmentDTO();
+            dto.setAssessmentId(assessment.getId());
+            dto.setCode(assessment.getCode());
+            dto.setTitle(assessment.getTitle());
+            dto.setDescription(assessment.getDescription());
+            dto.setTotalScore(assessment.getTotalScore());
+            dto.setPassScore(assessment.getPassScore());
+            dto.setTimeLimitMinutes(assessment.getTimeLimitMinutes());
+            dto.setAttemptLimit(assessment.getAttemptLimit());
+            dto.setAttemptCount(attemptCount);
+            dto.setLatestStatus(latest != null ? latest.getStatus().name() : "NEW");
+            dto.setIsPassed(latest != null ? latest.getIsPassed() : null);
+            dto.setLastSubmissionId(latest != null ? latest.getId() : null);
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    /* ===== DTO methods with enrichment logic ===== */
+
+    @Override
+    @Transactional(readOnly = true)
+    public SubmissionResponse getSubmissionResponseById(UUID submissionId) {
+        Submission submission = getSubmissionById(submissionId);
+        return enrichSubmissionResponse(submission);
+    }
+
+    @Override
+    @Transactional
+    public SubmissionResponse startSubmissionAndGetResponse(UUID userId, StartSubmissionRequest request) {
+        Submission submission = startSubmission(userId, request);
+        return enrichSubmissionResponse(submission);
+    }
+
+    private SubmissionResponse enrichSubmissionResponse(Submission submission) {
+        // Basic mapping
+        SubmissionResponse response = submissionMapper.toSubmissionResponse(submission);
+
+        // Enrich each question with options
+        if (response.getSubmissionQuestions() != null) {
+            response.getSubmissionQuestions().forEach(questionResponse -> {
+                List<QuestionOption> options = questionOptionRepository
+                        .findByQuestionId(questionResponse.getOriginalQuestionId());
+
+                boolean isSubmitted = submission.getStatus() == SubmissionStatus.SUBMITTED;
+
+                List<QuestionOptionResponse> optionResponses = options.stream()
+                        .map(opt -> new QuestionOptionResponse(
+                                opt.getId(),
+                                opt.getContent(),
+                                opt.getOrderIndex(),
+                                isSubmitted ? opt.isCorrect() : null // Only expose correct answers after submission
+                        ))
+                        .collect(Collectors.toList());
+
+                questionResponse.setOptions(optionResponses);
+            });
+        }
+
+        return response;
     }
 }
