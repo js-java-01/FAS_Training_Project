@@ -22,7 +22,7 @@ public interface AuthService
 
     void logout(HttpServletRequest request, HttpServletResponse response);
 
-    LoginResponse refresh(String token);
-
     LoginResponse switchRole(GetPermissonReqDTO data, String email, HttpServletResponse response);
+
+    LoginResponse refresh(String token, HttpServletResponse response);
 }
