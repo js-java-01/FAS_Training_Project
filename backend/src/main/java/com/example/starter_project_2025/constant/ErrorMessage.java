@@ -13,4 +13,9 @@ public class ErrorMessage
 
     // ROLE
     public static final String ROLE_NOT_FOUND = "Default Role not found";
+
+    // RT TOKEN
+    public static final String TOKEN_DOES_NOT_EXIST = "Token does not exist in the database";
+    public static final String TOKEN_HAS_BEEN_REVOKED = "Token has been revoked";
+    public static final String TOKEN_HAS_BEEN_USED = "Token has been used. Please login again to get a new token.";
 }

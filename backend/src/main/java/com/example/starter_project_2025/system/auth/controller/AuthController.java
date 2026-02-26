@@ -81,13 +81,13 @@ public class AuthController
 
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refresh(
-            @CookieValue(value = "refresh_token", required = false) String rtToken)
+            @CookieValue(value = "refresh_token", required = false) String rtToken, HttpServletResponse response)
     {
         if (rtToken == null || rtToken.isEmpty())
         {
             throw new UnauthenticatedException(ErrorMessage.REFRESH_TOKEN_MISSING);
         }
-        var res = authService.refresh(rtToken);
+        var res = authService.refresh(rtToken, response);
         return ResponseEntity.ok(res);
     }
 
