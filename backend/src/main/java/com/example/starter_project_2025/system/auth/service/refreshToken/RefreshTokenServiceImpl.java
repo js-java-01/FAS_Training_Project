@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.auth.service.refreshToken;
 
+import com.example.starter_project_2025.constant.ErrorMessage;
 import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.auth.entity.RefreshToken;
 import com.example.starter_project_2025.system.auth.entity.Role;
@@ -55,5 +56,27 @@ public class RefreshTokenServiceImpl implements RefreshTokenService
     {
         refreshTokenRepository.revokeAllByUserId(userId);
         refreshTokenRepository.flush();
+    }
+
+    @Override
+    public RefreshToken verifyRefreshToken(String token)
+    {
+        RefreshToken refToken = refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException(ErrorMessage.TOKEN_DOES_NOT_EXIST));
+
+        if (refToken.isRevoked())
+        {
+            refreshTokenRepository.revokeAllByUser(refToken.getUser());
+            refreshTokenRepository.flush();
+            throw new RuntimeException(ErrorMessage.TOKEN_HAS_BEEN_REVOKED);
+        }
+
+        if (refToken.getExpiryDate().compareTo(Instant.now()) < 0)
+        {
+            refreshTokenRepository.delete(refToken);
+            throw new RuntimeException(ErrorMessage.TOKEN_HAS_BEEN_USED);
+        }
+
+        return refToken;
     }
 }
