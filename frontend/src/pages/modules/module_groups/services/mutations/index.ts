@@ -12,15 +12,20 @@ export const useExportModuleGroup = () => {
 
 /* ========= IMPORT ========= */
 export const useImportModuleGroup = () => {
-    return useMutation({
-        mutationFn: async (file: File) => {
-            const formData = new FormData();
-            formData.append("file", file);
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
 
-            await moduleGroupApi.importModuleGroups(formData);
-        },
-    });
+      const response =
+        await moduleGroupApi.importModuleGroups(formData);
+
+      return response.data;
+    },
+  });
 };
+
+/* ========= DOWNLOAD TEMPLATE ========= */
 export const useDownloadTemplate = () => {
     return useMutation({
         mutationFn: async () => {
