@@ -6,6 +6,7 @@ import ActionBtn from "@/components/data_table/ActionBtn";
 import { EditIcon, EyeIcon, Trash } from "lucide-react";
 import dayjs from "dayjs";
 import SortHeader from "@/components/data_table/SortHeader.tsx";
+import { USER_ROLE } from "@/types/auth";
 
 export type TableActions = {
   onView?: (row: ModuleGroup) => void;
@@ -132,7 +133,7 @@ export const getColumns = (actions?: TableActions, role?: string) => {
             />
           )}
 
-          {role === "ADMIN" && actions?.onEdit && (
+          {role === USER_ROLE.ADMIN && actions?.onEdit && (
             <ActionBtn
               tooltipText="Edit"
               icon={<EditIcon size={12} />}
@@ -140,7 +141,7 @@ export const getColumns = (actions?: TableActions, role?: string) => {
             />
           )}
 
-          {role === "ADMIN" && actions?.onDelete && (
+          {role === USER_ROLE.ADMIN && actions?.onDelete && (
             <ActionBtn
               tooltipText="Delete"
               icon={<Trash size={12} />}

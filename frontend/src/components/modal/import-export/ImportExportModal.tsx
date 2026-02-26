@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
-import ImportTab from "./ImportTab";
+import ImportTab, { type ImportResult } from "./ImportTab";
 import ExportTab from "./ExportTab";
 
 export default function ImportExportModal({
@@ -23,7 +23,7 @@ export default function ImportExportModal({
   title?: string;
   open: boolean;
   setOpen: (open: boolean) => void;
-  onImport: (file: File) => Promise<void>;
+  onImport: (file: File) => Promise<ImportResult>;
   onExport: () => Promise<void>;
   onDownloadTemplate: () => Promise<void>;
 }) {
