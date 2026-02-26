@@ -71,7 +71,7 @@ export default function TrainingClassesTable() {
     const columns = useMemo(
         () =>
             getColumns({
-                onNavigate: (id) => navigate(`/training-classes/${id}`),
+                onNavigate: (row) => navigate(`/training-classes/${row.id}`, { state: { trainingClass: row } }),
             }),
         [navigate],
     );

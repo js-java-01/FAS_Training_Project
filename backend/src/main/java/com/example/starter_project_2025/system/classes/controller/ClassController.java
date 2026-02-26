@@ -24,6 +24,15 @@ public class ClassController {
 
         private final ClassService classService;
 
+        @GetMapping("/{id}")
+        @PreAuthorize("hasAuthority('CLASS_CREATE')")
+        public ResponseEntity<ApiResponse<TrainingClassResponse>> getTrainingClassById(
+                        @PathVariable UUID id) {
+                TrainingClassResponse response = classService.getTrainingClassById(id);
+                return ResponseEntity.ok(
+                                ApiResponse.success(response, "Training class retrieved successfully"));
+        }
+
         @GetMapping(params = "page")
         @PreAuthorize("hasAuthority('CLASS_CREATE')")
         public ResponseEntity<ApiResponse<PageResponse<TrainingClassResponse>>> searchTrainingClasses(

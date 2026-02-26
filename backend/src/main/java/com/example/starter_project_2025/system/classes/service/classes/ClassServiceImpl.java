@@ -32,6 +32,13 @@ public class ClassServiceImpl implements ClassService {
     private final TrainingClassMapper mapper;
 
     @Override
+    public TrainingClassResponse getTrainingClassById(UUID id) {
+        TrainingClass trainingClass = trainingClassRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Training class not found"));
+        return mapper.toResponse(trainingClass);
+    }
+
+    @Override
     public TrainingClassResponse openClassRequest(CreateTrainingClassRequest request, String email) {
 
         // ===== NORMALIZE =====

@@ -1,11 +1,38 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useGetTrainingClassById } from "./services/queries";
+import type { TrainingClass } from "@/types/trainingClass";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+    Breadcrumb,
+    BreadcrumbList,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileDown } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import ClassInfoTab from "./components/ClassInfoTab";
+
+function ClassBreadcrumb() {
+    return (
+        <Breadcrumb>
+            <BreadcrumbList>
+                <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                        <Link to="/training-classes">Classes</Link>
+                    </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator>&gt;</BreadcrumbSeparator>
+                <BreadcrumbItem>
+                    <BreadcrumbPage>Detail</BreadcrumbPage>
+                </BreadcrumbItem>
+            </BreadcrumbList>
+        </Breadcrumb>
+    );
+}
 
 const TABS = [
     { value: "class-info", label: "Class Info" },
@@ -19,17 +46,20 @@ const TABS = [
 export default function ClassDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const { data: trainingClass, isLoading } = useGetTrainingClassById(id);
+    /* Data passed from the table via navigate state */
+    const stateClass = (location.state as { trainingClass?: TrainingClass })?.trainingClass ?? null;
+
+    /* Fetch from API (will also work for direct URL navigation) */
+    const { data: fetchedClass, isLoading } = useGetTrainingClassById(id);
+
+    /* Prefer fetched data, fall back to route state */
+    const trainingClass = fetchedClass ?? stateClass;
 
     return (
-        <MainLayout
-            pathName={{
-                "training-classes": "Classes",
-                ...(id ? { [id]: "Detail" } : {}),
-            }}
-        >
-            {isLoading ? (
+        <MainLayout customBreadcrumb={<ClassBreadcrumb />}>
+            {isLoading && !trainingClass ? (
                 <div className="flex items-center justify-center py-20 text-muted-foreground">
                     Loading…
                 </div>
@@ -41,36 +71,16 @@ export default function ClassDetailPage() {
                     </Button>
                 </div>
             ) : (
-                <div className="flex flex-col gap-6 h-full">
-                    {/* ── Header ── */}
+                <div className="flex flex-col gap-4 h-full">
+                    {/* ── Page Title Row ── */}
                     <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-bold tracking-tight">
-                                    {trainingClass.className}
-                                </h1>
-                                <span className="font-mono text-sm text-muted-foreground">
-                                    {trainingClass.classCode}
-                                </span>
-                                <Badge
-                                    className={
-                                        trainingClass.isActive
-                                            ? "bg-blue-100 text-blue-700 border-blue-200 shadow-none"
-                                            : "bg-yellow-100 text-yellow-700 border-yellow-200 shadow-none"
-                                    }
-                                >
-                                    {trainingClass.isActive ? "Planning" : "Pending"}
-                                </Badge>
-                            </div>
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight">Classes</h1>
                             <p className="text-sm text-muted-foreground">
                                 Classes details and configuration
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm" className="gap-1.5">
-                                <FileDown className="h-4 w-4" />
-                                Export Data
-                            </Button>
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -81,6 +91,25 @@ export default function ClassDetailPage() {
                                 Back to list
                             </Button>
                         </div>
+                    </div>
+
+                    {/* ── Class Name + Code + Badge ── */}
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-lg font-semibold">
+                            {trainingClass.className}
+                        </h2>
+                        <span className="font-mono text-sm text-muted-foreground">
+                            {trainingClass.classCode}
+                        </span>
+                        <Badge
+                            className={
+                                trainingClass.isActive
+                                    ? "bg-blue-100 text-blue-700 border-blue-200 shadow-none"
+                                    : "bg-yellow-100 text-yellow-700 border-yellow-200 shadow-none"
+                            }
+                        >
+                            {trainingClass.isActive ? "Planning" : "Pending"}
+                        </Badge>
                     </div>
 
                     {/* ── Tabs ── */}

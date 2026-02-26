@@ -11,6 +11,8 @@ import java.util.UUID;
 
 public interface ClassService {
 
+    TrainingClassResponse getTrainingClassById(UUID id);
+
     TrainingClassResponse openClassRequest(CreateTrainingClassRequest request, String email);
 
     Page<TrainingClassResponse> searchTrainingClasses(SearchClassRequest request);

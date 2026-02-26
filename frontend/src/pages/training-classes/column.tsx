@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import SortHeader from "@/components/data_table/SortHeader";
 
 export type TableActions = {
-    onNavigate?: (id: string) => void;
+    onNavigate?: (row: TrainingClass) => void;
 };
 
 export const getColumns = (actions?: TableActions) => {
@@ -146,7 +146,7 @@ export const getColumns = (actions?: TableActions) => {
                         <ActionBtn
                             tooltipText="View"
                             icon={<EyeIcon size={12} />}
-                            onClick={() => actions.onNavigate!(row.original.id)}
+                            onClick={() => actions.onNavigate!(row.original)}
                         />
                     )}
                     <ActionBtn
