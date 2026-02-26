@@ -1,4 +1,5 @@
 package com.example.starter_project_2025.system.course.entity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,15 +11,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+
 import java.util.UUID;
+
 import com.example.starter_project_2025.system.course.enums.SessionType;
 
 @Entity
 @Table(name = "sessions")
-@Getter @Setter
-
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Session {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

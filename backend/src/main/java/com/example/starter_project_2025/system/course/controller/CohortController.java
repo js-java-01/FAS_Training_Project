@@ -10,9 +10,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -68,5 +70,29 @@ public class CohortController {
     @Operation(summary = "Get all cohorts")
     public ResponseEntity<List<CohortResponse>> getAll() {
         return ResponseEntity.ok(cohortService.getAll());
+    }
+
+    @GetMapping("/export")
+    @PreAuthorize("hasAuthority('COHORT_READ')")
+    @Operation(summary = "Export cohorts by course to Excel")
+    public ResponseEntity<byte[]> exportCohorts(@RequestParam UUID courseId) {
+        return cohortService.exportCohorts(courseId);
+    }
+
+    @GetMapping("/template")
+    @PreAuthorize("hasAuthority('COHORT_READ')")
+    @Operation(summary = "Download cohort import template")
+    public ResponseEntity<byte[]> downloadTemplate() {
+        return cohortService.downloadTemplate();
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('COHORT_CREATE')")
+    @Operation(summary = "Import cohorts from Excel")
+    public ResponseEntity<Void> importCohorts(
+            @RequestParam UUID courseId,
+            @RequestPart("file") MultipartFile file) {
+        cohortService.importCohorts(courseId, file);
+        return ResponseEntity.ok().build();
     }
 }
