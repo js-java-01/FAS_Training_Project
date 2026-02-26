@@ -3,6 +3,7 @@ import { UserManagement } from "@/pages/UserManagement";
 import { Dashboard } from "@/pages/Dashboard";
 import ModulesManagement from "@/pages/modules/module/ModulesManagement.tsx";
 import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsManagement.tsx";
+import TrainingClassesManagement from "@/pages/training-classes/TrainingClassesManagement.tsx";
 import NotFoundPage from "@/pages/NotFoundPage.tsx";
 import { RoleManagement } from "@/pages/RoleManagement.tsx";
 import LocationsManagement from "@/pages/locations/LocationsManagement.tsx";
@@ -12,6 +13,7 @@ export const componentRegistry: Record<string, ComponentType> = {
     "/users": UserManagement,
     "/modules": ModulesManagement,
     "/moduleGroups": ModuleGroupsManagement,
+    "/training-classes": TrainingClassesManagement,
     "/notFoundPage": NotFoundPage,
     "/roles": RoleManagement,
     "/locations": LocationsManagement,

@@ -119,7 +119,7 @@ export const moduleApi = {
   getAllModules: async (params: {
     page: number;
     size: number;
-    sort?: string;
+    sort?: string | string[];
     keyword?: string;
     isActive?: boolean;
     moduleGroupId?: string;

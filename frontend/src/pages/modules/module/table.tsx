@@ -12,7 +12,7 @@ import { moduleApi, moduleGroupApi } from "@/api/moduleApi";
 import type { Module, CreateModuleRequest } from "@/types/module";
 import { ModuleForm } from "./ModuleForm";
 import { useDebounce } from "@uidotdev/usehooks";
-import { useGetAllModules } from "./services/queries";
+import { useGetAllModules } from "./services/queries/index";
 import { ModuleDetailDialog } from "./DetailDialog";
 import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import {
@@ -21,9 +21,14 @@ import {
   useImportModules,
 } from "@/pages/modules/module/services/mutations";
 import { FacetedFilter } from "@/components/FacedFilter";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
+  /* ---------- get role ---------- */
+  const role = useSelector((state: RootState) => state.auth.role);
+
   /* ---------- modal & view ---------- */
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
@@ -54,6 +59,7 @@ export default function ModulesTable() {
     moduleGroupFilter.length === 1 ? moduleGroupFilter[0] : undefined;
 
   /* ---------- sort param (server side) ---------- */
+  /* ===================== SORT ===================== */
   const sortParam = useMemo(() => {
     if (!sorting.length) return "displayOrder,asc";
     const { id, desc } = sorting[0];
@@ -159,8 +165,8 @@ export default function ModulesTable() {
           setIsFormOpen(true);
         },
         onDelete: setDeletingModule,
-      }),
-    [],
+      }, role),
+    [role],
   );
 
   /* ================= IMPORT / EXPORT / TEMPLATE ================= */
@@ -246,25 +252,28 @@ export default function ModulesTable() {
         manualSorting
         /* Header */
         headerActions={
-          <div className={"flex flex-row gap-2"}>
-            <Button
-              variant="secondary"
-              onClick={() => setOpenBackupModal(true)}
-            >
-              <DatabaseBackup className="h-4 w-4" />
-              Import / Export
-            </Button>
-            <Button
-              onClick={() => {
-                setEditingModule(null);
-                setIsFormOpen(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add New Module
-            </Button>
-          </div>
+          role === "ADMIN" && (
+            <div className="flex flex-row gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setOpenBackupModal(true)}
+              >
+                <DatabaseBackup className="h-4 w-4" />
+                Import / Export
+              </Button>
+
+              <Button
+                onClick={() => {
+                  setEditingModule(null);
+                  setIsFormOpen(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add New Module
+              </Button>
+            </div>
+          )
         }
         /*Faced filter */
         facetedFilters={

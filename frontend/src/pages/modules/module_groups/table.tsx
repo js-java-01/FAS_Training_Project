@@ -21,10 +21,15 @@ import {
 } from "@/pages/modules/module_groups/services/mutations";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 
 /* ======================================================= */
 
 export default function ModuleGroupsTable() {
+  /* ---------- get role ---------- */
+  const role = useSelector((state: RootState) => state.auth.role);
+
   /* ===================== STATE ===================== */
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pageIndex, setPageIndex] = useState(0);
@@ -99,8 +104,8 @@ export default function ModuleGroupsTable() {
           setOpenForm(true);
         },
         onDelete: setDeleting,
-      }),
-    [],
+      }, role),
+    [role],
   );
 
   /* ===================== HANDLERS ===================== */
@@ -220,7 +225,7 @@ export default function ModuleGroupsTable() {
 
         /* ACTIONS */
         headerActions={
-          <div className="flex gap-2">
+          role === "ADMIN" && (<div className="flex gap-2">
             <Button
               variant="secondary"
               onClick={() => setOpenBackupModal(true)}
@@ -239,7 +244,7 @@ export default function ModuleGroupsTable() {
               <Plus className="h-4 w-4" />
               Add New Group
             </Button>
-          </div>
+          </div>)
         }
 
         facetedFilters={

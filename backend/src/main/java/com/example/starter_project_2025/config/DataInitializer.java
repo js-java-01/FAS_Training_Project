@@ -727,30 +727,33 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized {} courses", 2);
     }
 
-    // ---------------- SEMESTER ----------------
-
-    private void initializeSemester() {
-        if (semesterRepository.count() > 0) {
-            return;
-        }
-
-        Semester spring2026 = new Semester();
-        spring2026.setName("Spring 2026");
-        spring2026.setStartDate(LocalDate.of(2026, 1, 5));
-        spring2026.setEndDate(LocalDate.of(2026, 4, 30));
-        semesterRepository.save(spring2026);
-
-        log.info("Initialized Semester: Spring 2026");
-    }
-
     // ---------------- JSON RECORDS ----------------
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record LocationDataJson(List<ProvinceJson> province, List<CommuneJson> commune) {}
+    private record LocationDataJson(List<ProvinceJson> province, List<CommuneJson> commune) {
+    }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record ProvinceJson(String idProvince, String name) {}
+    private record ProvinceJson(String idProvince, String name) {
+    }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record CommuneJson(String idProvince, String idCommune, String name) {}
+    private record CommuneJson(String idProvince, String idCommune, String name) {
+    }
+        private void initializeSemester() {
+
+                if (semesterRepository.count() > 0) {
+                        return;
+                }
+
+                Semester spring2026 = new Semester();
+                spring2026.setName("Spring 2026");
+                spring2026.setStartDate(LocalDate.of(2026, 1, 5));
+                spring2026.setEndDate(LocalDate.of(2026, 4, 30));
+
+                semesterRepository.save(spring2026);
+
+                log.info("Initialized Semester: Spring 2026");
+        }
+
 }

@@ -1,10 +1,9 @@
 import { useSelector } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import type { RootState } from "./store/store";
-import { AuthProvider } from "./contexts/AuthContext";
 import { useActiveModuleGroups } from "./hooks/useSidebarMenus";
 import NotFoundPage from "./pages/NotFoundPage";
-
+import { AuthProvider } from "./contexts/AuthContext";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Login } from "./pages/auth/Login";
 import { Unauthorized } from "./pages/Unauthorized";
@@ -12,67 +11,26 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
-import { Dashboard } from "./pages/Dashboard";
-import { UserManagement } from "./pages/UserManagement";
-import { RoleManagement } from "./pages/RoleManagement";
-
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
+import ModulesManagement from "./pages/modules/module/ModulesManagement";
+import { componentRegistry } from "./router/componentRegistry";
+import { Toaster } from "sonner";
+import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
 import { AssessmentFormPage, TeacherAssessmentPage } from "./pages/teacher-assessment";
 import { QuestionCategoryManagement } from "./pages/question-category";
 import { CreateQuestionPage, EditQuestionPage, QuestionManagementPage } from "./pages/question";
 import { Logout } from "./components/auth/Logout";
 import AssessmentManagement from "./pages/AssessmentManagement";
-import { LocationManagement } from "./pages/LocationManagement";
 import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
-import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
-import ModulesManagement from "./pages/modules/module/ModulesManagement";
-import { componentRegistry } from "./router/componentRegistry";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { useEffect, useState } from "react";
-import { MfaPromptModal } from "./components/MfaPromptModal";
-import mfaGate from "./api/mfaGate";
-import axiosInstance from "./api/axiosInstance";
-import MfaSettings from "./pages/MfaSettings";
-import { Toaster } from "sonner";
-import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
-
+import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { data: moduleGroups = [] } = useActiveModuleGroups(isAuthenticated);
-  const [showMfaModal, setShowMfaModal] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = mfaGate.subscribe(() => {
-      if (mfaGate.hasPendingRequests()) {
-        setShowMfaModal(true);
-      }
-    });
-
-    return unsubscribe;
-  }, []);
-
-  const handleMfaSuccess = () => {
-    mfaGate.resolveAll((config) => axiosInstance(config));
-    setShowMfaModal(false);
-  };
-
-  const handleMfaCancel = () => {
-    mfaGate.rejectAll(new Error("MFA cancelled by user"));
-    setShowMfaModal(false);
-  };
-
   return (
     <BrowserRouter>
-      <MfaPromptModal 
-        open={showMfaModal}
-        onStepUpSuccess={handleMfaSuccess}
-        onCancel={handleMfaCancel}
-      />
-
       <Toaster
         duration={1500}
         position="top-right"
@@ -91,7 +49,6 @@ function App() {
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/mfa-settings" element={<ProtectedRoute><MfaSettings /></ProtectedRoute>} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             {moduleGroups.flatMap((group) =>
@@ -121,15 +78,15 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-            {/* <Route
-              path="/locations"
+             <Route
+              path="/training-classes"
               element={
-                <ProtectedRoute requiredPermission="LOCATION_READ">
-                  <LocationManagement />
+                <ProtectedRoute requiredPermission="CLASS_CREATE">
+                  <TrainingClassesManagement />
                 </ProtectedRoute>
               }
-            /> */}
+            />
+
             <Route
               path="/programming-languages"
               element={
