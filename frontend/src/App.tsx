@@ -29,6 +29,7 @@ import { LocationManagement } from "./pages/LocationManagement";
 import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
+import { QuizPage, SelectAssessmentPage, ResultPage, AttemptHistoryPage } from "./pages/exam";
 
 
 function App() {
@@ -52,7 +53,6 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/logout" element={<Logout />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -128,6 +128,34 @@ function App() {
             />
 
             <Route
+              path="/exam"
+              element={
+                   <SelectAssessmentPage />
+              }
+            />
+
+            <Route
+              path="/exam/quiz/:submissionId"
+              element={
+                   <QuizPage />
+              }
+            />
+
+            <Route
+              path="/exam/result/:submissionId"
+              element={
+                   <ResultPage />
+              }
+            />
+
+            <Route
+              path="/exam/history/:assessmentId"
+              element={
+                   <AttemptHistoryPage />
+              }
+            />
+
+            <Route
               path="/teacher-assessment"
               element={
                 <ProtectedRoute requiredPermission="ASSESSMENT_READ">
@@ -159,15 +187,6 @@ function App() {
               element={
                 <ProtectedRoute requiredPermission="QUESTION_CATEGORY_READ">
                   <QuestionCategoryManagement />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/programming-languages"
-              element={
-                <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
-                  <ProgrammingLanguageManagement />
                 </ProtectedRoute>
               }
             />
