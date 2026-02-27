@@ -12,7 +12,5 @@ import java.util.Optional;
 @Repository
 public interface AssessmentTypeRepository extends JpaRepository<AssessmentType,String>, JpaSpecificationExecutor<AssessmentType> {
     boolean existsByName(String name);
-    Page<AssessmentType> findByNameContainingIgnoreCase(String name, Pageable pageable);
-    AssessmentType findAssessmentById(String id);
     Optional<AssessmentType> findByName(String name);
 }

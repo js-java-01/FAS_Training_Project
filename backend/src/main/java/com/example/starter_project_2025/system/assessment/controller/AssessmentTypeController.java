@@ -1,11 +1,12 @@
 package com.example.starter_project_2025.system.assessment.controller;
 
-import com.example.starter_project_2025.system.assessment.dto.AssessmentTypeDTO;
-import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentTypeRequest;
+import com.example.starter_project_2025.system.assessment.dto.assessmentType.response.AssessmentTypeDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.CreateAssessmentTypeRequest;
 import com.example.starter_project_2025.system.assessment.dto.ImportResultDTO;
-import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentTypeRequest;
-import com.example.starter_project_2025.system.assessment.service.AssessmentTypeService;
+import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.UpdateAssessmentTypeRequest;
+import com.example.starter_project_2025.system.assessment.service.assessmentType.AssessmentTypeService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
@@ -23,11 +24,12 @@ import java.io.IOException;
 import java.time.LocalDate;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/assessment-type")
 public class AssessmentTypeController {
 
-    @Autowired
-    private AssessmentTypeService assessService;
+
+    private final AssessmentTypeService assessService;
 
     @PostMapping
     public ResponseEntity<AssessmentTypeDTO> create(

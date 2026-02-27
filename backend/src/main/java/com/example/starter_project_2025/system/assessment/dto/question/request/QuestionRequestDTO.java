@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.assessment.dto.question;
+package com.example.starter_project_2025.system.assessment.dto.question.request;
 
 import lombok.Data;
 
@@ -15,6 +15,7 @@ public class QuestionRequestDTO {
     private String content;
 
     private List<OptionDTO> options;
+    private List<Long> tagIds;
 
     @Data
     public static class OptionDTO {

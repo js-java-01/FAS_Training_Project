@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.assessment.controller;
 
-import com.example.starter_project_2025.system.assessment.dto.question.UpdateQuestionOptionDTO;
+import com.example.starter_project_2025.system.assessment.dto.question.request.UpdateQuestionOptionDTO;
 import com.example.starter_project_2025.system.assessment.entity.QuestionOption;
 import com.example.starter_project_2025.system.assessment.repository.QuestionOptionRepository;
 import com.example.starter_project_2025.system.assessment.service.question.QuestionOptionService;

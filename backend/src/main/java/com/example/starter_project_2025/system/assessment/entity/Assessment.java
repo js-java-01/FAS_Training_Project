@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.assessment.entity;
 
+import com.example.starter_project_2025.system.assessment.enums.AssessmentDifficulty;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
@@ -7,9 +8,13 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -22,57 +27,63 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
 public class Assessment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assessment_type_id", nullable = false)
     @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
-    private AssessmentType assessmentType;
+    AssessmentType assessmentType;
 
     @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({ "assessment" })
-    private List<AssessmentQuestion> assessmentQuestions = new ArrayList<>();
+    List<AssessmentQuestion> assessmentQuestions = new ArrayList<>();
 
     @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private Set<Submission> submissions;
+    Set<Submission> submissions;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "programming_language_id")
-    private ProgrammingLanguage programmingLanguage;
+    ProgrammingLanguage programmingLanguage;
 
     @Column(nullable = false, unique = true, length = 50)
-    private String code;
+    String code;
 
     @Column(nullable = false)
-    private String title;
+    @NotBlank
+    @Size(max = 255)
+    String title;
 
     @Column(columnDefinition = "TEXT")
-    private String description;
+    String description;
 
-    private Integer totalScore;
-
-    private Integer passScore;
-
-    private Integer timeLimitMinutes;
-
-    private Integer attemptLimit;
-    @Enumerated(EnumType.STRING)
-    private GradingMethod gradingMethod = GradingMethod.HIGHEST;
-
-    private Boolean isShuffleQuestion = false;
-
-    private Boolean isShuffleOption = false;
+    Integer totalScore;
 
     @Enumerated(EnumType.STRING)
-    private AssessmentStatus status;
+    AssessmentDifficulty difficulty;
+
+    Integer passScore;
+
+    Integer timeLimitMinutes;
+
+    Integer attemptLimit;
+    @Enumerated(EnumType.STRING)
+    GradingMethod gradingMethod = GradingMethod.HIGHEST;
+
+    Boolean isShuffleQuestion = false;
+
+    Boolean isShuffleOption = false;
+
+    @Enumerated(EnumType.STRING)
+    AssessmentStatus status;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    LocalDateTime updatedAt;
 }

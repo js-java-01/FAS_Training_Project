@@ -3,6 +3,7 @@ package com.example.starter_project_2025.system.assessment.entity;
 import com.example.starter_project_2025.system.assessment.enums.QuestionType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,32 +16,34 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+
 public class SubmissionQuestion {
 
     @Id
     @GeneratedValue
-    private UUID id;
+    UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "submission_id", nullable = false)
-    private Submission submission;
+    Submission submission;
 
     // Snapshot link (VERY IMPORTANT)
     @Column(name = "original_question_id", nullable = false)
-    private UUID originalQuestionId;
+    UUID originalQuestionId;
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
-    private String content;
+    String content;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "question_type", nullable = false)
-    private QuestionType questionType;
+    QuestionType questionType;
 
     @Column(name = "score")
-    private Double score;
+    Double score;
 
     @Column(name = "order_index")
-    private Integer orderIndex;
+    Integer orderIndex;
 
     @OneToMany(
             mappedBy = "submissionQuestion",

@@ -1,9 +1,10 @@
-package com.example.starter_project_2025.system.assessment.service;
+package com.example.starter_project_2025.system.assessment.service.assessment;
 
-import com.example.starter_project_2025.system.assessment.dto.AssessmentDTO;
-import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentRequest;
-import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRequest;
+import com.example.starter_project_2025.system.assessment.dto.assessment.response.AssessmentDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessment.request.CreateAssessmentRequest;
+import com.example.starter_project_2025.system.assessment.dto.assessment.request.UpdateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.entity.Assessment;
+import com.example.starter_project_2025.system.assessment.enums.AssessmentDifficulty;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.mapper.AssessmentMapper;
@@ -11,7 +12,7 @@ import com.example.starter_project_2025.system.assessment.repository.AssessmentR
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.assessment.spec.AssessmentSpecification;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -21,26 +22,22 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
 @Service
+@RequiredArgsConstructor
 public class AssessmentService {
 
-    @Autowired
-    private AssessmentRepository assessmentRepository;
-
-    @Autowired
-    private AssessmentMapper assessmentMapper;
-
-    @Autowired
-    private AssessmentTypeRepository assessmentTypeRepository;
+    private final AssessmentRepository assessmentRepository;
+    private final AssessmentMapper assessmentMapper;
+    private final AssessmentTypeRepository assessmentTypeRepository;
 
     @PreAuthorize("hasAuthority('ASSESSMENT_CREATE')")
 
     public AssessmentDTO create(CreateAssessmentRequest request) {
 
-        if (assessmentRepository.existsByCode(request.getCode())) {
+        if (assessmentRepository.existsByCode(request.code())) {
             throw new IllegalArgumentException("Assessment code already exists");
         }
 
-        AssessmentType assessmentType = assessmentTypeRepository.findById(request.getAssessmentTypeId())
+        AssessmentType assessmentType = assessmentTypeRepository.findById(request.assessmentTypeId())
                 .orElseThrow(() -> new EntityNotFoundException("AssessmentType not found"));
 
         Assessment assessment = assessmentMapper.toEntity(request);
@@ -58,8 +55,8 @@ public class AssessmentService {
         Assessment assessment = assessmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Assessment not found"));
 
-        if (request.getAssessmentTypeId() != null) {
-            AssessmentType assessmentType = assessmentTypeRepository.findById(request.getAssessmentTypeId())
+        if (request.assessmentTypeId() != null) {
+            AssessmentType assessmentType = assessmentTypeRepository.findById(request.assessmentTypeId())
                     .orElseThrow(() -> new EntityNotFoundException("AssessmentType not found"));
             assessment.setAssessmentType(assessmentType);
         }
@@ -126,6 +123,12 @@ public class AssessmentService {
         );
     }
 
+
+    public Page<AssessmentDTO> findByDifficulty(AssessmentDifficulty difficulty, Pageable pageable) {
+        return assessmentRepository
+                .findByDifficulty(difficulty, pageable)
+                .map(assessmentMapper::toDto);
+    }
 
 
 }

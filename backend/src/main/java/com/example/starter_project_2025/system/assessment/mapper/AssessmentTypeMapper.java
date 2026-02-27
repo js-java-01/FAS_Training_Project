@@ -1,9 +1,9 @@
 package com.example.starter_project_2025.system.assessment.mapper;
 
-import com.example.starter_project_2025.system.assessment.dto.AssessmentTypeDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessmentType.response.AssessmentTypeDTO;
 import com.example.starter_project_2025.system.assessment.dto.AssessmentImportRequest;
-import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentTypeRequest;
-import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentTypeRequest;
+import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.CreateAssessmentTypeRequest;
+import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.UpdateAssessmentTypeRequest;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

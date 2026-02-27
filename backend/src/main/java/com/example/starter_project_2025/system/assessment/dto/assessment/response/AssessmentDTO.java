@@ -1,5 +1,6 @@
-package com.example.starter_project_2025.system.assessment.dto;
+package com.example.starter_project_2025.system.assessment.dto.assessment.response;
 
+import com.example.starter_project_2025.system.assessment.enums.AssessmentDifficulty;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import lombok.Data;
 
@@ -32,6 +33,8 @@ public class AssessmentDTO {
     private String assessmentTypeId;
 
     private String assessmentTypeName;
+
+    private AssessmentDifficulty difficulty;
 
     private LocalDateTime createdAt;
 

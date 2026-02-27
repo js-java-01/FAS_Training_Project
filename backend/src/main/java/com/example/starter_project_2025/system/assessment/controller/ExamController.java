@@ -1,15 +1,14 @@
 package com.example.starter_project_2025.system.assessment.controller;
 
-import com.example.starter_project_2025.system.assessment.dto.AssessmentDTO;
-import com.example.starter_project_2025.system.assessment.dto.CreateAssessmentRequest;
-import com.example.starter_project_2025.system.assessment.dto.UpdateAssessmentRequest;
-import com.example.starter_project_2025.system.assessment.dto.UserAssessmentDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessment.response.AssessmentDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessment.request.CreateAssessmentRequest;
+import com.example.starter_project_2025.system.assessment.dto.assessment.request.UpdateAssessmentRequest;
+import com.example.starter_project_2025.system.assessment.enums.AssessmentDifficulty;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
-import com.example.starter_project_2025.system.assessment.service.AssessmentService;
-import com.example.starter_project_2025.system.assessment.service.SubmissionService;
-import com.example.starter_project_2025.security.UserDetailsImpl;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import com.example.starter_project_2025.system.assessment.service.assessment.AssessmentService;
+import io.swagger.v3.oas.annotations.tags.Tag; // Thêm import này
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -24,27 +23,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/assessment")
+@RequiredArgsConstructor
 @Tag(name = "Exam Controller", description = "API Quản lý bài kiểm tra (Đã đổi tên)") // Đánh dấu cho Swagger
 public class ExamController {
 
     private final AssessmentService assessmentService;
     private final SubmissionService submissionService;
-
-    public ExamController(AssessmentService assessmentService, SubmissionService submissionService) {
-        this.assessmentService = assessmentService;
-        this.submissionService = submissionService;
-        System.out.println("=================================================");
-        System.out.println("!!! DA KHOI DONG EXAM CONTROLLER THANH CONG !!!");
-        System.out.println("=================================================");
-    }
-
-    // ==================== GET USER ASSESSMENTS ====================
-    @GetMapping("/user/me")
-    public ResponseEntity<List<UserAssessmentDTO>> getMyAssessments(
-            @AuthenticationPrincipal UserDetailsImpl currentUser
-    ) {
-        return ResponseEntity.ok(submissionService.getUserAssessments(currentUser.getId()));
-    }
 
     @PostMapping
     public ResponseEntity<AssessmentDTO> create(@Valid @RequestBody CreateAssessmentRequest request) {
@@ -92,7 +76,6 @@ public class ExamController {
         );
     }
 
-    // 🔄 Update status
     @PutMapping("/{id}/status")
     public ResponseEntity<AssessmentDTO> updateStatus(
             @PathVariable Long id,
@@ -100,6 +83,16 @@ public class ExamController {
 
         return ResponseEntity.ok(
                 assessmentService.updateStatus(id, status)
+        );
+    }
+
+    @GetMapping("/difficulty")
+    public ResponseEntity<Page<AssessmentDTO>> getByDifficulty(
+            @RequestParam AssessmentDifficulty difficulty,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                assessmentService.findByDifficulty(difficulty, pageable)
         );
     }
 }

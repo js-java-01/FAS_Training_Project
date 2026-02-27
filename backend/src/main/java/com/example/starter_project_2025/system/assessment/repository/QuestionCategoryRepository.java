@@ -9,7 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface QuestionCategoryRepository extends JpaRepository<QuestionCategory, UUID> {
-
-    // Để trống cũng được, JpaRepository lo hết mấy cái save/findAll rồi
     Optional<QuestionCategory> findByName(String name);
 }

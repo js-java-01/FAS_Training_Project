@@ -45,14 +45,9 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     private final SubmissionRepository submissionRepository;
     private final UserRepository userRepository;
-    private final SubmissionMapper submissionMapper;
-    private final QuestionOptionRepository questionOptionRepository;
-    @Autowired
-    private AssessmentRepository assessmentRepository;
-    @Autowired
-    private GradingService gradingService;
+    private final AssessmentRepository assessmentRepository;
+    private final GradingService gradingService;
 
-    /* ===== Student flow ===== */
 
     @Override
     public Submission startSubmission(UUID userId, StartSubmissionRequest request) {
@@ -70,7 +65,6 @@ public class SubmissionServiceImpl implements SubmissionService {
                 .startedAt(LocalDateTime.now())
                 .build();
 
-        // ===== CLONE QUESTIONS (SNAPSHOT) =====
         assessment.getAssessmentQuestions().forEach(aq -> {
 
             SubmissionQuestion sq = SubmissionQuestion.builder()

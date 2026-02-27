@@ -20,7 +20,6 @@ public class AssessmentQuestionController {
 
     private final AssessmentQuestionService service;
 
-    @Operation(summary = "Add question to assessment")
     @PostMapping
     public ResponseEntity<AssessmentQuestion> addQuestionToAssessment(
             @RequestBody AddQuestionToExamDTO dto
@@ -35,13 +34,11 @@ public class AssessmentQuestionController {
         return ResponseEntity.ok(service.getByAssessmentId(assessmentId));
     }
 
-    @Operation(summary = "Get all assessment questions")
     @GetMapping
     public ResponseEntity<List<AssessmentQuestion>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
 
-    @Operation(summary = "Delete assessment question by id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.deleteById(id);
