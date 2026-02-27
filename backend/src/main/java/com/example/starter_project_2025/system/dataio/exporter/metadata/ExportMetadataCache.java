@@ -2,6 +2,8 @@ package com.example.starter_project_2025.system.dataio.exporter.metadata;
 
 import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportField;
 import com.example.starter_project_2025.system.dataio.exporter.resolver.extractor.ExportValueExtractor;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -12,9 +14,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ExportMetadataCache {
 
-    private final Map<Class<?>, List<ExportFieldMeta>> cache = new ConcurrentHashMap<>();
+    Map<Class<?>, List<ExportFieldMeta>> cache = new ConcurrentHashMap<>();
 
     public List<ExportFieldMeta> getMetadata(Class<?> clazz) {
         return cache.computeIfAbsent(clazz, this::scan);

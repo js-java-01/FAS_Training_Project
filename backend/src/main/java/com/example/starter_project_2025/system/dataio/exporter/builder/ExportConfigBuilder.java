@@ -6,17 +6,20 @@ import com.example.starter_project_2025.system.dataio.exporter.component.ExportS
 import com.example.starter_project_2025.system.dataio.exporter.metadata.ExportFieldMeta;
 import com.example.starter_project_2025.system.dataio.exporter.metadata.ExportMetadataCache;
 import com.example.starter_project_2025.system.dataio.exporter.resolver.ExportValueResolver;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ExportConfigBuilder {
 
-    private final ExportMetadataCache cache;
-    private final ExportValueResolver resolver;
+    ExportMetadataCache cache;
+    ExportValueResolver resolver;
 
     public <T> ExportSheetConfig<T> build(Class<T> clazz) {
 

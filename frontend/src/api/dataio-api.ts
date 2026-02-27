@@ -1,5 +1,6 @@
 import type { ExportFormat } from "@/types/export";
 import axiosInstance from "./axiosInstance";
+import { downloadBlob, getFilenameFromHeader } from "@/utils/dataio.utils";
 
 export const importFileApi = (url: string, file: File) => {
   const formData = new FormData();
@@ -24,9 +25,12 @@ export const downloadTemplate = async (entity: string) => {
     responseType: "blob"
   });
 
-  const url = window.URL.createObjectURL(res.data);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${entity}-template.xlsx`;
-  link.click();
+  const contentDisposition = res.headers["content-disposition"];
+  const filename = getFilenameFromHeader(contentDisposition);
+
+  const blob = new Blob([res.data], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  downloadBlob(blob, filename || undefined);
 };

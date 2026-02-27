@@ -49,8 +49,7 @@ public class ExportValueResolver {
         }
     }
 
-    private Object resolveNested(Object obj, String path)
-            throws Exception {
+    private Object resolveNested(Object obj, String path) throws Exception {
 
         String[] parts = path.split("\\.");
 

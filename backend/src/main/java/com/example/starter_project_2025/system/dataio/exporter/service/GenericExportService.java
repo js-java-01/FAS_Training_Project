@@ -1,9 +1,11 @@
 package com.example.starter_project_2025.system.dataio.exporter.service;
 
 import com.example.starter_project_2025.system.dataio.common.FileFormat;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportEntity;
 import com.example.starter_project_2025.system.dataio.exporter.builder.ExportConfigBuilder;
 import com.example.starter_project_2025.system.dataio.exporter.component.ExportSheetConfig;
 import com.example.starter_project_2025.system.dataio.exporter.variant.Exporter;
+import com.example.starter_project_2025.system.dataio.util.ExportFileNameBuilder;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -43,10 +45,11 @@ public class GenericExportService implements ExportService {
         }
 
         ExportSheetConfig<T> config = configBuilder.build(clazz);
-
         Exporter exporter = getExporter(format);
 
-        setResponseHeader(format, config.sheetName(), response);
+        String fileName = resolveFileName(clazz, format);
+
+        setResponseHeader(format, fileName, response);
 
         exporter.export(data, config, response.getOutputStream());
     }
@@ -61,22 +64,42 @@ public class GenericExportService implements ExportService {
         return exporter;
     }
 
+    private String resolveFileName(Class<?> clazz, FileFormat format) {
+
+        ExportEntity meta = clazz.getAnnotation(ExportEntity.class);
+
+        String baseName = (meta != null)
+                ? meta.fileName()
+                : clazz.getSimpleName().toLowerCase();
+
+        return ExportFileNameBuilder.build(
+                baseName,
+                format.extension()
+        );
+    }
+
     private void setResponseHeader(
             FileFormat format,
-            String fileName,
+            String finalName,
             HttpServletResponse response
     ) {
-        String finalName = fileName + "." + format.name().toLowerCase();
-
         switch (format) {
-            case EXCEL -> response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            case CSV -> response.setContentType("text/csv");
-            case PDF -> response.setContentType("application/pdf");
+            case EXCEL ->
+                    response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            case CSV ->
+                    response.setContentType("text/csv");
+            case PDF ->
+                    response.setContentType("application/pdf");
         }
 
         response.setHeader(
                 "Content-Disposition",
-                "attachment; filename=" + finalName
+                "attachment; filename=\"" + finalName + "\""
+        );
+
+        response.setHeader(
+                "Access-Control-Expose-Headers",
+                "Content-Disposition"
         );
     }
 }

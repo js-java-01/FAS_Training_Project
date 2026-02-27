@@ -100,20 +100,10 @@ export const UserManagement: React.FC = () => {
               Create User
             </button>
           </PermissionGate>
-          <ExportSelectButton
-            apiUrl="/users/export"
-            filenameMap={{
-              EXCEL: "users.xlsx",
-              CSV: "users.csv",
-              PDF: "users.pdf",
-            }}
-          />
 
-          <ImportUploader
-            entityTemplate="user"
-            apiUrl="/users/import"
-            title="Import Users"
-          />
+          <ExportSelectButton apiUrl="/users/export" />
+
+          <ImportUploader entity="user" apiUrl="/users/import" />
         </div>
       </div>
 

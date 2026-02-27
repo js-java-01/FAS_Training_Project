@@ -23,9 +23,9 @@ import ImportResultModal from "./ImportResultModal";
 import { toast } from "sonner";
 
 interface ImportUploaderProps {
-  entityTemplate: string;
+  entity: string;
   apiUrl: string;
-  title: string;
+  title?: string;
   description?: string;
   buttonText?: string;
   buttonVariant?:
@@ -38,9 +38,9 @@ interface ImportUploaderProps {
 }
 
 const ImportUploader = ({
-  entityTemplate,
+  entity,
   apiUrl,
-  title,
+  title = `Import ${entity.charAt(0).toUpperCase() + entity.slice(1)}`,
   description,
   buttonText = "Import",
   buttonVariant = "default",
@@ -51,7 +51,6 @@ const ImportUploader = ({
   const [downloadingTemplate, setDownloadingTemplate] = useState(false);
   const { loading, result, handleImport } = useImport();
 
-  // Tự động mở result modal và đóng import modal khi có kết quả
   useEffect(() => {
     if (result && !loading) {
       setOpen(false);
@@ -93,7 +92,7 @@ const ImportUploader = ({
   const handleDownloadTemplate = async () => {
     try {
       setDownloadingTemplate(true);
-      await downloadTemplate(entityTemplate);
+      await downloadTemplate(entity);
     } catch (error) {
       console.error("Error downloading template:", error);
       toast("Không thể tải template. Vui lòng thử lại.");

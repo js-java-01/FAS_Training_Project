@@ -34,9 +34,12 @@ public class ImportTemplateController {
 
         byte[] file = templateService.generateTemplate(clazz);
 
+        String filename = entity + "-template.xlsx";
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=" + entity + "-template.xlsx")
+                        "attachment; filename=\"" + filename + "\"")
+                .header("Access-Control-Expose-Headers", "Content-Disposition")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(file);
     }

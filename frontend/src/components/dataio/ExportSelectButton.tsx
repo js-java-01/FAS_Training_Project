@@ -8,13 +8,6 @@ import { Download, FileText, FileSpreadsheet, FileBarChart } from "lucide-react"
 
 type Props = {
     apiUrl: string;
-    filenameMap?: Record<ExportFormat, string>;
-};
-
-const DEFAULT_FILENAME_MAP: Record<ExportFormat, string> = {
-    EXCEL: "data.xlsx",
-    CSV: "data.csv",
-    PDF: "data.pdf",
 };
 
 const exportOptions = [
@@ -38,8 +31,8 @@ const exportOptions = [
     },
 ];
 
-export function ExportSelectButton({ apiUrl, filenameMap = DEFAULT_FILENAME_MAP }: Props) {
-    const { exportFile, loading } = useExport(apiUrl, filenameMap);
+export function ExportSelectButton({ apiUrl }: Props) {
+    const { exportFile, loading } = useExport(apiUrl);
     const [open, setOpen] = useState(false);
     const [selectedFormat, setSelectedFormat] = useState<ExportFormat | null>(null);
 

@@ -1,7 +1,18 @@
 package com.example.starter_project_2025.system.dataio.common;
 
 public enum FileFormat {
-    EXCEL,
-    CSV,
-    PDF
+
+    EXCEL("xlsx"),
+    CSV("csv"),
+    PDF("pdf");
+
+    private final String extension;
+
+    FileFormat(String extension) {
+        this.extension = extension;
+    }
+
+    public String extension() {
+        return extension;
+    }
 }
