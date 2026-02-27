@@ -30,7 +30,7 @@ function ClassBreadcrumb() {
             <BreadcrumbList>
                 <BreadcrumbItem>
                     <BreadcrumbLink asChild>
-                        <Link to="/training-classes">Classes</Link>
+                        <Link to="/classes">Classes</Link>
                     </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator>&gt;</BreadcrumbSeparator>
@@ -184,7 +184,7 @@ export default function ClassDetailPage() {
             ) : !trainingClass ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
                     <p className="text-muted-foreground">Training class not found.</p>
-                    <Button variant="outline" onClick={() => navigate("/training-classes")}>
+                    <Button variant="outline" onClick={() => navigate("/classes")}>
                         Back to list
                     </Button>
                 </div>
@@ -193,9 +193,9 @@ export default function ClassDetailPage() {
                     {/* ── Page Title Row ── */}
                     <div className="flex items-start justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold tracking-tight">Classes</h1>
+                            <h1 className="text-2xl font-bold tracking-tight">Training Classes</h1>
                             <p className="text-sm text-muted-foreground">
-                                Classes details and configuration
+                                Training classes details and configuration
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -227,7 +227,7 @@ export default function ClassDetailPage() {
                                         variant="ghost"
                                         size="sm"
                                         className="gap-1.5"
-                                        onClick={() => navigate("/training-classes")}
+                                        onClick={() => navigate("/classes")}
                                     >
                                         <ArrowLeft className="h-4 w-4" />
                                         Back to list

@@ -31,10 +31,9 @@ import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import { RoleManagement } from "./pages/role/RoleManagement";
-import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
 import MfaSettings from "./pages/MfaSettings";
 import { MfaGateProvider } from "./components/MfaGateProvider";
-import ClassDetailPage from "./pages/training-classes/ClassDetailPage";
+import ClassesDetailComponent from "./pages/classes/ClassesDetailManagement";
 import Unauthorized from "./pages/Unauthorized";
 
 function App() {
@@ -89,18 +88,10 @@ function App() {
             )}
             <Route path="*" element={<NotFoundRedirect />} />
             <Route
-              path="/training-classes"
+              path="/classes/:id"
               element={
-                <ProtectedRoute requiredPermission="CLASS_CREATE">
-                  <TrainingClassesManagement />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/training-classes/:id"
-              element={
-                <ProtectedRoute requiredPermission="CLASS_CREATE">
-                  <ClassDetailPage />
+                <ProtectedRoute requiredPermission="CLASS_READ">
+                  <ClassesDetailComponent />
                 </ProtectedRoute>
               }
             />
