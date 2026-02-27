@@ -58,6 +58,7 @@ public class Question {
     @PrePersist
     void prePersist() {
         this.createdAt = LocalDate.now();
+
         this.updatedAt = LocalDate.now();
     }
 

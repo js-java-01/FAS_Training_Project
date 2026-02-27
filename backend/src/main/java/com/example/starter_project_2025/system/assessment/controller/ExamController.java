@@ -6,6 +6,7 @@ import com.example.starter_project_2025.system.assessment.dto.assessment.request
 import com.example.starter_project_2025.system.assessment.enums.AssessmentDifficulty;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.service.assessment.AssessmentService;
+import com.example.starter_project_2025.system.assessment.service.impl.SubmissionServiceImpl;
 import io.swagger.v3.oas.annotations.tags.Tag; // Thêm import này
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ import java.util.List;
 public class ExamController {
 
     private final AssessmentService assessmentService;
-    private final SubmissionService submissionService;
+    private final SubmissionServiceImpl submissionService;
 
     @PostMapping
     public ResponseEntity<AssessmentDTO> create(@Valid @RequestBody CreateAssessmentRequest request) {

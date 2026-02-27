@@ -163,11 +163,12 @@ public class QuestionService {
             String keyword,
             UUID categoryId,
             String questionType,
+            List<Long> tagIds,
             Pageable pageable
     ) {
 
         Specification<Question> spec =
-                QuestionSpecification.filter(keyword, categoryId, questionType);
+                QuestionSpecification.filter(keyword, categoryId, questionType, tagIds);
 
         return questionRepo.findAll(spec, pageable)
                 .map(questionMapper::toResponse);

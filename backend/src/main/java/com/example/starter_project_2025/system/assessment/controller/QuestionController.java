@@ -40,14 +40,15 @@ public class QuestionController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<QuestionResponseDTO>> search(
+    public Page<QuestionResponseDTO> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) String questionType,
+            @RequestParam(required = false) List<Long> tagIds,
             Pageable pageable
     ) {
-        return ResponseEntity.ok(
-                questionService.search(keyword, categoryId, questionType, pageable)
+        return questionService.search(
+                keyword, categoryId, questionType, tagIds, pageable
         );
     }
 

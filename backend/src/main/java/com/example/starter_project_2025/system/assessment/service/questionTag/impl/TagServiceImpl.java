@@ -2,6 +2,7 @@ package com.example.starter_project_2025.system.assessment.service.questionTag.i
 
 import com.example.starter_project_2025.system.assessment.dto.questionTag.request.CreateTagRequest;
 import com.example.starter_project_2025.system.assessment.dto.questionTag.request.UpdateTagRequest;
+import com.example.starter_project_2025.system.assessment.dto.questionTag.response.TagCountResponse;
 import com.example.starter_project_2025.system.assessment.dto.questionTag.response.TagResponse;
 import com.example.starter_project_2025.system.assessment.entity.Tag;
 import com.example.starter_project_2025.system.assessment.mapper.TagMapper;
@@ -11,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -70,5 +74,11 @@ public class TagServiceImpl implements TagService {
         }
 
         tagRepository.delete(tag);
+    }
+
+
+    @Override
+    public List<TagCountResponse> getTagsByCategory(UUID categoryId) {
+        return tagRepository.findTagsByCategoryWithCount(categoryId);
     }
 }
