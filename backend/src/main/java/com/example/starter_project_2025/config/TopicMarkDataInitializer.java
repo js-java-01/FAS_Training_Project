@@ -8,7 +8,7 @@ import com.example.starter_project_2025.system.assessment.repository.AssessmentR
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.assessment.repository.SubmissionRepository;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
-import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
+import com.example.starter_project_2025.system.classes.repository.ClassRepository;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
@@ -63,7 +63,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
     private final AssessmentRepository assessmentRepository;
     private final SubmissionRepository submissionRepository;
     private final CourseAssessmentTypeWeightRepository courseAssessmentTypeWeightRepository;
-    private final TrainingClassRepository trainingClassRepository;
+    private final ClassRepository classRepository;
     private final CourseClassRepository courseClassRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final TopicMarkRepository topicMarkRepository;

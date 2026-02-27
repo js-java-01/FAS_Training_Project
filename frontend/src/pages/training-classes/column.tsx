@@ -3,12 +3,14 @@ import type { TrainingClass } from "@/types/trainingClass";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { Check, EditIcon, EyeIcon, X } from "lucide-react";
+import { Check, EyeIcon, X } from "lucide-react";
 import dayjs from "dayjs";
 import SortHeader from "@/components/data_table/SortHeader";
 
 export type TableActions = {
-    onView?: (row: TrainingClass) => void;
+    onNavigate?: (row: TrainingClass) => void;
+    onApprove?: (row: TrainingClass) => void;
+    onReject?: (row: TrainingClass) => void;
 };
 
 export const getColumns = (actions?: TableActions) => {
@@ -118,20 +120,40 @@ export const getColumns = (actions?: TableActions) => {
         }),
 
         /* ================= STATUS ================= */
-        columnHelper.accessor("isActive", {
+        columnHelper.accessor("status", {
             header: (info) => <SortHeader info={info} title="Status" />,
             size: 120,
-            cell: (info) => (
-                <Badge
-                    className={
-                        info.getValue()
-                            ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none"
-                            : "bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200 shadow-none"
+            cell: ({ getValue, row }) => {
+                const status = getValue() as string;
+                const isActive = row.original.isActive;
+
+                let badgeClass = "bg-gray-100 text-gray-700 border-gray-200";
+                let label = status;
+
+                // Handle legacy or mapped statuses
+                if (status === "APPROVED") {
+                    if (isActive) {
+                        badgeClass = "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 shadow-none";
+                        label = "Active";
+                    } else {
+                         // Approved but future -> Planning / Scheduled? or just Approved
+                        badgeClass = "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200 shadow-none";
+                        label = "Approved (Inactive)";
                     }
-                >
-                    {info.getValue() ? "Active" : "Pending"}
-                </Badge>
-            ),
+                } else if (status === "PENDING_APPROVAL") {
+                    badgeClass = "bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200 shadow-none";
+                    label = "Pending";
+                } else if (status === "REJECTED") {
+                    badgeClass = "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none";
+                    label = "Rejected";
+                }
+
+                return (
+                    <Badge className={badgeClass}>
+                        {label}
+                    </Badge>
+                );
+            },
             meta: { title: "Status" },
         }),
 
@@ -142,28 +164,27 @@ export const getColumns = (actions?: TableActions) => {
             size: 180,
             cell: ({ row }) => (
                 <div className="flex gap-2">
-                    {actions?.onView && (
+                    {actions?.onNavigate && (
                         <ActionBtn
                             tooltipText="View"
                             icon={<EyeIcon size={12} />}
-                            onClick={() => actions.onView!(row.original)}
+                            onClick={() => actions.onNavigate!(row.original)}
                         />
                     )}
-                    <ActionBtn
-                        tooltipText="Update"
-                        icon={<EditIcon size={12} />}
-                        onClick={() => {}}
-                    />
-                    <ActionBtn
-                        tooltipText="Approve"
-                        icon={<Check size={12} />}
-                        onClick={() => {}}
-                    />
-                    <ActionBtn
-                        tooltipText="Reject"
-                        icon={<X size={12} />}
-                        onClick={() => {}}
-                    />
+                    {row.original.status === "PENDING_APPROVAL" && actions?.onApprove && (
+                        <ActionBtn
+                            tooltipText="Approve"
+                            icon={<Check size={12} />}
+                            onClick={() => actions.onApprove!(row.original)}
+                        />
+                    )}
+                    {row.original.status === "PENDING_APPROVAL" && actions?.onReject && (
+                        <ActionBtn
+                            tooltipText="Reject"
+                            icon={<X size={12} />}
+                            onClick={() => actions.onReject!(row.original)}
+                        />
+                    )}
                 </div>
             ),
             enableSorting: false,

@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.modulegroups.controller;
 
 import com.example.starter_project_2025.system.modulegroups.dto.request.CreateModuleRequest;
+import com.example.starter_project_2025.system.modulegroups.dto.request.SearchModuleRequest;
 import com.example.starter_project_2025.system.modulegroups.dto.request.UpdateModuleRequest;
 import com.example.starter_project_2025.system.modulegroups.dto.response.*;
 import com.example.starter_project_2025.system.modulegroups.service.ModuleService;
@@ -15,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -102,14 +102,17 @@ public class ModuleController {
     @PreAuthorize("hasAuthority('MODULE_READ')")
     @Operation(summary = "Search modules with pagination")
     public ResponseEntity<ApiResponse<PageResponse<ModuleDetail>>> searchModules(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) UUID moduleGroupId,
-            @RequestParam(required = false) Boolean isActive,
+            @ModelAttribute SearchModuleRequest request,
             Pageable pageable
     ) {
 
         Page<ModuleDetail> pageResult =
-                moduleService.searchModules(keyword, moduleGroupId, isActive, pageable);
+                moduleService.searchModules(
+                        request.getKeyword(),
+                        request.getModuleGroupId(),
+                        request.getIsActive(),
+                        pageable
+                );
 
         return ResponseEntity.ok(
                 ApiResponse.success(

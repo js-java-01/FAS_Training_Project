@@ -13,7 +13,6 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import DepartmentManagement from "@/pages/department/DepartmentManagement";
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
-import ModulesManagement from "./pages/modules/module/ModulesManagement";
 import { componentRegistry } from "./router/componentRegistry";
 import { Toaster } from "sonner";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
@@ -29,13 +28,12 @@ import {
 } from "./pages/question";
 import { Logout } from "./components/auth/Logout";
 import AssessmentManagement from "./pages/AssessmentManagement";
-import { LocationManagement } from "./pages/LocationManagement";
 import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import { RoleManagement } from "./pages/role/RoleManagement";
-import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
+import ClassDetailPage from "./pages/training-classes/ClassDetailPage";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -96,6 +94,14 @@ function App() {
               }
             />
             <Route
+              path="/training-classes/:id"
+              element={
+                <ProtectedRoute requiredPermission="CLASS_CREATE">
+                  <ClassDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/assessment-type"
               element={
                 <ProtectedRoute requiredPermission="ASSESSMENT_READ">
@@ -104,14 +110,6 @@ function App() {
               }
             />
 
-            <Route
-              path="/locations"
-              element={
-                <ProtectedRoute requiredPermission="LOCATION_READ">
-                  <LocationManagement />
-                </ProtectedRoute>
-              }
-            />
             <Route
               path="/programming-languages"
               element={
@@ -164,14 +162,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/locations"
-              element={
-                <ProtectedRoute requiredPermission="LOCATION_READ">
-                  <LocationManagement />
-                </ProtectedRoute>
-              }
-            />
 
             <Route
               path="/departments"
@@ -186,14 +176,6 @@ function App() {
               element={
                 <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
                   <ProgrammingLanguageManagement />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/moduleGroups"
-              element={
-                <ProtectedRoute requiredPermission="ROLE_READ">
-                  <ModuleGroupsManagement />
                 </ProtectedRoute>
               }
             />

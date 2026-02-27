@@ -5,8 +5,9 @@ import ModulesManagement from "@/pages/modules/module/ModulesManagement.tsx";
 import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsManagement.tsx";
 import TrainingClassesManagement from "@/pages/training-classes/TrainingClassesManagement.tsx";
 import NotFoundPage from "@/pages/NotFoundPage.tsx";
-import {RoleManagement} from "@/pages/role/RoleManagement.tsx";
+import { RoleManagement } from "@/pages/role/RoleManagement";
 import { StudentClassManagement } from "@/pages/classes/StudentClassManagement";
+import LocationsManagement from "@/pages/locations/LocationsManagement";
 
 
 export const componentRegistry: Record<string, ComponentType> = {
@@ -17,5 +18,6 @@ export const componentRegistry: Record<string, ComponentType> = {
     "/training-classes": TrainingClassesManagement,
     "/notFoundPage": NotFoundPage,
     "/roles": RoleManagement,
-    "/classes": StudentClassManagement
+    "/classes": StudentClassManagement,
+    "/locations": LocationsManagement
 };

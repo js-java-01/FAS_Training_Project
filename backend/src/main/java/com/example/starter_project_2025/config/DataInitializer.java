@@ -2,16 +2,16 @@ package com.example.starter_project_2025.config;
 
 import com.example.starter_project_2025.system.assessment.entity.*;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
-import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
-import com.example.starter_project_2025.system.assessment.enums.SubmissionStatus;
-import com.example.starter_project_2025.system.assessment.repository.*;
+import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
+import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
+import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
+import com.example.starter_project_2025.system.assessment.repository.QuestionRepository;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
-import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
 import com.example.starter_project_2025.system.common.enums.LocationStatus;
 import com.example.starter_project_2025.system.course.entity.Course;
 // import com.example.starter_project_2025.system.course.entity.CourseCohort;
@@ -106,16 +106,16 @@ public class DataInitializer implements CommandLineRunner {
         private final UserRoleRepository userRoleRepository;
         private final SemesterRepository semesterRepository;
         private final LocationRepository locationRepository;
-        private final SubmissionRepository submissionRepository;
+        //private final SubmissionRepository submissionRepository;
         private final CourseAssessmentTypeWeightRepository courseAssessmentTypeWeightRepository;
-        private final TrainingClassRepository trainingClassRepository;
+        //private final TrainingClassRepository trainingClassRepository;
         private final CourseClassRepository courseClassRepository;
         private final EnrollmentRepository enrollmentRepository;
 
-        @Override
-        @Transactional
-        public void run(String... args) {
-                log.info("Initializing database with sample data...");
+    @Override
+    @Transactional
+    public void run(String... args) {
+        log.info("Initializing database with sample data...");
 
                 if (roleRepository.count() == 0) {
                         initializePermissions();
@@ -271,14 +271,14 @@ public class DataInitializer implements CommandLineRunner {
                 log.info("Initialized {} permissions", permissions.size());
         }
 
-        private Permission createPermission(String name, String description, String resource, String action) {
-                Permission permission = new Permission();
-                permission.setName(name);
-                permission.setDescription(description);
-                permission.setResource(resource);
-                permission.setAction(action);
-                return permission;
-        }
+    private Permission createPermission(String name, String description, String resource, String action) {
+        Permission permission = new Permission();
+        permission.setName(name);
+        permission.setDescription(description);
+        permission.setResource(resource);
+        permission.setAction(action);
+        return permission;
+    }
 
         private void initializeRoles() {
                 // ADMIN
@@ -289,28 +289,28 @@ public class DataInitializer implements CommandLineRunner {
                 adminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
                 roleRepository.save(adminRole);
 
-                // DEPARTMENT_MANAGER
-                Role departmentManagerRole = new Role();
-                departmentManagerRole.setName("DEPARTMENT_MANAGER");
-                departmentManagerRole.setDescription("Department Manager with class management permissions");
+        // DEPARTMENT_MANAGER
+        Role departmentManagerRole = new Role();
+        departmentManagerRole.setName("DEPARTMENT_MANAGER");
+        departmentManagerRole.setDescription("Department Manager with class management permissions");
 
                 List<Permission> departmentPermissions = permissionRepository.findAll()
                                 .stream()
                                 .filter(p -> "CLASS".equals(p.getResource()))
                                 .toList();
 
-                departmentManagerRole.setPermissions(new HashSet<>(departmentPermissions));
-                roleRepository.save(departmentManagerRole);
+        departmentManagerRole.setPermissions(new HashSet<>(departmentPermissions));
+        roleRepository.save(departmentManagerRole);
 
-                // STUDENT
-                Role studentRole = new Role();
-                studentRole.setName("STUDENT");
-                studentRole.setDescription("Student with limited access to educational resources");
-                List<Permission> studentPermissions = new java.util.ArrayList<>(
-                        permissionRepository.findByAction("READ"));
-                permissionRepository.findByName("ENROLL_COURSE").ifPresent(studentPermissions::add);
-                studentRole.setPermissions(new HashSet<>(studentPermissions));
-                roleRepository.save(studentRole);
+        // STUDENT
+        Role studentRole = new Role();
+        studentRole.setName("STUDENT");
+        studentRole.setDescription("Student with limited access to educational resources");
+        List<Permission> studentPermissions = new java.util.ArrayList<>(
+                permissionRepository.findByAction("READ"));
+        permissionRepository.findByName("ENROLL_COURSE").ifPresent(studentPermissions::add);
+        studentRole.setPermissions(new HashSet<>(studentPermissions));
+        roleRepository.save(studentRole);
 
                 // TRAINER
                 Role trainerRole = new Role();
@@ -430,8 +430,8 @@ public class DataInitializer implements CommandLineRunner {
                 saveUserRole(student1, studentRole, true);
                 saveUserRole(student2, studentRole, true);
 
-                log.info("Successfully assigned roles to users in UserRole table.");
-        }
+        log.info("Successfully assigned roles to users in UserRole table.");
+    }
 
         private void saveUserRole(User user, Role role, boolean isDefault) {
                 UserRole ur = new UserRole();
@@ -449,15 +449,15 @@ public class DataInitializer implements CommandLineRunner {
                 mainMenu.setDisplayOrder(1);
                 mainMenu = menuRepository.save(mainMenu);
 
-                MenuItem dashboard = createMenuItem(mainMenu, null, "Dashboard", "/dashboard", "dashboard", 1, null);
-                menuItemRepository.save(dashboard);
+        MenuItem dashboard = createMenuItem(mainMenu, null, "Dashboard", "/dashboard", "dashboard", 1, null);
+        menuItemRepository.save(dashboard);
 
-                Menu adminMenu = new Menu();
-                adminMenu.setName("Administration");
-                adminMenu.setDescription("Administrative functions menu");
-                adminMenu.setIsActive(true);
-                adminMenu.setDisplayOrder(2);
-                adminMenu = menuRepository.save(adminMenu);
+        Menu adminMenu = new Menu();
+        adminMenu.setName("Administration");
+        adminMenu.setDescription("Administrative functions menu");
+        adminMenu.setIsActive(true);
+        adminMenu.setDisplayOrder(2);
+        adminMenu = menuRepository.save(adminMenu);
 
                 MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1,
                                 "USER_READ");
@@ -473,25 +473,25 @@ public class DataInitializer implements CommandLineRunner {
                         4,
                         "COURSE_READ");
 
-                menuItemRepository.saveAll(
-                        Arrays.asList(userManagement, roleManagement, locationManagement, courseManagement));
+        menuItemRepository.saveAll(
+                Arrays.asList(userManagement, roleManagement, locationManagement, courseManagement));
 
-                log.info("Initialized 2 menus with menu items");
-        }
+        log.info("Initialized 2 menus with menu items");
+    }
 
-        private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order,
-                                        String permission) {
-                MenuItem item = new MenuItem();
-                item.setMenu(menu);
-                item.setParent(parent);
-                item.setTitle(title);
-                item.setUrl(url);
-                item.setIcon(icon);
-                item.setDisplayOrder(order);
-                item.setIsActive(true);
-                item.setRequiredPermission(permission);
-                return item;
-        }
+    private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order,
+                                    String permission) {
+        MenuItem item = new MenuItem();
+        item.setMenu(menu);
+        item.setParent(parent);
+        item.setTitle(title);
+        item.setUrl(url);
+        item.setIcon(icon);
+        item.setDisplayOrder(order);
+        item.setIsActive(true);
+        item.setRequiredPermission(permission);
+        return item;
+    }
 
         private void initializeLocationData() {
                 if (provinceRepository.count() > 0 || communeRepository.count() > 0) {
@@ -499,22 +499,22 @@ public class DataInitializer implements CommandLineRunner {
                         return;
                 }
 
-                try (InputStream inputStream = new ClassPathResource("LocationData.json").getInputStream()) {
-                        LocationDataJson locationData = objectMapper.readValue(inputStream, LocationDataJson.class);
+        try (InputStream inputStream = new ClassPathResource("LocationData.json").getInputStream()) {
+            LocationDataJson locationData = objectMapper.readValue(inputStream, LocationDataJson.class);
 
-                        List<Province> provinces = locationData.province().stream()
-                                .map(p -> new Province(p.idProvince(), p.name()))
-                                .toList();
-                        provinceRepository.saveAll(provinces);
+            List<Province> provinces = locationData.province().stream()
+                    .map(p -> new Province(p.idProvince(), p.name()))
+                    .toList();
+            provinceRepository.saveAll(provinces);
 
-                        Map<String, Province> provinceById = provinces.stream()
-                                .collect(Collectors.toMap(Province::getId, Function.identity()));
+            Map<String, Province> provinceById = provinces.stream()
+                    .collect(Collectors.toMap(Province::getId, Function.identity()));
 
-                        List<Commune> communes = locationData.commune().stream()
-                                .map(c -> new Commune(c.idCommune(), c.name(),
-                                        provinceById.get(c.idProvince())))
-                                .toList();
-                        communeRepository.saveAll(communes);
+            List<Commune> communes = locationData.commune().stream()
+                    .map(c -> new Commune(c.idCommune(), c.name(),
+                            provinceById.get(c.idProvince())))
+                    .toList();
+            communeRepository.saveAll(communes);
 
                         log.info("Location data initialized: {} provinces, {} communes",
                                         provinces.size(), communes.size());
@@ -523,23 +523,23 @@ public class DataInitializer implements CommandLineRunner {
                 }
         }
 
-        private void initializeAssessments() {
+    private void initializeAssessments() {
 
-                if (assessmentRepository.count() > 0) {
-                        return;
-                }
+        if (assessmentRepository.count() > 0) {
+            return;
+        }
 
-                AssessmentType entranceType = assessmentTypeRepository
-                        .findByName("Entrance Quiz")
-                        .orElseThrow(() -> new RuntimeException("AssessmentType 'Entrance Quiz' not found"));
+        AssessmentType entranceType = assessmentTypeRepository
+                .findByName("Entrance Quiz")
+                .orElseThrow(() -> new RuntimeException("AssessmentType 'Entrance Quiz' not found"));
 
-                AssessmentType midtermType = assessmentTypeRepository
-                        .findByName("Midterm Test")
-                        .orElseThrow(() -> new RuntimeException("AssessmentType 'Midterm Test' not found"));
+        AssessmentType midtermType = assessmentTypeRepository
+                .findByName("Midterm Test")
+                .orElseThrow(() -> new RuntimeException("AssessmentType 'Midterm Test' not found"));
 
-                AssessmentType finalType = assessmentTypeRepository
-                        .findByName("Final Exam")
-                        .orElseThrow(() -> new RuntimeException("AssessmentType 'Final Exam' not found"));
+        AssessmentType finalType = assessmentTypeRepository
+                .findByName("Final Exam")
+                .orElseThrow(() -> new RuntimeException("AssessmentType 'Final Exam' not found"));
 
                 Assessment entranceAssessment = new Assessment();
                 entranceAssessment.setAssessmentType(entranceType);
@@ -760,34 +760,34 @@ public class DataInitializer implements CommandLineRunner {
                 return module;
         }
 
-        private void initializeAssessmentType() {
+    private void initializeAssessmentType() {
 
-                if (assessmentTypeRepository.count() > 0) {
-                        return;
-                }
-
-                AssessmentType a1 = new AssessmentType();
-                a1.setName("Entrance Quiz");
-                a1.setDescription("Assessment for entrance examination");
-
-                AssessmentType a2 = new AssessmentType();
-                a2.setName("Midterm Test");
-                a2.setDescription("Midterm evaluation assessment");
-
-                AssessmentType a3 = new AssessmentType();
-                a3.setName("Final Exam");
-                a3.setDescription("Final assessment of the course");
-
-                assessmentTypeRepository.saveAll(List.of(a1, a2, a3));
-
-                log.info("Initialized {} assessments", 3);
+        if (assessmentTypeRepository.count() > 0) {
+            return;
         }
 
-        private void ensureProgrammingLanguagePermissions() {
-                boolean hasProgLangPerms = permissionRepository.existsByName("PROGRAMMING_LANGUAGE_READ");
+        AssessmentType a1 = new AssessmentType();
+        a1.setName("Entrance Quiz");
+        a1.setDescription("Assessment for entrance examination");
 
-                if (!hasProgLangPerms) {
-                        log.info("Programming language permissions not found, adding them...");
+        AssessmentType a2 = new AssessmentType();
+        a2.setName("Midterm Test");
+        a2.setDescription("Midterm evaluation assessment");
+
+        AssessmentType a3 = new AssessmentType();
+        a3.setName("Final Exam");
+        a3.setDescription("Final assessment of the course");
+
+        assessmentTypeRepository.saveAll(List.of(a1, a2, a3));
+
+        log.info("Initialized {} assessments", 3);
+    }
+
+    private void ensureProgrammingLanguagePermissions() {
+        boolean hasProgLangPerms = permissionRepository.existsByName("PROGRAMMING_LANGUAGE_READ");
+
+        if (!hasProgLangPerms) {
+            log.info("Programming language permissions not found, adding them...");
 
                         List<Permission> progLangPermissions = Arrays.asList(
                                         createPermission("PROGRAMMING_LANGUAGE_CREATE",
@@ -805,17 +805,17 @@ public class DataInitializer implements CommandLineRunner {
                                         createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages",
                                                         "PROGRAMMING_LANGUAGE", "DELETE"));
 
-                        permissionRepository.saveAll(progLangPermissions);
+            permissionRepository.saveAll(progLangPermissions);
 
-                        // Add these permissions to the ADMIN role
-                        Role adminRole = roleRepository.findByName("ADMIN").orElse(null);
-                        if (adminRole != null) {
-                                adminRole.getPermissions().addAll(progLangPermissions);
-                                roleRepository.save(adminRole);
-                                log.info("Added programming language permissions to ADMIN role");
-                        }
-                }
+            // Add these permissions to the ADMIN role
+            Role adminRole = roleRepository.findByName("ADMIN").orElse(null);
+            if (adminRole != null) {
+                adminRole.getPermissions().addAll(progLangPermissions);
+                roleRepository.save(adminRole);
+                log.info("Added programming language permissions to ADMIN role");
+            }
         }
+    }
 
         private void ensureOutlinePermissions() {
                 boolean hasOutlinePerm = permissionRepository.existsByName("COURSE_OUTLINE_EDIT");
@@ -845,138 +845,138 @@ public class DataInitializer implements CommandLineRunner {
 
         private void initializeQuestions() {
 
-                if (questionRepository.count() > 0) {
-                        return;
-                }
+        if (questionRepository.count() > 0) {
+            return;
+        }
 
-                QuestionCategory javaCore = questionCategoryRepository
-                        .findByName("Java Core")
-                        .orElseThrow(() -> new RuntimeException("Java Core category not found"));
+        QuestionCategory javaCore = questionCategoryRepository
+                .findByName("Java Core")
+                .orElseThrow(() -> new RuntimeException("Java Core category not found"));
 
-                // ===== QUESTION =====
-                Question q1 = new Question();
-                q1.setContent("Which keyword is used to inherit a class in Java?");
-                q1.setQuestionType("SINGLE");
-                q1.setCategory(javaCore);
+        // ===== QUESTION =====
+        Question q1 = new Question();
+        q1.setContent("Which keyword is used to inherit a class in Java?");
+        q1.setQuestionType("SINGLE");
+        q1.setCategory(javaCore);
 
-                // ===== OPTIONS =====
-                List<QuestionOption> options = new ArrayList<>();
+        // ===== OPTIONS =====
+        List<QuestionOption> options = new ArrayList<>();
 
-                QuestionOption o1 = new QuestionOption();
-                o1.setContent("extends");
-                o1.setCorrect(true);
-                o1.setOrderIndex(1);
-                o1.setQuestion(q1);
-                options.add(o1);
+        QuestionOption o1 = new QuestionOption();
+        o1.setContent("extends");
+        o1.setCorrect(true);
+        o1.setOrderIndex(1);
+        o1.setQuestion(q1);
+        options.add(o1);
 
-                QuestionOption o2 = new QuestionOption();
-                o2.setContent("implements");
-                o2.setCorrect(false);
-                o2.setOrderIndex(2);
-                o2.setQuestion(q1);
-                options.add(o2);
+        QuestionOption o2 = new QuestionOption();
+        o2.setContent("implements");
+        o2.setCorrect(false);
+        o2.setOrderIndex(2);
+        o2.setQuestion(q1);
+        options.add(o2);
 
-                q1.setOptions(options);
+        q1.setOptions(options);
 
                 questionRepository.save(q1); // cascade save options
 
-                log.info("Initialized 1 question with options");
+        log.info("Initialized 1 question with options");
+    }
+
+    private void initializeProgrammingLanguages() {
+        // Only initialize if no programming languages exist
+        if (programmingLanguageRepository.count() == 0) {
+            ProgrammingLanguage java = createProgrammingLanguage("Java", "17",
+                    "Object-oriented programming language widely used for enterprise applications",
+                    true);
+            ProgrammingLanguage python = createProgrammingLanguage("Python", "3.11",
+                    "High-level interpreted language popular for data science and web development",
+                    true);
+            ProgrammingLanguage javascript = createProgrammingLanguage("JavaScript", "ES2023",
+                    "Dynamic programming language essential for web development", true);
+            ProgrammingLanguage csharp = createProgrammingLanguage("C#", "11.0",
+                    "Modern object-oriented language developed by Microsoft", true);
+            ProgrammingLanguage cpp = createProgrammingLanguage("C++", "20",
+                    "General-purpose programming language with low-level control", true);
+            ProgrammingLanguage go = createProgrammingLanguage("Go", "1.21",
+                    "Fast, statically typed language designed for modern software development",
+                    false);
+
+            programmingLanguageRepository.saveAll(Arrays.asList(java, python, javascript, csharp, cpp, go));
+            log.info("Initialized 6 programming languages");
+        } else {
+            log.info("Programming languages already exist, skipping initialization");
+        }
+    }
+
+    private ProgrammingLanguage createProgrammingLanguage(String name, String version, String description,
+                                                          boolean isSupported) {
+        ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
+        return language;
+    }
+
+    private void initializeCourses() {
+
+        if (courseRepository.count() > 0) {
+            log.info("Courses already exist, skipping initialization");
+            return;
         }
 
-        private void initializeProgrammingLanguages() {
-                // Only initialize if no programming languages exist
-                if (programmingLanguageRepository.count() == 0) {
-                        ProgrammingLanguage java = createProgrammingLanguage("Java", "17",
-                                "Object-oriented programming language widely used for enterprise applications",
-                                true);
-                        ProgrammingLanguage python = createProgrammingLanguage("Python", "3.11",
-                                "High-level interpreted language popular for data science and web development",
-                                true);
-                        ProgrammingLanguage javascript = createProgrammingLanguage("JavaScript", "ES2023",
-                                "Dynamic programming language essential for web development", true);
-                        ProgrammingLanguage csharp = createProgrammingLanguage("C#", "11.0",
-                                "Modern object-oriented language developed by Microsoft", true);
-                        ProgrammingLanguage cpp = createProgrammingLanguage("C++", "20",
-                                "General-purpose programming language with low-level control", true);
-                        ProgrammingLanguage go = createProgrammingLanguage("Go", "1.21",
-                                "Fast, statically typed language designed for modern software development",
-                                false);
+        User admin = userRepository.findByEmail("admin@example.com").orElseThrow();
 
-                        programmingLanguageRepository.saveAll(Arrays.asList(java, python, javascript, csharp, cpp, go));
-                        log.info("Initialized 6 programming languages");
-                } else {
-                        log.info("Programming languages already exist, skipping initialization");
-                }
-        }
+        Course javaCourse = Course.builder()
+                .courseName("Java Backend Master")
+                .courseCode("JBM-01")
+                .topicId(1L)
+                .price(BigDecimal.valueOf(15_000_000))
+                .discount(10.0)
+                .level(CourseLevel.ADVANCED)
+                .estimatedTime(90 * 24 * 60) // 3 months ≈ minutes
+                .thumbnailUrl("https://example.com/java.jpg")
 
-        private ProgrammingLanguage createProgrammingLanguage(String name, String version, String description,
-                                                              boolean isSupported) {
-                ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
-                return language;
-        }
+                .creator(admin)
+                // .trainer(admin)
 
-        private void initializeCourses() {
+                .description("Java Spring Boot from basic to advanced")
+                .note("Core backend course")
 
-                if (courseRepository.count() > 0) {
-                        log.info("Courses already exist, skipping initialization");
-                        return;
-                }
+                .minGpaToPass(5.0)
+                .minAttendancePercent(80.0)
+                .allowFinalRetake(true)
 
-                User admin = userRepository.findByEmail("admin@example.com").orElseThrow();
+                .creator(admin)
+                // .trainer(admin)
 
-                Course javaCourse = Course.builder()
-                        .courseName("Java Backend Master")
-                        .courseCode("JBM-01")
-                        .topicId(1L)
-                        .price(BigDecimal.valueOf(15_000_000))
-                        .discount(10.0)
-                        .level(CourseLevel.ADVANCED)
-                        .estimatedTime(90 * 24 * 60) // 3 months ≈ minutes
-                        .thumbnailUrl("https://example.com/java.jpg")
+                .build();
 
-                        .creator(admin)
-                        // .trainer(admin)
+        Course reactCourse = Course.builder()
+                .courseName("React Frontend Pro")
+                .courseCode("RFP-01")
+                .topicId(2L)
+                .price(BigDecimal.valueOf(12_000_000))
+                .discount(5.0)
+                .level(CourseLevel.INTERMEDIATE)
+                .estimatedTime(60 * 24 * 60) // 2 months
+                .thumbnailUrl("https://example.com/react.jpg")
 
-                        .description("Java Spring Boot from basic to advanced")
-                        .note("Core backend course")
+                .status(CourseStatus.ACTIVE)
 
-                        .minGpaToPass(5.0)
-                        .minAttendancePercent(80.0)
-                        .allowFinalRetake(true)
+                .description("React from zero to hero")
+                .note("Frontend track")
 
-                        .creator(admin)
-                        // .trainer(admin)
+                .minGpaToPass(5.0)
+                .minAttendancePercent(75.0)
+                .allowFinalRetake(true)
 
-                        .build();
+                .creator(admin)
+                // .trainer(admin)
 
-                Course reactCourse = Course.builder()
-                        .courseName("React Frontend Pro")
-                        .courseCode("RFP-01")
-                        .topicId(2L)
-                        .price(BigDecimal.valueOf(12_000_000))
-                        .discount(5.0)
-                        .level(CourseLevel.INTERMEDIATE)
-                        .estimatedTime(60 * 24 * 60) // 2 months
-                        .thumbnailUrl("https://example.com/react.jpg")
+                .build();
 
-                        .status(CourseStatus.ACTIVE)
+        courseRepository.saveAll(List.of(javaCourse, reactCourse));
 
-                        .description("React from zero to hero")
-                        .note("Frontend track")
-
-                        .minGpaToPass(5.0)
-                        .minAttendancePercent(75.0)
-                        .allowFinalRetake(true)
-
-                        .creator(admin)
-                        // .trainer(admin)
-
-                        .build();
-
-                courseRepository.saveAll(List.of(javaCourse, reactCourse));
-
-                log.info("Initialized {} courses", 2);
-        }
+        log.info("Initialized {} courses", 2);
+    }
 
         private void initializeSemester() {
 
@@ -998,13 +998,13 @@ public class DataInitializer implements CommandLineRunner {
         private record LocationDataJson(List<ProvinceJson> province, List<CommuneJson> commune) {
         }
 
-        @JsonIgnoreProperties(ignoreUnknown = true)
-        private record ProvinceJson(String idProvince, String name) {
-        }
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record ProvinceJson(String idProvince, String name) {
+    }
 
-        @JsonIgnoreProperties(ignoreUnknown = true)
-        private record CommuneJson(String idProvince, String idCommune, String name) {
-        }
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record CommuneJson(String idProvince, String idCommune, String name) {
+    }
 
         // -----------------------------------------------------------------------
         // initializeCohorts() - temporarily disabled, cohort feature not in use

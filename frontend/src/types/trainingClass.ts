@@ -13,6 +13,7 @@ export interface TrainingClass {
     semesterName?: string;
     startDate: string;
     endDate: string;
+    status:  "PENDING_APPROVAL" | "APPROVED" | "REJECTED";
 }
 
 export interface CreateTrainingClassRequest {
@@ -21,6 +22,15 @@ export interface CreateTrainingClassRequest {
     semesterId: string;
     startDate: string;
     endDate: string;
+}
+
+export interface UpdateTrainingClassRequest {
+    className?: string;
+    classCode?: string;
+    semesterId?: string;
+    startDate?: string;
+    endDate?: string;
+    description?: string;
 }
 
 /* ========================
