@@ -2,10 +2,7 @@ package com.example.starter_project_2025.config;
 
 import com.example.starter_project_2025.system.assessment.entity.*;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
-import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
-import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
-import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
-import com.example.starter_project_2025.system.assessment.repository.QuestionRepository;
+import com.example.starter_project_2025.system.assessment.repository.*;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
@@ -69,6 +66,7 @@ public class DataInitializer implements CommandLineRunner
     private final QuestionCategoryRepository questionCategoryRepository;
     private final QuestionRepository questionRepository;
     private final UserRoleRepository userRoleRepository;
+    private final TagRepository tagRepository;
 
     @Override
     @Transactional
@@ -89,6 +87,7 @@ public class DataInitializer implements CommandLineRunner
             initializeQuestionCategories();
             initializeQuestions();
             initializeUserRoles();
+            initializeTags();
 
             log.info("Database initialization completed successfully!");
         } else
@@ -836,6 +835,39 @@ public class DataInitializer implements CommandLineRunner
         courseRepository.saveAll(List.of(javaCourse, reactCourse));
 
         log.info("Initialized {} courses", 2);
+    }
+
+    private void initializeTags() {
+
+        if (tagRepository.count() > 0) {
+            return;
+        }
+
+        Tag basic = new Tag();
+        basic.setName("BASIC");
+        basic.setDescription("Basic level question");
+
+        Tag oop = new Tag();
+        oop.setName("OOP");
+        oop.setDescription("Object-Oriented Programming");
+
+        Tag spring = new Tag();
+        spring.setName("SPRING");
+        spring.setDescription("Spring Framework related");
+
+        Tag database = new Tag();
+        database.setName("DATABASE");
+        database.setDescription("Database and SQL related");
+
+        Tag algorithm = new Tag();
+        algorithm.setName("ALGORITHM");
+        algorithm.setDescription("Algorithm and problem solving");
+
+        tagRepository.saveAll(
+                List.of(basic, oop, spring, database, algorithm)
+        );
+
+        log.info("Initialized {} tags", 5);
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
