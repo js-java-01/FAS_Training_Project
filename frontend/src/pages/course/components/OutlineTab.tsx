@@ -15,8 +15,10 @@ import {
   ChevronRight,
   DatabaseBackup,
   Layers,
+  Sparkles,
   Trash2,
 } from "lucide-react";
+import { AiPreviewModal } from "./AiPreviewModal";
 import { Button } from "@/components/ui/button";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import ActionBtn from "@/components/data_table/ActionBtn";
@@ -803,7 +805,17 @@ function BatchOutlineModal({
 }
 
 // ─── Main OutlineTab ───────────────────────────────────────────
-export function OutlineTab({ courseId }: { courseId: string }) {
+interface OutlineTabProps {
+  courseId: string;
+  course?: {
+    id: string;
+    courseName: string;
+    courseCode: string;
+    description?: string;
+  };
+}
+
+export function OutlineTab({ courseId, course }: OutlineTabProps) {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -848,6 +860,9 @@ export function OutlineTab({ courseId }: { courseId: string }) {
 
   // Batch outline modal
   const [batchModalOpen, setBatchModalOpen] = useState(false);
+
+  // AI Preview modal
+  const [aiPreviewOpen, setAiPreviewOpen] = useState(false);
 
   // ── Data loading ───────────────────────────────────────────
   const loadData = async () => {
@@ -1049,6 +1064,14 @@ export function OutlineTab({ courseId }: { courseId: string }) {
             Batch Create
           </Button>
           <Button
+            variant="secondary"
+            onClick={() => setAiPreviewOpen(true)}
+            className="gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+          >
+            <Sparkles className="h-4 w-4" />
+            AI Preview
+          </Button>
+          <Button
             onClick={() => {
               setEditLesson(null);
               setShowLessonForm(true);
@@ -1181,6 +1204,16 @@ export function OutlineTab({ courseId }: { courseId: string }) {
         onClose={() => setBatchModalOpen(false)}
         onSuccess={loadData}
       />
+
+      {/* AI Preview Modal */}
+      {aiPreviewOpen && (
+        <AiPreviewModal
+          open={aiPreviewOpen}
+          onClose={() => setAiPreviewOpen(false)}
+          onApplied={loadData}
+          course={course ?? { id: courseId, courseName: "", courseCode: "" }}
+        />
+      )}
 
       {/* Outline Import/Export */}
       <ImportExportModal

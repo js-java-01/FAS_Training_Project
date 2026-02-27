@@ -19,6 +19,23 @@ export interface BatchCreateRequest {
   lessons: LessonBatchItem[];
 }
 
+export interface AiPreviewSessionResponse {
+  order?: number;
+  type?: string;
+  topic?: string;
+  studentTask?: string;
+}
+
+export interface AiPreviewLessonResponse {
+  name: string;
+  description?: string;
+  sessions?: AiPreviewSessionResponse[];
+}
+
+export interface ApplyAiPreviewRequest {
+  lessons: AiPreviewLessonResponse[];
+}
+
 export const batchOutlineApi = {
   createBatch: async (request: BatchCreateRequest): Promise<void> => {
     await axiosInstance.post("/batch-outline", request);
@@ -44,5 +61,14 @@ export const batchOutlineApi = {
     await axiosInstance.post(`/batch-outline/import/${courseId}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+  },
+
+  generateAiPreview: async (courseId: string): Promise<AiPreviewLessonResponse[]> => {
+    const response = await axiosInstance.post(`/batch-outline/${courseId}/outline/ai-preview`);
+    return response.data;
+  },
+
+  applyAiPreview: async (courseId: string, request: ApplyAiPreviewRequest): Promise<void> => {
+    await axiosInstance.post(`/batch-outline/${courseId}/outline/apply-ai-preview`, request);
   },
 };
