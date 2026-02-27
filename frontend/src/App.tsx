@@ -12,7 +12,6 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
-import ModulesManagement from "./pages/modules/module/ModulesManagement";
 import { componentRegistry } from "./router/componentRegistry";
 import { Toaster } from "sonner";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
@@ -26,7 +25,6 @@ import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
-
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -69,7 +67,7 @@ function App() {
                     }
                   />
                 );
-              })
+              }),
             )}
             <Route path="*" element={<NotFoundRedirect />} />
             <Route
@@ -115,14 +113,8 @@ function App() {
             />
             <Route path="/courses/:id" element={<CourseDetailPage />} />
             {/* /my-courses redirects to /courses for backward compat */}
-            <Route
-              path="/my-courses"
-              element={<Navigate to="/courses" replace />}
-            />
-            <Route
-              path="/my-courses/:id"
-              element={<Navigate to="/courses" replace />}
-            />
+            <Route path="/my-courses" element={<Navigate to="/courses" replace />} />
+            <Route path="/my-courses/:id" element={<Navigate to="/courses" replace />} />
             <Route
               path="/learn/:cohortId"
               element={
@@ -178,7 +170,7 @@ function App() {
             />
 
             <Route
-              path='questions'
+              path="questions"
               element={
                 <ProtectedRoute requiredPermission="QUESTION_READ">
                   <QuestionManagementPage />
@@ -187,7 +179,7 @@ function App() {
             />
 
             <Route
-              path='questions/create'
+              path="questions/create"
               element={
                 <ProtectedRoute requiredPermission="QUESTION_CREATE">
                   <CreateQuestionPage />
@@ -196,7 +188,7 @@ function App() {
             />
 
             <Route
-              path='questions/:id/edit'
+              path="questions/:id/edit"
               element={
                 <ProtectedRoute requiredPermission="QUESTION_UPDATE">
                   <EditQuestionPage />
@@ -205,8 +197,8 @@ function App() {
             />
           </Routes>
         </RoleSwitchProvider>
-      </AuthProvider >
-    </BrowserRouter >
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
