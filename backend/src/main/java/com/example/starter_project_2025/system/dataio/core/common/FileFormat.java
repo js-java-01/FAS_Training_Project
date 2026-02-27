@@ -1,18 +1,16 @@
 package com.example.starter_project_2025.system.dataio.core.common;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public enum FileFormat {
 
-    EXCEL("xlsx"),
-    CSV("csv"),
-    PDF("pdf");
+    EXCEL("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+    CSV("csv", "text/csv"),
+    PDF("pdf", "application/pdf");
 
     private final String extension;
-
-    FileFormat(String extension) {
-        this.extension = extension;
-    }
-
-    public String extension() {
-        return extension;
-    }
+    private final String contentType;
 }

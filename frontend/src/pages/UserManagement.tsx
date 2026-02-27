@@ -91,11 +91,9 @@ export const UserManagement: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <MainHeader title={"User Management"} />
         <div className="flex gap-3">
-          <DataIOModal
-            entity="user"
-            exportUrl="/users/export"
-            importUrl="/users/import"
-          />
+          
+          <DataIOModal entity="user" />
+
           <PermissionGate permission="USER_CREATE">
             <button
               onClick={() => setShowCreateModal(true)}

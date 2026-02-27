@@ -45,7 +45,7 @@ public class User {
 
     @Column(unique = true, nullable = false)
     @ImportField(name = "Email", required = true)
-    @ExportField(name = "Email", order = 1)
+    @ExportField(name = "Email")
     String email;
 
     @Column(nullable = false)
@@ -55,7 +55,7 @@ public class User {
 
     @Column(nullable = false, length = 100)
     @ImportField(name = "First Name", required = true)
-    @ExportField(name = "First Name", order = 2)
+    @ExportField(name = "First Name")
     String firstName;
 
     @Column(length = 100)
@@ -63,7 +63,7 @@ public class User {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @ImportField(name = "Roles",  required = true, resolver = RoleLookupResolver.class)
-    @ExportField(name = "Roles", order = 4, extractor = RoleNamesExtractor.class)
+    @ExportField(name = "Roles", extractor = RoleNamesExtractor.class)
     Set<UserRole> userRoles;
 
     @OneToMany(mappedBy = "trainer")
@@ -80,7 +80,7 @@ public class User {
 
     @Column(nullable = false)
     @ImportDefault("true")
-    @ExportField(name = "Is Active", order = 5)
+    @ExportField(name = "Is Active")
     Boolean isActive = true;
 
     @CreationTimestamp

@@ -14,8 +14,6 @@ public @interface ExportField {
 
     String name();
 
-    int order();
-
     boolean ignore() default false;
 
     String dateFormat() default "";
