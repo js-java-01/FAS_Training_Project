@@ -87,9 +87,19 @@ export const RoleManagement: React.FC = () => {
   }
 
   return (
+<<<<<<< HEAD
+<<<<<<< HEAD
+    <MainLayout pathName={{ roles: 'Role Management' }}>
+=======
     <MainLayout pathName={{ roles: "Role Management" }}>
+>>>>>>> G3-PhucSanh
       <div className="flex justify-between items-center mb-6">
         {/*<h1 className="text-2xl font-bold text-gray-900">Role Management</h1>*/}
+=======
+      <MainLayout pathName={{ roles: 'Role Management' }}>
+      <div className="flex justify-between items-center mb-6">
+        <MainHeader title={"Role Management"}/>
+>>>>>>> G2-DangPhu
         <PermissionGate permission="ROLE_CREATE">
           <button
             onClick={() => setShowCreateModal(true)}

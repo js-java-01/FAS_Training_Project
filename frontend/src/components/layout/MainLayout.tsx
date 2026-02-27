@@ -1,6 +1,6 @@
-import {SidebarInset, SidebarProvider} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import HeaderRight from "@/components/layout/HeaderRight";
-import {SidebarMenu} from "@/components/layout/Sidebar.tsx";
+import { SidebarMenu } from "@/components/layout/Sidebar.tsx";
 import DynamicBreadcrumbs from "@/components/layout/DynamicBreadcrumbs.tsx";
 
 export function MainLayout({
@@ -25,10 +25,10 @@ export function MainLayout({
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto min-h-0 flex flex-col px-6 pb-6 pt-6">
-                    {children}
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
-    );
+        <main className="flex-1 overflow-y-auto min-h-0 flex flex-col px-6 pb-6 pt-6">
+          {children}
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
+  );
 }

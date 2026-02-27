@@ -23,7 +23,7 @@ export default function ImportExportModal({
   title?: string;
   open: boolean;
   setOpen: (open: boolean) => void;
-  onImport: (file: File) => Promise<ImportResult>;
+  onImport: (file: File) => Promise<ImportResult | void>;
   onExport: () => Promise<void>;
   onDownloadTemplate: () => Promise<void>;
 }) {
@@ -63,7 +63,7 @@ export default function ImportExportModal({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 pb-6 border-t">
+        <DialogFooter className="px-6 py-3 border-t">
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Close
           </Button>

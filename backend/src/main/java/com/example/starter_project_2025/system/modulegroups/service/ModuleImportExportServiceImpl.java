@@ -155,6 +155,13 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
                         throw new IllegalArgumentException("moduleGroup|Module group not found");
                     }
 
+                    if (groups.size() > 1) {
+                        throw new IllegalArgumentException(
+                                "moduleGroup|Duplicate module group name: " + moduleGroupName
+                        );
+                    }
+
+                    ModuleGroups group = groups.getFirst();
                     // ===== SAVE =====
 
                     Module module = new Module();
