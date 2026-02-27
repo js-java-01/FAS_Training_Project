@@ -12,14 +12,6 @@ import { useState } from "react";
 import ImportTab, { type ImportResult } from "./ImportTab";
 import ExportTab from "./ExportTab";
 
-export interface ImportResult {
-  message: string;
-  totalRows: number;
-  successCount: number;
-  failedCount: number;
-  errors: { row: number; field: string; message: string }[];
-}
-
 export default function ImportExportModal({
   title,
   open,
@@ -71,7 +63,7 @@ export default function ImportExportModal({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 pb-6 border-t">
+        <DialogFooter className="px-6 py-3 border-t">
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Close
           </Button>

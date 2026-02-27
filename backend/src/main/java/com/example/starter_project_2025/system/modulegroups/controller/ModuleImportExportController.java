@@ -30,7 +30,7 @@ public class ModuleImportExportController {
             value = "/import",
             consumes = "multipart/form-data"
     )
-    @PreAuthorize("hasAuthority('MENU_ITEM_CREATE')")
+    @PreAuthorize("hasAuthority('MODULE_CREATE')")
     public ResponseEntity<ImportResultResponse> importModules(
             @RequestPart("file") MultipartFile file
     ) {

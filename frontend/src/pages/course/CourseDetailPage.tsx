@@ -39,7 +39,6 @@ const CourseDetailPage = () => {
   return (
     <MainLayout
       pathName={id ? { courses: "Course", [id]: courseTitle } : undefined}
-      hideIcon
     >
       {loading ? (
         <div className="p-6">Loading...</div>

@@ -6,11 +6,9 @@ import DynamicBreadcrumbs from "@/components/layout/DynamicBreadcrumbs.tsx";
 export function MainLayout({
   children,
   pathName,
-  hideIcon,
 }: {
   children: React.ReactNode;
   pathName?: Record<string, string>;
-  hideIcon?: boolean;
 }) {
   return (
     <SidebarProvider>
@@ -19,7 +17,7 @@ export function MainLayout({
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4 w-full justify-between">
             <div className="flex items-center gap-2">
-              <DynamicBreadcrumbs pathTitles={pathName} hideIcon={hideIcon} />
+              <DynamicBreadcrumbs pathTitles={pathName} />
             </div>
             <HeaderRight />
           </div>
