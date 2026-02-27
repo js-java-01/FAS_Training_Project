@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.user.service.impl;
+package com.example.starter_project_2025.system.user.service;
 
 import com.example.starter_project_2025.constant.ErrorMessage;
 import com.example.starter_project_2025.system.user.dto.CreateUserRequest;
@@ -10,7 +10,6 @@ import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.user.mapper.UserMapper;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
-import com.example.starter_project_2025.system.user.service.UserService;
 import com.example.starter_project_2025.system.user.spec.UserSpecification;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -40,11 +39,6 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
-
-    @Override
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
 
     @PreAuthorize("hasAuthority('USER_READ')")
     public Page<UserDTO> getAllUsers(
