@@ -6,28 +6,36 @@ import NotFoundPage from "./pages/NotFoundPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Login } from "./pages/auth/Login";
-import { Unauthorized } from "./pages/Unauthorized";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
+import DepartmentManagement from "@/pages/department/DepartmentManagement";
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
 import { componentRegistry } from "./router/componentRegistry";
 import { Toaster } from "sonner";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
-import { AssessmentFormPage, TeacherAssessmentPage } from "./pages/teacher-assessment";
+import {
+  AssessmentFormPage,
+  TeacherAssessmentPage,
+} from "./pages/teacher-assessment";
 import { QuestionCategoryManagement } from "./pages/question-category";
-import { CreateQuestionPage, EditQuestionPage, QuestionManagementPage } from "./pages/question";
+import {
+  CreateQuestionPage,
+  EditQuestionPage,
+  QuestionManagementPage,
+} from "./pages/question";
 import { Logout } from "./components/auth/Logout";
 import AssessmentManagement from "./pages/AssessmentManagement";
 import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
+import { RoleManagement } from "./pages/role/RoleManagement";
 import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
 import MfaSettings from "./pages/MfaSettings";
 import { MfaGateProvider } from "./components/MfaGateProvider";
 import ClassDetailPage from "./pages/training-classes/ClassDetailPage";
-
+import Unauthorized from "./pages/Unauthorized";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -46,8 +54,14 @@ function App() {
         <RoleSwitchProvider>
           <MfaGateProvider />
           <Routes>
-            <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />
-            <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
+            <Route
+              path="/notFoundPage"
+              element={<NotFoundPage isAuthenticated={isAuthenticated} />}
+            />
+            <Route
+              path="/oauth2/redirect"
+              element={<OAuth2RedirectHandler />}
+            />
             <Route path="/login" element={<Login />} />
             <Route path="/logout" element={<Logout />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
@@ -71,7 +85,7 @@ function App() {
                     }
                   />
                 );
-              })
+              }),
             )}
             <Route path="*" element={<NotFoundRedirect />} />
             <Route
@@ -126,7 +140,7 @@ function App() {
               element={<Navigate to="/courses" replace />}
             />
             <Route
-              path="/learn/:cohortId"
+              path="/learn/:courseId"
               element={
                 <ProtectedRoute requiredPermission="ENROLL_COURSE">
                   <StudentCourseContent />
@@ -143,6 +157,31 @@ function App() {
               }
             />
 
+            <Route
+              path="/roles"
+              element={
+                <ProtectedRoute requiredPermission="ROLE_READ">
+                  <RoleManagement />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/departments"
+              element={
+                <ProtectedRoute requiredPermission="DEPARTMENT_READ">
+                  <DepartmentManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programming-languages"
+              element={
+                <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
+                  <ProgrammingLanguageManagement />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/teacher-assessment/create"
               element={
@@ -180,7 +219,7 @@ function App() {
             />
 
             <Route
-              path='questions'
+              path="questions"
               element={
                 <ProtectedRoute requiredPermission="QUESTION_READ">
                   <QuestionManagementPage />
@@ -189,7 +228,7 @@ function App() {
             />
 
             <Route
-              path='questions/create'
+              path="questions/create"
               element={
                 <ProtectedRoute requiredPermission="QUESTION_CREATE">
                   <CreateQuestionPage />
@@ -198,7 +237,7 @@ function App() {
             />
 
             <Route
-              path='questions/:id/edit'
+              path="questions/:id/edit"
               element={
                 <ProtectedRoute requiredPermission="QUESTION_UPDATE">
                   <EditQuestionPage />
@@ -216,8 +255,8 @@ function App() {
             />
           </Routes>
         </RoleSwitchProvider>
-      </AuthProvider >
-    </BrowserRouter >
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

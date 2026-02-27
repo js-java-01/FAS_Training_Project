@@ -4,6 +4,7 @@ import com.example.starter_project_2025.system.location.entity.Location;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface LocationRepository
@@ -13,6 +14,8 @@ public interface LocationRepository
     boolean existsByNameIgnoreCase(String name);
 
     boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
+
+    Optional<Location> findByName(String name);
 
 
 }

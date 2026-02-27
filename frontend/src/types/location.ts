@@ -1,4 +1,10 @@
-export type LocationStatus = 'ACTIVE' | 'INACTIVE';
+export const LocationStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export type LocationStatus =
+  typeof LocationStatus[keyof typeof LocationStatus];
 
 export interface Location {
   id: string;
@@ -35,4 +41,3 @@ export interface LocationImportResult {
   success: number;
   errors: LocationImportError[];
 }
-

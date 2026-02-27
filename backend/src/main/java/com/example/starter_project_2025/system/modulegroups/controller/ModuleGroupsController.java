@@ -38,7 +38,7 @@ public class ModuleGroupsController {
 
     @GetMapping({"/list"})
     @Operation(summary = "Get all module groups")
-    @PreAuthorize("hasAuthority('MENU_READ')")
+    @PreAuthorize("hasAuthority('MODULE_GROUP_READ')")
     public ResponseEntity<List<ModuleGroupDetailResponse>> getAllModuleGroups() {
         return ResponseEntity.ok(moduleGroupsService.getAll());
     }
@@ -46,14 +46,14 @@ public class ModuleGroupsController {
 
     @GetMapping("/details")
     @Operation(summary = "Get all module group details for admin panel/sidebar")
-    @PreAuthorize("hasAuthority('MENU_READ')")
+    @PreAuthorize("hasAuthority('MODULE_GROUP_READ')")
     public ResponseEntity<List<ModuleGroupDetailResponse>> getAllModuleGroupDetails() {
         return ResponseEntity.ok(moduleGroupsService.getAllDetails());
     }
 
     @GetMapping("/active")
     @Operation(summary = "Get active module groups with active modules")
-    @PreAuthorize("hasAuthority('MENU_READ')")
+    @PreAuthorize("hasAuthority('MODULE_GROUP_READ')")
     public ResponseEntity<List<ModuleGroupDetailResponse>> getActiveModuleGroups() {
         return ResponseEntity.ok(moduleGroupsService.getActiveGroupsWithActiveModules());
     }
@@ -61,14 +61,14 @@ public class ModuleGroupsController {
 
     @GetMapping("/{id}")
     @Operation(summary = "View module group details")
-    @PreAuthorize("hasAuthority('MENU_READ')")
+    @PreAuthorize("hasAuthority('MODULE_GROUP_READ')")
     public ResponseEntity<ModuleGroupDetailResponse> viewModuleGroup(@PathVariable UUID id) {
         return ResponseEntity.ok(moduleGroupsService.getDetailById(id));
     }
 
 
     @PostMapping
-    @PreAuthorize("hasAuthority('MENU_CREATE')")
+    @PreAuthorize("hasAuthority('MODULE_GROUP_CREATE')")
     public ResponseEntity<ModuleGroupResponse> createModuleGroup(@Valid @RequestBody CreateModuleGroup request) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(moduleGroupsService.create(request));
@@ -76,7 +76,7 @@ public class ModuleGroupsController {
 
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('MENU_UPDATE')")
+    @PreAuthorize("hasAuthority('MODULE_GROUP_UPDATE')")
     public ResponseEntity<ModuleGroupDetailResponse> updateModuleGroup(@PathVariable UUID id, @Valid @RequestBody UpdateModuleGroup request) {
 
         return ResponseEntity.ok(moduleGroupsService.update(id, request));
@@ -84,7 +84,7 @@ public class ModuleGroupsController {
 
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('MENU_DELETE')")
+    @PreAuthorize("hasAuthority('MODULE_GROUP_DELETE')")
     public ResponseEntity<Void> deleteModuleGroup(@PathVariable UUID id) {
 
         moduleGroupsService.delete(id);
@@ -92,7 +92,8 @@ public class ModuleGroupsController {
     }
 
     @GetMapping(params = "page")
-    @PreAuthorize("hasAuthority('MENU_READ')")
+    @Operation(summary = "Search module groups with pagination")
+    @PreAuthorize("hasAuthority('MODULE_GROUP_READ')")
     public ResponseEntity<ApiResponse<PageResponse<ModuleGroupDetailResponse>>> searchModuleGroups(
             @ModelAttribute SearchModuleGroupRequest request
     ) {

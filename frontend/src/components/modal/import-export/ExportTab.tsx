@@ -53,6 +53,21 @@ export default function ExportTab({
 
       {/* ===== ACTION CARD ===== */}
       <div className="bg-white border rounded-xl p-6 space-y-5 shadow-sm">
+        {/* Success Message */}
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 p-3 rounded-lg text-sm flex items-center gap-2">
+            <span className="w-2 h-2 bg-green-600 rounded-full" />
+            Export completed successfully.
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 mt-0.5" />
+            <span>{error}</span>
+          </div>
+        )}
         {/* Included Info */}
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-gray-900">
@@ -85,21 +100,7 @@ export default function ExportTab({
           {loading ? "Exporting..." : "Export Now"}
         </Button>
 
-        {/* Success Message */}
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 p-3 rounded-lg text-sm flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-600 rounded-full" />
-            Export completed successfully.
-          </div>
-        )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 mt-0.5" />
-            <span>{error}</span>
-          </div>
-        )}
       </div>
     </div>
   );

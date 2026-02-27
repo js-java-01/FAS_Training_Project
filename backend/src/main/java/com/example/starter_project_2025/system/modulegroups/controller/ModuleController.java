@@ -28,19 +28,24 @@ public class ModuleController {
 
     private final ModuleService moduleService;
 
-    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
+    /* =========================================================
+       VIEW MODULE DETAIL
+    ========================================================= */
+    @PreAuthorize("hasAuthority('MODULE_READ')")
     @GetMapping("/{id}")
     @Operation(summary = "View module details")
-    public ResponseEntity<ModuleDetail> viewModule(
-            @PathVariable UUID id) {
+    public ResponseEntity<ModuleDetail> viewModule(@PathVariable UUID id) {
 
         return ResponseEntity.ok(
                 moduleService.getModuleDetail(id)
         );
     }
 
+    /* =========================================================
+       CREATE MODULE
+    ========================================================= */
     @PostMapping
-    @PreAuthorize("hasAuthority('MENU_ITEM_CREATE')")
+    @PreAuthorize("hasAuthority('MODULE_CREATE')")
     @Operation(summary = "Create module")
     public ResponseEntity<CreateModuleResponse> createModule(
             @Valid @RequestBody CreateModuleRequest request) {
@@ -50,8 +55,12 @@ public class ModuleController {
                 .body(moduleService.createModule(request));
     }
 
+    /* =========================================================
+       UPDATE MODULE
+    ========================================================= */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('MENU_ITEM_UPDATE')")
+    @PreAuthorize("hasAuthority('MODULE_UPDATE')")
+    @Operation(summary = "Update module")
     public ResponseEntity<UpdateModuleResponse> updateModule(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateModuleRequest request
@@ -60,24 +69,38 @@ public class ModuleController {
         return ResponseEntity.ok(response);
     }
 
+    /* =========================================================
+       GET MODULES BY GROUP
+    ========================================================= */
     @GetMapping("/module-group/{id}")
-    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
+    @PreAuthorize("hasAuthority('MODULE_READ')")
     @Operation(summary = "Get all modules by Module Group ID")
-    public ResponseEntity<List<ModuleDetail>> getModulesByGroup(@PathVariable UUID id) {
-        return ResponseEntity.ok(moduleService.getModulesByGroupId(id));
+    public ResponseEntity<List<ModuleDetail>> getModulesByGroup(
+            @PathVariable UUID id
+    ) {
+        return ResponseEntity.ok(
+                moduleService.getModulesByGroupId(id)
+        );
     }
 
+    /* =========================================================
+       DELETE MODULE (SOFT DELETE)
+    ========================================================= */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('MENU_ITEM_DELETE')") // <-- Đổi thành hasAuthority
+    @PreAuthorize("hasAuthority('MODULE_DELETE')")
     @Operation(summary = "Delete module (soft delete)")
     public ResponseEntity<Void> deleteModule(@PathVariable UUID id) {
+
         moduleService.deleteModule(id);
         return ResponseEntity.noContent().build();
     }
 
+    /* =========================================================
+       SEARCH MODULES
+    ========================================================= */
     @GetMapping
+    @PreAuthorize("hasAuthority('MODULE_READ')")
     @Operation(summary = "Search modules with pagination")
-    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
     public ResponseEntity<ApiResponse<PageResponse<ModuleDetail>>> searchModules(
             @ModelAttribute SearchModuleRequest request,
             Pageable pageable
