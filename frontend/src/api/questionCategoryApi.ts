@@ -3,6 +3,7 @@ import {
   type QuestionCategory,
   type QuestionCategoryRequest
 } from '../types/questionCategory';
+import { type QuestionTag } from '../types/questionTag';
 
 export const questionCategoryApi = {
 
@@ -18,6 +19,14 @@ export const questionCategoryApi = {
   getById: async (id: string): Promise<QuestionCategory> => {
     const response = await axiosInstance.get<QuestionCategory>(
       `/v1/question-categories/${id}`
+    );
+    return response.data;
+  },
+
+  // ==================== GET TAGS BY CATEGORY ID ====================
+  getTags: async (categoryId: string): Promise<QuestionTag[]> => {
+    const response = await axiosInstance.get<QuestionTag[]>(
+      `/v1/question-categories/${categoryId}/tags`
     );
     return response.data;
   },

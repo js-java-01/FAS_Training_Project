@@ -1,11 +1,29 @@
 import axiosInstance from './axiosInstance';
-import { type Question, type QuestionCreateRequest } from '../types/question';
+import {
+    type Question,
+    type QuestionCreateRequest,
+    type PagedQuestionResponse,
+    type QuestionListItem
+} from '../types/question';
 
 export const questionApi = {
 
-    // ==================== GET ALL ====================
-    getAll: async (): Promise<Question[]> => {
-        const response = await axiosInstance.get<{ content: Question[] }>(
+    // ==================== GET ALL (Paginated) ====================
+    getAll: async (params?: {
+        page?: number;
+        size?: number;
+        sort?: string;
+    }): Promise<PagedQuestionResponse> => {
+        const response = await axiosInstance.get<PagedQuestionResponse>(
+            '/v1/questions',
+            { params }
+        );
+        return response.data;
+    },
+
+    // ==================== GET ALL CONTENT (Non-paginated) ====================
+    getAllContent: async (): Promise<QuestionListItem[]> => {
+        const response = await axiosInstance.get<PagedQuestionResponse>(
             '/v1/questions'
         );
         return response.data.content || [];
@@ -20,7 +38,8 @@ export const questionApi = {
             questionType: data.questionType,
             content: data.content,
             isActive: data.isActive,
-            options: data.options
+            options: data.options,
+            ...(data.tagIds && { tagIds: data.tagIds })
         };
 
         const response = await axiosInstance.post<Question>(
@@ -40,7 +59,8 @@ export const questionApi = {
             questionType: data.questionType,
             content: data.content,
             isActive: data.isActive,
-            options: data.options
+            options: data.options,
+            ...(data.tagIds && { tagIds: data.tagIds })
         };
 
         const response = await axiosInstance.put<Question>(

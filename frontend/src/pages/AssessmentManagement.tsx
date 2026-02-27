@@ -1,7 +1,5 @@
-
 import { MainLayout } from '@/components/layout/MainLayout';
 import { AssessmentTable } from './assessment-type';
-import MainHeader from '@/components/layout/MainHeader';
 
 /**
  * Assessment Management Page
@@ -13,7 +11,6 @@ export default function AssessmentManagement() {
   return (
     <MainLayout pathName={{ assessments: "Assessment Types" }}>
       <div className="h-full flex-1 flex flex-col gap-4">
-        <MainHeader title="Assessment Types" />
         <AssessmentTable />
       </div>
     </MainLayout>

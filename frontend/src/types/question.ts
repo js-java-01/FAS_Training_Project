@@ -5,6 +5,16 @@ export interface QuestionOption {
   orderIndex: number;
 }
 
+export interface QuestionTag {
+  id: number;
+  name: string;
+}
+
+export interface SimplifiedCategory {
+  id: string;
+  name: string;
+}
+
 export interface Question {
   id: string;
   content: string;
@@ -23,6 +33,17 @@ export interface Question {
   };
 
   options: QuestionOption[];
+  tags?: QuestionTag[];
+}
+
+export interface QuestionListItem {
+  id: string;
+  content: string;
+  questionType: string;
+  isActive: boolean;
+  category: SimplifiedCategory;
+  options: Omit<QuestionOption, 'id'>[];
+  tags: QuestionTag[];
 }
 
 export interface QuestionCreateRequest {
@@ -33,10 +54,42 @@ export interface QuestionCreateRequest {
   categoryId: string;
 
   options: QuestionOptionRequest[];
+  tagIds?: number[];
 }
 
 export interface QuestionOptionRequest {
   content: string;
   correct: boolean;
   orderIndex: number;
+}
+
+export interface Sort {
+  direction: string;
+  nullHandling: string;
+  ascending: boolean;
+  property: string;
+  ignoreCase: boolean;
+}
+
+export interface Pageable {
+  offset: number;
+  sort: Sort[];
+  paged: boolean;
+  pageNumber: number;
+  pageSize: number;
+  unpaged: boolean;
+}
+
+export interface PagedQuestionResponse {
+  totalPages: number;
+  totalElements: number;
+  first: boolean;
+  last: boolean;
+  size: number;
+  content: QuestionListItem[];
+  number: number;
+  sort: Sort[];
+  numberOfElements: number;
+  pageable: Pageable;
+  empty: boolean;
 }
