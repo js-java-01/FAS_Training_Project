@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export const Unauthorized: React.FC = () => {
+const Unauthorized: React.FC = () => {
   const navigate = useNavigate();
 
   return (
@@ -22,3 +22,5 @@ export const Unauthorized: React.FC = () => {
     </div>
   );
 };
+
+export default Unauthorized;

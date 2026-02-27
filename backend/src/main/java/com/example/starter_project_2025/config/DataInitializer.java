@@ -716,7 +716,7 @@ public class DataInitializer implements CommandLineRunner {
                         ),
 
                         createModule(trainingGroup, "Classes", "/classes", "people", 6,
-                                "CLASS_USER_READ",
+                                "CLASS_READ",
                                 "User search and view classes"
                         )
                 ));

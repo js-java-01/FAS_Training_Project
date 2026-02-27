@@ -6,7 +6,6 @@ import NotFoundPage from "./pages/NotFoundPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Login } from "./pages/auth/Login";
-import { Unauthorized } from "./pages/Unauthorized";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -34,6 +33,7 @@ import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import { RoleManagement } from "./pages/role/RoleManagement";
 import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
 import ClassDetailPage from "./pages/training-classes/ClassDetailPage";
+import Unauthorized from "./pages/Unauthorized";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
