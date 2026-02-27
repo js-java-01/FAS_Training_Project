@@ -116,23 +116,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/course-classes/**").hasAuthority("COURSE_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/course-classes/**").hasAuthority("COURSE_DELETE")
 
-                        .anyRequest().authenticated()
-                )
-                .exceptionHandling(exception -> exception
-                        .defaultAuthenticationEntryPointFor(
-                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-                                new AntPathRequestMatcher("/api/**")
-                        )
-                )
-                .authenticationProvider(authenticationProvider(passwordEncoder.passwordEncoder()))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login")
-                        .userInfoEndpoint(userInfo ->
-                                userInfo.userService(customOAuth2UserService))
-                        .successHandler(oAuth2AuthenticationSuccessHandler)
-                );
+//                        .anyRequest().authenticated()
 
                                                 // Batch outline endpoints
                                                 .requestMatchers(HttpMethod.POST, "/api/batch-outline")

@@ -198,7 +198,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                 .orElseGet(() -> {
                     Enrollment enrollment = new Enrollment();
                     enrollment.setUser(student);
-                    enrollment.setTrainingClass(trainingClass);
+                   // enrollment.setTrainingClass(trainingClass);
                     enrollment.setStatus(EnrollmentStatus.ACTIVE);
                     entityManager.persist(enrollment);
                     return enrollment;
@@ -314,7 +314,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                 .orElseGet(() -> {
                     Enrollment enrollment = new Enrollment();
                     enrollment.setUser(user);
-                    enrollment.setTrainingClass(trainingClass);
+                    //enrollment.setTrainingClass(trainingClass);
                     enrollment.setStatus(EnrollmentStatus.ACTIVE);
                     entityManager.persist(enrollment);
                     return enrollment;
