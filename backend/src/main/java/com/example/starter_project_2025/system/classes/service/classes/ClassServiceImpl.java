@@ -6,6 +6,7 @@ import com.example.starter_project_2025.system.classes.dto.request.SearchClassRe
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.classes.mapper.TrainingClassMapper;
 import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
+import com.example.starter_project_2025.system.classes.spec.ClassSpecification;
 import com.example.starter_project_2025.system.modulegroups.util.StringNormalizer;
 import com.example.starter_project_2025.system.semester.entity.Semester;
 import com.example.starter_project_2025.system.semester.repository.SemesterRepository;
@@ -13,8 +14,10 @@ import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -82,9 +85,12 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
-    public Page<TrainingClassResponse> searchTrainingClasses(SearchClassRequest request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'searchTrainingClasses'");
+    public Page<TrainingClassResponse> searchTrainingClasses(SearchClassRequest request, Pageable pageable) {
+        Specification<TrainingClass> spec = Specification
+                .where(ClassSpecification.filterClasses(request));
+
+        Page<TrainingClass> page = trainingClassRepository.findAll(spec, pageable);
+        return page.map(mapper::toResponse);
     }
 
 }

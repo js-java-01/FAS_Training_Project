@@ -8,10 +8,10 @@ import com.example.starter_project_2025.system.modulegroups.dto.response.ApiResp
 import com.example.starter_project_2025.system.modulegroups.dto.response.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -24,12 +24,14 @@ public class ClassController {
 
         private final ClassService classService;
 
-        @GetMapping(params = "page")
-        @PreAuthorize("hasAuthority('CLASS_CREATE')")
+        @GetMapping("")
+        @PreAuthorize("hasAuthority('CLASS_READ') or hasAuthority('CLASS_USER_READ')")
         public ResponseEntity<ApiResponse<PageResponse<TrainingClassResponse>>> searchTrainingClasses(
-                        @Valid @ModelAttribute SearchClassRequest request) {
+                        @Valid @ParameterObject @ModelAttribute SearchClassRequest request,
+                        Pageable pageable) {
 
-                Page<TrainingClassResponse> pageResult = classService.searchTrainingClasses(request);
+                Page<TrainingClassResponse> pageResult = classService.searchTrainingClasses(request,
+                                pageable);
 
                 return ResponseEntity.ok(
                                 ApiResponse.success(

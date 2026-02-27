@@ -35,6 +35,8 @@ public class TrainingClass {
 
     @Column(name = "class_code", unique = true)
     private String classCode;
+    @Column(name = "enrollment_key", length = 500)
+    private String enrollmentKey;
 
     @Enumerated(EnumType.STRING)
     private ClassStatus classStatus;

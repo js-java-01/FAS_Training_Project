@@ -11,6 +11,7 @@ export interface TrainingClass {
     creatorName?: string;
     approverName?: string;
     semesterName?: string;
+    trainerNames?: string[];
     startDate: string;
     endDate: string;
 }
