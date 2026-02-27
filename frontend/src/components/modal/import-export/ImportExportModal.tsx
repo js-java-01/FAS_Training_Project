@@ -12,6 +12,14 @@ import { useState } from "react";
 import ImportTab, { type ImportResult } from "./ImportTab";
 import ExportTab from "./ExportTab";
 
+export interface ImportResult {
+  message: string;
+  totalRows: number;
+  successCount: number;
+  failedCount: number;
+  errors: { row: number; field: string; message: string }[];
+}
+
 export default function ImportExportModal({
   title,
   open,
@@ -23,7 +31,7 @@ export default function ImportExportModal({
   title?: string;
   open: boolean;
   setOpen: (open: boolean) => void;
-  onImport: (file: File) => Promise<ImportResult>;
+  onImport: (file: File) => Promise<ImportResult | void>;
   onExport: () => Promise<void>;
   onDownloadTemplate: () => Promise<void>;
 }) {

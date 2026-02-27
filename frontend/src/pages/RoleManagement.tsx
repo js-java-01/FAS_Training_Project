@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { roleApi } from '../api/roleApi';
-import { permissionApi } from '../api/permissionApi';
-import type { Role, CreateRoleRequest } from '../types/role';
-import type { Permission } from '../types/permission';
-import { PermissionGate } from '../components/PermissionGate';
-import { MainLayout } from '../components/layout/MainLayout.tsx';
+import React, { useState, useEffect } from "react";
+import { roleApi } from "../api/roleApi";
+import { permissionApi } from "../api/permissionApi";
+import type { Role, CreateRoleRequest } from "../types/role";
+import type { Permission } from "../types/permission";
+import { PermissionGate } from "../components/PermissionGate";
+import { MainLayout } from "../components/layout/MainLayout.tsx";
 
 export const RoleManagement: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -12,8 +12,8 @@ export const RoleManagement: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newRole, setNewRole] = useState<CreateRoleRequest>({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     hierarchyLevel: 1,
     permissionIds: [],
   });
@@ -31,7 +31,7 @@ export const RoleManagement: React.FC = () => {
       setRoles(rolesData.content);
       setPermissions(permissionsData);
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error("Error loading data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -42,10 +42,10 @@ export const RoleManagement: React.FC = () => {
     try {
       await roleApi.createRole(newRole);
       setShowCreateModal(false);
-      setNewRole({ name: '', description: '', hierarchyLevel: 1, permissionIds: [] });
+      setNewRole({ name: "", description: "", hierarchyLevel: 1, permissionIds: [] });
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error creating role');
+      alert(error.response?.data?.message || "Error creating role");
     }
   };
 
@@ -54,17 +54,17 @@ export const RoleManagement: React.FC = () => {
       await roleApi.toggleRoleStatus(id);
       loadData();
     } catch (error) {
-      alert('Error toggling role status');
+      alert("Error toggling role status");
     }
   };
 
   const handleDeleteRole = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this role?')) {
+    if (window.confirm("Are you sure you want to delete this role?")) {
       try {
         await roleApi.deleteRole(id);
         loadData();
       } catch (error) {
-        alert('Error deleting role');
+        alert("Error deleting role");
       }
     }
   };
@@ -87,9 +87,19 @@ export const RoleManagement: React.FC = () => {
   }
 
   return (
+<<<<<<< HEAD
+<<<<<<< HEAD
     <MainLayout pathName={{ roles: 'Role Management' }}>
+=======
+    <MainLayout pathName={{ roles: "Role Management" }}>
+>>>>>>> G3-PhucSanh
       <div className="flex justify-between items-center mb-6">
         {/*<h1 className="text-2xl font-bold text-gray-900">Role Management</h1>*/}
+=======
+      <MainLayout pathName={{ roles: 'Role Management' }}>
+      <div className="flex justify-between items-center mb-6">
+        <MainHeader title={"Role Management"}/>
+>>>>>>> G2-DangPhu
         <PermissionGate permission="ROLE_CREATE">
           <button
             onClick={() => setShowCreateModal(true)}
@@ -108,12 +118,11 @@ export const RoleManagement: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <h3 className="text-lg font-semibold text-gray-900">{role.name}</h3>
                   <span
-                    className={`px-2 py-1 text-xs rounded-full ${role.isActive
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                      }`}
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      role.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                    }`}
                   >
-                    {role.isActive ? 'Active' : 'Inactive'}
+                    {role.isActive ? "Active" : "Inactive"}
                   </span>
                   <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
                     Level {role.hierarchyLevel}
@@ -124,10 +133,7 @@ export const RoleManagement: React.FC = () => {
                   <p className="text-sm font-medium text-gray-700 mb-2">Permissions:</p>
                   <div className="flex flex-wrap gap-2">
                     {role.permissionNames.map((permission) => (
-                      <span
-                        key={permission}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
-                      >
+                      <span key={permission} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                         {permission}
                       </span>
                     ))}
@@ -140,7 +146,7 @@ export const RoleManagement: React.FC = () => {
                     onClick={() => handleToggleStatus(role.id)}
                     className="px-3 py-1 text-sm text-blue-600 hover:text-blue-900"
                   >
-                    {role.isActive ? 'Deactivate' : 'Activate'}
+                    {role.isActive ? "Deactivate" : "Activate"}
                   </button>
                 </PermissionGate>
                 <PermissionGate permission="ROLE_DELETE">
@@ -189,16 +195,12 @@ export const RoleManagement: React.FC = () => {
                   required
                   min="0"
                   value={newRole.hierarchyLevel}
-                  onChange={(e) =>
-                    setNewRole({ ...newRole, hierarchyLevel: parseInt(e.target.value) })
-                  }
+                  onChange={(e) => setNewRole({ ...newRole, hierarchyLevel: parseInt(e.target.value) })}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Permissions
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
                 <div className="border border-gray-300 rounded-md p-4 max-h-64 overflow-y-auto">
                   {permissions.map((permission) => (
                     <label key={permission.id} className="flex items-center space-x-2 mb-2">
@@ -223,10 +225,7 @@ export const RoleManagement: React.FC = () => {
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                   Create
                 </button>
               </div>

@@ -24,3 +24,10 @@ export interface UpdateRoleRequest {
   hierarchyLevel?: number;
   permissionIds?: string[];
 }
+
+/** Compact role info used by the role-switcher */
+export interface RoleSwitchRole {
+  id: string;
+  name: string;
+  permissions: string[];
+}

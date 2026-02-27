@@ -34,8 +34,13 @@ const CourseDetailPage = () => {
   // Student: render the full student detail view
   if (isStudentMode) return <StudentCourseDetailPage />;
 
+  const courseTitle = course?.courseName ?? "Detail";
+
   return (
-    <MainLayout pathName={id ? { [id]: "Detail" } : undefined}>
+    <MainLayout
+      pathName={id ? { courses: "Course", [id]: courseTitle } : undefined}
+      hideIcon
+    >
       {loading ? (
         <div className="p-6">Loading...</div>
       ) : (

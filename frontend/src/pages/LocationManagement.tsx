@@ -11,8 +11,7 @@ import type {
 } from "../types/location";
 import { LocationStatus } from "../types/location";
 import { PermissionGate } from "../components/PermissionGate";
-import { ImportExportActions } from "@/components/import-export/ImportExportActions";
-import { BaseImportModal } from "@/components/import-export/BaseImportModal";
+import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { MainLayout } from "../components/layout/MainLayout";
 import { useDebounce } from "../hooks/useDebounce";
@@ -35,7 +34,7 @@ export const LocationManagement: React.FC = () => {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showImportModal, setShowImportModal] = useState(false);
+  const [showImportExportModal, setShowImportExportModal] = useState(false);
 
   const [selectedLocation, setSelectedLocation] = useState<LocationType | null>(
     null,
@@ -177,12 +176,6 @@ export const LocationManagement: React.FC = () => {
     await loadData();
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(0);
-    loadData();
-  };
-
   const handleExport = async () => {
     const blob = await locationApi.exportLocations();
     const url = URL.createObjectURL(blob);
@@ -193,8 +186,20 @@ export const LocationManagement: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadTemplate = async (): Promise<Blob> => {
-    return await locationApi.downloadLocationImportTemplate();
+  const handleDownloadTemplate = async () => {
+    const blob = await locationApi.downloadLocationImportTemplate();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "location_import_template.xlsx";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(0);
+    loadData();
   };
 
   /* ===================== RENDER ===================== */
@@ -214,10 +219,12 @@ export const LocationManagement: React.FC = () => {
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Location Management</h1>
           <div className="flex gap-2">
-            <ImportExportActions
-              onImportClick={() => setShowImportModal(true)}
-              onExportClick={handleExport}
-            />
+            <button
+              onClick={() => setShowImportExportModal(true)}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 flex items-center gap-2"
+            >
+              Import / Export
+            </button>
             <PermissionGate permission="LOCATION_CREATE">
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -301,10 +308,11 @@ export const LocationManagement: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 py-1 text-xs rounded-full ${location.status === LocationStatus.ACTIVE
+                      className={`px-2 py-1 text-xs rounded-full ${
+                        location.status === LocationStatus.ACTIVE
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
-                        }`}
+                      }`}
                     >
                       {location.status}
                     </span>
@@ -626,17 +634,14 @@ export const LocationManagement: React.FC = () => {
         }}
       />
 
-      {/* IMPORT */}
-      <BaseImportModal
-        open={showImportModal}
-        title="Import Locations"
-        description="Upload Excel file to import locations"
-        templateFileName="location_import_template.xlsx"
-        accept=".xlsx,.xls"
-        onClose={() => setShowImportModal(false)}
-        onSuccess={loadData}
-        onDownloadTemplate={handleDownloadTemplate}
+      {/* IMPORT / EXPORT */}
+      <ImportExportModal
+        title="Locations"
+        open={showImportExportModal}
+        setOpen={setShowImportExportModal}
         onImport={handleImport}
+        onExport={handleExport}
+        onDownloadTemplate={handleDownloadTemplate}
       />
     </MainLayout>
   );
