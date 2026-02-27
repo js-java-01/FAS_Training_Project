@@ -12,8 +12,6 @@ import java.util.UUID;
 
 public interface UserService {
 
-    List<User> findAll();
-
     Page<UserDTO> getAllUsers(
             String searchContent,
             UUID roleId,

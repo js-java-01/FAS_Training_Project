@@ -8,7 +8,6 @@ import java.lang.reflect.Field;
 @Builder
 public record ExportFieldMeta(
         String header,
-        int order,
         Field field,
         String dateFormat,
         String path,

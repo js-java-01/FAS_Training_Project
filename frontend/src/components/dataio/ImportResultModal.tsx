@@ -115,7 +115,7 @@ const ImportResultModal = ({
           <DialogDescription>Detailed import result</DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto py-4">
+        <div className="flex-1 max-h-[400px] overflow-y-auto py-4">
           <ImportResultContent result={result} />
         </div>
 

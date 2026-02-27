@@ -50,7 +50,7 @@ public class UserController {
     ) throws IOException {
         exportService.export(
                 format,
-                userService.findAll(),
+                userRepository.findAll(),
                 User.class,
                 response
         );

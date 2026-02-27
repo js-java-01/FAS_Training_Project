@@ -40,11 +40,19 @@ public class GenericExportService implements ExportService {
             HttpServletResponse response
     ) throws IOException {
 
-        if (data == null || data.isEmpty()) {
-            throw new IllegalArgumentException("Export data is empty");
+        if (data == null) {
+            throw new IllegalArgumentException("Export data cannot be null");
+        }
+
+        if (!clazz.isAnnotationPresent(ExportEntity.class)) {
+            throw new IllegalArgumentException(
+                    "Class " + clazz.getSimpleName() +
+                            " must be annotated with @ExportEntity"
+            );
         }
 
         ExportSheetConfig<T> config = configBuilder.build(clazz);
+
         Exporter exporter = getExporter(format);
 
         String fileName = resolveFileName(clazz, format);
@@ -74,7 +82,7 @@ public class GenericExportService implements ExportService {
 
         return ExportFileNameBuilder.build(
                 baseName,
-                format.extension()
+                format.getExtension()
         );
     }
 
@@ -83,14 +91,7 @@ public class GenericExportService implements ExportService {
             String finalName,
             HttpServletResponse response
     ) {
-        switch (format) {
-            case EXCEL ->
-                    response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            case CSV ->
-                    response.setContentType("text/csv");
-            case PDF ->
-                    response.setContentType("application/pdf");
-        }
+        response.setContentType(format.getContentType());
 
         response.setHeader(
                 "Content-Disposition",
