@@ -10,6 +10,7 @@ import java.util.List;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ImportResult {
+
     int successCount;
     int failureCount;
     List<RowError> errors = new ArrayList<>();

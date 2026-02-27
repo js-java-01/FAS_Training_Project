@@ -2,7 +2,7 @@ package com.example.starter_project_2025.system.dataio.exporter.service;
 
 import com.example.starter_project_2025.system.dataio.common.FileFormat;
 import com.example.starter_project_2025.system.dataio.exporter.builder.ExportConfigBuilder;
-import com.example.starter_project_2025.system.dataio.exporter.components.ExportSheetConfig;
+import com.example.starter_project_2025.system.dataio.exporter.component.ExportSheetConfig;
 import com.example.starter_project_2025.system.dataio.exporter.variant.Exporter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;

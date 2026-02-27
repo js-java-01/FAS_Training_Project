@@ -2,11 +2,13 @@ package com.example.starter_project_2025.system.user.entity;
 
 import com.example.starter_project_2025.system.assessment.entity.Submission;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
-import com.example.starter_project_2025.system.dataio.exporter.annotations.ExportField;
-import com.example.starter_project_2025.system.dataio.exporter.annotations.Exportable;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportField;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportEntity;
 import com.example.starter_project_2025.system.dataio.exporter.resolver.extractor.RoleNamesExtractor;
-import com.example.starter_project_2025.system.dataio.importer.annotations.ImportField;
-import com.example.starter_project_2025.system.dataio.importer.annotations.ImportDefault;
+import com.example.starter_project_2025.system.dataio.template.annotation.ImportEntity;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportField;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportDefault;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportHash;
 import com.example.starter_project_2025.system.dataio.importer.resolver.RoleLookupResolver;
 import com.example.starter_project_2025.system.trainer_course.entity.TrainerCourse;
 import com.example.starter_project_2025.system.user_role.entity.UserRole;
@@ -33,33 +35,35 @@ import java.util.UUID;
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Exportable(fileName = "users", sheetName = "Users")
+@ImportEntity("user")
+@ExportEntity(fileName = "users", sheetName = "Users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
 
-    @Column(unique = true, nullable = false, length = 255)
-    @ImportField(header = "Email", required = true)
-    @ExportField(header = "Email", order = 1)
+    @Column(unique = true, nullable = false)
+    @ImportField(name = "Email", required = true)
+    @ExportField(name = "Email", order = 1)
     String email;
 
     @Column(nullable = false)
-    @ImportDefault("password123")
+    @ImportHash
+    @ImportField(name = "Password", required = true)
     String passwordHash;
 
     @Column(nullable = false, length = 100)
-    @ImportField(header = "First Name", required = true)
-    @ExportField(header = "First Name", order = 2)
+    @ImportField(name = "First Name", required = true)
+    @ExportField(name = "First Name", order = 2)
     String firstName;
 
     @Column(length = 100)
     String lastName;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @ImportField(header = "Role",  required = true, resolver = RoleLookupResolver.class)
-    @ExportField(header = "Roles", order = 4, extractor = RoleNamesExtractor.class)
+    @ImportField(name = "Roles",  required = true, resolver = RoleLookupResolver.class)
+    @ExportField(name = "Roles", order = 4, extractor = RoleNamesExtractor.class)
     Set<UserRole> userRoles;
 
     @OneToMany(mappedBy = "trainer")
@@ -76,7 +80,7 @@ public class User {
 
     @Column(nullable = false)
     @ImportDefault("true")
-    @ExportField(header = "Is Active", order = 5)
+    @ExportField(name = "Is Active", order = 5)
     Boolean isActive = true;
 
     @CreationTimestamp

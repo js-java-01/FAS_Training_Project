@@ -1,5 +1,7 @@
 package com.example.starter_project_2025.system.dataio.importer.service;
 
+import com.example.starter_project_2025.system.common.hash.HashService;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportHash;
 import com.example.starter_project_2025.system.dataio.importer.mapper.GenericImportMapper;
 import com.example.starter_project_2025.system.dataio.importer.parser.FileParser;
 import com.example.starter_project_2025.system.dataio.importer.parser.ParserFactory;
@@ -26,12 +28,14 @@ public class GenericImportService implements ImportService {
 
     ParserFactory parserFactory;
     GenericImportMapper mapper;
+    HashService hashService;
 
     @Override
     public <T> ImportResult importFile(
             MultipartFile file,
             Class<T> entityClass,
-            JpaRepository<T, UUID> repository) {
+            JpaRepository<T, UUID> repository
+    ) {
 
         ImportResult result = new ImportResult();
 
@@ -47,6 +51,8 @@ public class GenericImportService implements ImportService {
 
                 try {
                     T entity = (T) mapper.map(row, entityClass);
+
+                    applyImportHash(entity);
 
                     handleBidirectionalRelations(entity);
 
@@ -73,6 +79,38 @@ public class GenericImportService implements ImportService {
         }
 
         return result;
+    }
+
+    private void applyImportHash(Object entity) throws IllegalAccessException {
+
+        Field[] fields = entity.getClass().getDeclaredFields();
+
+        for (Field field : fields) {
+
+            ImportHash annotation = field.getAnnotation(ImportHash.class);
+            if (annotation == null) continue;
+
+            field.setAccessible(true);
+
+            Object value = field.get(entity);
+
+            if (value == null) continue;
+
+            if (!(value instanceof String raw)) continue;
+
+            // tránh hash double
+            if (isAlreadyHashed(raw)) continue;
+
+            String hashed = hashService.hash(raw);
+
+            field.set(entity, hashed);
+        }
+    }
+
+    private boolean isAlreadyHashed(String value) {
+        return value.startsWith("$2a$")
+                || value.startsWith("$2b$")
+                || value.startsWith("$2y$");
     }
 
     private void handleBidirectionalRelations(Object entity) {

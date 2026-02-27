@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.dataio.exporter.metadata;
 
-import com.example.starter_project_2025.system.dataio.exporter.annotations.ExportField;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportField;
 import com.example.starter_project_2025.system.dataio.exporter.resolver.extractor.ExportValueExtractor;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +40,7 @@ public class ExportMetadataCache {
                     createExtractor(ann.extractor());
 
             metas.add(new ExportFieldMeta(
-                    ann.header(),
+                    ann.name(),
                     ann.order(),
                     field,
                     ann.dateFormat(),

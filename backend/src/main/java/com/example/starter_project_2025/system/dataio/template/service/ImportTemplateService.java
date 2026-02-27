@@ -1,6 +1,6 @@
-package com.example.starter_project_2025.system.dataio.importer.service;
+package com.example.starter_project_2025.system.dataio.template.service;
 
-import com.example.starter_project_2025.system.dataio.importer.annotations.ImportField;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportField;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -26,7 +26,7 @@ public class ImportTemplateService {
                 ImportField col = field.getAnnotation(ImportField.class);
                 if (col == null) continue;
 
-                headerRow.createCell(colIndex).setCellValue(col.header());
+                headerRow.createCell(colIndex).setCellValue(col.name());
 
                 colIndex++;
             }

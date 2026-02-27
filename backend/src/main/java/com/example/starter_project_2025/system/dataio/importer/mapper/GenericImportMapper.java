@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.system.dataio.importer.mapper;
 
-import com.example.starter_project_2025.system.dataio.importer.annotations.ImportField;
-import com.example.starter_project_2025.system.dataio.importer.annotations.ImportDefault;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportField;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportDefault;
 import com.example.starter_project_2025.system.dataio.importer.resolver.LookupResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
@@ -34,10 +34,10 @@ public class GenericImportMapper<T> implements ImportMapper<T> {
                     continue;
                 }
 
-                String rawValue = rowData.get(col.header());
+                String rawValue = rowData.get(col.name());
 
                 if (col.required() && (rawValue == null || rawValue.isBlank())) {
-                    throw new RuntimeException("Missing required field: " + col.header());
+                    throw new RuntimeException("Missing required field: " + col.name());
                 }
 
                 if ((rawValue == null || rawValue.isBlank()) && def != null) {

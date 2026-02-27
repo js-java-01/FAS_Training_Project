@@ -1,8 +1,8 @@
 package com.example.starter_project_2025.system.dataio.exporter.builder;
 
-import com.example.starter_project_2025.system.dataio.exporter.annotations.Exportable;
-import com.example.starter_project_2025.system.dataio.exporter.components.ExportColumn;
-import com.example.starter_project_2025.system.dataio.exporter.components.ExportSheetConfig;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportEntity;
+import com.example.starter_project_2025.system.dataio.exporter.component.ExportColumn;
+import com.example.starter_project_2025.system.dataio.exporter.component.ExportSheetConfig;
 import com.example.starter_project_2025.system.dataio.exporter.metadata.ExportFieldMeta;
 import com.example.starter_project_2025.system.dataio.exporter.metadata.ExportMetadataCache;
 import com.example.starter_project_2025.system.dataio.exporter.resolver.ExportValueResolver;
@@ -20,7 +20,7 @@ public class ExportConfigBuilder {
 
     public <T> ExportSheetConfig<T> build(Class<T> clazz) {
 
-        Exportable meta = clazz.getAnnotation(Exportable.class);
+        ExportEntity meta = clazz.getAnnotation(ExportEntity.class);
 
         if (meta == null) {
             throw new IllegalStateException(

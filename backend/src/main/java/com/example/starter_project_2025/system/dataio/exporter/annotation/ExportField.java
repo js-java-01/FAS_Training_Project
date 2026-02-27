@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.dataio.exporter.annotations;
+package com.example.starter_project_2025.system.dataio.exporter.annotation;
 
 import com.example.starter_project_2025.system.dataio.exporter.resolver.extractor.DefaultExtractor;
 import com.example.starter_project_2025.system.dataio.exporter.resolver.extractor.ExportValueExtractor;
@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExportField {
 
-    String header();
+    String name();
 
     int order();
 

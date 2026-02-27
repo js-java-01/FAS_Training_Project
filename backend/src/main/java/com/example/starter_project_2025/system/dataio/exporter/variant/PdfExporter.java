@@ -1,8 +1,8 @@
 package com.example.starter_project_2025.system.dataio.exporter.variant;
 
 import com.example.starter_project_2025.system.dataio.common.FileFormat;
-import com.example.starter_project_2025.system.dataio.exporter.components.ExportColumn;
-import com.example.starter_project_2025.system.dataio.exporter.components.ExportSheetConfig;
+import com.example.starter_project_2025.system.dataio.exporter.component.ExportColumn;
+import com.example.starter_project_2025.system.dataio.exporter.component.ExportSheetConfig;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;

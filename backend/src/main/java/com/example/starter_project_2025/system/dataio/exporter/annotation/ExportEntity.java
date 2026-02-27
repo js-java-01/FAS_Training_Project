@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.dataio.exporter.annotations;
+package com.example.starter_project_2025.system.dataio.exporter.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Exportable {
+public @interface ExportEntity {
 
     String fileName() default "export";
 
