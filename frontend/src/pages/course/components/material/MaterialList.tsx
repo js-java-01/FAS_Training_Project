@@ -1,14 +1,16 @@
 import type { Material } from "@/types/material";
-import { FiFilm, FiFileText, FiLink, FiImage, FiMusic, FiTrash2 } from "react-icons/fi";
-import { materialApi } from "@/api/materialApi";
-import { toast } from "sonner";
+import { FiFilm, FiFileText, FiLink, FiImage, FiMusic, FiTrash2, FiUpload, FiPlus } from "react-icons/fi";
+import { useDeleteMaterial } from "../../services/material";
 
 interface MaterialListProps {
   materials: Material[];
   loading?: boolean;
   onSelect: (material: Material) => void;
   selectedId?: string;
+  sessionId: string;
   onDeleted?: () => void;
+  onUpload?: () => void;
+  onAdd?: () => void;
 }
 
 const getIconForType = (type: string) => {
@@ -33,31 +35,56 @@ export default function MaterialList({
   loading,
   onSelect,
   selectedId,
+  sessionId,
   onDeleted,
+  onUpload,
+  onAdd,
 }: MaterialListProps) {
+  const deleteMutation = useDeleteMaterial(sessionId);
+
   if (loading) {
     return <p className="text-sm text-gray-400">Loading materials...</p>;
   }
 
-  if (materials.length === 0) {
-    return <p className="text-sm text-gray-400 text-center py-4">No materials found</p>;
-  }
-
-  const handleDelete = async (e: React.MouseEvent, materialId: string) => {
+  const handleDelete = (e: React.MouseEvent, materialId: string) => {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this material?")) return;
 
-    try {
-      await materialApi.deleteMaterial(materialId);
-      onDeleted?.();
-    } catch {
-      toast.error("Failed to delete material");
-    }
+    deleteMutation.mutate(materialId, {
+      onSuccess: () => onDeleted?.(),
+    });
   };
 
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold text-sm mb-3">Materials</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold text-sm">Materials</h3>
+        <div className="flex items-center gap-1">
+          {onUpload && (
+            <button
+              onClick={onUpload}
+              className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              title="Upload file"
+            >
+              <FiUpload size={12} />
+              Upload
+            </button>
+          )}
+          {onAdd && (
+            <button
+              onClick={onAdd}
+              className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 transition"
+              title="Add material by URL"
+            >
+              <FiPlus size={12} />
+              Add
+            </button>
+          )}
+        </div>
+      </div>
+      {materials.length === 0 && (
+        <p className="text-sm text-gray-400 text-center py-4">No materials found</p>
+      )}
       {materials.map((material) => (
         <div
           key={material.id}

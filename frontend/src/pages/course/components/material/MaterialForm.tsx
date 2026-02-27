@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { materialApi } from "@/api/materialApi";
-import type { Material, CreateMaterialRequest, UpdateMaterialRequest, MaterialTypeValue } from "@/types/material";
+import type { Material, CreateMaterialRequest, UpdateMaterialRequest } from "@/types/material";
 import { MATERIAL_TYPE_OPTIONS } from "@/types/material";
-import { toast } from "sonner";
 import { FiX, FiSave } from "react-icons/fi";
+import { useCreateMaterial, useUpdateMaterial } from "../../services/material";
 
 interface MaterialFormProps {
   sessionId: string;
@@ -13,8 +11,6 @@ interface MaterialFormProps {
   onCancel?: () => void;
 }
 
-type FormData = CreateMaterialRequest | UpdateMaterialRequest;
-
 export default function MaterialForm({
   sessionId,
   material,
@@ -22,7 +18,7 @@ export default function MaterialForm({
   onCancel,
 }: MaterialFormProps) {
   const isEdit = !!material;
-  const { register, handleSubmit, reset, watch } = useForm<any>({
+  const { register, handleSubmit, watch } = useForm<any>({
     defaultValues: {
       title: material?.title || "",
       description: material?.description || "",
@@ -34,7 +30,9 @@ export default function MaterialForm({
     },
   });
 
-  const [loading, setLoading] = useState(false);
+  const createMutation = useCreateMaterial(sessionId);
+  const updateMutation = useUpdateMaterial(sessionId);
+  const loading = createMutation.isPending || updateMutation.isPending;
   const materialType = watch("type");
 
   const getSourcePlaceholder = () => {
@@ -54,40 +52,33 @@ export default function MaterialForm({
     }
   };
 
-  const onSubmit = async (data: any) => {
-    try {
-      setLoading(true);
-      if (isEdit) {
-        const updateData: UpdateMaterialRequest = {
-          title: data.title,
-          description: data.description,
-          type: data.type,
-          sourceUrl: data.sourceUrl,
-          tags: data.tags,
-          displayOrder: parseInt(data.displayOrder) || 0,
-          isActive: data.isActive,
-        };
-        await materialApi.updateMaterial(material!.id, updateData);
-        toast.success("Material updated successfully");
-      } else {
-        const createData: CreateMaterialRequest = {
-          title: data.title,
-          description: data.description,
-          type: data.type,
-          sourceUrl: data.sourceUrl,
-          tags: data.tags,
-          sessionId,
-          displayOrder: parseInt(data.displayOrder) || 0,
-          isActive: data.isActive,
-        };
-        await materialApi.createMaterial(createData);
-        toast.success("Material created successfully");
-      }
-      onSuccess?.();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to save material");
-    } finally {
-      setLoading(false);
+  const onSubmit = (data: any) => {
+    if (isEdit) {
+      const updateData: UpdateMaterialRequest = {
+        title: data.title,
+        description: data.description,
+        type: data.type,
+        sourceUrl: data.sourceUrl,
+        tags: data.tags,
+        displayOrder: parseInt(data.displayOrder) || 0,
+        isActive: data.isActive,
+      };
+      updateMutation.mutate(
+        { id: material!.id, data: updateData },
+        { onSuccess: () => onSuccess?.() }
+      );
+    } else {
+      const createData: CreateMaterialRequest = {
+        title: data.title,
+        description: data.description,
+        type: data.type,
+        sourceUrl: data.sourceUrl,
+        tags: data.tags,
+        sessionId,
+        displayOrder: parseInt(data.displayOrder) || 0,
+        isActive: data.isActive,
+      };
+      createMutation.mutate(createData, { onSuccess: () => onSuccess?.() });
     }
   };
 

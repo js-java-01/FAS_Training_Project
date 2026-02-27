@@ -1,30 +1,13 @@
 import type { Material } from "@/types/material";
-import { FiEdit2, FiTrash2, FiExternalLink } from "react-icons/fi";
-import { useDeleteMaterial } from "../../services/material";
+import { FiExternalLink } from "react-icons/fi";
 
-interface MaterialPreviewProps {
+interface StudentMaterialPreviewProps {
   material: Material;
-  sessionId: string;
-  onEdit?: () => void;
-  onDelete?: () => void;
 }
 
-export default function MaterialPreview({
+export default function StudentMaterialPreview({
   material,
-  sessionId,
-  onEdit,
-  onDelete,
-}: MaterialPreviewProps) {
-  const deleteMutation = useDeleteMaterial(sessionId);
-
-  const handleDelete = () => {
-    if (!window.confirm("Are you sure you want to delete this material?")) return;
-
-    deleteMutation.mutate(material.id, {
-      onSuccess: () => onDelete?.(),
-    });
-  };
-
+}: StudentMaterialPreviewProps) {
   const renderPreview = () => {
     const isYouTubeUrl = (url: string) => {
       return /(?:youtube\.com|youtu\.be)/.test(url);
@@ -159,12 +142,6 @@ export default function MaterialPreview({
             <label className="text-xs text-gray-500">Type</label>
             <p className="text-sm font-medium">{material.type}</p>
           </div>
-          <div>
-            <label className="text-xs text-gray-500">Status</label>
-            <p className={`text-sm font-medium ${material.isActive ? "text-green-600" : "text-red-600"}`}>
-              {material.isActive ? "Active" : "Inactive"}
-            </p>
-          </div>
         </div>
 
         {material.tags && (
@@ -179,24 +156,6 @@ export default function MaterialPreview({
             Created: {new Date(material.createdAt).toLocaleDateString()}
           </div>
         )}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-2 pt-2 border-t">
-        <button
-          onClick={onEdit}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-blue-50 text-blue-600 transition"
-        >
-          <FiEdit2 size={14} />
-          Edit
-        </button>
-        <button
-          onClick={handleDelete}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-red-50 text-red-600 transition"
-        >
-          <FiTrash2 size={14} />
-          Delete
-        </button>
       </div>
     </div>
   );

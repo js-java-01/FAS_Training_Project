@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
-import { materialApi } from "@/api/materialApi";
 import type { MaterialTypeValue } from "@/types/material";
 import { MATERIAL_TYPE_OPTIONS } from "@/types/material";
 import { toast } from "sonner";
 import { FiX, FiUpload } from "react-icons/fi";
+import { useUploadMaterial } from "../../services/material";
 
 interface UploadMaterialFormProps {
   sessionId: string;
@@ -23,8 +23,9 @@ export default function UploadMaterialForm({
     type: "VIDEO" as MaterialTypeValue,
     file: null as File | null,
   });
-  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadMutation = useUploadMaterial(sessionId);
+  const loading = uploadMutation.isPending;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -49,7 +50,7 @@ export default function UploadMaterialForm({
     }
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
@@ -62,22 +63,15 @@ export default function UploadMaterialForm({
       return;
     }
 
-    try {
-      setLoading(true);
-      const data = new FormData();
-      data.append("title", formData.title);
-      data.append("type", formData.type);
-      data.append("sessionId", sessionId);
-      data.append("file", formData.file);
+    const data = new FormData();
+    data.append("title", formData.title);
+    data.append("type", formData.type);
+    data.append("sessionId", sessionId);
+    data.append("file", formData.file);
 
-      await materialApi.uploadMaterial(data);
-      toast.success("Material uploaded successfully");
-      onSuccess?.();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to upload material");
-    } finally {
-      setLoading(false);
-    }
+    uploadMutation.mutate(data, {
+      onSuccess: () => onSuccess?.(),
+    });
   };
 
   return (
