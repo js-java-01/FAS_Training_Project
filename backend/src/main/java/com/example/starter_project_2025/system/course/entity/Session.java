@@ -40,11 +40,9 @@ public class Session {
     @Column(nullable = false)
     private Integer sessionOrder;
 
-    @Column(nullable = false)
-    private Integer duration; //
+    private Integer duration; // nullable - not always provided
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id", nullable = false)
     private CourseLesson lesson;
 }
-

@@ -1,8 +1,6 @@
 package com.example.starter_project_2025.system.course.service;
 
-import com.example.starter_project_2025.system.course.dto.BatchCreateRequest;
-import com.example.starter_project_2025.system.course.dto.LessonBatchItem;
-import com.example.starter_project_2025.system.course.dto.SessionBatchItem;
+import com.example.starter_project_2025.system.course.dto.*;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.entity.CourseLesson;
 import com.example.starter_project_2025.system.course.entity.Session;
@@ -35,6 +33,7 @@ public class BatchOutlineServiceImpl implements BatchOutlineService {
     private final CourseLessonRepository lessonRepository;
     private final SessionRepository sessionRepository;
     private final BatchOutlineMapper mapper;
+    private final AiService aiService;
 
     private static final String[] TEMPLATE_HEADERS = {
             "lessonName", "lessonDescription", "lessonDuration",
@@ -253,6 +252,67 @@ public class BatchOutlineServiceImpl implements BatchOutlineService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to import outline", e);
         }
+    }
+
+    @Override
+    public List<AiPreviewLessonResponse> generatePreview(UUID courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow();
+
+        return aiService.generatePreview(course);
+    }
+
+    @Override
+    public void applyPreview(UUID courseId, ApplyAiPreviewRequest request) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        if (course.getStatus() == CourseStatus.ACTIVE) {
+            throw new RuntimeException("Course is not editable");
+        }
+
+        // Remove existing lessons and sessions
+        List<CourseLesson> existingLessons = lessonRepository.findByCourseIdOrderBySortOrderAsc(courseId);
+        for (CourseLesson lesson : existingLessons) {
+            List<Session> sessions = sessionRepository.findByLessonIdOrderBySessionOrderAsc(lesson.getId());
+            sessionRepository.deleteAll(sessions);
+        }
+        lessonRepository.deleteAll(existingLessons);
+
+        if (request.getLessons() == null)
+            return;
+
+        int lessonOrder = 1;
+        for (AiPreviewLessonResponse lessonDto : request.getLessons()) {
+            CourseLesson lesson = CourseLesson.builder()
+                    .lessonName(lessonDto.getName())
+                    .description(lessonDto.getDescription())
+                    .course(course)
+                    .sortOrder(lessonOrder++)
+                    .build();
+            lessonRepository.save(lesson);
+
+            if (lessonDto.getSessions() == null)
+                continue;
+
+            int sessionOrder = 1;
+            for (AiPreviewSessionResponse sessionDto : lessonDto.getSessions()) {
+                Session session = Session.builder()
+                        .type(sessionDto.getType())
+                        .topic(sessionDto.getTopic())
+                        .studentTasks(sessionDto.getStudentTask())
+                        .lesson(lesson)
+                        .sessionOrder(sessionDto.getOrder() != null ? sessionDto.getOrder() : sessionOrder)
+                        .build();
+                sessionRepository.save(session);
+                sessionOrder++;
+            }
+        }
+    }
+
+    @Override
+    public void validate(ApplyAiPreviewRequest request) {
+
     }
 
     private String getString(Row row, int index) {
