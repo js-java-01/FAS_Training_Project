@@ -50,7 +50,6 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final SubmissionMapper submissionMapper;
     private final QuestionOptionRepository questionOptionRepository;
 
-
     @Override
     public Submission startSubmission(UUID userId, StartSubmissionRequest request) {
 
@@ -276,4 +275,5 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         return response;
     }
+
 }
