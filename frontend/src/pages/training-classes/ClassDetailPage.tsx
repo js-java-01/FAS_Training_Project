@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Pencil, Save, X } from "lucide-react";
 import ClassInfoTab from "./components/ClassInfoTab";
+import { getTrainingClassStatusPresentation } from "./utils/statusPresentation";
 
 function ClassBreadcrumb() {
     return (
@@ -86,6 +87,9 @@ export default function ClassDetailPage() {
 
     /* Prefer fetched data, fall back to route state */
     const trainingClass = fetchedClass ?? stateClass;
+    const statusPresentation = trainingClass
+        ? getTrainingClassStatusPresentation(trainingClass)
+        : null;
 
     /* ── Edit mode state ── */
     const [isEditing, setIsEditing] = useState(false);
@@ -235,13 +239,9 @@ export default function ClassDetailPage() {
                             {trainingClass.classCode}
                         </span>
                         <Badge
-                            className={
-                                trainingClass.isActive
-                                    ? "bg-blue-100 text-blue-700 border-blue-200 shadow-none"
-                                    : "bg-yellow-100 text-yellow-700 border-yellow-200 shadow-none"
-                            }
+                            className={statusPresentation?.badgeClassName}
                         >
-                            {trainingClass.isActive ? "Planning" : "Pending"}
+                            {statusPresentation?.label}
                         </Badge>
                     </div>
 

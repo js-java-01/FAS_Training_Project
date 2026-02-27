@@ -12,7 +12,6 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
-import ModulesManagement from "./pages/modules/module/ModulesManagement";
 import { componentRegistry } from "./router/componentRegistry";
 import { Toaster } from "sonner";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
