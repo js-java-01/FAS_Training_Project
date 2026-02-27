@@ -1,10 +1,10 @@
 package com.example.starter_project_2025.system.classes.controller;
 
-import com.example.starter_project_2025.system.classes.dto.request.CreateTrainingClassRequest;
+import com.example.starter_project_2025.system.classes.dto.request.CreateClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
-import com.example.starter_project_2025.system.classes.dto.request.UpdateTrainingClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.ReviewClassRequest;
-import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
+import com.example.starter_project_2025.system.classes.dto.request.UpdateClassRequest;
+import com.example.starter_project_2025.system.classes.dto.response.ClassResponse;
 import com.example.starter_project_2025.system.classes.service.classes.ClassService;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ApiResponse;
 import com.example.starter_project_2025.system.modulegroups.dto.response.PageResponse;
@@ -28,22 +28,22 @@ public class ClassController {
 
         @GetMapping("/{id}")
         @PreAuthorize("hasAuthority('CLASS_CREATE')")
-        public ResponseEntity<ApiResponse<TrainingClassResponse>> getTrainingClassById(
+        public ResponseEntity<ApiResponse<ClassResponse>> getTrainingClassById(
                         @PathVariable UUID id) {
-                TrainingClassResponse response = classService.getTrainingClassById(id);
+                ClassResponse response = classService.getTrainingClassById(id);
                 return ResponseEntity.ok(
                                 ApiResponse.success(response, "Training class retrieved successfully"));
         }
 
         @GetMapping(params = "page")
         @PreAuthorize("hasAuthority('CLASS_CREATE')")
-        public ResponseEntity<ApiResponse<PageResponse<TrainingClassResponse>>> searchTrainingClasses(
+        public ResponseEntity<ApiResponse<PageResponse<ClassResponse>>> searchTrainingClasses(
                         @Valid @ModelAttribute SearchClassRequest request,
                         Pageable pageable) {
 
                 request.setPageable(pageable);
 
-                Page<TrainingClassResponse> pageResult = classService.searchTrainingClasses(request);
+                Page<ClassResponse> pageResult = classService.searchTrainingClasses(request);
 
                 return ResponseEntity.ok(
                                 ApiResponse.success(
@@ -53,42 +53,43 @@ public class ClassController {
 
         @PostMapping
         @PreAuthorize("hasAuthority('CLASS_CREATE')")
-        public ResponseEntity<TrainingClassResponse> createOpenClassRequest(
-                        @Valid @RequestBody CreateTrainingClassRequest request,
+        public ResponseEntity<ClassResponse> createOpenClassRequest(
+                        @Valid @RequestBody CreateClassRequest request,
                         Authentication authentication) {
 
                 String email = authentication.getName();
 
-                TrainingClassResponse response = classService.openClassRequest(request, email);
+                ClassResponse response = classService.openClassRequest(request, email);
 
                 return ResponseEntity.ok(response);
         }
 
         @PutMapping("/{id}")
         @PreAuthorize("hasAuthority('CLASS_UPDATE')")
-        public ResponseEntity<TrainingClassResponse> updateClass(
+        public ResponseEntity<ClassResponse> updateClass(
                 @PathVariable UUID id,
-                @Valid @RequestBody UpdateTrainingClassRequest request,
+                @Valid @RequestBody UpdateClassRequest request,
                 Authentication authentication
         ) {
                 String email = authentication.getName();
 
-                TrainingClassResponse response =
+                ClassResponse response =
                         classService.updateClass(id, request, email);
 
                 return ResponseEntity.ok(response);
         }
 
+
         @PutMapping("/{id}/approve")
         @PreAuthorize("hasAuthority('CLASS_UPDATE')")
-        public ResponseEntity<TrainingClassResponse> approveClass(
+        public ResponseEntity<ClassResponse> approveClass(
                 @PathVariable UUID id,
                 @RequestBody(required = false) ReviewClassRequest request,
                 Authentication authentication
         ) {
                 String email = authentication.getName();
 
-                TrainingClassResponse response =
+                ClassResponse response =
                         classService.approveClass(id, email, request);
 
                 return ResponseEntity.ok(response);
@@ -96,14 +97,14 @@ public class ClassController {
 
         @PutMapping("/{id}/reject")
         @PreAuthorize("hasAuthority('CLASS_UPDATE')")
-        public ResponseEntity<TrainingClassResponse> rejectClass(
+        public ResponseEntity<ClassResponse> rejectClass(
                 @PathVariable UUID id,
                 @RequestBody(required = false) ReviewClassRequest request,
                 Authentication authentication
         ) {
                 String email = authentication.getName();
 
-                TrainingClassResponse response =
+                ClassResponse response =
                         classService.rejectClass(id, email, request);
 
                 return ResponseEntity.ok(response);

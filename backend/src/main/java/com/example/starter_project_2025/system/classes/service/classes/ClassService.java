@@ -1,12 +1,11 @@
 package com.example.starter_project_2025.system.classes.service.classes;
 
-import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
-import com.example.starter_project_2025.system.classes.dto.request.CreateTrainingClassRequest;
+import com.example.starter_project_2025.system.classes.dto.request.UpdateClassRequest;
+import com.example.starter_project_2025.system.classes.dto.response.ClassResponse;
+import com.example.starter_project_2025.system.classes.dto.request.CreateClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
-import com.example.starter_project_2025.system.classes.dto.request.UpdateTrainingClassRequest;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
 
@@ -14,19 +13,19 @@ import com.example.starter_project_2025.system.classes.dto.request.ReviewClassRe
 
 public interface ClassService {
 
-    TrainingClassResponse getTrainingClassById(UUID id);
+    ClassResponse getTrainingClassById(UUID id);
 
-    TrainingClassResponse openClassRequest(CreateTrainingClassRequest request, String email);
+    ClassResponse openClassRequest(CreateClassRequest request, String email);
 
-    Page<TrainingClassResponse> searchTrainingClasses(SearchClassRequest request);
+    Page<ClassResponse> searchTrainingClasses(SearchClassRequest request);
 
-    TrainingClassResponse updateClass(
+    ClassResponse updateClass(
             UUID id,
-            UpdateTrainingClassRequest request,
+            UpdateClassRequest request,
             String email
     );
 
-    TrainingClassResponse approveClass(UUID id, String approverEmail, ReviewClassRequest request);
-    TrainingClassResponse rejectClass(UUID id, String approverEmail, ReviewClassRequest request);
+    ClassResponse approveClass(UUID id, String approverEmail, ReviewClassRequest request);
+    ClassResponse rejectClass(UUID id, String approverEmail, ReviewClassRequest request);
 
 }

@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class UpdateTrainingClassRequest {
+public class UpdateClassRequest {
 
     @Pattern(
             regexp = "^(?=.*[a-zA-Z])[a-zA-Z0-9 _-]+$",

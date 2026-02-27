@@ -8,12 +8,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
 @Setter
-public class CreateTrainingClassRequest {
+public class CreateClassRequest {
 
     @NotBlank(message = "Class name is required")
     @Pattern(
@@ -24,19 +23,19 @@ public class CreateTrainingClassRequest {
     private String className;
 
 
-    @NotBlank
+    @NotBlank (message = "Class code is required")
     @Schema(example = "HCM-JV-24")
     private String classCode;
 
-    @NotNull
+    @NotNull (message = "Semester ID is required")
     @Schema(example = "9ad6df34-212b-4808-ac2f-5af79299ea8d")
     private UUID semesterId;
 
-    @NotNull
+    @NotNull (message = "Start date is required")
     @Schema(example = "2026-03-16")
     private LocalDate startDate;
 
     @Schema(example = "2026-4-25")
-    @NotNull
+    @NotNull (message = "End date is required")
     private LocalDate endDate;
 }

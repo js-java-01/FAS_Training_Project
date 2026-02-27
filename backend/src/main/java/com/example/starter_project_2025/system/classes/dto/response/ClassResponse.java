@@ -5,13 +5,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
 @Setter
 @Builder
-public class TrainingClassResponse {
+public class ClassResponse {
 
     private UUID id;
 
@@ -20,7 +19,7 @@ public class TrainingClassResponse {
     private String classCode;
     private Boolean isActive;
 
-    private String status; // Add this field
+    private String status;
 
     private String creatorName;
     private String approverName;
