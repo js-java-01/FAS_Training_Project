@@ -639,7 +639,7 @@ public class DataInitializer implements CommandLineRunner {
                         createModule(systemGroup, "Locations", "/locations", "map-pin", 5, "LOCATION_READ",
                                 "Manage office locations"));
                 moduleRepository.save(
-                        createModule(systemGroup, "Departments", "/departments", "building", 4, "DEPARTMENT_READ",
+                        createModule(systemGroup, "Departments", "/departments", "university", 4, "MENU_READ",
                                 "Manage departments"));
 
 
@@ -662,14 +662,12 @@ public class DataInitializer implements CommandLineRunner {
                                                 "ENROLL_COURSE", "Browse and enroll in available courses")));
                 moduleRepository.save(createModule(trainingGroup, "Programming Languages", "/programming-languages",
                                 "code", 3, "PROGRAMMING_LANGUAGE_READ", "Manage programming languages"));
-                moduleRepository.save(createModule(trainingGroup, "Student Management", "/v1/student", "person", 4,
+                moduleRepository.save(createModule(trainingGroup, "Student", "/v1/student", "person", 4,
                                 "STUDENT_READ", "Manage students"));
                 moduleRepository.save(createModule(trainingGroup, "Training Classes", "/training-classes", "people", 5,
                                 "CLASS_READ", "Manage Classes and Open Class Requests"));
                 moduleRepository.save(createModule(trainingGroup, "Classes", "/classes", "people", 6,
                                 "CLASS_USER_READ", "User search and view classes"));
-                moduleRepository.save(createModule(trainingGroup, "Student Management", "/v1/student", "users", 1,
-                        "STUDENT_READ", "Manage students"));
 
 
                 // Nhóm: Assessment
@@ -680,7 +678,7 @@ public class DataInitializer implements CommandLineRunner {
                 assessmentTypeGroup.setIsActive(true);
                 assessmentTypeGroup = moduleGroupsRepository.save(assessmentTypeGroup);
 
-                moduleRepository.save(createModule(assessmentTypeGroup, "Assessment Type Management",
+                moduleRepository.save(createModule(assessmentTypeGroup, "Assessment Type",
                                 "/assessment-type", "shield", 1, "ASSESSMENT_READ", "Manage assessment types"));
         }
 
