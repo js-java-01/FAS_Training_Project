@@ -11,21 +11,29 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
+import DepartmentManagement from "@/pages/department/DepartmentManagement";
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
-import ModulesManagement from "./pages/modules/module/ModulesManagement";
 import { componentRegistry } from "./router/componentRegistry";
 import { Toaster } from "sonner";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
-import { AssessmentFormPage, TeacherAssessmentPage } from "./pages/teacher-assessment";
+import {
+  AssessmentFormPage,
+  TeacherAssessmentPage,
+} from "./pages/teacher-assessment";
 import { QuestionCategoryManagement } from "./pages/question-category";
-import { CreateQuestionPage, EditQuestionPage, QuestionManagementPage } from "./pages/question";
+import {
+  CreateQuestionPage,
+  EditQuestionPage,
+  QuestionManagementPage,
+} from "./pages/question";
 import { Logout } from "./components/auth/Logout";
 import AssessmentManagement from "./pages/AssessmentManagement";
-import { LocationManagement } from "./pages/LocationManagement";
 import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
-
+import { RoleManagement } from "./pages/role/RoleManagement";
+import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
+import ClassDetailPage from "./pages/training-classes/ClassDetailPage";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -43,8 +51,14 @@ function App() {
       <AuthProvider>
         <RoleSwitchProvider>
           <Routes>
-            <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />
-            <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
+            <Route
+              path="/notFoundPage"
+              element={<NotFoundPage isAuthenticated={isAuthenticated} />}
+            />
+            <Route
+              path="/oauth2/redirect"
+              element={<OAuth2RedirectHandler />}
+            />
             <Route path="/login" element={<Login />} />
             <Route path="/logout" element={<Logout />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
@@ -68,9 +82,25 @@ function App() {
                     }
                   />
                 );
-              })
+              }),
             )}
             <Route path="*" element={<NotFoundRedirect />} />
+            <Route
+              path="/training-classes"
+              element={
+                <ProtectedRoute requiredPermission="CLASS_CREATE">
+                  <TrainingClassesManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/training-classes/:id"
+              element={
+                <ProtectedRoute requiredPermission="CLASS_CREATE">
+                  <ClassDetailPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/assessment-type"
               element={
@@ -80,14 +110,6 @@ function App() {
               }
             />
 
-            <Route
-              path="/locations"
-              element={
-                <ProtectedRoute requiredPermission="LOCATION_READ">
-                  <LocationManagement />
-                </ProtectedRoute>
-              }
-            />
             <Route
               path="/programming-languages"
               element={
@@ -115,7 +137,7 @@ function App() {
               element={<Navigate to="/courses" replace />}
             />
             <Route
-              path="/learn/:cohortId"
+              path="/learn/:courseId"
               element={
                 <ProtectedRoute requiredPermission="ENROLL_COURSE">
                   <StudentCourseContent />
@@ -132,6 +154,31 @@ function App() {
               }
             />
 
+            <Route
+              path="/roles"
+              element={
+                <ProtectedRoute requiredPermission="ROLE_READ">
+                  <RoleManagement />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/departments"
+              element={
+                <ProtectedRoute requiredPermission="DEPARTMENT_READ">
+                  <DepartmentManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programming-languages"
+              element={
+                <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
+                  <ProgrammingLanguageManagement />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/teacher-assessment/create"
               element={
@@ -169,7 +216,7 @@ function App() {
             />
 
             <Route
-              path='questions'
+              path="questions"
               element={
                 <ProtectedRoute requiredPermission="QUESTION_READ">
                   <QuestionManagementPage />
@@ -178,7 +225,7 @@ function App() {
             />
 
             <Route
-              path='questions/create'
+              path="questions/create"
               element={
                 <ProtectedRoute requiredPermission="QUESTION_CREATE">
                   <CreateQuestionPage />
@@ -187,7 +234,7 @@ function App() {
             />
 
             <Route
-              path='questions/:id/edit'
+              path="questions/:id/edit"
               element={
                 <ProtectedRoute requiredPermission="QUESTION_UPDATE">
                   <EditQuestionPage />
@@ -196,8 +243,8 @@ function App() {
             />
           </Routes>
         </RoleSwitchProvider>
-      </AuthProvider >
-    </BrowserRouter >
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

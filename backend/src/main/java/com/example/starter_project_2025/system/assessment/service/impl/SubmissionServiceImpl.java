@@ -14,6 +14,9 @@ import com.example.starter_project_2025.system.assessment.repository.SubmissionR
 import com.example.starter_project_2025.system.assessment.service.GradingService;
 import com.example.starter_project_2025.system.assessment.service.SubmissionService;
 import com.example.starter_project_2025.system.assessment.spec.SubmissionSpecification;
+import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
+import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +37,9 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     private final SubmissionRepository submissionRepository;
     private final UserRepository userRepository;
+    private final CourseClassRepository courseClassRepository;
+    private final TopicMarkService topicMarkService;
+    
     @Autowired
     private AssessmentRepository assessmentRepository;
     @Autowired
@@ -50,9 +56,18 @@ public class SubmissionServiceImpl implements SubmissionService {
         Assessment assessment = assessmentRepository.findById(request.getAssessmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Assessment not found"));
 
+        // Load CourseClass - now required
+        if (request.getCourseClassId() == null) {
+            throw new BadRequestException("courseClassId is required");
+        }
+        
+        CourseClass courseClass = courseClassRepository.findById(request.getCourseClassId())
+                .orElseThrow(() -> new ResourceNotFoundException("CourseClass not found"));
+
         Submission submission = Submission.builder()
                 .user(user)
                 .assessment(assessment)
+                .courseClass(courseClass)
                 .status(SubmissionStatus.IN_PROGRESS)
                 .startedAt(LocalDateTime.now())
                 .build();
@@ -127,6 +142,20 @@ public class SubmissionServiceImpl implements SubmissionService {
         submission.setSubmittedAt(LocalDateTime.now());
 
         gradingService.finalizeSubmission(submission);
+
+        // Auto-recalculate topic mark after submission
+        if (submission.getCourseClass() != null && submission.getUser() != null) {
+            try {
+                topicMarkService.recalculateForUser(
+                    submission.getCourseClass().getId(),
+                    submission.getUser().getId()
+                );
+            } catch (Exception e) {
+                // Log but don't fail submission if topic mark calculation fails
+                // This could happen if course has no weights configured
+                // The submission is still valid
+            }
+        }
 
         return submission;
     }

@@ -21,9 +21,26 @@ import {
   useImportModules,
 } from "@/pages/modules/module/services/mutations";
 import { FacetedFilter } from "@/components/FacedFilter";
+import dayjs from "dayjs";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
+  /* ---------- permission---------- */
+  const { activePermissions } = useRoleSwitch();
+  const permissions = activePermissions || [];
+  console.log("active", permissions)
+
+  const hasPermission = (permission: string) =>
+    permissions.includes(permission);
+
+  const canCreate = hasPermission("MODULE_CREATE");
+  const canUpdate = hasPermission("MODULE_UPDATE");
+  const canDelete = hasPermission("MODULE_DELETE");
+  const canImport = hasPermission("MODULE_IMPORT");
+  const canExport = hasPermission("MODULE_EXPORT");
+
+
   /* ---------- modal & view ---------- */
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
@@ -54,18 +71,11 @@ export default function ModulesTable() {
     moduleGroupFilter.length === 1 ? moduleGroupFilter[0] : undefined;
 
   /* ---------- sort param (server side) ---------- */
+  /* ===================== SORT ===================== */
   const sortParam = useMemo(() => {
-    if (!sorting.length) {
-      // Trả về mảng các string theo định dạng Spring hiểu
-      return ["moduleGroup.name,asc", "displayOrder,asc"];
-    }
+    if (!sorting.length) return "displayOrder,asc";
     const { id, desc } = sorting[0];
-    const direction = desc ? "desc" : "asc";
-
-    // Ánh xạ lại ID nếu UI khác với Entity (ví dụ: UI là moduleGroupName -> Entity là moduleGroup.name)
-    const sortField = id === "moduleGroupName" ? "moduleGroup.name" : id;
-
-    return [`${sortField},${direction}`, "displayOrder,asc"];
+    return `${id},${desc ? "desc" : "asc"}`;
   }, [sorting]);
 
   const { mutateAsync: importModules } = useImportModules();
@@ -158,28 +168,56 @@ export default function ModulesTable() {
   };
 
   /* ---------- columns ---------- */
-  const columns = useMemo(
-    () =>
-      getColumns({
-        onView: setViewingModule,
-        onEdit: (m) => {
-          setEditingModule(m);
-          setIsFormOpen(true);
-        },
-        onDelete: setDeletingModule,
-      }),
-    [],
-  );
+  // const columns = useMemo(
+  //   () =>
+  //     getColumns({
+  //       onView: setViewingModule,
+  //       onEdit: (m) => {
+  //         setEditingModule(m);
+  //         setIsFormOpen(true);
+  //       },
+  //       onDelete: setDeletingModule,
+  //     }, role),
+  //   [role],
+  // );
+  // Columns
+   const columns = useMemo(
+     () =>
+       getColumns(
+         {
+           onView: setViewingModule,
+           onEdit: canUpdate
+             ? (m) => {
+                 setEditingModule(m);
+                 setIsFormOpen(true);
+               }
+             : undefined,
+           onDelete: canDelete ? setDeletingModule : undefined,
+         },
+         {
+           canUpdate,
+           canDelete,
+         }
+       ),
+     [canUpdate, canDelete]
+   );
 
   /* ================= IMPORT / EXPORT / TEMPLATE ================= */
   const handleImport = async (file: File) => {
     try {
-      await importModules(file);
-      toast.success("Import modules successfully");
-      setOpenBackupModal(false);
-      await invalidateAll();
+      const res = await importModules(file);
+      return res;
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Failed to import modules");
+      const errorData = err?.response?.data;
+
+      if (errorData?.totalRows !== undefined) {
+        return errorData;
+      }
+
+      toast.error(
+        errorData?.message ?? "Failed to import modules"
+      );
+
       throw err;
     }
   };
@@ -187,7 +225,7 @@ export default function ModulesTable() {
   const handleExport = async () => {
     try {
       const blob = await exportModules();
-      downloadBlob(blob, "modules.xlsx");
+      downloadBlob(blob, `modules_${dayjs().format("DD/MM/YYYY hh:mm:ss")}.xlsx`);
       toast.success("Export modules successfully");
     } catch {
       toast.error("Failed to export modules");
@@ -197,7 +235,7 @@ export default function ModulesTable() {
   const handleDownloadTemplate = async () => {
     try {
       const blob = await downloadTemplate();
-      downloadBlob(blob, "modules_template.xlsx");
+      downloadBlob(blob, `modules_template_${dayjs().format("DD/MM/YYYY hh:mm:ss")}.xlsx`);
       toast.success("Download template successfully");
     } catch {
       toast.error("Failed to download template");
@@ -247,26 +285,33 @@ export default function ModulesTable() {
         manualSorting
         /* Header */
         headerActions={
-          <div className={"flex flex-row gap-2"}>
-            <Button
-              variant="secondary"
-              onClick={() => setOpenBackupModal(true)}
-            >
-              <DatabaseBackup className="h-4 w-4" />
-              Import / Export
-            </Button>
-            <Button
-              onClick={() => {
-                setEditingModule(null);
-                setIsFormOpen(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add New Module
-            </Button>
-          </div>
-        }
+                 (canCreate || canImport || canExport) && (
+                   <div className="flex flex-row gap-2">
+                     {(canImport || canExport) && (
+                       <Button
+                         variant="secondary"
+                         onClick={() => setOpenBackupModal(true)}
+                       >
+                         <DatabaseBackup className="h-4 w-4" />
+                         Import / Export
+                       </Button>
+                     )}
+
+                     {canCreate && (
+                       <Button
+                         onClick={() => {
+                           setEditingModule(null);
+                           setIsFormOpen(true);
+                         }}
+                         className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                       >
+                         <Plus className="h-4 w-4" />
+                         Add New Module
+                       </Button>
+                     )}
+                   </div>
+                 )
+               }
         /*Faced filter */
         facetedFilters={
           <div className="flex gap-1">

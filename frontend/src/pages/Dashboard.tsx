@@ -105,6 +105,30 @@ export const Dashboard: React.FC = () => {
             <p className="text-gray-600">Configure application menus</p>
           </Link>
         </PermissionGate>
+
+        <PermissionGate permission="LOCATION_READ">
+          <Link
+              to="/locations"
+              className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">Location Management</h3>
+            </div>
+            <p className="text-gray-600">Manage organizational departments and locations</p>
+          </Link>
+        </PermissionGate>
+
+        <PermissionGate permission="DEPARTMENT_READ">
+          <Link
+              to="/departments"
+              className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">Department Management</h3>
+            </div>
+            <p className="text-gray-600">Manage organizational departments and locations</p>
+          </Link>
+        </PermissionGate>
       </div>
 
       <div className="mt-8 bg-white rounded-lg shadow p-6">

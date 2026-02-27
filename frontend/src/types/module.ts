@@ -60,9 +60,11 @@ export type IconKey =
   | "layers"
   | "folder"
   | "workflow"
+  | "map-pin"
 
   // Code
   | "code"
+  | "code-xml"
   | "code-2"
   | "braces"
   | "terminal"

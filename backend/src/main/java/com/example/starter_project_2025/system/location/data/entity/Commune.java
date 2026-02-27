@@ -2,7 +2,10 @@ package com.example.starter_project_2025.system.location.data.entity;
 
 import jakarta.persistence.*;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "communes")

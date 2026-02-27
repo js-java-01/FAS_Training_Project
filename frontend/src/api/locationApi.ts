@@ -1,4 +1,4 @@
-import type { CreateLocationRequest, LocationImportResult, LocationStatus, UpdateLocationRequest } from '@/types/location';
+import type { Location, CreateLocationRequest, LocationImportResult, LocationStatus, UpdateLocationRequest } from '@/types/location';
 import axiosInstance from './axiosInstance';
 // import { Location, CreateLocationRequest, UpdateLocationRequest, LocationStatus,LocationImportResult } from '../types/location';
 
@@ -40,6 +40,11 @@ export const locationApi = {
 
   deleteLocation: async (id: string): Promise<void> => {
     await axiosInstance.delete(`/locations/${id}`);
+  },
+
+  getAllLocations: async (): Promise<Location[]> => {
+    const response = await axiosInstance.get<Location[]>('/locations/all');
+    return response.data;
   },
 
   deleteLocationPermanently: async (id: string): Promise<void> => {
