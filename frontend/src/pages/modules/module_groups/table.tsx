@@ -24,6 +24,7 @@ import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 import dayjs from "dayjs";
+import type { ImportResult } from "@/components/modal/import-export/ImportTab";
 
 /* ======================================================= */
 
@@ -154,15 +155,18 @@ export default function ModuleGroupsTable() {
   };
 
   /* ================= IMPORT / EXPORT / TEMPLATE ================= */
-  const handleImport = async (file: File) => {
+  const handleImport = async (file: File): Promise<ImportResult> => {
     try {
-      await importModuleGroup(file);
-      toast.success("Import module groups successfully");
+      const result = await importModuleGroup(file);
+
+      toast.success(result.message);
       setOpenBackupModal(false);
       await invalidateAll();
+
+      return result;
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message ?? "Failed to import module groups",
+        err?.response?.data?.message ?? "Failed to import module groups"
       );
       throw err;
     }
@@ -171,7 +175,7 @@ export default function ModuleGroupsTable() {
   const handleExport = async () => {
     try {
       const blob = await exportModuleGroup();
-      downloadBlob(blob, `module_groups_template_${dayjs().format("DD MM YYYY hh mm ss")}.xlsx`);
+      downloadBlob(blob, `module_groups_${dayjs().format("DD MM YYYY hh mm ss")}.xlsx`);
       toast.success("Export module groups successfully");
     } catch {
       toast.error("Failed to export module groups");
