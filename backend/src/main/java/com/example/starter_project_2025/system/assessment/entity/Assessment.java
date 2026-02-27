@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.assessment.entity;
 
+import com.example.starter_project_2025.system.assessment.enums.AssessmentDifficulty;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
@@ -61,6 +62,9 @@ public class Assessment {
     String description;
 
     Integer totalScore;
+
+    @Enumerated(EnumType.STRING)
+    AssessmentDifficulty difficulty;
 
     Integer passScore;
 

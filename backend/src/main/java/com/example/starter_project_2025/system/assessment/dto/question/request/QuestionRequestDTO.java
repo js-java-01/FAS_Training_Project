@@ -15,6 +15,7 @@ public class QuestionRequestDTO {
     private String content;
 
     private List<OptionDTO> options;
+    private List<Long> tagIds;
 
     @Data
     public static class OptionDTO {

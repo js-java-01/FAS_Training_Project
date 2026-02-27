@@ -1,28 +1,31 @@
 package com.example.starter_project_2025.system.assessment.dto.question.request;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
 import java.util.UUID;
 
-@Data
-public class UpdateQuestionRequestDTO {
-    private UUID questionCategoryId;
+@Builder
+public record UpdateQuestionRequestDTO(
 
-    // SINGLE, MULTIPLE
-    private String questionType;
+        UUID questionCategoryId,
 
-    private String content;
+        // SINGLE, MULTIPLE
+        String questionType,
 
-    private Boolean isActive;
+        String content,
 
-    private List<UpdateOptionDTO> options;
+        Boolean isActive,
 
-    @Data
-    public static class UpdateOptionDTO {
+        List<UpdateOptionDTO> options,
+        List<Long> tagIds
 
-        private String content;
-        private boolean correct;
-        private Integer orderIndex;
-    }
+) {
+
+    public record UpdateOptionDTO(
+            String content,
+            Boolean correct,
+            Integer orderIndex
+    ) {}
 }

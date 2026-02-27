@@ -3,6 +3,7 @@ package com.example.starter_project_2025.system.assessment.controller;
 import com.example.starter_project_2025.system.assessment.dto.assessment.response.AssessmentDTO;
 import com.example.starter_project_2025.system.assessment.dto.assessment.request.CreateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.dto.assessment.request.UpdateAssessmentRequest;
+import com.example.starter_project_2025.system.assessment.enums.AssessmentDifficulty;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.service.assessment.AssessmentService;
 import io.swagger.v3.oas.annotations.tags.Tag; // Thêm import này
@@ -20,18 +21,11 @@ import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/assessment")
+@RequiredArgsConstructor
 @Tag(name = "Exam Controller", description = "API Quản lý bài kiểm tra (Đã đổi tên)") // Đánh dấu cho Swagger
 public class ExamController {
 
     private final AssessmentService assessmentService;
-
-    // Dùng Constructor Injection thay cho @Autowired + Thêm LOG kiểm tra
-    public ExamController(AssessmentService assessmentService) {
-        this.assessmentService = assessmentService;
-        System.out.println("=================================================");
-        System.out.println("!!! DA KHOI DONG EXAM CONTROLLER THANH CONG !!!");
-        System.out.println("=================================================");
-    }
 
     @PostMapping
     public ResponseEntity<AssessmentDTO> create(@Valid @RequestBody CreateAssessmentRequest request) {
@@ -86,6 +80,16 @@ public class ExamController {
 
         return ResponseEntity.ok(
                 assessmentService.updateStatus(id, status)
+        );
+    }
+
+    @GetMapping("/difficulty")
+    public ResponseEntity<Page<AssessmentDTO>> getByDifficulty(
+            @RequestParam AssessmentDifficulty difficulty,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                assessmentService.findByDifficulty(difficulty, pageable)
         );
     }
 }

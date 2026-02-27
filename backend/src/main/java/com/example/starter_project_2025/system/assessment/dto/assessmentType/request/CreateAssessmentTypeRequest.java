@@ -2,14 +2,15 @@ package com.example.starter_project_2025.system.assessment.dto.assessmentType.re
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
 
-@Data
-public class CreateAssessmentTypeRequest {
+@Builder
+public record CreateAssessmentTypeRequest(
     @NotBlank(message = "name is required")
     @Size(min = 5, max = 255)
-    private String name;
-
+    String name,
     @Size(min = 10, max = 250)
-    private String description;
+    String description
+    ){
 }

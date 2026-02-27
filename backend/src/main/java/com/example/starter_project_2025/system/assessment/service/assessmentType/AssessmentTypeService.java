@@ -45,7 +45,7 @@ public class AssessmentTypeService {
     @PreAuthorize("hasAuthority('ASSESSMENT_CREATE')")
     public AssessmentTypeDTO create(CreateAssessmentTypeRequest request) {
 
-        if (assessRepo.existsByName(request.getName())) {
+        if (assessRepo.existsByName(request.name())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Assessment name already exists");
         }
 

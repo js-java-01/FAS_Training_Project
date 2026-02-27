@@ -24,9 +24,9 @@ public class QuestionOptionService {
 
         QuestionOption option = findById(id);
 
-        option.setContent(dto.getContent());
-        option.setCorrect(dto.isCorrect());
-        option.setOrderIndex(dto.getOrderIndex());
+        option.setContent(dto.content());
+        option.setCorrect(dto.correct());
+        option.setOrderIndex(dto.orderIndex());
 
         return optionRepo.save(option);
     }

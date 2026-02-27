@@ -4,6 +4,7 @@ import com.example.starter_project_2025.system.assessment.dto.assessment.respons
 import com.example.starter_project_2025.system.assessment.dto.assessment.request.CreateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.dto.assessment.request.UpdateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.entity.Assessment;
+import com.example.starter_project_2025.system.assessment.enums.AssessmentDifficulty;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.mapper.AssessmentMapper;
@@ -32,11 +33,11 @@ public class AssessmentService {
 
     public AssessmentDTO create(CreateAssessmentRequest request) {
 
-        if (assessmentRepository.existsByCode(request.getCode())) {
+        if (assessmentRepository.existsByCode(request.code())) {
             throw new IllegalArgumentException("Assessment code already exists");
         }
 
-        AssessmentType assessmentType = assessmentTypeRepository.findById(request.getAssessmentTypeId())
+        AssessmentType assessmentType = assessmentTypeRepository.findById(request.assessmentTypeId())
                 .orElseThrow(() -> new EntityNotFoundException("AssessmentType not found"));
 
         Assessment assessment = assessmentMapper.toEntity(request);
@@ -54,8 +55,8 @@ public class AssessmentService {
         Assessment assessment = assessmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Assessment not found"));
 
-        if (request.getAssessmentTypeId() != null) {
-            AssessmentType assessmentType = assessmentTypeRepository.findById(request.getAssessmentTypeId())
+        if (request.assessmentTypeId() != null) {
+            AssessmentType assessmentType = assessmentTypeRepository.findById(request.assessmentTypeId())
                     .orElseThrow(() -> new EntityNotFoundException("AssessmentType not found"));
             assessment.setAssessmentType(assessmentType);
         }
@@ -123,6 +124,12 @@ public class AssessmentService {
         );
     }
 
+
+    public Page<AssessmentDTO> findByDifficulty(AssessmentDifficulty difficulty, Pageable pageable) {
+        return assessmentRepository
+                .findByDifficulty(difficulty, pageable)
+                .map(assessmentMapper::toDto);
+    }
 
 
 }

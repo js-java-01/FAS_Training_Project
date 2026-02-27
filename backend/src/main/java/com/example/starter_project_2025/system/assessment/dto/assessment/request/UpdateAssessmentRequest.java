@@ -1,27 +1,32 @@
 package com.example.starter_project_2025.system.assessment.dto.assessment.request;
 
+import com.example.starter_project_2025.system.assessment.enums.AssessmentDifficulty;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
+import lombok.Builder;
 import lombok.Data;
 
-@Data
-public class UpdateAssessmentRequest {
-    private String title;
+@Builder
+public record UpdateAssessmentRequest(
+     String title,
 
-    private String description;
+     String description,
 
-    private String assessmentTypeId;
+     String assessmentTypeId,
 
-    private Integer totalScore;
+     Integer totalScore,
 
-    private Integer passScore;
+     Integer passScore,
 
-    private Integer timeLimitMinutes;
+     Integer timeLimitMinutes,
 
-    private Integer attemptLimit;
+     Integer attemptLimit,
 
-    private Boolean isShuffleQuestion;
+     Boolean isShuffleQuestion,
 
-    private Boolean isShuffleOption;
+     Boolean isShuffleOption,
 
-    private AssessmentStatus status;
+     AssessmentStatus status,
+
+     AssessmentDifficulty difficulty
+    ) {
 }
