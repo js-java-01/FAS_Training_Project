@@ -53,7 +53,7 @@ public class ModuleGroupsController {
 
     @GetMapping("/active")
     @Operation(summary = "Get active module groups with active modules")
-    @PreAuthorize("hasAuthority('MODULE_GROUP_READ')")
+    @PreAuthorize("hasAuthority('SIDEBAR_READ')")
     public ResponseEntity<List<ModuleGroupDetailResponse>> getActiveModuleGroups() {
         return ResponseEntity.ok(moduleGroupsService.getActiveGroupsWithActiveModules());
     }

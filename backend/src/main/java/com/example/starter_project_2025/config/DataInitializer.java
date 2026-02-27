@@ -267,7 +267,8 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("CLASS_UPDATE", "Update existing classes", "CLASS", "UPDATE"),
                                 createPermission("CLASS_USER_READ", "User can view classes", "CLASS_USER", "READ"),
                                 createPermission("SWITCH_ROLE", "Switch to another role view", "ROLE", "SWITCH"),
-                                createPermission("DASHBOARD_READ", "View Dashboard", "DASHBOARD", "READ"));
+                                createPermission("DASHBOARD_READ", "View Dashboard", "DASHBOARD", "READ"),
+                                createPermission("SIDEBAR_READ", "View Sidebar", "SIDEBAR", "READ"));
                 permissionRepository.saveAll(permissions);
                 log.info("Initialized {} permissions", permissions.size());
         }
