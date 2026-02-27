@@ -1,5 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { roleApi } from "@/api/roleApi";
+import { ROLE_QUERY_KEY } from "../queries";
 
 /* ========= EXPORT ========= */
 export const useExportRoles = () => {
@@ -12,10 +13,15 @@ export const useExportRoles = () => {
 
 /* ========= IMPORT ========= */
 export const useImportRoles = () => {
+  const queryClient = useQueryClient();
+  const invalidateRoles = async () => {
+    await queryClient.invalidateQueries({ queryKey: [ROLE_QUERY_KEY] });
+  };
   return useMutation({
     mutationFn: async (file: File) => {
       return await roleApi.importRoles(file);
     },
+    onSuccess: invalidateRoles,
   });
 };
 

@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { moduleGroupApi } from "@/api/moduleApi";
 
 /* ========= EXPORT ========= */
@@ -12,6 +12,15 @@ export const useExportModuleGroup = () => {
 
 /* ========= IMPORT ========= */
 export const useImportModuleGroup = () => {
+  const queryClient = useQueryClient();
+
+  const invalidateQueries = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["module-groups"] }), // update table
+      queryClient.invalidateQueries({ queryKey: ["module-groups", "active"] }), // update sidebar
+    ]);
+  };
+
   return useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
@@ -22,6 +31,7 @@ export const useImportModuleGroup = () => {
 
       return response.data;
     },
+    onSuccess: invalidateQueries,
   });
 };
 

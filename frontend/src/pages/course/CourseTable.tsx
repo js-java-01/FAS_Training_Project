@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
-import { DatabaseBackup, Plus } from "lucide-react";
+import {Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/data_table/DataTable";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 
 import { courseApi } from "@/api/courseApi";
 import type { Course } from "@/types/course";
@@ -22,10 +21,10 @@ import {
   useImportCourses,
   useDownloadCourseTemplate,
 } from "./services/mutations";
+import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
 
 export default function CourseTable() {
   /* ---------- modal state ---------- */
-  const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editCourse, setEditCourse] = useState<Course | null>(null);
   const [deletingCourse, setDeletingCourse] = useState<Course | null>(null);
@@ -48,11 +47,6 @@ export default function CourseTable() {
     const { id, desc } = sorting[0];
     return `${id},${desc ? "desc" : "asc"}`;
   }, [sorting]);
-
-  /* ---------- mutations ---------- */
-  const { mutateAsync: exportCourses } = useExportCourses();
-  const { mutateAsync: importCourses } = useImportCourses();
-  const { mutateAsync: downloadTemplate } = useDownloadCourseTemplate();
 
   /* ---------- query ---------- */
   const {
@@ -134,13 +128,12 @@ export default function CourseTable() {
         manualSorting
         headerActions={
           <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setIsImportExportOpen(true)}
-            >
-              <DatabaseBackup className="h-4 w-4" />
-              Import / Export
-            </Button>
+            <EntityImportExportButton
+              title="Courses"
+              useImportHook={useImportCourses}
+              useExportHook={useExportCourses}
+              useTemplateHook={useDownloadCourseTemplate}
+            />
             <Button
               onClick={() => {
                 setEditCourse(null);
@@ -153,24 +146,6 @@ export default function CourseTable() {
             </Button>
           </div>
         }
-      />
-
-      {/* ===== Import / Export ===== */}
-      <ImportExportModal
-        title="Courses"
-        open={isImportExportOpen}
-        setOpen={setIsImportExportOpen}
-        onImport={async (file) => {
-          await importCourses(file);
-          await invalidateCourses();
-          await reload();
-        }}
-        onExport={async () => {
-          await exportCourses();
-        }}
-        onDownloadTemplate={async () => {
-          await downloadTemplate();
-        }}
       />
 
       {/* ===== Create ===== */}

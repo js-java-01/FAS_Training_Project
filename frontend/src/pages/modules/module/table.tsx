@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
-import { DatabaseBackup, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
@@ -14,16 +14,15 @@ import { ModuleForm } from "./ModuleForm";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useGetAllModules } from "./services/queries/index";
 import { ModuleDetailDialog } from "./DetailDialog";
-import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import {
   useDownloadTemplate,
   useExportModules,
   useImportModules,
 } from "@/pages/modules/module/services/mutations";
 import { FacetedFilter } from "@/components/FacedFilter";
-import dayjs from "dayjs";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import { ROLES } from "@/types/role";
+import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
@@ -48,7 +47,6 @@ export default function ModulesTable() {
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [viewingModule, setViewingModule] = useState<Module | null>(null);
   const [deletingModule, setDeletingModule] = useState<Module | null>(null);
-  const [openBackupModal, setOpenBackupModal] = useState(false);
 
   /* ---------- table state ---------- */
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -79,10 +77,6 @@ export default function ModulesTable() {
     const { id, desc } = sorting[0];
     return `${id},${desc ? "desc" : "asc"}`;
   }, [sorting]);
-
-  const { mutateAsync: importModules } = useImportModules();
-  const { mutateAsync: exportModules } = useExportModules();
-  const { mutateAsync: downloadTemplate } = useDownloadTemplate();
 
   /* ---------- query ---------- */
   const {
@@ -170,20 +164,7 @@ export default function ModulesTable() {
   };
 
   /* ---------- columns ---------- */
-  // const columns = useMemo(
-  //   () =>
-  //     getColumns({
-  //       onView: setViewingModule,
-  //       onEdit: (m) => {
-  //         setEditingModule(m);
-  //         setIsFormOpen(true);
-  //       },
-  //       onDelete: setDeletingModule,
-  //     }, role),
-  //   [role],
-  // );
-  // Columns
-   const columns = useMemo(
+  const columns = useMemo(
      () =>
        getColumns(
          {
@@ -203,57 +184,6 @@ export default function ModulesTable() {
        ),
      [canUpdate, canDelete]
    );
-
-  /* ================= IMPORT / EXPORT / TEMPLATE ================= */
-  const handleImport = async (file: File) => {
-    try {
-      const res = await importModules(file);
-      return res;
-    } catch (err: any) {
-      const errorData = err?.response?.data;
-
-      if (errorData?.totalRows !== undefined) {
-        return errorData;
-      }
-
-      toast.error(
-        errorData?.message ?? "Failed to import modules"
-      );
-
-      throw err;
-    }
-  };
-
-  const handleExport = async () => {
-    try {
-      const blob = await exportModules();
-      downloadBlob(blob, `modules_${dayjs().format("DD/MM/YYYY hh:mm:ss")}.xlsx`);
-      toast.success("Export modules successfully");
-    } catch {
-      toast.error("Failed to export modules");
-    }
-  };
-
-  const handleDownloadTemplate = async () => {
-    try {
-      const blob = await downloadTemplate();
-      downloadBlob(blob, `modules_template_${dayjs().format("DD/MM/YYYY hh:mm:ss")}.xlsx`);
-      toast.success("Download template successfully");
-    } catch {
-      toast.error("Failed to download template");
-    }
-  };
-
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-  };
 
   const { data: moduleGroups } = useQuery({
     queryKey: ["module-groups-list"],
@@ -290,13 +220,12 @@ export default function ModulesTable() {
                  (canCreate || canImport || canExport) && (
                    <div className="flex flex-row gap-2">
                      {(canImport || canExport) && (
-                       <Button
-                         variant="secondary"
-                         onClick={() => setOpenBackupModal(true)}
-                       >
-                         <DatabaseBackup className="h-4 w-4" />
-                         Import / Export
-                       </Button>
+                       <EntityImportExportButton
+                         title="Modules"
+                         useImportHook={useImportModules}
+                         useExportHook={useExportModules}
+                         useTemplateHook={useDownloadTemplate}
+                       />
                      )}
 
                      {canCreate && (
@@ -364,15 +293,6 @@ export default function ModulesTable() {
         description={`Are you sure you want to delete "${deletingModule?.title}"?`}
         onCancel={() => setDeletingModule(null)}
         onConfirm={() => void handleDelete()}
-      />
-
-      <ImportExportModal
-        title="Modules"
-        open={openBackupModal}
-        setOpen={setOpenBackupModal}
-        onImport={handleImport}
-        onExport={handleExport}
-        onDownloadTemplate={handleDownloadTemplate}
       />
     </div>
   );
