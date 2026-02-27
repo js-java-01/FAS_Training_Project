@@ -1,26 +1,36 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
-const Unauthorized: React.FC = () => {
-  const navigate = useNavigate();
+export default function UnauthorizedPage({ isAuthenticated }: { isAuthenticated?: boolean }) {
+    return (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
+            <h1 className="text-7xl font-bold text-primary">403</h1>
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
-        <div className="text-6xl mb-4">🚫</div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-        <p className="text-gray-600 mb-6">
-          You don't have permission to access this resource.
-        </p>
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Go to Dashboard
-        </button>
-      </div>
-    </div>
-  );
-};
+            <p className="mt-4 text-xl font-semibold">
+                Access Denied
+            </p>
 
-export default Unauthorized;
+            <p className="mt-2 max-w-md text-muted-foreground">
+                You do not have permission to access this page.
+                If you believe this is a mistake, please contact your administrator.
+            </p>
+
+            <div className="mt-6 flex gap-3">
+                {isAuthenticated ? (
+                    <Link
+                        to="/dashboard"
+                        className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+                    >
+                        Go to Dashboard
+                    </Link>
+                ) : (
+                    <Link
+                        to="/login"
+                        className="rounded-md border px-5 py-2 text-sm font-medium hover:bg-muted"
+                    >
+                        Back to Login
+                    </Link>
+                )}
+            </div>
+        </div>
+    );
+}
