@@ -2,15 +2,17 @@ package com.example.starter_project_2025.config;
 
 import com.example.starter_project_2025.system.assessment.entity.*;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
-import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
-import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
-import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
-import com.example.starter_project_2025.system.assessment.repository.QuestionRepository;
+import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
+import com.example.starter_project_2025.system.assessment.enums.SubmissionStatus;
+import com.example.starter_project_2025.system.assessment.repository.*;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
+import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
+import com.example.starter_project_2025.system.common.enums.LocationStatus;
 import com.example.starter_project_2025.system.course.entity.Course;
 // import com.example.starter_project_2025.system.course.entity.CourseCohort;
 import com.example.starter_project_2025.system.course.entity.CourseLesson;
@@ -19,10 +21,19 @@ import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
 import com.example.starter_project_2025.system.course.repository.CourseLessonRepository;
 import com.example.starter_project_2025.system.course.repository.CourseRepository;
+import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
+import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeightRepository;
+import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
+import com.example.starter_project_2025.system.learning.entity.Enrollment;
+import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
+import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.location.data.entity.Commune;
 import com.example.starter_project_2025.system.location.data.entity.Province;
 import com.example.starter_project_2025.system.location.data.repository.CommuneRepository;
 import com.example.starter_project_2025.system.location.data.repository.ProvinceRepository;
+import com.example.starter_project_2025.system.location.entity.Location;
+import com.example.starter_project_2025.system.location.repository.LocationRepository;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
 import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
@@ -40,6 +51,8 @@ import com.example.starter_project_2025.system.user.repository.UserRepository;
 import com.example.starter_project_2025.system.user_role.entity.UserRole;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -51,8 +64,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -60,6 +81,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
+
+        @PersistenceContext
+        private EntityManager entityManager;
 
         private final RoleRepository roleRepository;
         private final PermissionRepository permissionRepository;
@@ -81,6 +105,12 @@ public class DataInitializer implements CommandLineRunner {
         private final CourseLessonRepository courseLessonRepository;
         private final UserRoleRepository userRoleRepository;
         private final SemesterRepository semesterRepository;
+        private final LocationRepository locationRepository;
+        private final SubmissionRepository submissionRepository;
+        private final CourseAssessmentTypeWeightRepository courseAssessmentTypeWeightRepository;
+        private final TrainingClassRepository trainingClassRepository;
+        private final CourseClassRepository courseClassRepository;
+        private final EnrollmentRepository enrollmentRepository;
 
         @Override
         @Transactional
@@ -92,7 +122,8 @@ public class DataInitializer implements CommandLineRunner {
                         initializeRoles();
                         initializeUsers();
                         initializeMenus();
-                        // initializeLocationData();
+                        initializeLocationData();
+                        initializeLocations();
                         initializeModuleGroups();
                         initializeAssessmentType();
                         initializeAssessments();
@@ -270,7 +301,7 @@ public class DataInitializer implements CommandLineRunner {
                 studentRole.setName("STUDENT");
                 studentRole.setDescription("Student with limited access to educational resources");
                 List<Permission> studentPermissions = new java.util.ArrayList<>(
-                                permissionRepository.findByAction("READ"));
+                        permissionRepository.findByAction("READ"));
                 permissionRepository.findByName("ENROLL_COURSE").ifPresent(studentPermissions::add);
                 studentRole.setPermissions(new HashSet<>(studentPermissions));
                 roleRepository.save(studentRole);
@@ -358,8 +389,9 @@ public class DataInitializer implements CommandLineRunner {
                                 .orElseThrow(() -> new RuntimeException("Role TRAINER not found"));
                 Role departmentManagerRole = roleRepository.findByName("DEPARTMENT_MANAGER")
                                 .orElseThrow(() -> new RuntimeException("Role DEPARTMENT_MANAGER not found"));
+                        .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
                 Role studentRole = roleRepository.findByName("STUDENT")
-                                .orElseThrow(() -> new RuntimeException("Role STUDENT not found"));
+                        .orElseThrow(() -> new RuntimeException("Role STUDENT not found"));
 
                 User adminUser = userRepository.findByEmail("admin@example.com")
                                 .orElseThrow(() -> new RuntimeException("Admin user not found"));
@@ -367,10 +399,11 @@ public class DataInitializer implements CommandLineRunner {
                                 .orElseThrow(() -> new RuntimeException("Super admin user not found"));
                 User trainerUser = userRepository.findByEmail("trainer@example.com")
                                 .orElseThrow(() -> new RuntimeException("Trainer user not found"));
+                        .orElseThrow(() -> new RuntimeException("Admin user not found"));
                 User student1 = userRepository.findByEmail("student@example.com")
-                                .orElseThrow(() -> new RuntimeException("Student 1 not found"));
+                        .orElseThrow(() -> new RuntimeException("Student 1 not found"));
                 User student2 = userRepository.findByEmail("jane.smith@example.com")
-                                .orElseThrow(() -> new RuntimeException("Student 2 not found"));
+                        .orElseThrow(() -> new RuntimeException("Student 2 not found"));
 
                 // Admin user: all roles, ADMIN is default
                 saveUserRole(adminUser, adminRole, true);
@@ -433,18 +466,17 @@ public class DataInitializer implements CommandLineRunner {
                 menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, locationManagement,
                                 departmentManagement));
                 MenuItem courseManagement = createMenuItem(adminMenu, null, "Course Management", "/courses", "security",
-                                4,
-                                "COURSE_READ");
+                        4,
+                        "COURSE_READ");
 
                 menuItemRepository.saveAll(
-
-                                Arrays.asList(userManagement, roleManagement, locationManagement, courseManagement));
+                        Arrays.asList(userManagement, roleManagement, locationManagement, courseManagement));
 
                 log.info("Initialized 2 menus with menu items");
         }
 
         private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order,
-                        String permission) {
+                                        String permission) {
                 MenuItem item = new MenuItem();
                 item.setMenu(menu);
                 item.setParent(parent);
@@ -467,17 +499,17 @@ public class DataInitializer implements CommandLineRunner {
                         LocationDataJson locationData = objectMapper.readValue(inputStream, LocationDataJson.class);
 
                         List<Province> provinces = locationData.province().stream()
-                                        .map(p -> new Province(p.idProvince(), p.name()))
-                                        .toList();
+                                .map(p -> new Province(p.idProvince(), p.name()))
+                                .toList();
                         provinceRepository.saveAll(provinces);
 
                         Map<String, Province> provinceById = provinces.stream()
-                                        .collect(Collectors.toMap(Province::getId, Function.identity()));
+                                .collect(Collectors.toMap(Province::getId, Function.identity()));
 
                         List<Commune> communes = locationData.commune().stream()
-                                        .map(c -> new Commune(c.idCommune(), c.name(),
-                                                        provinceById.get(c.idProvince())))
-                                        .toList();
+                                .map(c -> new Commune(c.idCommune(), c.name(),
+                                        provinceById.get(c.idProvince())))
+                                .toList();
                         communeRepository.saveAll(communes);
 
                         log.info("Location data initialized: {} provinces, {} communes",
@@ -494,16 +526,16 @@ public class DataInitializer implements CommandLineRunner {
                 }
 
                 AssessmentType entranceType = assessmentTypeRepository
-                                .findByName("Entrance Quiz")
-                                .orElseThrow(() -> new RuntimeException("AssessmentType 'Entrance Quiz' not found"));
+                        .findByName("Entrance Quiz")
+                        .orElseThrow(() -> new RuntimeException("AssessmentType 'Entrance Quiz' not found"));
 
                 AssessmentType midtermType = assessmentTypeRepository
-                                .findByName("Midterm Test")
-                                .orElseThrow(() -> new RuntimeException("AssessmentType 'Midterm Test' not found"));
+                        .findByName("Midterm Test")
+                        .orElseThrow(() -> new RuntimeException("AssessmentType 'Midterm Test' not found"));
 
                 AssessmentType finalType = assessmentTypeRepository
-                                .findByName("Final Exam")
-                                .orElseThrow(() -> new RuntimeException("AssessmentType 'Final Exam' not found"));
+                        .findByName("Final Exam")
+                        .orElseThrow(() -> new RuntimeException("AssessmentType 'Final Exam' not found"));
 
                 Assessment entranceAssessment = new Assessment();
                 entranceAssessment.setAssessmentType(entranceType);
@@ -626,8 +658,21 @@ public class DataInitializer implements CommandLineRunner {
 
                 moduleRepository.save(createModule(systemGroup, "Modules", "/modules", "menu", 1, "MENU_READ",
                                 "Manage system modules"));
-                moduleRepository.save(createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 2,
-                                "MENU_READ", "Manage module groups"));
+                moduleRepository.save(
+                        createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 2,
+                                "MENU_READ",
+                                "Manage module groups"));
+                moduleRepository.save(
+                        createModule(systemGroup, "Users", "/users", "users", 3, "USER_READ",
+                                "Manage system users"));
+                moduleRepository.save(
+                        createModule(systemGroup, "Roles", "/roles", "shield", 4, "ROLE_READ",
+                                "Manage roles and permissions"));
+                moduleRepository.save(
+                        createModule(systemGroup, "Locations", "/locations", "map-pin", 5, "LOCATION_READ",
+                                "Manage office locations"));
+
+                // moduleRepository.saveAll(Arrays.asList(moduleGroupsSub, modulesSub));
 
                 log.info("Initialized 4 module groups and their respective modules.");
 
@@ -691,7 +736,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         private Module createModule(ModuleGroups group, String title, String url, String icon,
-                        int order, String permission, String description) {
+                                    int order, String permission, String description) {
                 Module module = new Module();
                 module.setModuleGroup(group); // Gán quan hệ group_id
                 module.setTitle(title);
@@ -794,8 +839,8 @@ public class DataInitializer implements CommandLineRunner {
                 }
 
                 QuestionCategory javaCore = questionCategoryRepository
-                                .findByName("Java Core")
-                                .orElseThrow(() -> new RuntimeException("Java Core category not found"));
+                        .findByName("Java Core")
+                        .orElseThrow(() -> new RuntimeException("Java Core category not found"));
 
                 // ===== QUESTION =====
                 Question q1 = new Question();
@@ -831,23 +876,20 @@ public class DataInitializer implements CommandLineRunner {
                 // Only initialize if no programming languages exist
                 if (programmingLanguageRepository.count() == 0) {
                         ProgrammingLanguage java = createProgrammingLanguage("Java", "17",
-                                        "Object-oriented programming language widely used for enterprise applications",
-
-                                        true);
+                                "Object-oriented programming language widely used for enterprise applications",
+                                true);
                         ProgrammingLanguage python = createProgrammingLanguage("Python", "3.11",
-                                        "High-level interpreted language popular for data science and web development",
-
-                                        true);
+                                "High-level interpreted language popular for data science and web development",
+                                true);
                         ProgrammingLanguage javascript = createProgrammingLanguage("JavaScript", "ES2023",
-                                        "Dynamic programming language essential for web development", true);
+                                "Dynamic programming language essential for web development", true);
                         ProgrammingLanguage csharp = createProgrammingLanguage("C#", "11.0",
-                                        "Modern object-oriented language developed by Microsoft", true);
+                                "Modern object-oriented language developed by Microsoft", true);
                         ProgrammingLanguage cpp = createProgrammingLanguage("C++", "20",
-                                        "General-purpose programming language with low-level control", true);
+                                "General-purpose programming language with low-level control", true);
                         ProgrammingLanguage go = createProgrammingLanguage("Go", "1.21",
-                                        "Fast, statically typed language designed for modern software development",
-
-                                        false);
+                                "Fast, statically typed language designed for modern software development",
+                                false);
 
                         programmingLanguageRepository.saveAll(Arrays.asList(java, python, javascript, csharp, cpp, go));
                         log.info("Initialized 6 programming languages");
@@ -857,7 +899,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         private ProgrammingLanguage createProgrammingLanguage(String name, String version, String description,
-                        boolean isSupported) {
+                                                              boolean isSupported) {
                 ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
                 return language;
         }
@@ -872,53 +914,53 @@ public class DataInitializer implements CommandLineRunner {
                 User admin = userRepository.findByEmail("admin@example.com").orElseThrow();
 
                 Course javaCourse = Course.builder()
-                                .courseName("Java Backend Master")
-                                .courseCode("JBM-01")
-                                .topicId(1L)
-                                .price(BigDecimal.valueOf(15_000_000))
-                                .discount(10.0)
-                                .level(CourseLevel.ADVANCED)
-                                .estimatedTime(90 * 24 * 60) // 3 months ≈ minutes
-                                .thumbnailUrl("https://example.com/java.jpg")
+                        .courseName("Java Backend Master")
+                        .courseCode("JBM-01")
+                        .topicId(1L)
+                        .price(BigDecimal.valueOf(15_000_000))
+                        .discount(10.0)
+                        .level(CourseLevel.ADVANCED)
+                        .estimatedTime(90 * 24 * 60) // 3 months ≈ minutes
+                        .thumbnailUrl("https://example.com/java.jpg")
 
-                                .creator(admin)
-                                // .trainer(admin)
+                        .creator(admin)
+                        // .trainer(admin)
 
-                                .description("Java Spring Boot from basic to advanced")
-                                .note("Core backend course")
+                        .description("Java Spring Boot from basic to advanced")
+                        .note("Core backend course")
 
-                                .minGpaToPass(5.0)
-                                .minAttendancePercent(80.0)
-                                .allowFinalRetake(true)
+                        .minGpaToPass(5.0)
+                        .minAttendancePercent(80.0)
+                        .allowFinalRetake(true)
 
-                                .creator(admin)
-                                // .trainer(admin)
+                        .creator(admin)
+                        // .trainer(admin)
 
-                                .build();
+                        .build();
 
                 Course reactCourse = Course.builder()
-                                .courseName("React Frontend Pro")
-                                .courseCode("RFP-01")
-                                .topicId(2L)
-                                .price(BigDecimal.valueOf(12_000_000))
-                                .discount(5.0)
-                                .level(CourseLevel.INTERMEDIATE)
-                                .estimatedTime(60 * 24 * 60) // 2 months
-                                .thumbnailUrl("https://example.com/react.jpg")
+                        .courseName("React Frontend Pro")
+                        .courseCode("RFP-01")
+                        .topicId(2L)
+                        .price(BigDecimal.valueOf(12_000_000))
+                        .discount(5.0)
+                        .level(CourseLevel.INTERMEDIATE)
+                        .estimatedTime(60 * 24 * 60) // 2 months
+                        .thumbnailUrl("https://example.com/react.jpg")
 
-                                .status(CourseStatus.ACTIVE)
+                        .status(CourseStatus.ACTIVE)
 
-                                .description("React from zero to hero")
-                                .note("Frontend track")
+                        .description("React from zero to hero")
+                        .note("Frontend track")
 
-                                .minGpaToPass(5.0)
-                                .minAttendancePercent(75.0)
-                                .allowFinalRetake(true)
+                        .minGpaToPass(5.0)
+                        .minAttendancePercent(75.0)
+                        .allowFinalRetake(true)
 
-                                .creator(admin)
-                                // .trainer(admin)
+                        .creator(admin)
+                        // .trainer(admin)
 
-                                .build();
+                        .build();
 
                 courseRepository.saveAll(List.of(javaCourse, reactCourse));
 
@@ -997,6 +1039,46 @@ public class DataInitializer implements CommandLineRunner {
         // }
         // log.info("Initialized cohorts for Java and React courses");
         // }
+        private void initializeLocations() {
+                if (locationRepository.count() > 0) {
+                        log.info("Locations already exist, skipping initialization");
+                        return;
+                }
+
+                Location fptHcm = Location.builder()
+                        .name("FPT Software - TP. Ho Chi Minh")
+                        .address("Lo E2a-7, Duong D1, Khu Cong nghe cao, Phuong Tang Nhon Phu")
+                        .communeId("26842")
+                        .locationStatus(LocationStatus.ACTIVE)
+                        .build();
+
+                Location xavaloShtp = Location.builder()
+                        .name("Xavalo - Khu Cong Nghe Cao Sai Gon")
+                        .address("Duong So 8, Khu Cong nghe cao, Phuong Linh Xuan, TP. Thu Duc")
+                        .communeId("26800")
+                        .locationStatus(LocationStatus.INACTIVE)
+                        .build();
+
+                Location fptHanoi = Location.builder()
+                        .name("FPT Software - Ha Noi")
+                        .address("Toa nha FPT Cau Giay, Phuong Cau Giay, Quan Cau Giay")
+                        .communeId("00166")
+                        .locationStatus(LocationStatus.ACTIVE)
+                        .build();
+
+                Location fptDanang = Location.builder()
+                        .name("FPT Software - Da Nang")
+                        .address("Lo D26, Duong So 2, Khu Cong nghe cao Da Nang, Phuong Hoa Khanh")
+                        .communeId("20200")
+                        .locationStatus(LocationStatus.ACTIVE)
+                        .build();
+
+                locationRepository.saveAll(List.of(fptHcm, xavaloShtp, fptHanoi, fptDanang));
+                log.info("Initialized {} locations", 4);
+        }
+
+
+        private void initializeSemester() {
 
         private void initializeLessons() {
                 if (courseLessonRepository.count() > 0) {
@@ -1047,4 +1129,325 @@ public class DataInitializer implements CommandLineRunner {
                                 .sortOrder(order)
                                 .build();
         }
+}
+        private void initializeTopicMarkData() {
+                if (userRepository.count() < 3) {
+                        log.info("Not enough users, skipping topic mark data initialization");
+                        return;
+                }
+
+                // Check for corrupted AssessmentType data in database
+                try {
+                        Object result = entityManager
+                                .createNativeQuery("SELECT COUNT(*) FROM assessment_type WHERE LENGTH(name) > 255")
+                                .getSingleResult();
+                        Long corruptCount = ((Number) result).longValue();
+
+                        if (corruptCount > 0) {
+                                log.error("Found {} AssessmentType records with name > 255 characters in database. Please run: DELETE FROM assessment_type WHERE LENGTH(name) > 255;", corruptCount);
+                                return;
+                        }
+                } catch (Exception e) {
+                        log.warn("Could not check for corrupt data: {}", e.getMessage());
+                }
+
+                log.info("Initializing topic mark sample data...");
+
+                // Set flush mode to MANUAL to prevent auto-flush of pending invalid entities
+                entityManager.setFlushMode(jakarta.persistence.FlushModeType.COMMIT);
+
+                try {
+                        // Clear persistence context to detach any pending entities (without validation)
+                        entityManager.clear();
+
+                        // 1. Create or get sample student user
+                        User student = userRepository.findByEmail("student@test.com")
+                                .orElseGet(() -> {
+                                        User u = User.builder()
+                                                .email("student@test.com")
+                                                .firstName("John")
+                                                .lastName("Doe")
+                                                .passwordHash(passwordEncoder.encode("password123"))
+                                                .isActive(true)
+                                                .build();
+                                        return userRepository.save(u);
+                                });
+                        log.info("✓ Created/found student user: {}", student.getEmail());
+
+                        // 2. Create or get assessment types
+                        AssessmentType quizType = createOrGetAssessmentType("Quiz", "Short quizzes to test understanding");
+                        AssessmentType examType = createOrGetAssessmentType("Exam", "Comprehensive examinations");
+                        AssessmentType labType = createOrGetAssessmentType("Lab", "Hands-on practical exercises");
+                        log.info("✓ Created/found 3 assessment types: Quiz, Exam, Lab");
+
+                        // 3. Create demo course
+                        User admin = userRepository.findByEmail("admin@example.com")
+                                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+
+                        Course demoCourse = entityManager
+                                .createQuery("SELECT c FROM Course c WHERE c.courseCode = :code", Course.class)
+                                .setParameter("code", "DEMO-COURSE-TM")
+                                .getResultStream()
+                                .findFirst()
+                                .orElseGet(() -> {
+                                        Course course = Course.builder()
+                                                .courseName("Demo Course for Topic Marks")
+                                                .courseCode("DEMO-COURSE-TM")
+                                                .topicId(1L)
+                                                .price(BigDecimal.valueOf(5_000_000))
+                                                .discount(0.0)
+                                                .level(CourseLevel.BEGINNER)
+                                                .estimatedTime(30 * 24 * 60) // 1 month
+                                                .thumbnailUrl("https://example.com/demo-tm.jpg")
+                                                .status(CourseStatus.ACTIVE)
+                                                .description("Demo course for testing Topic Mark calculations")
+                                                .note("Test data")
+                                                .minGpaToPass(60.0)
+                                                .minAttendancePercent(70.0)
+                                                .allowFinalRetake(true)
+                                                .creator(admin)
+                                                .build();
+                                        return courseRepository.save(course);
+                                });
+                        log.info("✓ Created/found demo course: {}", demoCourse.getCourseCode());
+
+                        // 4. Create course assessment type weights (Quiz 30%, Exam 50%, Lab 20%)
+                        createWeightIfNotExists(demoCourse, quizType, 0.3);
+                        createWeightIfNotExists(demoCourse, examType, 0.5);
+                        createWeightIfNotExists(demoCourse, labType, 0.2);
+                        log.info("✓ Set assessment type weights: Quiz 30%, Exam 50%, Lab 20%");
+
+                        // 5. Create training class (with semester)
+                        // First, get or create a semester
+                        Semester semester = entityManager
+                                .createQuery("SELECT s FROM Semester s WHERE s.name = :name", Semester.class)
+                                .setParameter("name", "Demo Semester 2026")
+                                .getResultStream()
+                                .findFirst()
+                                .orElseGet(() -> {
+                                        Semester s = new Semester();
+                                        s.setName("Demo Semester 2026");
+                                        s.setStartDate(Date.valueOf("2026-01-01").toLocalDate());
+                                        s.setEndDate(Date.valueOf("2026-12-31").toLocalDate());
+                                        entityManager.persist(s);
+                                        return s;
+                                });
+
+                        TrainingClass trainingClass = entityManager
+                                .createQuery("SELECT tc FROM TrainingClass tc WHERE tc.classCode = :code", TrainingClass.class)
+                                .setParameter("code", "TC-DEMO-01")
+                                .getResultStream()
+                                .findFirst()
+                                .orElseGet(() -> {
+                                        TrainingClass tc = new TrainingClass();
+                                        tc.setClassCode("TC-DEMO-01");
+                                        tc.setClassName("Demo Training Class 01");
+                                        tc.setCreator(admin);
+                                        tc.setSemester(semester);
+                                        tc.setIsActive(true);
+                                        tc.setStartDate(Date.valueOf("2026-01-01").toLocalDate());
+                                        tc.setEndDate(Date.valueOf("2026-06-30").toLocalDate());
+                                        entityManager.persist(tc);
+                                        return tc;
+                                });
+                        log.info("✓ Created/found training class: {}", trainingClass.getClassCode());
+
+                        // 6. Create course class (links course + training class)
+                        CourseClass courseClass = entityManager
+                                .createQuery("SELECT cc FROM CourseClass cc WHERE cc.course.id = :courseId AND cc.classInfo.id = :classId", CourseClass.class)
+                                .setParameter("courseId", demoCourse.getId())
+                                .setParameter("classId", trainingClass.getId())
+                                .getResultStream()
+                                .findFirst()
+                                .orElseGet(() -> {
+                                        CourseClass cc = new CourseClass();
+                                        cc.setCourse(demoCourse);
+                                        cc.setClassInfo(trainingClass);
+                                        cc.setTrainer(admin);
+                                        return courseClassRepository.save(cc);
+                                });
+                        log.info("✓ Created/found course class linking course and training class");
+
+                        // 7. Create enrollment (student enrolled in training class)
+                        Enrollment enrollment = entityManager
+                                .createQuery("SELECT e FROM Enrollment e WHERE e.user.id = :userId AND e.trainingClass.id = :classId", Enrollment.class)
+                                .setParameter("userId", student.getId())
+                                .setParameter("classId", trainingClass.getId())
+                                .getResultStream()
+                                .findFirst()
+                                .orElseGet(() -> {
+                                        Enrollment e = Enrollment.builder()
+                                                .user(student)
+                                                .trainingClass(trainingClass)
+                                                .status(EnrollmentStatus.ACTIVE)
+                                                .enrolledAt(Instant.now())
+                                                .build();
+                                        return enrollmentRepository.save(e);
+                                });
+                        log.info("✓ Created/found enrollment for student in training class");
+
+                        // 8. Create assessments and submissions
+                        // Assessment 1: Quiz 1 with HIGHEST grading (submissions: 80, 85, 90 → best: 90)
+                        createAssessmentWithSubmissions(
+                                courseClass, student, quizType,
+                                "Quiz 1", GradingMethod.HIGHEST,
+                                List.of(80.0, 85.0, 90.0)
+                        );
+
+                        // Assessment 2: Quiz 2 with HIGHEST grading (submissions: 70, 75 → best: 75)
+                        createAssessmentWithSubmissions(
+                                courseClass, student, quizType,
+                                "Quiz 2", GradingMethod.HIGHEST,
+                                List.of(70.0, 75.0)
+                        );
+
+                        // Assessment 3: Midterm Exam with LATEST grading (submissions: 65, 70 → latest: 70)
+                        createAssessmentWithSubmissions(
+                                courseClass, student, examType,
+                                "Midterm Exam", GradingMethod.LATEST,
+                                List.of(65.0, 70.0)
+                        );
+
+                        // Assessment 4: Lab Assignment with AVERAGE grading (submissions: 85, 90, 95 → avg: 90)
+                        createAssessmentWithSubmissions(
+                                courseClass, student, labType,
+                                "Lab Assignment", GradingMethod.AVERAGE,
+                                List.of(85.0, 90.0, 95.0)
+                        );
+
+                        log.info("✓ Created 4 assessments with multiple submissions");
+                        log.info("=====================================");
+                        log.info("Topic mark sample data initialized successfully!");
+                        log.info("Expected calculation:");
+                        log.info("  - Quiz 1 (HIGHEST): 90");
+                        log.info("  - Quiz 2 (HIGHEST): 75");
+                        log.info("  - Quiz type average: (90 + 75) / 2 = 82.5");
+                        log.info("  - Quiz contribution: 82.5 × 0.3 = 24.75");
+                        log.info("  - Midterm (LATEST): 70");
+                        log.info("  - Exam contribution: 70 × 0.5 = 35.0");
+                        log.info("  - Lab (AVERAGE): 90");
+                        log.info("  - Lab contribution: 90 × 0.2 = 18.0");
+                        log.info("  - Final score: 24.75 + 35.0 + 18.0 = 77.75");
+                        log.info("  - Pass status: 77.75 >= 60.0 = PASS ✓");
+                        log.info("=====================================");
+                } finally {
+                        // Always restore flush mode to AUTO
+                        entityManager.setFlushMode(jakarta.persistence.FlushModeType.AUTO);
+                }
+        }
+
+        /**
+         * Create or get existing AssessmentType by name
+         * Uses EntityManager to bypass validation errors from corrupted data
+         */
+        private AssessmentType createOrGetAssessmentType(String name, String description) {
+                try {
+                        // Clear to detach pending entities without triggering validation
+                        entityManager.clear();
+
+                        // Use JPQL query instead of findAll() to avoid loading corrupted records
+                        AssessmentType existing = entityManager
+                                .createQuery("SELECT a FROM AssessmentType a WHERE a.name = :name", AssessmentType.class)
+                                .setParameter("name", name)
+                                .getResultStream()
+                                .findFirst()
+                                .orElse(null);
+
+                        if (existing != null) {
+                                return existing;
+                        }
+
+                        // Create new if not found
+                        AssessmentType newType = new AssessmentType();
+                        newType.setName(name);
+                        newType.setDescription(description);
+                        return assessmentTypeRepository.save(newType);
+                } catch (Exception e) {
+                        log.error("Failed to create/get AssessmentType '{}': {}", name, e.getMessage());
+                        throw new RuntimeException("Cannot create AssessmentType: " + name, e);
+                }
+        }
+
+        /**
+         * Create CourseAssessmentTypeWeight if not exists
+         */
+        private void createWeightIfNotExists(Course course, AssessmentType type, Double weight) {
+                // Use targeted query instead of findAll()
+                Long count = entityManager
+                        .createQuery("SELECT COUNT(w) FROM CourseAssessmentTypeWeight w WHERE w.course.id = :courseId AND w.assessmentType.id = :typeId", Long.class)
+                        .setParameter("courseId", course.getId())
+                        .setParameter("typeId", type.getId())
+                        .getSingleResult();
+
+                if (count == 0) {
+                        CourseAssessmentTypeWeight w = CourseAssessmentTypeWeight.builder()
+                                .course(course)
+                                .assessmentType(type)
+                                .weight(weight)
+                                .build();
+                        courseAssessmentTypeWeightRepository.save(w);
+                }
+        }
+        private void createAssessmentWithSubmissions(
+                CourseClass courseClass,
+                User student,
+                AssessmentType assessmentType,
+                String title,
+                GradingMethod gradingMethod,
+                List<Double> scores) {
+
+                // Check if assessment already exists by title (Assessment doesn't have courseClass field)
+                Assessment assessment = entityManager
+                        .createQuery("SELECT a FROM Assessment a WHERE a.title = :title", Assessment.class)
+                        .setParameter("title", title)
+                        .getResultStream()
+                        .findFirst()
+                        .orElseGet(() -> {
+                                Assessment a = new Assessment();
+                                a.setCode("ASM-" + title.replaceAll("\\s+", "-").toUpperCase());
+                                a.setTitle(title);
+                                a.setDescription("Demo assessment: " + title);
+                                a.setAssessmentType(assessmentType);
+                                a.setGradingMethod(gradingMethod);
+                                a.setTotalScore(100);
+                                a.setPassScore(50);
+                                a.setTimeLimitMinutes(60);
+                                a.setAttemptLimit(scores.size());
+                                a.setIsShuffleQuestion(false);
+                                a.setIsShuffleOption(false);
+                                a.setStatus(AssessmentStatus.ACTIVE);
+                                return assessmentRepository.save(a);
+                        });
+
+                // Create submissions for each score
+                for (int i = 0; i < scores.size(); i++) {
+                        final int attemptNumber = i + 1;
+                        final Double score = scores.get(i);
+
+                        // Check if submission already exists
+                        Long count = entityManager
+                                .createQuery("SELECT COUNT(s) FROM Submission s WHERE s.assessment.id = :assessmentId AND s.user.id = :userId AND s.courseClass.id = :courseClassId AND s.attemptNumber = :attemptNumber", Long.class)
+                                .setParameter("assessmentId", assessment.getId())
+                                .setParameter("userId", student.getId())
+                                .setParameter("courseClassId", courseClass.getId())
+                                .setParameter("attemptNumber", attemptNumber)
+                                .getSingleResult();
+
+                        if (count == 0) {
+                                Submission submission = Submission.builder()
+                                        .assessment(assessment)
+                                        .courseClass(courseClass)
+                                        .user(student)
+                                        .status(SubmissionStatus.SUBMITTED)
+                                        .startedAt(LocalDateTime.now().minusDays(20 - i))
+                                        .submittedAt(LocalDateTime.now().minusDays(20 - i).plusHours(1))
+                                        .totalScore(score)
+                                        .isPassed(score >= 50.0)
+                                        .attemptNumber(attemptNumber)
+                                        .build();
+                                submissionRepository.save(submission);
+                        }
+                }
+        }
+
 }

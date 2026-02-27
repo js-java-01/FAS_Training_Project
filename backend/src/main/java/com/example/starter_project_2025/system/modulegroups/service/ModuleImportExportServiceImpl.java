@@ -38,6 +38,8 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
             "requiredPermission"
     };
 
+    // ================= TEMPLATE =================
+
     @Override
     public ResponseEntity<byte[]> downloadTemplate() {
         try (Workbook workbook = new XSSFWorkbook()) {
@@ -62,6 +64,8 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
         }
     }
 
+    // ================= IMPORT =================
+
     @Override
     public ImportResultResponse importExcel(MultipartFile file) {
 
@@ -79,22 +83,28 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
              Workbook workbook = new XSSFWorkbook(is)) {
 
             Sheet sheet = workbook.getSheetAt(0);
-            Iterator<Row> rows = sheet.iterator();
 
-            if (!rows.hasNext()) {
+            if (sheet.getPhysicalNumberOfRows() == 0) {
                 throw new RuntimeException("File is empty");
             }
 
-            Row header = rows.next();
+            Iterator<Row> rows = sheet.iterator();
 
-            if (header.getPhysicalNumberOfCells() != 8) {
-                throw new RuntimeException("Invalid template format");
-            }
+            // ===== HEADER CHECK =====
+            Row header = rows.next();
+            validateHeader(header);
 
             int rowIndex = 1;
 
             while (rows.hasNext()) {
+
                 Row row = rows.next();
+                rowIndex++;
+
+                if (isRowEmpty(row)) {
+                    continue;
+                }
+
                 result.setTotalRows(result.getTotalRows() + 1);
 
                 try {
@@ -152,6 +162,8 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
                     }
 
                     ModuleGroups group = groups.getFirst();
+                    // ===== SAVE =====
+
                     Module module = new Module();
                     module.setTitle(title.trim());
                     module.setUrl(url.trim());
@@ -163,6 +175,7 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
                     module.setRequiredPermission(requiredPermission);
 
                     moduleRepository.save(module);
+
                     result.setSuccessCount(result.getSuccessCount() + 1);
 
                 } catch (Exception ex) {
@@ -174,27 +187,59 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
 
                     result.getErrors().add(
                             new ImportErrorDetail(
-                                    rowIndex + 1,
+                                    rowIndex,
                                     err[0],
                                     err.length > 1 ? err[1] : msg
                             )
                     );
                 }
-
-                rowIndex++;
             }
 
+            if (result.getTotalRows() == 0) {
+                throw new RuntimeException("File contains no data rows");
+            }
+
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Import modules failed");
+            throw new RuntimeException("Import modules failed", e);
         }
 
         return result;
     }
 
+    // ================= HEADER VALIDATION =================
+
+    private void validateHeader(Row header) {
+
+        if (header.getLastCellNum() != TEMPLATE_HEADERS.length) {
+            throw new RuntimeException("Invalid template format");
+        }
+
+        for (int i = 0; i < TEMPLATE_HEADERS.length; i++) {
+
+            Cell cell = header.getCell(i);
+
+            if (cell == null ||
+                    !cell.getStringCellValue().trim()
+                            .equalsIgnoreCase(TEMPLATE_HEADERS[i])) {
+
+                throw new RuntimeException(
+                        "Invalid template header. Expected: "
+                                + TEMPLATE_HEADERS[i]
+                                + " at column " + (i + 1)
+                );
+            }
+        }
+    }
+
+    // ================= EXPORT =================
 
     @Override
     public ResponseEntity<byte[]> exportExcel() {
+
         try (Workbook workbook = new XSSFWorkbook()) {
+
             Sheet sheet = workbook.createSheet("Modules");
 
             Row header = sheet.createRow(0);
@@ -203,8 +248,11 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
             }
 
             int rowIdx = 1;
+
             for (Module m : moduleRepository.findAll()) {
+
                 Row row = sheet.createRow(rowIdx++);
+
                 row.createCell(0).setCellValue(m.getTitle());
                 row.createCell(1).setCellValue(m.getUrl());
                 row.createCell(2).setCellValue(m.getIcon());
@@ -229,18 +277,81 @@ public class ModuleImportExportServiceImpl implements ModuleImportExportService 
         }
     }
 
+    // ================= HELPERS =================
+
     private String getString(Row row, int index) {
         Cell cell = row.getCell(index);
-        return cell == null ? null : cell.getStringCellValue().trim();
+        if (cell == null) return null;
+
+        if (cell.getCellType() == CellType.STRING) {
+            return cell.getStringCellValue().trim();
+        }
+
+        if (cell.getCellType() == CellType.NUMERIC) {
+            return String.valueOf((int) cell.getNumericCellValue());
+        }
+
+        if (cell.getCellType() == CellType.BOOLEAN) {
+            return String.valueOf(cell.getBooleanCellValue());
+        }
+
+        return null;
     }
 
     private Integer getInteger(Row row, int index, Integer def) {
         Cell cell = row.getCell(index);
-        return cell == null ? def : (int) cell.getNumericCellValue();
+        if (cell == null) return def;
+
+        try {
+            if (cell.getCellType() == CellType.NUMERIC) {
+                return (int) cell.getNumericCellValue();
+            }
+
+            if (cell.getCellType() == CellType.STRING) {
+                String val = cell.getStringCellValue().trim();
+                return val.isEmpty() ? def : Integer.parseInt(val);
+            }
+        } catch (Exception ignored) {}
+
+        return def;
     }
 
     private Boolean getBoolean(Row row, int index, Boolean def) {
         Cell cell = row.getCell(index);
-        return cell == null ? def : cell.getBooleanCellValue();
+        if (cell == null) return def;
+
+        if (cell.getCellType() == CellType.BOOLEAN) {
+            return cell.getBooleanCellValue();
+        }
+
+        if (cell.getCellType() == CellType.STRING) {
+            String val = cell.getStringCellValue().trim().toLowerCase();
+            if (val.equals("true") || val.equals("1") || val.equals("yes")) return true;
+            if (val.equals("false") || val.equals("0") || val.equals("no")) return false;
+        }
+
+        if (cell.getCellType() == CellType.NUMERIC) {
+            return cell.getNumericCellValue() != 0;
+        }
+
+        return def;
+    }
+
+    private boolean isRowEmpty(Row row) {
+        if (row == null) return true;
+
+        for (int i = 0; i < TEMPLATE_HEADERS.length; i++) {
+            Cell cell = row.getCell(i);
+            if (cell != null && cell.getCellType() != CellType.BLANK) {
+                if (cell.getCellType() == CellType.STRING &&
+                        !cell.getStringCellValue().trim().isEmpty()) {
+                    return false;
+                }
+                if (cell.getCellType() != CellType.STRING) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }

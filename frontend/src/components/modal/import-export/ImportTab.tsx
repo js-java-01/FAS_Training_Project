@@ -12,7 +12,7 @@ import {
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
-interface ImportResult {
+export interface ImportResult {
   message: string;
   totalRows: number;
   successCount: number;
@@ -34,7 +34,7 @@ export default function ImportTab({
   /* ================= STATE ================= */
 
   const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false); // ✅ no more boolean | null
+  const [loading, setLoading] = useState(false); // no more boolean | null
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -84,7 +84,7 @@ export default function ImportTab({
         setResult(res as ImportResult);
       }
 
-      // ✅ Clear file only if fully success (or void = success)
+      // Clear file only if fully success (or void = success)
       if (!res || (res as ImportResult).failedCount === 0) {
         setFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";

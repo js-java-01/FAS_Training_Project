@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
-import ImportTab from "./ImportTab";
+import ImportTab, { type ImportResult } from "./ImportTab";
 import ExportTab from "./ExportTab";
 
 export interface ImportResult {
