@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Pencil, Save, X } from "lucide-react";
 import ClassInfoTab from "./components/ClassInfoTab";
 import { getTrainingClassStatusPresentation } from "./utils/statusPresentation";
+import { decodeRouteId } from "@/utils/routeIdCodec";
 
 function ClassBreadcrumb() {
     return (
@@ -90,6 +91,7 @@ const validateForm = (data: ClassInfoFormData): Record<string, string> => {
 
 export default function ClassDetailPage() {
     const { id } = useParams<{ id: string }>();
+    const decodedClassId = id ? decodeRouteId("classes", id) : null;
     const navigate = useNavigate();
     const location = useLocation();
     const queryClient = useQueryClient();
@@ -98,7 +100,7 @@ export default function ClassDetailPage() {
     const stateClass = (location.state as { trainingClass?: TrainingClass })?.trainingClass ?? null;
 
     /* Fetch from API (will also work for direct URL navigation) */
-    const { data: fetchedClass, isLoading } = useGetTrainingClassById(id);
+    const { data: fetchedClass, isLoading } = useGetTrainingClassById(decodedClassId ?? undefined);
 
     /* Prefer fetched data, fall back to route state */
     const trainingClass = fetchedClass ?? stateClass;
@@ -149,10 +151,10 @@ export default function ClassDetailPage() {
             return;
         }
 
-        if (!id) return;
+        if (!decodedClassId) return;
         setSaving(true);
         try {
-            await trainingClassApi.updateTrainingClass(id, {
+            await trainingClassApi.updateTrainingClass(decodedClassId, {
                 className: formData.className,
                 classCode: formData.classCode,
                 description: formData.description || undefined,
@@ -161,7 +163,7 @@ export default function ClassDetailPage() {
                 semesterId: formData.semesterId || undefined,
             });
             toast.success("Class updated successfully");
-            await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(id) });
+            await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(decodedClassId) });
             await queryClient.invalidateQueries({ queryKey: ["training-classes"] });
             setIsEditing(false);
         } catch (err: unknown) {
@@ -173,7 +175,7 @@ export default function ClassDetailPage() {
         } finally {
             setSaving(false);
         }
-    }, [formData, id, queryClient]);
+    }, [decodedClassId, formData, queryClient]);
 
     return (
         <MainLayout customBreadcrumb={<ClassBreadcrumb />}>
@@ -193,9 +195,9 @@ export default function ClassDetailPage() {
                     {/* ── Page Title Row ── */}
                     <div className="flex items-start justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold tracking-tight">Training Classes</h1>
+                            <h1 className="text-2xl font-bold tracking-tight">Classes</h1>
                             <p className="text-sm text-muted-foreground">
-                                Training classes details and configuration
+                                Classes details and configuration
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
