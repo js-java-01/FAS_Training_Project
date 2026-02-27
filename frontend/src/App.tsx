@@ -25,6 +25,8 @@ import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
+import MfaSettings from "./pages/MfaSettings";
+import { MfaGateProvider } from "./components/MfaGateProvider";
 import ClassDetailPage from "./pages/training-classes/ClassDetailPage";
 
 
@@ -43,6 +45,7 @@ function App() {
       />
       <AuthProvider>
         <RoleSwitchProvider>
+          <MfaGateProvider />
           <Routes>
             <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />
             <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
@@ -200,6 +203,15 @@ function App() {
               element={
                 <ProtectedRoute requiredPermission="QUESTION_UPDATE">
                   <EditQuestionPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/mfa-setting"
+              element={
+                <ProtectedRoute>
+                  <MfaSettings />
                 </ProtectedRoute>
               }
             />

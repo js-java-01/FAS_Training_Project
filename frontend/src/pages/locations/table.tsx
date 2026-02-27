@@ -53,7 +53,7 @@ const DetailRow = ({
         <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
             <Icon className="w-4 h-4 text-gray-500" /> {label}
         </label>
-        <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 min-h-10.5 flex items-center">
+        <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 min-h-[42px] flex items-center">
             {isBadge ? (
                 value === "ACTIVE" ? (
                     <Badge className="bg-green-100 text-green-700">Active</Badge>
@@ -205,7 +205,7 @@ export default function LocationsTable() {
         try {
             setIsImporting(true);
             const result = await locationApi.importLocations(importFile);
-
+            
             if (result.errors && result.errors.length > 0) {
                 toast.warning(
                     `Import completed with ${result.success} success and ${result.errors.length} errors`
@@ -342,7 +342,7 @@ export default function LocationsTable() {
 
             {/* ===== View detail ===== */}
             <Dialog open={!!viewingLocation} onOpenChange={() => setViewingLocation(null)}>
-                <DialogContent className="sm:max-w-150">
+                <DialogContent className="sm:max-w-[600px]">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <MapPin className="w-5 h-5" />
@@ -360,10 +360,10 @@ export default function LocationsTable() {
                         <DetailRow icon={MapPin} label="Province" value={viewingLocation?.provinceName} />
                         <DetailRow icon={MapPin} label="Commune" value={viewingLocation?.communeName} />
                         <DetailRow icon={ToggleLeft} label="Status" value={viewingLocation?.status} isBadge />
-                        <DetailRow
-                            icon={Calendar}
-                            label="Created At"
-                            value={viewingLocation?.createdAt ? new Date(viewingLocation.createdAt).toLocaleString() : "-"}
+                        <DetailRow 
+                            icon={Calendar} 
+                            label="Created At" 
+                            value={viewingLocation?.createdAt ? new Date(viewingLocation.createdAt).toLocaleString() : "-"} 
                         />
                     </div>
 
@@ -375,7 +375,7 @@ export default function LocationsTable() {
 
             {/* ===== Import Modal ===== */}
             <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
-                <DialogContent className="sm:max-w-125">
+                <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Import Locations</DialogTitle>
                         <DialogDescription>

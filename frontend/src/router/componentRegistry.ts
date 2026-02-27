@@ -6,6 +6,7 @@ import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsMa
 import TrainingClassesManagement from "@/pages/training-classes/TrainingClassesManagement.tsx";
 import NotFoundPage from "@/pages/NotFoundPage.tsx";
 import LocationsManagement from "@/pages/locations/LocationsManagement.tsx";
+import MfaSettings from "@/pages/MfaSettings.tsx";
 import { RoleManagement } from "@/pages/RoleManagement.tsx";
 import { StudentClassManagement } from "@/pages/classes/StudentClassManagement";
 
@@ -19,5 +20,6 @@ export const componentRegistry: Record<string, ComponentType> = {
     "/notFoundPage": NotFoundPage,
     "/roles": RoleManagement,
     "/classes": StudentClassManagement,
-    "/locations": LocationsManagement
+    "/locations": LocationsManagement,
+    "/mfa-setting": MfaSettings,
 };
