@@ -14,9 +14,10 @@ import type { TrainingClass } from "@/types/trainingClass"
 interface ClassCardProps {
     data: TrainingClass,
     isEnrolled?: boolean;
+    handleEnroll?: (classId: string) => void;
 }
 
-export const ClassCard = ({ data, isEnrolled }: ClassCardProps) => {
+export const ClassCard = ({ data, isEnrolled, handleEnroll }: ClassCardProps) => {
     // Logic: Nếu chưa được duyệt (approverName là null) HOẶC lớp không active thì disable
     const isPending = data.approverName === null;
     const canEnroll = data.isActive && !isPending;
@@ -117,6 +118,11 @@ export const ClassCard = ({ data, isEnrolled }: ClassCardProps) => {
                     className={`w-full text-white transition-all ${config.className}`}
                     disabled={config.disabled}
                     variant={config.variant}
+                    onClick={() => {
+                        if (handleEnroll) {
+                            handleEnroll(data.id);
+                        }
+                    }}
                 >
                     {config.text}
                 </Button>

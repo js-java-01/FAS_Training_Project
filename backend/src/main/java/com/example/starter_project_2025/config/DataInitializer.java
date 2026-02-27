@@ -131,6 +131,7 @@ public class DataInitializer implements CommandLineRunner {
                 trainingClass.setClassStatus(status);
                 trainingClass.setSemester(semester);
                 trainingClass.setApprover(approver);
+                trainingClass.setEnrollmentKey("ENROLL2025");
                 trainingClass.setIsActive(true);
                 return trainingClass;
 

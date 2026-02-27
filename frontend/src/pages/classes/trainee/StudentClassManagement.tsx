@@ -8,12 +8,16 @@ import { ClassCard } from "../component/ClassCard"
 import { useDebounce } from "@/hooks/useDebounce"
 import { useMemo, useState } from "react"
 import { useGetAllTrainingClasses } from "../service/queries"
+import { EnrollModal } from "../component/EnrollModal"
 
 export const StudentClassManagement = () => {
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(6);
     const [searchValue, setSearchValue] = useState("");
+    const [isOpenEnrollModal, setIsOpenEnrollModal] = useState(false);
+    const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
     const debouncedSearch = useDebounce(searchValue, 300);
+
 
     const { data: apiResponse, isLoading } = useGetAllTrainingClasses({
         page: pageIndex,
@@ -30,7 +34,12 @@ export const StudentClassManagement = () => {
     const handleSearchValue = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchValue(e.target.value);
         setPageIndex(0);
-        setPageSize(6);
+    }
+
+    const handleEnrollForm = (classId: string) => {
+        setIsOpenEnrollModal(true);
+        setSelectedClassId(classId);
+
     }
 
     return (
@@ -67,10 +76,19 @@ export const StudentClassManagement = () => {
                     {safeData.items.map((item, i) => (
                         <ClassCard key={i}
                             data={item}
-
+                            handleEnroll={handleEnrollForm}
                         />
                     ))}
                 </div>
+                    <EnrollModal
+                        classId={selectedClassId ?? ""}
+                        className={safeData.items.find(c => c.id === selectedClassId)?.className ?? ""}
+                        isOpen={isOpenEnrollModal}
+                        onClose={() => setIsOpenEnrollModal(false)}
+                        onConfirm={async (enrollKey) => {
+                            console.log("Enroll key:", enrollKey, "for class ID:", selectedClassId);
+                        }}
+                    />
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">
                         <p className="text-sm text-muted-foreground whitespace-nowrap">
                             Hiển thị <b>{pageIndex * pageSize + 1}-{Math.min((pageIndex + 1) * pageSize, safeData.totalElements)}</b> trong tổng số <b>{safeData.totalElements}</b> lớp học
