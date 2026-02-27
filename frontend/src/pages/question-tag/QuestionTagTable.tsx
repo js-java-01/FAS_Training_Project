@@ -5,23 +5,22 @@ import {
 import React, { useState, useMemo, useCallback } from 'react';
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
-import { questionCategoryApi } from '../../api/questionCategoryApi';
+import { questionTagApi } from '../../api/questionTagApi';
 import { PermissionGate } from '../../components/PermissionGate';
 
-import type { QuestionCategoryRequest } from '../../types/questionCategory';
-import type { QuestionCategory } from '../../types/questionCategory';
+import type { QuestionTagRequest, QuestionTag } from '../../types/questionTag';
 
-import { CreateQuestionCategoryModal } from './CreateQuestionCategoryModal';
-import { DeleteQuestionCategoryDialog } from './DeleteQuestionCategoryDialog';
-import { UpdateQuestionCategoryModal } from './UpdateQuestionCategoryModal';
-import { ViewQuestionCategoryModal } from './ViewQuestionCategoryModal';
+import { CreateQuestionTagModal } from './CreateQuestionTagModal';
+import { DeleteQuestionTagDialog } from './DeleteQuestionTagDialog';
+import { UpdateQuestionTagModal } from './UpdateQuestionTagModal';
+import { ViewQuestionTagModal } from './ViewQuestionTagModal';
 
 import { DataTable } from '@/components/data_table/DataTable';
 import { getColumns } from './columns';
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/useToast';
 
-export const QuestionCategoryTable: React.FC = () => {
+export const QuestionTagTable: React.FC = () => {
     const { toast } = useToast();
     const queryClient = useQueryClient();
 
@@ -38,87 +37,87 @@ export const QuestionCategoryTable: React.FC = () => {
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showViewModal, setShowViewModal] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null);
+    const [selectedTag, setSelectedTag] = useState<QuestionTag | null>(null);
 
     // ========================================
     // Data Loading (Queries)
     // ========================================
-    const { data: categories, isLoading, isFetching } = useQuery({
-        queryKey: ['question-categories'],
-        queryFn: () => questionCategoryApi.getAll()
+    const { data: tagsResponse, isLoading, isFetching } = useQuery({
+        queryKey: ['question-tags'],
+        queryFn: () => questionTagApi.getAll()
     });
 
-    // Safe table data with defaults
+    // Safe table data with defaults - extract content from paginated response
     const safeTableData = useMemo(() => {
-        const items = categories ?? [];
+        const items = tagsResponse?.content ?? [];
         // Client-side filtering based on keyword
         const filteredItems = keyword
-            ? items.filter(category =>
-                category.name.toLowerCase().includes(keyword.toLowerCase()) ||
-                category.description?.toLowerCase().includes(keyword.toLowerCase())
+            ? items.filter(tag =>
+                tag.name.toLowerCase().includes(keyword.toLowerCase()) ||
+                tag.description?.toLowerCase().includes(keyword.toLowerCase())
             )
             : items;
         return { items: filteredItems };
-    }, [categories, keyword]);
+    }, [tagsResponse, keyword]);
 
     // ========================================
     // CRUD Mutations
     // ========================================
     const createMutation = useMutation({
-        mutationFn: questionCategoryApi.create,
+        mutationFn: questionTagApi.create,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['question-categories'] });
+            queryClient.invalidateQueries({ queryKey: ['question-tags'] });
             setShowCreateModal(false);
-            toast({ variant: "success", title: "Success", description: "Question category created successfully" });
+            toast({ variant: "success", title: "Success", description: "Question tag created successfully" });
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
-            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to create question category" });
+            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to create question tag" });
         }
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }: { id: string; data: QuestionCategoryRequest }) =>
-            questionCategoryApi.update(id, data),
+        mutationFn: ({ id, data }: { id: number; data: QuestionTagRequest }) =>
+            questionTagApi.update(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['question-categories'] });
+            queryClient.invalidateQueries({ queryKey: ['question-tags'] });
             setShowUpdateModal(false);
-            toast({ variant: "success", title: "Success", description: "Question category updated successfully" });
+            toast({ variant: "success", title: "Success", description: "Question tag updated successfully" });
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
-            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to update question category" });
+            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to update question tag" });
         }
     });
 
     const deleteMutation = useMutation({
-        mutationFn: questionCategoryApi.delete,
+        mutationFn: questionTagApi.delete,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['question-categories'] });
+            queryClient.invalidateQueries({ queryKey: ['question-tags'] });
             setShowDeleteDialog(false);
-            toast({ variant: "success", title: "Success", description: "Question category deleted successfully" });
+            toast({ variant: "success", title: "Success", description: "Question tag deleted successfully" });
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
-            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to delete question category" });
+            toast({ variant: "destructive", title: "Error", description: error.response?.data?.message || "Failed to delete question tag" });
         }
     });
 
     // ========================================
     // Columns & Actions
     // ========================================
-    const handleView = useCallback((row: QuestionCategory) => {
-        setSelectedCategory(row);
+    const handleView = useCallback((row: QuestionTag) => {
+        setSelectedTag(row);
         setShowViewModal(true);
     }, []);
 
-    const handleEdit = useCallback((row: QuestionCategory) => {
-        setSelectedCategory(row);
+    const handleEdit = useCallback((row: QuestionTag) => {
+        setSelectedTag(row);
         setShowUpdateModal(true);
     }, []);
 
-    const handleDelete = useCallback((row: QuestionCategory) => {
-        setSelectedCategory(row);
+    const handleDelete = useCallback((row: QuestionTag) => {
+        setSelectedTag(row);
         setShowDeleteDialog(true);
     }, []);
 
@@ -137,7 +136,7 @@ export const QuestionCategoryTable: React.FC = () => {
                     className="h-8 bg-blue-600 hover:bg-blue-700"
                 >
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Category
+                    Add Tag
                 </Button>
             </PermissionGate>
         </div>
@@ -145,8 +144,8 @@ export const QuestionCategoryTable: React.FC = () => {
 
     return (
         <div className="h-full flex flex-col">
-            <DataTable<QuestionCategory, unknown>
-                columns={columns as ColumnDef<QuestionCategory, unknown>[]}
+            <DataTable<QuestionTag, unknown>
+                columns={columns as ColumnDef<QuestionTag, unknown>[]}
                 data={safeTableData.items}
                 isLoading={isLoading}
                 isFetching={isFetching}
@@ -167,32 +166,32 @@ export const QuestionCategoryTable: React.FC = () => {
             />
 
             {/* Modals */}
-            <CreateQuestionCategoryModal
+            <CreateQuestionTagModal
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 onSubmit={(data) => createMutation.mutate(data)}
                 isPending={createMutation.isPending}
             />
 
-            <UpdateQuestionCategoryModal
+            <UpdateQuestionTagModal
                 isOpen={showUpdateModal}
                 onClose={() => setShowUpdateModal(false)}
-                category={selectedCategory}
+                tag={selectedTag}
                 onSubmit={(id, data) => updateMutation.mutate({ id, data })}
                 isPending={updateMutation.isPending}
             />
 
-            <ViewQuestionCategoryModal
+            <ViewQuestionTagModal
                 isOpen={showViewModal}
                 onClose={() => setShowViewModal(false)}
-                category={selectedCategory}
+                tag={selectedTag}
             />
 
-            <DeleteQuestionCategoryDialog
+            <DeleteQuestionTagDialog
                 isOpen={showDeleteDialog}
                 onClose={() => setShowDeleteDialog(false)}
-                category={selectedCategory}
-                onConfirm={() => selectedCategory && deleteMutation.mutate(selectedCategory.id)}
+                tag={selectedTag}
+                onConfirm={() => selectedTag && deleteMutation.mutate(selectedTag.id)}
                 isPending={deleteMutation.isPending}
             />
         </div>
