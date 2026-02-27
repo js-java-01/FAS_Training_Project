@@ -76,6 +76,7 @@ const DateField = ({
     onChange,
     name,
     error,
+    min,
 }: {
     label: string;
     value?: string | null;
@@ -84,6 +85,7 @@ const DateField = ({
     onChange?: (name: string, value: string) => void;
     name?: string;
     error?: string;
+    min?: string;
 }) => (
     <div className="space-y-1.5">
         <label className="text-sm font-medium text-muted-foreground">
@@ -95,6 +97,7 @@ const DateField = ({
                 <input
                     type="date"
                     value={value ?? ""}
+                    min={min}
                     onChange={(e) => onChange(name, e.target.value)}
                     className={`w-full px-3 py-2.5 border rounded-lg text-sm text-foreground bg-background outline-none transition
                         ${error ? "border-red-500 focus:ring-red-200" : "border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
@@ -189,10 +192,7 @@ const StatusSelector = ({ current }: { current: string }) => (
         </label>
         <div className="flex flex-wrap gap-2">
             {STATUS_OPTIONS.map((s) => {
-                const isActive =
-                    s.value === current ||
-                    (current === "ACTIVE" && s.value === "PLANNING") ||
-                    (!current && s.value === "PLANNING");
+                const isActive = s.value === current;
                 return (
                     <div
                         key={s.value}
@@ -242,6 +242,12 @@ export default function ClassInfoTab({
     loadingSemesters = false,
 }: ClassInfoTabProps) {
     const statusPresentation = getTrainingClassStatusPresentation(trainingClass);
+    const todayString = dayjs().format("YYYY-MM-DD");
+    const minEndDate = formData?.startDate
+        ? dayjs(formData.startDate).add(1, "day").isBefore(dayjs(todayString))
+            ? todayString
+            : dayjs(formData.startDate).add(1, "day").format("YYYY-MM-DD")
+        : todayString;
     const displayName = isEditing ? formData?.className : trainingClass.className;
     const displayCode = isEditing ? formData?.classCode : trainingClass.classCode;
     const nameLen = (displayName ?? "").length;
@@ -348,6 +354,7 @@ export default function ClassInfoTab({
                         onChange={onFieldChange}
                         name="startDate"
                         error={errors.startDate}
+                        min={todayString}
                     />
                     <DateField
                         label="End Date"
@@ -360,6 +367,7 @@ export default function ClassInfoTab({
                         onChange={onFieldChange}
                         name="endDate"
                         error={errors.endDate}
+                        min={minEndDate}
                     />
                 </div>
             </section>

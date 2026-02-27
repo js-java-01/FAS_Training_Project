@@ -14,6 +14,7 @@ import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { ReviewActionModal } from "@/components/ReviewActionModal";
 import { trainingClassApi } from "@/api/trainingClassApi";
+import { trainingClassKeys } from "./keys";
 
 /* ======================================================= */
 
@@ -103,6 +104,7 @@ export default function TrainingClassesTable() {
             await trainingClassApi.approveClass(approveTarget.id, reason);
             toast.success(`Class "${approveTarget.className}" approved successfully`);
             await invalidateAll();
+            await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(approveTarget.id) });
             setApproveTarget(null); // Move hide after success to prevent flicker before refresh in optimistic scenarios
         } catch (err: unknown) {
             const msg =
@@ -125,6 +127,7 @@ export default function TrainingClassesTable() {
             await trainingClassApi.rejectClass(rejectTarget.id, reason);
             toast.success(`Class "${rejectTarget.className}" rejected`);
             await invalidateAll();
+            await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(rejectTarget.id) });
             setRejectTarget(null); // Hide on success
         } catch (err: unknown) {
             const msg =

@@ -23,6 +23,23 @@ type FormValues = {
     endDate: string;
 };
 
+const getTodayString = () => {
+    const now = new Date();
+    const timezoneOffsetMs = now.getTimezoneOffset() * 60 * 1000;
+    return new Date(now.getTime() - timezoneOffsetMs).toISOString().slice(0, 10);
+};
+
+const getNextDateString = (dateString: string) => {
+    const [year, month, day] = dateString.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    date.setDate(date.getDate() + 1);
+
+    const timezoneOffsetMs = date.getTimezoneOffset() * 60 * 1000;
+    return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 10);
+};
+
+const todayString = getTodayString();
+
 const formSchema = z
     .object({
         className: z
@@ -42,6 +59,14 @@ const formSchema = z
             .string()
             .min(1, { message: "End date is required" }),
     })
+    .refine((data) => data.startDate >= todayString, {
+        message: "Start date cannot be in the past",
+        path: ["startDate"],
+    })
+    .refine((data) => data.endDate >= todayString, {
+        message: "End date cannot be in the past",
+        path: ["endDate"],
+    })
     .refine((data) => new Date(data.startDate) < new Date(data.endDate), {
         message: "Start date must be before end date",
         path: ["endDate"],
@@ -60,6 +85,7 @@ export const TrainingClassForm: React.FC<{
         register,
         handleSubmit,
         reset,
+        watch,
         formState: { errors },
     } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -71,6 +97,11 @@ export const TrainingClassForm: React.FC<{
             endDate: "",
         },
     });
+
+    const selectedStartDate = watch("startDate");
+    const minEndDate = selectedStartDate
+        ? getNextDateString(selectedStartDate)
+        : todayString;
 
     useEffect(() => {
         if (open) {
@@ -208,6 +239,7 @@ export const TrainingClassForm: React.FC<{
                                 <input
                                     type="date"
                                     {...register("startDate")}
+                                    min={todayString}
                                     className={`w-full px-3 py-2 border rounded-md outline-none transition
                                         ${errors.startDate
                                             ? "border-red-500 focus:ring-red-200"
@@ -226,6 +258,7 @@ export const TrainingClassForm: React.FC<{
                                 <input
                                     type="date"
                                     {...register("endDate")}
+                                    min={minEndDate}
                                     className={`w-full px-3 py-2 border rounded-md outline-none transition
                                         ${errors.endDate
                                             ? "border-red-500 focus:ring-red-200"

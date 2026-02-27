@@ -63,11 +63,26 @@ const buildFormData = (tc: TrainingClass): ClassInfoFormData => ({
 
 const validateForm = (data: ClassInfoFormData): Record<string, string> => {
     const errs: Record<string, string> = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startDateValue = data.startDate ? new Date(data.startDate) : null;
+    const endDateValue = data.endDate ? new Date(data.endDate) : null;
+
+    if (startDateValue) startDateValue.setHours(0, 0, 0, 0);
+    if (endDateValue) endDateValue.setHours(0, 0, 0, 0);
+
     if (!data.className.trim()) errs.className = "Class name is required";
     if (!data.classCode.trim()) errs.classCode = "Class code is required";
     if (!data.startDate) errs.startDate = "Start date is required";
     if (!data.endDate) errs.endDate = "End date is required";
-    if (data.startDate && data.endDate && new Date(data.startDate) >= new Date(data.endDate)) {
+    if (startDateValue && startDateValue < today) {
+        errs.startDate = "Start date cannot be in the past";
+    }
+    if (endDateValue && endDateValue < today) {
+        errs.endDate = "End date cannot be in the past";
+    }
+    if (startDateValue && endDateValue && startDateValue >= endDateValue) {
         errs.endDate = "End date must be after start date";
     }
     return errs;
