@@ -23,22 +23,24 @@ import {
 import { FacetedFilter } from "@/components/FacedFilter";
 import dayjs from "dayjs";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
+import { ROLES } from "@/types/role";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
   /* ---------- permission---------- */
-  const { activePermissions } = useRoleSwitch();
+  const { activePermissions, activeRole } = useRoleSwitch();
+  const isSuperAdmin = activeRole?.name === ROLES.SUPER_ADMIN;
   const permissions = activePermissions || [];
   console.log("active", permissions)
 
   const hasPermission = (permission: string) =>
     permissions.includes(permission);
 
-  const canCreate = hasPermission("MODULE_CREATE");
-  const canUpdate = hasPermission("MODULE_UPDATE");
-  const canDelete = hasPermission("MODULE_DELETE");
-  const canImport = hasPermission("MODULE_IMPORT");
-  const canExport = hasPermission("MODULE_EXPORT");
+  const canCreate = hasPermission("MODULE_CREATE") && isSuperAdmin;
+  const canUpdate = hasPermission("MODULE_UPDATE") && isSuperAdmin;
+  const canDelete = hasPermission("MODULE_DELETE") && isSuperAdmin;
+  const canImport = hasPermission("MODULE_IMPORT") && isSuperAdmin;
+  const canExport = hasPermission("MODULE_EXPORT") && isSuperAdmin;
 
 
   /* ---------- modal & view ---------- */

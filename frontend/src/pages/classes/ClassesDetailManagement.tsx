@@ -1,3 +1,4 @@
+import { MainLayoutSkeleton } from "@/components/skeleton/MainLayoutSkeleton";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import { lazy, Suspense } from "react";
 
@@ -31,7 +32,7 @@ export default function ClassesDetailComponent() {
   const Component = getComponent();
 
   return (
-    <Suspense>
+    <Suspense fallback={<MainLayoutSkeleton />}>
       <Component />
     </Suspense>
   );

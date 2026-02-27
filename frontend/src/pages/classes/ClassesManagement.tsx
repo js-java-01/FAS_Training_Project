@@ -1,5 +1,6 @@
-
+import { MainLayoutSkeleton } from "@/components/skeleton/MainLayoutSkeleton";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
+import { ROLES } from "@/types/role";
 import { lazy, Suspense } from "react";
 
 const StudentComponent = lazy(
@@ -25,11 +26,11 @@ export default function ClassesComponent() {
   const { activeRole } = useRoleSwitch();
   const getComponents = () => {
     switch (activeRole?.name) {
-      case "STUDENT":
+      case ROLES.STUDENT:
         return roleComponents.student;
 
-      case "SUPERADMIN":
-      case "ADMIN":
+      case ROLES.SUPER_ADMIN:
+      case ROLES.ADMIN:
         return roleComponents.admin;
 
       default:
@@ -40,7 +41,7 @@ export default function ClassesComponent() {
   const Component = getComponents();
 
   return (
-    <Suspense>
+    <Suspense fallback={<MainLayoutSkeleton/>}>
       <Component />
     </Suspense>
   );

@@ -31,3 +31,13 @@ export interface RoleSwitchRole {
   name: string;
   permissions: string[];
 }
+
+export const ROLES = {
+  ADMIN: "ADMIN",
+  DEPARTMENT_MANAGER: "DEPARTMENT_MANAGER",
+  STUDENT: "STUDENT",
+  TRAINER: "TRAINER",
+  SUPER_ADMIN: "SUPER_ADMIN",
+} as const;
+
+export type ROLES = typeof ROLES[keyof typeof ROLES];

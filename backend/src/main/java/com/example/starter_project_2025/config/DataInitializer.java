@@ -121,7 +121,7 @@ public class DataInitializer implements CommandLineRunner {
                         initializePermissions();
                         initializeRoles();
                         initializeUsers();
-                        initializeMenus();
+                        //initializeMenus();
                         initializeLocationData();
                         initializeLocations();
                         initializeModuleGroups();
@@ -266,7 +266,8 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("CLASS_READ", "View classes", "CLASS", "READ"),
                                 createPermission("CLASS_UPDATE", "Update existing classes", "CLASS", "UPDATE"),
                                 createPermission("CLASS_USER_READ", "User can view classes", "CLASS_USER", "READ"),
-                                createPermission("SWITCH_ROLE", "Switch to another role view", "ROLE", "SWITCH"));
+                                createPermission("SWITCH_ROLE", "Switch to another role view", "ROLE", "SWITCH"),
+                                createPermission("DASHBOARD_READ", "View Dashboard", "DASHBOARD", "READ"));
                 permissionRepository.saveAll(permissions);
                 log.info("Initialized {} permissions", permissions.size());
         }
@@ -282,12 +283,22 @@ public class DataInitializer implements CommandLineRunner {
 
         private void initializeRoles() {
                 // ADMIN
-                Role adminRole = new Role();
-                adminRole.setName("ADMIN");
-                adminRole.setDescription("Administrator with full system access");
-                // adminRole.setHierarchyLevel(1);
-                adminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
-                roleRepository.save(adminRole);
+            Role adminRole = new Role();
+            adminRole.setName("ADMIN");
+            adminRole.setDescription("Administrator with full system access");
+            //adminRole.setHierarchyLevel(1);
+            List<String> excludedPermissions = List.of(
+                    "MODULE_GROUP_CREATE",
+                    "MODULE_CREATE"
+            );
+
+            List<Permission> adminPermissions = permissionRepository.findAll()
+                    .stream()
+                    .filter(p -> !excludedPermissions.contains(p.getName()))
+                    .toList();
+
+            adminRole.setPermissions(new HashSet<>(adminPermissions));
+            roleRepository.save(adminRole);
 
         // DEPARTMENT_MANAGER
         Role departmentManagerRole = new Role();
@@ -441,57 +452,57 @@ public class DataInitializer implements CommandLineRunner {
                 userRoleRepository.save(ur);
         }
 
-        private void initializeMenus() {
-                Menu mainMenu = new Menu();
-                mainMenu.setName("Main Menu");
-                mainMenu.setDescription("Primary navigation menu");
-                mainMenu.setIsActive(true);
-                mainMenu.setDisplayOrder(1);
-                mainMenu = menuRepository.save(mainMenu);
-
-        MenuItem dashboard = createMenuItem(mainMenu, null, "Dashboard", "/dashboard", "dashboard", 1, null);
-        menuItemRepository.save(dashboard);
-
-        Menu adminMenu = new Menu();
-        adminMenu.setName("Administration");
-        adminMenu.setDescription("Administrative functions menu");
-        adminMenu.setIsActive(true);
-        adminMenu.setDisplayOrder(2);
-        adminMenu = menuRepository.save(adminMenu);
-
-                MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1,
-                                "USER_READ");
-                MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2,
-                                "ROLE_READ");
-                MenuItem locationManagement = createMenuItem(adminMenu, null, "Location Management", "/locations",
-                                "location", 3, "LOCATION_READ");
-                MenuItem departmentManagement = createMenuItem(adminMenu, null, "Department Management", "/departments",
-                                "department", 4, "DEPARTMENT_READ");
-                menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, locationManagement,
-                                departmentManagement));
-                MenuItem courseManagement = createMenuItem(adminMenu, null, "Course Management", "/courses", "security",
-                        4,
-                        "COURSE_READ");
-
-        menuItemRepository.saveAll(
-                Arrays.asList(userManagement, roleManagement, locationManagement, courseManagement));
-
-        log.info("Initialized 2 menus with menu items");
-    }
-
-    private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order,
-                                    String permission) {
-        MenuItem item = new MenuItem();
-        item.setMenu(menu);
-        item.setParent(parent);
-        item.setTitle(title);
-        item.setUrl(url);
-        item.setIcon(icon);
-        item.setDisplayOrder(order);
-        item.setIsActive(true);
-        item.setRequiredPermission(permission);
-        return item;
-    }
+//        private void initializeMenus() {
+//                Menu mainMenu = new Menu();
+//                mainMenu.setName("Main Menu");
+//                mainMenu.setDescription("Primary navigation menu");
+//                mainMenu.setIsActive(true);
+//                mainMenu.setDisplayOrder(1);
+//                mainMenu = menuRepository.save(mainMenu);
+//
+//        MenuItem dashboard = createMenuItem(mainMenu, null, "Dashboard", "/dashboard", "dashboard", 1, null);
+//        menuItemRepository.save(dashboard);
+//
+//        Menu adminMenu = new Menu();
+//        adminMenu.setName("Administration");
+//        adminMenu.setDescription("Administrative functions menu");
+//        adminMenu.setIsActive(true);
+//        adminMenu.setDisplayOrder(2);
+//        adminMenu = menuRepository.save(adminMenu);
+//
+//                MenuItem userManagement = createMenuItem(adminMenu, null, "User Management", "/users", "people", 1,
+//                                "USER_READ");
+//                MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management", "/roles", "security", 2,
+//                                "ROLE_READ");
+//                MenuItem locationManagement = createMenuItem(adminMenu, null, "Location Management", "/locations",
+//                                "location", 3, "LOCATION_READ");
+//                MenuItem departmentManagement = createMenuItem(adminMenu, null, "Department Management", "/departments",
+//                                "department", 4, "DEPARTMENT_READ");
+//                menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement, locationManagement,
+//                                departmentManagement));
+//                MenuItem courseManagement = createMenuItem(adminMenu, null, "Course Management", "/courses", "security",
+//                        4,
+//                        "COURSE_READ");
+//
+//        menuItemRepository.saveAll(
+//                Arrays.asList(userManagement, roleManagement, locationManagement, courseManagement));
+//
+//        log.info("Initialized 2 menus with menu items");
+//    }
+//
+//    private MenuItem createMenuItem(Menu menu, MenuItem parent, String title, String url, String icon, int order,
+//                                    String permission) {
+//        MenuItem item = new MenuItem();
+//        item.setMenu(menu);
+//        item.setParent(parent);
+//        item.setTitle(title);
+//        item.setUrl(url);
+//        item.setIcon(icon);
+//        item.setDisplayOrder(order);
+//        item.setIsActive(true);
+//        item.setRequiredPermission(permission);
+//        return item;
+//    }
 
         private void initializeLocationData() {
                 if (provinceRepository.count() > 0 || communeRepository.count() > 0) {
@@ -628,7 +639,7 @@ public class DataInitializer implements CommandLineRunner {
                                 "/dashboard",
                                 "home",
                                 1,
-                                "MODULE_READ",
+                                "DASHBOARD_READ",
                                 "System dashboard overview"
                         )
                 );
@@ -647,12 +658,12 @@ public class DataInitializer implements CommandLineRunner {
                 moduleRepository.saveAll(Arrays.asList(
 
                         createModule(systemGroup, "Modules", "/modules", "menu", 1,
-                                "MODULE_READ",
+                                "MODULE_CREATE",
                                 "Manage system modules"
                         ),
 
                         createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 2,
-                                "MODULE_GROUP_READ",
+                                "MODULE_GROUP_CREATE",
                                 "Manage module groups"
                         ),
 
