@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.dataio.importer.components;
+package com.example.starter_project_2025.system.dataio.importer.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

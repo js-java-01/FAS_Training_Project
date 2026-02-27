@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.dataio.importer.components;
+package com.example.starter_project_2025.system.dataio.importer.annotations;
 
 import com.example.starter_project_2025.system.dataio.importer.resolver.DefaultLookupResolver;
 import com.example.starter_project_2025.system.dataio.importer.resolver.LookupResolver;
@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ImportColumn {
+public @interface ImportField {
 
     String header();
 

@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.system.dataio.importer.mapper;
 
-import com.example.starter_project_2025.system.dataio.importer.components.ImportColumn;
-import com.example.starter_project_2025.system.dataio.importer.components.ImportDefault;
+import com.example.starter_project_2025.system.dataio.importer.annotations.ImportField;
+import com.example.starter_project_2025.system.dataio.importer.annotations.ImportDefault;
 import com.example.starter_project_2025.system.dataio.importer.resolver.LookupResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
@@ -26,7 +26,7 @@ public class GenericImportMapper<T> implements ImportMapper<T> {
 
                 field.setAccessible(true);
 
-                ImportColumn col = field.getAnnotation(ImportColumn.class);
+                ImportField col = field.getAnnotation(ImportField.class);
                 ImportDefault def = field.getAnnotation(ImportDefault.class);
 
                 if (col == null) {

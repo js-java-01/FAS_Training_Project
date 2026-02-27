@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.dataio.exporter.variant;
 
-import com.example.starter_project_2025.system.dataio.FileFormat;
+import com.example.starter_project_2025.system.dataio.common.FileFormat;
 import com.example.starter_project_2025.system.dataio.exporter.components.ExportSheetConfig;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;

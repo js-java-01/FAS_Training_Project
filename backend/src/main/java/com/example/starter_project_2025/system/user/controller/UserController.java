@@ -1,8 +1,7 @@
 package com.example.starter_project_2025.system.user.controller;
 
-import com.example.starter_project_2025.system.dataio.FileFormat;
-import com.example.starter_project_2025.system.dataio.exporter.service.GenericExportService;
-import com.example.starter_project_2025.system.dataio.exporter.configs.UserExportConfig;
+import com.example.starter_project_2025.system.dataio.common.FileFormat;
+import com.example.starter_project_2025.system.dataio.exporter.service.ExportService;
 import com.example.starter_project_2025.system.dataio.importer.result.ImportResult;
 import com.example.starter_project_2025.system.dataio.importer.service.ImportService;
 import com.example.starter_project_2025.system.user.dto.CreateUserRequest;
@@ -32,29 +31,38 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/users")
 @SecurityRequirement(name = "Bearer Authentication")
 @Tag(name = "User Management", description = "APIs for managing users")
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
 
     UserService userService;
     UserRepository userRepository;
-    GenericExportService genericExportService;
+    ExportService exportService;
     ImportService importService;
 
     @GetMapping("/export")
     public void exportUsers(
-            @RequestParam FileFormat format,
+            @RequestParam(defaultValue = "EXCEL") FileFormat format,
             HttpServletResponse response
     ) throws IOException {
-        genericExportService.export(format, userService.findAll(), UserExportConfig.CONFIG, response);
+        exportService.export(
+                format,
+                userService.findAll(),
+                User.class,
+                response
+        );
     }
 
     @PostMapping(value = "/import", consumes = "multipart/form-data")
     public ImportResult importUsers(@RequestParam("file") MultipartFile file) {
-        return importService.importFile(file, User.class, userRepository);
+        return importService.importFile(
+                file,
+                User.class,
+                userRepository
+        );
     }
 
     @GetMapping
