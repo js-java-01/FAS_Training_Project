@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.system.assessment.controller;
 
-import com.example.starter_project_2025.system.assessment.dto.question.QuestionRequestDTO;
-import com.example.starter_project_2025.system.assessment.dto.question.UpdateQuestionRequestDTO;
+import com.example.starter_project_2025.system.assessment.dto.question.request.QuestionRequestDTO;
+import com.example.starter_project_2025.system.assessment.dto.question.request.UpdateQuestionRequestDTO;
 import com.example.starter_project_2025.system.assessment.entity.Question;
 import com.example.starter_project_2025.system.assessment.service.question.QuestionService;
 import io.swagger.v3.oas.annotations.Operation;

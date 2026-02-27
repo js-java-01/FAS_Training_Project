@@ -6,6 +6,7 @@ import com.example.starter_project_2025.system.assessment.entity.SubmissionAnswe
 import com.example.starter_project_2025.system.assessment.entity.SubmissionQuestion;
 import com.example.starter_project_2025.system.assessment.repository.QuestionOptionRepository;
 import com.example.starter_project_2025.system.assessment.service.GradingService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +16,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class GradingServiceImpl implements GradingService {
 
-    @Autowired
-    private QuestionOptionRepository questionOptionRepository;
+
+    private final QuestionOptionRepository questionOptionRepository;
 
     @Override
     public void gradeAnswer(

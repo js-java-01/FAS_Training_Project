@@ -2,11 +2,17 @@ package com.example.starter_project_2025.system.assessment.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -14,31 +20,40 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "questions")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Question {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
+    UUID id;
+    @NotBlank(message = "Content must not be blank")
     @Column(columnDefinition = "TEXT", nullable = false)
-    private String content;
+    String content;
 
     @Column(name = "question_type")
-    private String questionType; // SINGLE, MULTIPLE
+    String questionType; // SINGLE, MULTIPLE
 
-    private Boolean isActive = true;
+    Boolean isActive = true;
 
-    private LocalDate createdAt;
-    private LocalDate updatedAt;
+    LocalDate createdAt;
+    LocalDate updatedAt;
 
     @ManyToOne
     @JoinColumn(name = "question_category_id")
     @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
-    private QuestionCategory category;
+    QuestionCategory category;
 
     // Quan trọng: Cái này để lưu luôn Option khi tạo câu hỏi
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonIgnoreProperties({ "question" })
-    private List<QuestionOption> options;
+    List<QuestionOption> options;
+
+    @ManyToMany
+    @JoinTable(
+            name = "question_tag",
+            joinColumns = @JoinColumn(name = "question_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    Set<Tag> tags = new HashSet<>();
 
     @PrePersist
     void prePersist() {

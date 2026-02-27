@@ -3,16 +3,17 @@ package com.example.starter_project_2025.system.assessment.service.category;
 import com.example.starter_project_2025.system.assessment.dto.category.QuestionCategoryDTO;
 import com.example.starter_project_2025.system.assessment.entity.QuestionCategory;
 import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class QuestionCategoryService {
 
-    @Autowired
-    private QuestionCategoryRepository repository;
+    private final QuestionCategoryRepository repository;
 
     public List<QuestionCategory> getAll() {
         return repository.findAll();

@@ -9,8 +9,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 @Repository
 public interface AssessmentRepository extends JpaRepository<Assessment, Long>, JpaSpecificationExecutor<Assessment> {
-    Optional<Assessment> findByCode(String code);
-
     boolean existsByCode(String code);
     Optional<Assessment> findAssessmentByStatus(AssessmentStatus status);
 }

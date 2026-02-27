@@ -2,6 +2,7 @@ package com.example.starter_project_2025.system.assessment.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -13,34 +14,35 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class SubmissionAnswer {
 
     @Id
     @GeneratedValue
-    private UUID id;
+    UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "submission_id", nullable = false)
-    private Submission submission;
+    Submission submission;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "submission_question_id", nullable = false)
-    private SubmissionQuestion submissionQuestion;
+    SubmissionQuestion submissionQuestion;
 
     @Column(name = "answer_value", columnDefinition = "TEXT")
-    private String answerValue;
+    String answerValue;
 
     @Column(name = "is_correct")
-    private Boolean isCorrect;
+    Boolean isCorrect;
 
     @Column(name = "score")
-    private Double score;
+    Double score;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    LocalDateTime updatedAt;
 
     @PrePersist
     void onCreate() {

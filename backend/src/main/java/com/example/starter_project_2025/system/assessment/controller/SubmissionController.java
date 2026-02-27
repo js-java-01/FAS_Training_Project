@@ -8,6 +8,7 @@ import com.example.starter_project_2025.system.assessment.dto.submission.respons
 import com.example.starter_project_2025.system.assessment.entity.Submission;
 import com.example.starter_project_2025.system.assessment.mapper.SubmissionMapper;
 import com.example.starter_project_2025.system.assessment.service.SubmissionService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -15,19 +16,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/submissions")
 public class SubmissionController {
 
     private final SubmissionService submissionService;
     private final SubmissionMapper submissionMapper;
 
-    public SubmissionController(
-            SubmissionService submissionService,
-            SubmissionMapper submissionMapper
-    ) {
-        this.submissionService = submissionService;
-        this.submissionMapper = submissionMapper;
-    }
+
 
     // Start submission
     @PostMapping

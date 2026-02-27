@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.assessment.dto;
+package com.example.starter_project_2025.system.assessment.dto.assessmentType.request;
 
 import jakarta.validation.constraints.Size;
 import lombok.Data;

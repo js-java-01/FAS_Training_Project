@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,45 +21,46 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Submission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "assessment_id", nullable = false)
     @JsonBackReference
-    private Assessment assessment;
+    Assessment assessment;
 
     @ManyToOne
     @JoinColumn(name = "course_class_id", nullable = false)
     @JsonBackReference
-    private CourseClass courseClass;
+    CourseClass courseClass;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    User user;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SubmissionStatus status;
+    SubmissionStatus status;
 
     @Column(name = "started_at", nullable = false)
-    private LocalDateTime startedAt;
+    LocalDateTime startedAt;
 
     @Column(name = "submitted_at")
-    private LocalDateTime submittedAt;
+    LocalDateTime submittedAt;
 
     @Column(name = "total_score")
-    private Double totalScore;
+    Double totalScore;
 
     @Column(name = "is_passed")
-    private Boolean isPassed;
+    Boolean isPassed;
 
-    private Integer attemptNumber;
+    Integer attemptNumber;
 
     @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<SubmissionQuestion> submissionQuestions = new ArrayList<>();
+    List<SubmissionQuestion> submissionQuestions = new ArrayList<>();
 }

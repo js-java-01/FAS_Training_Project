@@ -34,10 +34,8 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     private final SubmissionRepository submissionRepository;
     private final UserRepository userRepository;
-    @Autowired
-    private AssessmentRepository assessmentRepository;
-    @Autowired
-    private GradingService gradingService;
+    private final AssessmentRepository assessmentRepository;
+    private final GradingService gradingService;
 
 
     @Override

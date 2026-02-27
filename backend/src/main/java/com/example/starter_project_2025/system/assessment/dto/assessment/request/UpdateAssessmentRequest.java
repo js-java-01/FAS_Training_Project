@@ -1,21 +1,14 @@
-package com.example.starter_project_2025.system.assessment.dto;
+package com.example.starter_project_2025.system.assessment.dto.assessment.request;
 
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class CreateAssessmentRequest {
-    @NotBlank
-    private String code;
-
-    @NotBlank
+public class UpdateAssessmentRequest {
     private String title;
 
     private String description;
 
-    @NotNull
     private String assessmentTypeId;
 
     private Integer totalScore;

@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.assessment.dto;
+package com.example.starter_project_2025.system.assessment.dto.assessment.response;
 
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import lombok.Data;

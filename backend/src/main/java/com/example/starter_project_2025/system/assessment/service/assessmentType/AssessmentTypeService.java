@@ -1,15 +1,18 @@
-package com.example.starter_project_2025.system.assessment.service;
+package com.example.starter_project_2025.system.assessment.service.assessmentType;
 
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.assessment.dto.*;
+import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.CreateAssessmentTypeRequest;
+import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.UpdateAssessmentTypeRequest;
+import com.example.starter_project_2025.system.assessment.dto.assessmentType.response.AssessmentTypeDTO;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.mapper.AssessmentTypeMapper;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.assessment.spec.AssessmentTypeSpecification;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,13 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AssessmentTypeService {
 
-    @Autowired
-    private AssessmentTypeMapper assessmentTypeMapper;
-
-    @Autowired
-    private AssessmentTypeRepository assessRepo;
+    private final AssessmentTypeMapper assessmentTypeMapper;
+    private final AssessmentTypeRepository assessRepo;
 
     @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
     public AssessmentTypeDTO findById(String id) {
