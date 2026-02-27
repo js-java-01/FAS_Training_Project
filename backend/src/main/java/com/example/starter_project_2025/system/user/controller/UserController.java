@@ -1,11 +1,13 @@
 package com.example.starter_project_2025.system.user.controller;
 
-import com.example.starter_project_2025.system.export.ExportFormat;
-import com.example.starter_project_2025.system.export.ExportService;
-import com.example.starter_project_2025.system.export.configs.UserExportConfig;
+import com.example.starter_project_2025.system.dataio.core.common.FileFormat;
+import com.example.starter_project_2025.system.dataio.core.exporter.service.ExportService;
+import com.example.starter_project_2025.system.dataio.core.importer.result.ImportResult;
+import com.example.starter_project_2025.system.dataio.core.importer.service.ImportService;
 import com.example.starter_project_2025.system.user.dto.CreateUserRequest;
 import com.example.starter_project_2025.system.user.dto.UserDTO;
 import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.user.repository.UserRepository;
 import com.example.starter_project_2025.system.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -21,30 +23,46 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/users")
 @SecurityRequirement(name = "Bearer Authentication")
 @Tag(name = "User Management", description = "APIs for managing users")
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
 
     UserService userService;
+    UserRepository userRepository;
     ExportService exportService;
+    ImportService importService;
 
     @GetMapping("/export")
     public void exportUsers(
-            @RequestParam ExportFormat format,
+            @RequestParam(defaultValue = "EXCEL") FileFormat format,
             HttpServletResponse response
     ) throws IOException {
-        exportService.export(format, userService.findAll(), UserExportConfig.CONFIG, response);
+        exportService.export(
+                format,
+                userService.findAll(),
+                User.class,
+                response
+        );
+    }
+
+    @PostMapping(value = "/import", consumes = "multipart/form-data")
+    public ImportResult importUsers(@RequestParam("file") MultipartFile file) {
+        return importService.importFile(
+                file,
+                User.class,
+                userRepository
+        );
     }
 
     @GetMapping
