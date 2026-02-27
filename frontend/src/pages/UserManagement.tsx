@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { userApi } from "../api/userApi";
+import DataIOModal from "@/components/dataio/DataIOModal.tsx";
+import MainHeader from "@/components/layout/MainHeader.tsx";
+import React, { useEffect, useState } from "react";
 import { roleApi } from "../api/roleApi";
-import type { User, CreateUserRequest } from "../types/auth";
-import type { Role } from "../types/role";
+import { userApi } from "../api/userApi";
 import { PermissionGate } from "../components/PermissionGate";
 import { MainLayout } from "../components/layout/MainLayout.tsx";
-import MainHeader from "@/components/layout/MainHeader.tsx";
-import { ExportSelectButton } from "@/components/dataio/ExportSelectButton.tsx";
-import ImportUploader from "@/components/dataio/ImportUploader.tsx";
+import type { CreateUserRequest, User } from "../types/auth";
+import type { Role } from "../types/role";
 
 export const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -92,6 +91,11 @@ export const UserManagement: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <MainHeader title={"User Management"} />
         <div className="flex gap-3">
+          <DataIOModal
+            entity="user"
+            exportUrl="/users/export"
+            importUrl="/users/import"
+          />
           <PermissionGate permission="USER_CREATE">
             <button
               onClick={() => setShowCreateModal(true)}
@@ -100,10 +104,6 @@ export const UserManagement: React.FC = () => {
               Create User
             </button>
           </PermissionGate>
-
-          <ExportSelectButton apiUrl="/users/export" />
-
-          <ImportUploader entity="user" apiUrl="/users/import" />
         </div>
       </div>
 
