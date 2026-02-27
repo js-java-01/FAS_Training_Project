@@ -1,5 +1,5 @@
 import type { Material } from "@/types/material";
-import { FiFilm, FiFileText, FiLink, FiImage, FiMusic, FiTrash2, FiUpload, FiPlus } from "react-icons/fi";
+import { FiFilm, FiFileText, FiLink, FiImage, FiMusic, FiTrash2, FiPlus } from "react-icons/fi";
 import { useDeleteMaterial } from "../../services/material";
 
 interface MaterialListProps {
@@ -10,7 +10,6 @@ interface MaterialListProps {
   sessionId: string;
   onDeleted?: () => void;
   onUpload?: () => void;
-  onAdd?: () => void;
 }
 
 const getIconForType = (type: string) => {
@@ -38,7 +37,6 @@ export default function MaterialList({
   sessionId,
   onDeleted,
   onUpload,
-  onAdd,
 }: MaterialListProps) {
   const deleteMutation = useDeleteMaterial(sessionId);
 
@@ -64,20 +62,9 @@ export default function MaterialList({
             <button
               onClick={onUpload}
               className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-              title="Upload file"
-            >
-              <FiUpload size={12} />
-              Upload
-            </button>
-          )}
-          {onAdd && (
-            <button
-              onClick={onAdd}
-              className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 transition"
-              title="Add material by URL"
             >
               <FiPlus size={12} />
-              Add
+              Add Material
             </button>
           )}
         </div>

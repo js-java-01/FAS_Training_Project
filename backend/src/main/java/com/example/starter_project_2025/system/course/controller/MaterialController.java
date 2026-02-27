@@ -1,20 +1,31 @@
 package com.example.starter_project_2025.system.course.controller;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.example.starter_project_2025.system.course.dto.MaterialRequest;
 import com.example.starter_project_2025.system.course.dto.MaterialResponse;
 import com.example.starter_project_2025.system.course.dto.MaterialUpdateRequest;
 import com.example.starter_project_2025.system.course.service.MaterialService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/materials")
@@ -37,9 +48,13 @@ public class MaterialController {
             @RequestParam String title,
             @RequestParam String type,
             @RequestParam UUID sessionId,
-            @RequestParam MultipartFile file) {
+            @RequestParam MultipartFile file,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) String tags,
+            @RequestParam(required = false) Integer displayOrder,
+            @RequestParam(required = false) Boolean isActive) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                materialService.uploadMaterial(title, type, sessionId, file)
+                materialService.uploadMaterial(title, type, sessionId, file, description, tags, displayOrder, isActive)
         );
     }
 

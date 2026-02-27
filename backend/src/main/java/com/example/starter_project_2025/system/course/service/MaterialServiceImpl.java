@@ -101,38 +101,34 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Override
     @PreAuthorize("hasAuthority('SESSION_UPDATE') or hasRole('ADMIN') or hasRole('TRAINER')")
-    public MaterialResponse uploadMaterial(String title, String type, UUID sessionId, MultipartFile file) {
+    public MaterialResponse uploadMaterial(String title, String type, UUID sessionId, MultipartFile file,
+                                           String description, String tags, Integer displayOrder, Boolean isActive) {
         try {
-            // Validate file
             if (file.isEmpty()) {
                 throw new IllegalArgumentException("File is empty");
             }
 
-            // Verify session exists
             Session session = sessionRepository.findById(sessionId)
                     .orElseThrow(() -> new ResourceNotFoundException("Session", "id", sessionId));
 
-            // Create upload directory if it doesn't exist
             Path uploadPath = Paths.get(uploadDir);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
 
-            // Generate unique filename
             String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
             Path filePath = uploadPath.resolve(fileName);
-
-            // Save file
             Files.write(filePath, file.getBytes());
 
-            // Create material entity
             Material material = Material.builder()
                     .title(title)
                     .type(MaterialType.valueOf(type.toUpperCase()))
                     .sourceUrl("/api/files/materials/" + fileName)
                     .session(session)
-                    .displayOrder(0)
-                    .isActive(true)
+                    .description(description)
+                    .tags(tags)
+                    .displayOrder(displayOrder != null ? displayOrder : 0)
+                    .isActive(isActive != null ? isActive : true)
                     .build();
 
             Material saved = materialRepository.save(material);

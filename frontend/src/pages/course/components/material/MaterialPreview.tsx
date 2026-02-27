@@ -25,53 +25,77 @@ export default function MaterialPreview({
     });
   };
 
-  const renderPreview = () => {
-    const isYouTubeUrl = (url: string) => {
-      return /(?:youtube\.com|youtu\.be)/.test(url);
-    };
+  // Resolve relative backend paths (e.g. /api/files/materials/xxx) to full URL
+  const resolveUrl = (url: string): string => {
+    if (url.startsWith("/")) {
+      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+      const backendBase = apiBase.replace(/\/api$/, "");
+      return backendBase + url;
+    }
+    return url;
+  };
 
-    const getYouTubeEmbedUrl = (url: string) => {
-      let videoId = '';
-      
-      if (url.includes('youtube.com')) {
-        videoId = new URL(url).searchParams.get('v') || '';
-      } else if (url.includes('youtu.be')) {
-        videoId = url.split('/').pop()?.split('?')[0] || '';
+  const getYouTubeEmbedUrl = (url: string): string | null => {
+    try {
+      // Handle youtube.com/watch?v=ID
+      if (url.includes("youtube.com/watch")) {
+        const videoId = new URL(url).searchParams.get("v");
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
       }
-      
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
-    };
+      // Handle youtu.be/ID
+      if (url.includes("youtu.be/")) {
+        const videoId = url.split("youtu.be/")[1]?.split(/[?#]/)[0];
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+      }
+      // Handle youtube.com/shorts/ID
+      if (url.includes("youtube.com/shorts/")) {
+        const videoId = url.split("youtube.com/shorts/")[1]?.split(/[?#]/)[0];
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+      }
+      // Already an embed URL
+      if (url.includes("youtube.com/embed/")) {
+        return url;
+      }
+    } catch {
+      // invalid URL
+    }
+    return null;
+  };
 
-    switch (material.type) {
+  const renderYouTubeEmbed = (url: string) => {
+    const embedUrl = getYouTubeEmbedUrl(url);
+    if (!embedUrl) return null;
+    return (
+      <div className="w-full bg-black rounded-lg overflow-hidden mb-4">
+        <iframe
+          width="100%"
+          src={embedUrl}
+          title={material.title}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          className="w-full aspect-video"
+        />
+      </div>
+    );
+  };
+
+  const renderPreview = () => {
+    const { sourceUrl, type } = material;
+    const resolvedUrl = resolveUrl(sourceUrl);
+
+    // Detect YouTube from any type
+    const youtubeEmbed = renderYouTubeEmbed(resolvedUrl);
+    if (youtubeEmbed) return youtubeEmbed;
+
+    switch (type) {
       case "VIDEO":
-        // Check if it's a YouTube URL
-        if (isYouTubeUrl(material.sourceUrl)) {
-          const embedUrl = getYouTubeEmbedUrl(material.sourceUrl);
-          if (embedUrl) {
-            return (
-              <div className="w-full bg-black rounded-lg overflow-hidden mb-4">
-                <iframe
-                  width="100%"
-                  height="400"
-                  src={embedUrl}
-                  title={material.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full aspect-video"
-                />
-              </div>
-            );
-          }
-        }
-        
-        // Otherwise, render as local video file
         return (
           <div className="w-full bg-black rounded-lg overflow-hidden mb-4">
             <video
               controls
               className="w-full aspect-video"
-              src={material.sourceUrl}
+              src={resolvedUrl}
               controlsList="nodownload"
             >
               Your browser does not support the video tag.
@@ -82,7 +106,7 @@ export default function MaterialPreview({
         return (
           <div className="w-full rounded-lg overflow-hidden mb-4 bg-gray-100">
             <img
-              src={material.sourceUrl}
+              src={resolvedUrl}
               alt={material.title}
               className="w-full h-auto object-cover"
             />
@@ -91,13 +115,37 @@ export default function MaterialPreview({
       case "AUDIO":
         return (
           <div className="w-full mb-4">
-            <audio
-              controls
-              className="w-full"
-              src={material.sourceUrl}
-            >
+            <audio controls className="w-full" src={resolvedUrl}>
               Your browser does not support the audio tag.
             </audio>
+          </div>
+        );
+      case "DOCUMENT":
+        // Try to render PDF inline, fallback to link
+        if (resolvedUrl.toLowerCase().endsWith(".pdf") || resolvedUrl.includes("/pdf")) {
+          return (
+            <div className="w-full mb-4 rounded-lg overflow-hidden border border-gray-200" style={{ height: "500px" }}>
+              <iframe
+                src={resolvedUrl}
+                title={material.title}
+                className="w-full h-full"
+                frameBorder="0"
+              />
+            </div>
+          );
+        }
+        return (
+          <div className="w-full p-4 mb-4 bg-gray-100 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-2">Document</p>
+            <a
+              href={resolvedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700 break-all flex items-center gap-1"
+            >
+              {sourceUrl}
+              <FiExternalLink size={14} />
+            </a>
           </div>
         );
       case "LINK":
@@ -105,27 +153,12 @@ export default function MaterialPreview({
           <div className="w-full p-4 mb-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-sm text-gray-600 mb-2">External Link</p>
             <a
-              href={material.sourceUrl}
+              href={resolvedUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-700 break-all flex items-center gap-1"
             >
-              {material.sourceUrl}
-              <FiExternalLink size={14} />
-            </a>
-          </div>
-        );
-      case "DOCUMENT":
-        return (
-          <div className="w-full p-4 mb-4 bg-gray-100 rounded-lg border border-gray-200">
-            <p className="text-sm text-gray-600 mb-2">Document Link</p>
-            <a
-              href={material.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-700 break-all flex items-center gap-1"
-            >
-              {material.sourceUrl}
+              {sourceUrl}
               <FiExternalLink size={14} />
             </a>
           </div>

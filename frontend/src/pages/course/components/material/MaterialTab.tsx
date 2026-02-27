@@ -1,10 +1,9 @@
 import { useState } from "react";
 import type { SessionResponse } from "@/types/session";
 import type { Material } from "@/types/material";
-import { FiBook, FiUpload } from "react-icons/fi";
+import { FiBook } from "react-icons/fi";
 import MaterialList from "./MaterialList";
 import MaterialPreview from "./MaterialPreview";
-import MaterialForm from "./MaterialForm";
 import UploadMaterialForm from "./UploadMaterialForm";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
@@ -22,8 +21,8 @@ export function MaterialTab({ courseId }: MaterialTabProps) {
   const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [selectedSession, setSelectedSession] = useState<SessionResponse | null>(null);
-  const [showMaterialForm, setShowMaterialForm] = useState(false);
-  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [formMaterial, setFormMaterial] = useState<Material | null>(null); // null = create, Material = edit
   const [uploadSessionId, setUploadSessionId] = useState<string | null>(null);
 
   // React Query hooks
@@ -36,16 +35,13 @@ export function MaterialTab({ courseId }: MaterialTabProps) {
     setSelectedMaterial(null);
   };
 
-  const handleMaterialAdded = () => {
-    setShowMaterialForm(false);
-  };
-
   const handleMaterialDeleted = () => {
     setSelectedMaterial(null);
   };
 
   const handleUploadSuccess = () => {
-    setShowUploadForm(false);
+    setShowForm(false);
+    setFormMaterial(null);
     setUploadSessionId(null);
   };
 
@@ -93,32 +89,15 @@ export function MaterialTab({ courseId }: MaterialTabProps) {
                               : "border-gray-200 hover:bg-gray-50"
                           }`}
                         >
-                          <div className="flex justify-between items-start gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">{session.topic}</p>
-                              {session.type && (
-                                <p className="text-gray-500 text-xs mt-1">
-                                  <span className="inline-block bg-gray-200 text-gray-700 px-2 py-0.5 rounded">
-                                    {session.type.replace("_", " ")}
-                                  </span>
-                                </p>
-                              )}
-                              <p className="text-gray-500 text-xs mt-1">
-                                {selectedSession?.id === session.id ? materials.length : 0} material(s)
-                              </p>
-                            </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setUploadSessionId(session.id);
-                                setShowUploadForm(true);
-                              }}
-                              className="shrink-0 p-1 hover:bg-blue-100 rounded transition"
-                              title="Upload material to this session"
-                            >
-                              <FiUpload size={13} className="text-blue-500" />
-                            </button>
-                          </div>
+                          <p className="font-medium truncate">{session.topic}</p>
+                          {session.type && (
+                            <span className="inline-block mt-1 bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-xs">
+                              {session.type.replace("_", " ")}
+                            </span>
+                          )}
+                          <p className="text-gray-500 text-xs mt-1">
+                            {selectedSession?.id === session.id ? materials.length : 0} material(s)
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -145,10 +124,10 @@ export function MaterialTab({ courseId }: MaterialTabProps) {
                 sessionId={selectedSession.id}
                 onDeleted={handleMaterialDeleted}
                 onUpload={() => {
+                  setFormMaterial(null);
                   setUploadSessionId(selectedSession.id);
-                  setShowUploadForm(true);
+                  setShowForm(true);
                 }}
-                onAdd={() => setShowMaterialForm(true)}
               />
             </div>
 
@@ -158,7 +137,11 @@ export function MaterialTab({ courseId }: MaterialTabProps) {
                 <MaterialPreview
                   material={selectedMaterial}
                   sessionId={selectedSession.id}
-                  onEdit={() => setShowMaterialForm(true)}
+                  onEdit={() => {
+                    setFormMaterial(selectedMaterial);
+                    setUploadSessionId(selectedSession.id);
+                    setShowForm(true);
+                  }}
                   onDelete={handleMaterialDeleted}
                 />
               ) : (
@@ -174,25 +157,15 @@ export function MaterialTab({ courseId }: MaterialTabProps) {
           </div>
         )}
 
-        {/* Material Form Modal */}
-        {showMaterialForm && selectedSession && (
-          <MaterialForm
-            sessionId={selectedSession.id}
-            material={selectedMaterial}
-            onSuccess={() => handleMaterialAdded()}
-            onCancel={() => {
-              setShowMaterialForm(false);
-            }}
-          />
-        )}
-
-        {/* Upload Material Drawer */}
-        {showUploadForm && uploadSessionId && (
+        {/* Unified Material Form Drawer */}
+        {showForm && uploadSessionId && (
           <UploadMaterialForm
             sessionId={uploadSessionId}
-            onSuccess={() => handleUploadSuccess()}
+            material={formMaterial}
+            onSuccess={handleUploadSuccess}
             onCancel={() => {
-              setShowUploadForm(false);
+              setShowForm(false);
+              setFormMaterial(null);
               setUploadSessionId(null);
             }}
           />
