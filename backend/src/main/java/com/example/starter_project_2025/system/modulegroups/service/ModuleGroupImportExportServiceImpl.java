@@ -188,48 +188,33 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("ModuleGroups");
 
-            String[] headers = {
-                    "moduleGroupName",
-                    "moduleGroupDescription",
-                    "moduleGroupOrder",
-                    "moduleGroupActive",
-                    "moduleTitle",
-                    "moduleUrl",
-                    "moduleIcon",
-                    "moduleDescription",
-                    "moduleOrder",
-                    "moduleActive"
-            };
-
+            // ===== HEADER (GIỐNG TEMPLATE) =====
             Row header = sheet.createRow(0);
-            for (int i = 0; i < headers.length; i++) {
-                header.createCell(i).setCellValue(headers[i]);
+            for (int i = 0; i < TEMPLATE_HEADERS.length; i++) {
+                header.createCell(i).setCellValue(TEMPLATE_HEADERS[i]);
             }
 
             int rowIdx = 1;
 
-            for (ModuleGroups group : repository.findAllWithModules()) {
+            // ===== DATA =====
+            for (ModuleGroups group : repository.findAll()) {
 
-                if (group.getModules() == null || group.getModules().isEmpty()) {
-                    Row row = sheet.createRow(rowIdx++);
-                    writeGroup(row, group);
-                    continue;
-                }
+                Row row = sheet.createRow(rowIdx++);
 
-                for (var module : group.getModules()) {
-                    Row row = sheet.createRow(rowIdx++);
-                    writeGroup(row, group);
-
-                    row.createCell(4).setCellValue(module.getTitle());
-                    row.createCell(5).setCellValue(module.getUrl());
-                    row.createCell(6).setCellValue(module.getIcon());
-                    row.createCell(7).setCellValue(module.getDescription());
-                    row.createCell(8).setCellValue(module.getDisplayOrder());
-                    row.createCell(9).setCellValue(module.getIsActive());
-                }
+                row.createCell(0).setCellValue(group.getName());
+                row.createCell(1).setCellValue(
+                        group.getDescription() == null ? "" : group.getDescription()
+                );
+                row.createCell(2).setCellValue(
+                        group.getDisplayOrder() == null ? 0 : group.getDisplayOrder()
+                );
+                row.createCell(3).setCellValue(
+                        group.getIsActive() != null && group.getIsActive()
+                );
             }
 
-            for (int i = 0; i < headers.length; i++) {
+            // Auto size column
+            for (int i = 0; i < TEMPLATE_HEADERS.length; i++) {
                 sheet.autoSizeColumn(i);
             }
 
@@ -238,12 +223,12 @@ public class ModuleGroupImportExportServiceImpl implements ModuleGroupImportExpo
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=module-groups-with-modules.xlsx")
+                            "attachment; filename=module-groups.xlsx")
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(out.toByteArray());
 
         } catch (Exception e) {
-            throw new RuntimeException("Export failed", e);
+            throw new RuntimeException("Export module groups failed", e);
         }
     }
 
