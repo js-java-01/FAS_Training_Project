@@ -21,16 +21,26 @@ import {
 } from "@/pages/modules/module_groups/services/mutations";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/store/store";
 import dayjs from "dayjs";
 import type { ImportResult } from "@/components/modal/import-export/ImportTab";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 
 /* ======================================================= */
 
 export default function ModuleGroupsTable() {
-  /* ---------- get role ---------- */
-  const role = useSelector((state: RootState) => state.auth.role);
+  /* ---------- permission---------- */
+  const { activePermissions } = useRoleSwitch();
+  const permissions = activePermissions || [];
+  console.log("active", permissions)
+
+  const hasPermission = (permission: string) =>
+    permissions.includes(permission);
+
+  const canCreate = hasPermission("MODULE_GROUP_CREATE");
+  const canUpdate = hasPermission("MODULE_GROUP_UPDATE");
+  const canDelete = hasPermission("MODULE_GROUP_DELETE");
+  const canImport = hasPermission("MODULE_GROUP_IMPORT");
+  const canExport = hasPermission("MODULE_GROUP_EXPORT");
 
   /* ===================== STATE ===================== */
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -46,10 +56,8 @@ export default function ModuleGroupsTable() {
   const [viewingGroup, setViewingGroup] = useState<ModuleGroup | null>(null);
   const [openBackupModal, setOpenBackupModal] = useState(false);
 
-  /* ---------- faced filter ---------- */
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
 
-  /* ---------- filter param (server side) ---------- */
   const statusParam =
     statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
 
@@ -59,14 +67,12 @@ export default function ModuleGroupsTable() {
 
   const queryClient = useQueryClient();
 
-  /* ===================== SORT ===================== */
   const sortParam = useMemo(() => {
     if (!sorting.length) return "displayOrder,asc";
     const { id, desc } = sorting[0];
     return `${id},${desc ? "desc" : "asc"}`;
   }, [sorting]);
 
-  /* ===================== DATA ===================== */
   const {
     data: tableData,
     isLoading,
@@ -87,34 +93,42 @@ export default function ModuleGroupsTable() {
       totalPages: tableData?.pagination?.totalPages ?? 0,
       totalElements: tableData?.pagination?.totalElements ?? 0,
     }),
-    [tableData, pageIndex, pageSize],
+    [tableData, pageIndex, pageSize]
   );
 
   /* ===================== COLUMNS ===================== */
   const columns = useMemo(
     () =>
-      getColumns({
-        onView: setViewingGroup,
-        onEdit: (group) => {
-          setEditing({
-            id: group.id,
-            name: group.name,
-            description: group.description ?? "",
-            displayOrder: group.displayOrder,
-            isActive: group.isActive,
-          });
-          setOpenForm(true);
+      getColumns(
+        {
+          onView: setViewingGroup,
+          onEdit: canUpdate
+            ? (group) => {
+                setEditing({
+                  id: group.id,
+                  name: group.name,
+                  description: group.description ?? "",
+                  displayOrder: group.displayOrder,
+                  isActive: group.isActive,
+                });
+                setOpenForm(true);
+              }
+            : undefined,
+          onDelete: canDelete ? setDeleting : undefined,
         },
-        onDelete: setDeleting,
-      }, role),
-    [role],
+        {
+          canUpdate,
+          canDelete,
+        }
+      ),
+    [canUpdate, canDelete]
   );
 
   /* ===================== HANDLERS ===================== */
   const invalidateAll = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["module-groups"] }), // update table
-      queryClient.invalidateQueries({ queryKey: ["module-groups", "active"] }), // update sidebar
+      queryClient.invalidateQueries({ queryKey: ["module-groups"] }),
+      queryClient.invalidateQueries({ queryKey: ["module-groups", "active"] }),
     ]);
   };
 
@@ -129,11 +143,9 @@ export default function ModuleGroupsTable() {
       }
 
       await invalidateAll();
-
       setOpenForm(false);
       setEditing(null);
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Save failed");
     }
   };
@@ -144,52 +156,39 @@ export default function ModuleGroupsTable() {
     try {
       await moduleGroupApi.deleteModuleGroup(deleting.id);
       toast.success("Deleted successfully");
-
       await invalidateAll();
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Delete failed");
     } finally {
       setDeleting(null);
     }
   };
 
-  /* ================= IMPORT / EXPORT / TEMPLATE ================= */
+  /* ================= IMPORT / EXPORT ================= */
   const handleImport = async (file: File): Promise<ImportResult> => {
-    try {
-      const result = await importModuleGroup(file);
-
-      toast.success(result.message);
-      setOpenBackupModal(false);
-      await invalidateAll();
-
-      return result;
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ?? "Failed to import module groups"
-      );
-      throw err;
-    }
+    const result = await importModuleGroup(file);
+    toast.success(result.message);
+    setOpenBackupModal(false);
+    await invalidateAll();
+    return result;
   };
 
   const handleExport = async () => {
-    try {
-      const blob = await exportModuleGroup();
-      downloadBlob(blob, `module_groups_${dayjs().format("DD MM YYYY hh mm ss")}.xlsx`);
-      toast.success("Export module groups successfully");
-    } catch {
-      toast.error("Failed to export module groups");
-    }
+    const blob = await exportModuleGroup();
+    downloadBlob(
+      blob,
+      `module_groups_${dayjs().format("DD MM YYYY hh mm ss")}.xlsx`
+    );
+    toast.success("Export module groups successfully");
   };
 
   const handleDownloadTemplate = async () => {
-    try {
-      const blob = await downloadTemplate();
-      downloadBlob(blob, `module_groups_template_${dayjs().format("DD MM YYYY hh mm ss")}.xlsx`);
-      toast.success("Download template successfully");
-    } catch {
-      toast.error("Failed to download template");
-    }
+    const blob = await downloadTemplate();
+    downloadBlob(
+      blob,
+      `module_groups_template_${dayjs().format("DD MM YYYY hh mm ss")}.xlsx`
+    );
+    toast.success("Download template successfully");
   };
 
   const downloadBlob = (blob: Blob, filename: string) => {
@@ -211,60 +210,60 @@ export default function ModuleGroupsTable() {
         data={safeTableData.items}
         isLoading={isLoading}
         isFetching={isFetching}
-
-        /* PAGINATION */
         pageIndex={safeTableData.page}
         pageSize={safeTableData.pageSize}
         totalPage={safeTableData.totalPages}
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
-
-        /* SEARCH */
         isSearch
         searchPlaceholder="module group name"
         onSearchChange={setSearchValue}
-
-        /* SORTING */
         sorting={sorting}
         onSortingChange={setSorting}
-
-        /* ACTIONS */
         headerActions={
-          role === "ADMIN" && (<div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setOpenBackupModal(true)}
-            >
-              <DatabaseBackup className="h-4 w-4" />
-              Import / Export
-            </Button>
+          (canCreate || canImport || canExport) && (
+            <div className="flex gap-2">
+              {(canImport || canExport) && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setOpenBackupModal(true)}
+                >
+                  <DatabaseBackup className="h-4 w-4" />
+                  Import / Export
+                </Button>
+              )}
 
-            <Button
-              onClick={() => {
-                setEditing(null);
-                setOpenForm(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add New Group
-            </Button>
-          </div>)
+              {canCreate && (
+                <Button
+                  onClick={() => {
+                    setEditing(null);
+                    setOpenForm(true);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New Group
+                </Button>
+              )}
+            </div>
+          )
         }
-
         facetedFilters={
-         <div> <FacetedFilter
-           title="Status"
-           options={[
-             { value: "ACTIVE", label: "Active" },
-             { value: "INACTIVE", label: "Inactive" },
-           ]}
-           value={statusFilter}
-           setValue={setStatusFilter}
-           multiple={false}
-         /></div>
+          <div>
+            <FacetedFilter
+              title="Status"
+              options={[
+                { value: "ACTIVE", label: "Active" },
+                { value: "INACTIVE", label: "Inactive" },
+              ]}
+              value={statusFilter}
+              setValue={setStatusFilter}
+              multiple={false}
+            />
+         </div>
         }
       />
+
       <ModuleGroupForm
         open={openForm}
         initial={editing}

@@ -65,6 +65,7 @@ export const RoleSwitchProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const canSwitch = availableRoles.length > 1;
   const activePermissions = activeRole?.permissions ?? authPermissions;
+  console.log("Active role", activeRole)
 
   return (
     <RoleSwitchContext.Provider

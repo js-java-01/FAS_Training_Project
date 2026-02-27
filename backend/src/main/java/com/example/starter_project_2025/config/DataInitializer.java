@@ -153,15 +153,21 @@ public class DataInitializer implements CommandLineRunner {
 
         private void initializePermissions() {
                 List<Permission> permissions = Arrays.asList(
-                                createPermission("MENU_CREATE", "Create new menus", "MENU", "CREATE"),
-                                createPermission("MENU_READ", "View menus", "MENU", "READ"),
-                                createPermission("MENU_UPDATE", "Update existing menus", "MENU", "UPDATE"),
-                                createPermission("MENU_DELETE", "Delete menus", "MENU", "DELETE"),
-                                createPermission("MENU_ITEM_CREATE", "Create new menu items", "MENU_ITEM", "CREATE"),
-                                createPermission("MENU_ITEM_READ", "View menu items", "MENU_ITEM", "READ"),
-                                createPermission("MENU_ITEM_UPDATE", "Update existing menu items", "MENU_ITEM",
-                                                "UPDATE"),
-                                createPermission("MENU_ITEM_DELETE", "Delete menu items", "MENU_ITEM", "DELETE"),
+                        /* ================= MODULE GROUP  ================= */
+                        createPermission("MODULE_GROUP_CREATE", "Create new module groups", "MODULE_GROUP", "CREATE"),
+                        createPermission("MODULE_GROUP_READ", "View module groups", "MODULE_GROUP", "READ"),
+                        createPermission("MODULE_GROUP_UPDATE", "Update existing module groups", "MODULE_GROUP", "UPDATE"),
+                        createPermission("MODULE_GROUP_DELETE", "Delete module groups", "MODULE_GROUP", "DELETE"),
+                        createPermission("MODULE_GROUP_IMPORT", "Import module groups", "MODULE_GROUP", "IMPORT"),
+                        createPermission("MODULE_GROUP_EXPORT", "Export module groups", "MODULE_GROUP", "EXPORT"),
+
+                        /* ================= MODULE ================= */
+                        createPermission("MODULE_CREATE", "Create new modules", "MODULE", "CREATE"),
+                        createPermission("MODULE_READ", "View modules", "MODULE", "READ"),
+                        createPermission("MODULE_UPDATE", "Update existing modules", "MODULE", "UPDATE"),
+                        createPermission("MODULE_DELETE", "Delete modules", "MODULE", "DELETE"),
+                        createPermission("MODULE_IMPORT", "Import modules", "MODULE", "IMPORT"),
+                        createPermission("MODULE_EXPORT", "Export modules", "MODULE", "EXPORT"),
                                 createPermission("USER_CREATE", "Create new users", "USER", "CREATE"),
                                 createPermission("USER_READ", "View users", "USER", "READ"),
                                 createPermission("USER_UPDATE", "Update existing users", "USER", "UPDATE"),
@@ -604,18 +610,33 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         private void initializeModuleGroups() {
-                // Nhóm: Main Menu
+
+    /* =======================================================
+       MODULE GROUP: Main Menu
+    ======================================================= */
                 ModuleGroups mainGroup = new ModuleGroups();
                 mainGroup.setName("Main Menu");
                 mainGroup.setDescription("Main navigation menu of the application");
                 mainGroup.setDisplayOrder(1);
                 mainGroup.setIsActive(true);
-                mainGroup = moduleGroupsRepository.save(mainGroup); // Lưu để lấy ID tự sinh
+                mainGroup = moduleGroupsRepository.save(mainGroup);
 
-                moduleRepository.save(createModule(mainGroup, "Dashboard", "/dashboard", "home", 1, "MENU_READ",
-                                "System dashboard overview"));
+                moduleRepository.save(
+                        createModule(
+                                mainGroup,
+                                "Dashboard",
+                                "/dashboard",
+                                "home",
+                                1,
+                                "MODULE_READ",
+                                "System dashboard overview"
+                        )
+                );
 
-                // Nhóm: System Management
+
+    /* =======================================================
+       MODULE GROUP: System Management
+    ======================================================= */
                 ModuleGroups systemGroup = new ModuleGroups();
                 systemGroup.setName("System Management");
                 systemGroup.setDescription("System configuration and administration");
@@ -623,31 +644,43 @@ public class DataInitializer implements CommandLineRunner {
                 systemGroup.setIsActive(true);
                 systemGroup = moduleGroupsRepository.save(systemGroup);
 
-                moduleRepository.save(createModule(systemGroup, "Modules", "/modules", "menu", 1, "MENU_READ",
-                                "Manage system modules"));
-                moduleRepository.save(
+                moduleRepository.saveAll(Arrays.asList(
+
+                        createModule(systemGroup, "Modules", "/modules", "menu", 1,
+                                "MODULE_READ",
+                                "Manage system modules"
+                        ),
+
                         createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 2,
-                                "MENU_READ",
-                                "Manage module groups"));
-                moduleRepository.save(
-                        createModule(systemGroup, "Users", "/users", "users", 3, "USER_READ",
-                                "Manage system users"));
-                moduleRepository.save(
-                        createModule(systemGroup, "Roles", "/roles", "shield", 4, "ROLE_READ",
-                                "Manage roles and permissions"));
-                moduleRepository.save(
-                        createModule(systemGroup, "Locations", "/locations", "map-pin", 5, "LOCATION_READ",
-                                "Manage office locations"));
-                moduleRepository.save(
-                        createModule(systemGroup, "Departments", "/departments", "university", 4, "MENU_READ",
-                                "Manage departments"));
+                                "MODULE_GROUP_READ",
+                                "Manage module groups"
+                        ),
+
+                        createModule(systemGroup, "Users", "/users", "users", 3,
+                                "USER_READ",
+                                "Manage system users"
+                        ),
+
+                        createModule(systemGroup, "Roles", "/roles", "shield", 4,
+                                "ROLE_READ",
+                                "Manage roles and permissions"
+                        ),
+
+                        createModule(systemGroup, "Locations", "/locations", "map-pin", 5,
+                                "LOCATION_READ",
+                                "Manage office locations"
+                        ),
+
+                        createModule(systemGroup, "Departments", "/departments", "university", 6,
+                                "DEPARTMENT_READ",
+                                "Manage departments"
+                        )
+                ));
 
 
-                // moduleRepository.saveAll(Arrays.asList(moduleGroupsSub, modulesSub));
-
-                log.info("Initialized 4 module groups and their respective modules.");
-
-                // Nhóm: Training
+    /* =======================================================
+       MODULE GROUP: Training
+    ======================================================= */
                 ModuleGroups trainingGroup = new ModuleGroups();
                 trainingGroup.setName("Training");
                 trainingGroup.setDescription("Manage training programs and related activities");
@@ -656,32 +689,63 @@ public class DataInitializer implements CommandLineRunner {
                 trainingGroup = moduleGroupsRepository.save(trainingGroup);
 
                 moduleRepository.saveAll(Arrays.asList(
-                                createModule(trainingGroup, "Courses", "/courses", "book-open", 1, "COURSE_READ",
-                                                "Manage training courses"),
-                                createModule(trainingGroup, "Course Catalog", "/my-courses", "graduation-cap", 2,
-                                                "ENROLL_COURSE", "Browse and enroll in available courses")));
-                moduleRepository.save(createModule(trainingGroup, "Programming Languages", "/programming-languages",
-                                "code", 3, "PROGRAMMING_LANGUAGE_READ", "Manage programming languages"));
-                moduleRepository.save(createModule(trainingGroup, "Student", "/v1/student", "person", 4,
-                                "STUDENT_READ", "Manage students"));
-                moduleRepository.save(createModule(trainingGroup, "Training Classes", "/training-classes", "people", 5,
-                                "CLASS_READ", "Manage Classes and Open Class Requests"));
-                moduleRepository.save(createModule(trainingGroup, "Classes", "/classes", "people", 6,
-                                "CLASS_USER_READ", "User search and view classes"));
+
+                        createModule(trainingGroup, "Courses", "/courses", "book-open", 1,
+                                "COURSE_READ",
+                                "Manage training courses"
+                        ),
+
+                        createModule(trainingGroup, "Course Catalog", "/my-courses", "graduation-cap", 2,
+                                "ENROLL_COURSE",
+                                "Browse and enroll in available courses"
+                        ),
+
+                        createModule(trainingGroup, "Programming Languages", "/programming-languages", "code", 3,
+                                "PROGRAMMING_LANGUAGE_READ",
+                                "Manage programming languages"
+                        ),
+
+                        createModule(trainingGroup, "Students", "/v1/student", "person", 4,
+                                "STUDENT_READ",
+                                "Manage students"
+                        ),
+
+                        createModule(trainingGroup, "Training Classes", "/training-classes", "people", 5,
+                                "CLASS_READ",
+                                "Manage Classes and Open Class Requests"
+                        ),
+
+                        createModule(trainingGroup, "Classes", "/classes", "people", 6,
+                                "CLASS_USER_READ",
+                                "User search and view classes"
+                        )
+                ));
 
 
-                // Nhóm: Assessment
-                ModuleGroups assessmentTypeGroup = new ModuleGroups();
-                assessmentTypeGroup.setName("Assessment");
-                assessmentTypeGroup.setDescription("Manage assessment types and related permissions");
-                assessmentTypeGroup.setDisplayOrder(6);
-                assessmentTypeGroup.setIsActive(true);
-                assessmentTypeGroup = moduleGroupsRepository.save(assessmentTypeGroup);
+    /* =======================================================
+       MODULE GROUP: Assessment
+    ======================================================= */
+                ModuleGroups assessmentGroup = new ModuleGroups();
+                assessmentGroup.setName("Assessment");
+                assessmentGroup.setDescription("Manage assessments and related permissions");
+                assessmentGroup.setDisplayOrder(6);
+                assessmentGroup.setIsActive(true);
+                assessmentGroup = moduleGroupsRepository.save(assessmentGroup);
 
-                moduleRepository.save(createModule(assessmentTypeGroup, "Assessment Type",
-                                "/assessment-type", "shield", 1, "ASSESSMENT_READ", "Manage assessment types"));
+                moduleRepository.save(
+                        createModule(
+                                assessmentGroup,
+                                "Assessment Type",
+                                "/assessment-type",
+                                "shield",
+                                1,
+                                "ASSESSMENTTYPE_READ",
+                                "Manage assessment types"
+                        )
+                );
+
+                log.info("Initialized module groups and modules successfully.");
         }
-
         private Module createModule(ModuleGroups group, String title, String url, String icon,
                                     int order, String permission, String description) {
                 Module module = new Module();

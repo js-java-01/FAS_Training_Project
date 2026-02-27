@@ -21,14 +21,25 @@ import {
   useImportModules,
 } from "@/pages/modules/module/services/mutations";
 import { FacetedFilter } from "@/components/FacedFilter";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/store/store";
 import dayjs from "dayjs";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
-  /* ---------- get role ---------- */
-  const role = useSelector((state: RootState) => state.auth.role);
+  /* ---------- permission---------- */
+  const { activePermissions } = useRoleSwitch();
+  const permissions = activePermissions || [];
+  console.log("active", permissions)
+
+  const hasPermission = (permission: string) =>
+    permissions.includes(permission);
+
+  const canCreate = hasPermission("MODULE_CREATE");
+  const canUpdate = hasPermission("MODULE_UPDATE");
+  const canDelete = hasPermission("MODULE_DELETE");
+  const canImport = hasPermission("MODULE_IMPORT");
+  const canExport = hasPermission("MODULE_EXPORT");
+
 
   /* ---------- modal & view ---------- */
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -157,18 +168,39 @@ export default function ModulesTable() {
   };
 
   /* ---------- columns ---------- */
-  const columns = useMemo(
-    () =>
-      getColumns({
-        onView: setViewingModule,
-        onEdit: (m) => {
-          setEditingModule(m);
-          setIsFormOpen(true);
-        },
-        onDelete: setDeletingModule,
-      }, role),
-    [role],
-  );
+  // const columns = useMemo(
+  //   () =>
+  //     getColumns({
+  //       onView: setViewingModule,
+  //       onEdit: (m) => {
+  //         setEditingModule(m);
+  //         setIsFormOpen(true);
+  //       },
+  //       onDelete: setDeletingModule,
+  //     }, role),
+  //   [role],
+  // );
+  // Columns
+   const columns = useMemo(
+     () =>
+       getColumns(
+         {
+           onView: setViewingModule,
+           onEdit: canUpdate
+             ? (m) => {
+                 setEditingModule(m);
+                 setIsFormOpen(true);
+               }
+             : undefined,
+           onDelete: canDelete ? setDeletingModule : undefined,
+         },
+         {
+           canUpdate,
+           canDelete,
+         }
+       ),
+     [canUpdate, canDelete]
+   );
 
   /* ================= IMPORT / EXPORT / TEMPLATE ================= */
   const handleImport = async (file: File) => {
@@ -253,29 +285,33 @@ export default function ModulesTable() {
         manualSorting
         /* Header */
         headerActions={
-          role === "ADMIN" && (
-            <div className="flex flex-row gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => setOpenBackupModal(true)}
-              >
-                <DatabaseBackup className="h-4 w-4" />
-                Import / Export
-              </Button>
+                 (canCreate || canImport || canExport) && (
+                   <div className="flex flex-row gap-2">
+                     {(canImport || canExport) && (
+                       <Button
+                         variant="secondary"
+                         onClick={() => setOpenBackupModal(true)}
+                       >
+                         <DatabaseBackup className="h-4 w-4" />
+                         Import / Export
+                       </Button>
+                     )}
 
-              <Button
-                onClick={() => {
-                  setEditingModule(null);
-                  setIsFormOpen(true);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add New Module
-              </Button>
-            </div>
-          )
-        }
+                     {canCreate && (
+                       <Button
+                         onClick={() => {
+                           setEditingModule(null);
+                           setIsFormOpen(true);
+                         }}
+                         className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                       >
+                         <Plus className="h-4 w-4" />
+                         Add New Module
+                       </Button>
+                     )}
+                   </div>
+                 )
+               }
         /*Faced filter */
         facetedFilters={
           <div className="flex gap-1">
