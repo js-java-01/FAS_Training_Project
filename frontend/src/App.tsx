@@ -13,7 +13,6 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import DepartmentManagement from "@/pages/department/DepartmentManagement";
 import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
-import ModulesManagement from "./pages/modules/module/ModulesManagement";
 import { componentRegistry } from "./router/componentRegistry";
 import { Toaster } from "sonner";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
@@ -33,7 +32,6 @@ import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import { RoleManagement } from "./pages/role/RoleManagement";
-import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
 import ClassDetailPage from "./pages/training-classes/ClassDetailPage";
 
@@ -164,14 +162,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/locations"
-              element={
-                <ProtectedRoute requiredPermission="LOCATION_READ">
-                  <LocationManagement />
-                </ProtectedRoute>
-              }
-            />
 
             <Route
               path="/departments"
@@ -186,14 +176,6 @@ function App() {
               element={
                 <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
                   <ProgrammingLanguageManagement />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/moduleGroups"
-              element={
-                <ProtectedRoute requiredPermission="ROLE_READ">
-                  <ModuleGroupsManagement />
                 </ProtectedRoute>
               }
             />

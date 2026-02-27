@@ -12,7 +12,6 @@ import com.example.starter_project_2025.system.auth.repository.PermissionReposit
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
-import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
 import com.example.starter_project_2025.system.common.enums.LocationStatus;
 import com.example.starter_project_2025.system.course.entity.Course;
 // import com.example.starter_project_2025.system.course.entity.CourseCohort;
@@ -107,9 +106,9 @@ public class DataInitializer implements CommandLineRunner {
         private final UserRoleRepository userRoleRepository;
         private final SemesterRepository semesterRepository;
         private final LocationRepository locationRepository;
-        private final SubmissionRepository submissionRepository;
+        //private final SubmissionRepository submissionRepository;
         private final CourseAssessmentTypeWeightRepository courseAssessmentTypeWeightRepository;
-        private final TrainingClassRepository trainingClassRepository;
+        //private final TrainingClassRepository trainingClassRepository;
         private final CourseClassRepository courseClassRepository;
         private final EnrollmentRepository enrollmentRepository;
 
