@@ -47,7 +47,8 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final UserRepository userRepository;
     private final AssessmentRepository assessmentRepository;
     private final GradingService gradingService;
-
+    private final SubmissionMapper submissionMapper;
+    private final QuestionOptionRepository questionOptionRepository;
 
     @Override
     public Submission startSubmission(UUID userId, StartSubmissionRequest request) {
@@ -55,7 +56,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Assessment assessment = assessmentRepository.findByIdWithQuestions(request.getAssessmentId())
+        Assessment assessment = assessmentRepository.findById(request.getAssessmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Assessment not found"));
 
         Submission submission = Submission.builder()
@@ -274,4 +275,5 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         return response;
     }
+
 }
