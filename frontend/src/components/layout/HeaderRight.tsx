@@ -1,77 +1,112 @@
 import ToggleTheme from "@/components/ToggleTheme";
 import { useEffect, useRef, useState } from "react";
-import { Badge } from "@/components/ui/badge.tsx";
+import { Badge } from "@/components/ui/badge";
 import type { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import { ChevronDown, Loader2 } from "lucide-react";
 import type { RoleSwitchRole } from "@/types/role";
 
-/** Map role name → Tailwind colour tokens */
-function getRoleColor(name: string): {
-  bg: string;
-  text: string;
-  border: string;
-  hover: string;
-  dot: string;
-} {
+/** Map role name → UI config */
+function getRoleMeta(name: string) {
   const upper = name.toUpperCase();
-  if (upper === "ADMIN")
-    return {
+
+  const roleMap: Record<
+    string,
+    {
+      title: string;
+      bg: string;
+      text: string;
+      border: string;
+      hover: string;
+      dot: string;
+    }
+  > = {
+    ADMIN: {
+      title: "Admin",
       bg: "bg-blue-50",
       text: "text-blue-700",
       border: "border-blue-200",
       hover: "hover:bg-blue-100",
       dot: "text-blue-500",
-    };
-  if (upper === "STUDENT")
-    return {
+    },
+    STUDENT: {
+      title: "Student",
       bg: "bg-green-50",
       text: "text-green-700",
       border: "border-green-200",
       hover: "hover:bg-green-100",
       dot: "text-green-500",
-    };
-  if (upper === "TEACHER" || upper === "TRAINER")
-    return {
+    },
+    TEACHER: {
+      title: "Trainer",
       bg: "bg-purple-50",
       text: "text-purple-700",
       border: "border-purple-200",
       hover: "hover:bg-purple-100",
       dot: "text-purple-500",
-    };
-  if (upper === "MANAGER" || upper === "DEPARTMENT_MANAGER")
-    return {
+    },
+    TRAINER: {
+      title: "Trainer",
+      bg: "bg-purple-50",
+      text: "text-purple-700",
+      border: "border-purple-200",
+      hover: "hover:bg-purple-100",
+      dot: "text-purple-500",
+    },
+    MANAGER: {
+      title: "Department Manager",
       bg: "bg-orange-50",
       text: "text-orange-700",
       border: "border-orange-200",
       hover: "hover:bg-orange-100",
       dot: "text-orange-500",
-    };
-  if (upper === "SUPER_ADMIN")
-    return {
+    },
+    DEPARTMENT_MANAGER: {
+      title: "Department Manager",
+      bg: "bg-orange-50",
+      text: "text-orange-700",
+      border: "border-orange-200",
+      hover: "hover:bg-orange-100",
+      dot: "text-orange-500",
+    },
+    SUPER_ADMIN: {
+      title: "Super Admin",
       bg: "bg-red-50",
       text: "text-red-700",
       border: "border-red-200",
       hover: "hover:bg-red-100",
       dot: "text-red-500",
-    };
-  return {
-    bg: "bg-gray-50",
-    text: "text-gray-700",
-    border: "border-gray-200",
-    hover: "hover:bg-gray-100",
-    dot: "text-gray-500",
+    },
   };
+
+  return (
+    roleMap[upper] ?? {
+      title: "Guest",
+      bg: "bg-gray-50",
+      text: "text-gray-700",
+      border: "border-gray-200",
+      hover: "hover:bg-gray-100",
+      dot: "text-gray-500",
+    }
+  );
 }
 
 export default function HeaderRight() {
   const { role } = useSelector((state: RootState) => state.auth);
-  const { availableRoles, activeRole, setActiveRole, canSwitch, isLoading } =
-    useRoleSwitch();
+
+  const {
+    availableRoles,
+    activeRole,
+    setActiveRole,
+    canSwitch,
+    isLoading,
+  } = useRoleSwitch();
+
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -81,16 +116,25 @@ export default function HeaderRight() {
         setOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   if (!role) return null;
 
-  const displayRole = activeRole?.name ?? role;
-  const colors = getRoleColor(displayRole);
+  const currentRoleName = activeRole?.name ?? role ?? "GUEST";
+  const currentMeta = getRoleMeta(currentRoleName);
 
-  // No switch available: plain badge
+  const isRoleActive = (r: RoleSwitchRole) => {
+    if (!activeRole) return false;
+    return activeRole.id
+      ? activeRole.id === r.id
+      : activeRole.name === r.name;
+  };
+
+  // No switch → show badge only
   if (!canSwitch) {
     return (
       <div className="flex items-center gap-3">
@@ -99,9 +143,9 @@ export default function HeaderRight() {
         ) : (
           <Badge
             variant="secondary"
-            className={`capitalize text-sm ${colors.text} ${colors.bg}`}
+            className={`text-sm ${currentMeta.text} ${currentMeta.bg}`}
           >
-            {displayRole.toLowerCase()}
+            {currentMeta.title}
           </Badge>
         )}
         <ToggleTheme />
@@ -109,51 +153,66 @@ export default function HeaderRight() {
     );
   }
 
-  // Switch available: dropdown
+  // Switch enabled → dropdown
   return (
     <div className="flex items-center gap-3" ref={dropdownRef}>
       <div className="relative">
         <button
+          disabled={isLoading}
           onClick={() => setOpen((o) => !o)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors cursor-pointer ${colors.bg} ${colors.text} ${colors.border} ${colors.hover}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+            currentMeta.bg
+          } ${currentMeta.text} ${currentMeta.border} ${
+            currentMeta.hover
+          } ${isLoading ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
         >
           <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold bg-white/60">
-            {displayRole[0].toUpperCase()}
+            {currentMeta.title[0]}
           </span>
-          <span className="capitalize">{displayRole.toLowerCase()}</span>
+
+          <span>{currentMeta.title}</span>
+
           <ChevronDown
             size={13}
-            className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+            className={`transition-transform duration-200 ${
+              open ? "rotate-180" : ""
+            }`}
           />
         </button>
 
         {open && (
           <div className="absolute right-0 top-full mt-1.5 min-w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-            {availableRoles.map((r: RoleSwitchRole) => {
-              const c = getRoleColor(r.name);
-              const isActive =
-                activeRole?.id === r.id || activeRole?.name === r.name;
+            {availableRoles.map((r) => {
+              const meta = getRoleMeta(r.name);
+              const active = isRoleActive(r);
+
               return (
                 <button
-                  key={r.id || r.name}
+                  key={r.id ?? r.name}
                   onClick={() => {
                     setActiveRole(r);
                     setOpen(false);
                   }}
-                  className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm transition-colors cursor-pointer ${
-                    isActive
-                      ? `${c.text} font-medium ${c.bg}`
-                      : `text-gray-700 ${c.hover}`
+                  className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
+                    active
+                      ? `${meta.text} font-medium ${meta.bg}`
+                      : `text-gray-700 ${meta.hover}`
                   }`}
                 >
                   <span
-                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${c.bg} ${c.text} border ${c.border}`}
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${meta.bg} ${meta.text} border ${meta.border}`}
                   >
-                    {r.name[0].toUpperCase()}
+                    {meta.title[0]}
                   </span>
-                  <span className="capitalize">{r.name.toLowerCase()}</span>
-                  {isActive && (
-                    <span className={`ml-auto text-xs ${c.dot}`}>●</span>
+
+                  <span className="flex-1 text-left">
+                     {meta.title}
+                   </span>
+
+                  {active && (
+                    <span className={`ml-auto text-xs ${meta.dot}`}>
+                      ●
+                    </span>
                   )}
                 </button>
               );
