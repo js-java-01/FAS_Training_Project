@@ -44,7 +44,6 @@ public class ExportMetadataCache {
 
             metas.add(new ExportFieldMeta(
                     ann.name(),
-                    ann.order(),
                     field,
                     ann.dateFormat(),
                     ann.path(),
@@ -52,9 +51,7 @@ public class ExportMetadataCache {
             ));
         }
 
-        return metas.stream()
-                .sorted(Comparator.comparingInt(ExportFieldMeta::order))
-                .toList();
+        return metas.stream().toList();
     }
 
     private ExportValueExtractor createExtractor(

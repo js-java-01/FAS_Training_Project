@@ -12,7 +12,8 @@ export const useImport = (url: string) => {
       const res = await importFileApi(url, file);
       setResult(res.data);
     } catch (e) {
-      toast("Import failed");
+      console.error("Import failed", e);
+      toast.error("Import failed");
     } finally {
       setLoading(false);
     }

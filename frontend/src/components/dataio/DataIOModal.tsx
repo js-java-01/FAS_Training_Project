@@ -19,9 +19,7 @@ import { ImportTab } from "./ImportTab";
 import ImportResultModal from "./ImportResultModal";
 
 interface DataIOModalProps {
-    entity: string;
-    exportUrl: string;
-    importUrl: string;
+    entity: string
     open?: boolean;
     setOpen?: (open: boolean) => void;
     title?: string;
@@ -32,8 +30,6 @@ interface DataIOModalProps {
 
 export default function DataIOModal({
     entity,
-    exportUrl,
-    importUrl,
     open: controlledOpen,
     setOpen: controlledSetOpen,
     title,
@@ -48,7 +44,10 @@ export default function DataIOModal({
 
     const [resultOpen, setResultOpen] = useState(false);
 
+    const importUrl = `/${entity}s/import`;
     const { loading: importLoading, result, handleImport } = useImport(importUrl);
+
+    const exportUrl = `/${entity}s/export`;
     const { exportFile, loading: exportLoading } = useExport(exportUrl);
 
     useEffect(() => {

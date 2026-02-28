@@ -2,6 +2,7 @@ import { exportFileApi } from "@/api/dataio-api";
 import type { ExportFormat } from "@/types/export";
 import { downloadBlob, getFilenameFromHeader } from "@/utils/dataio.utils";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function useExport(exportUrl: string) {
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,7 @@ export function useExport(exportUrl: string) {
 
     } catch (err) {
       console.error("Export failed", err);
-      alert("Export failed");
+      toast.error("Export failed");
     } finally {
       setLoading(false);
     }
