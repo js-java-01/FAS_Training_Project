@@ -9,8 +9,6 @@ import { useDebounce } from "@/hooks/useDebounce"
 import { useMemo, useState } from "react"
 import { useGetAllTrainingClasses, useGetMyClasses } from "./service/queries"
 import { EnrollModal } from "./component/EnrollModal"
-import { enrollmentApi } from "@/api/enrollmentApi"
-import { toast } from "sonner"
 
 export const StudentClassManagement = () => {
     const [pageIndex, setPageIndex] = useState(0);
@@ -77,7 +75,7 @@ export const StudentClassManagement = () => {
                         <p className="text-sm font-medium text-muted-foreground">Đang tải danh sách lớp học...</p>
                     </div>
                 )}
-                {/* Results Grid */}
+
                 {safeData.items.length === 0 && !isLoading ? (
                     <div className="flex flex-col items-center justify-center h-64 w-full gap-2">
                         <p className="text-sm font-medium text-muted-foreground">Không tìm thấy lớp học nào.</p>

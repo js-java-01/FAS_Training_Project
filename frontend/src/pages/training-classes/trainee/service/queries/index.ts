@@ -12,7 +12,7 @@ export const useGetAllTrainingClasses = (params: {
         queryKey: ["training-classes", params],
         queryFn: () => trainingClassApi.getAllTrainingClasses(params),
         placeholderData: (prev) => prev,
-
+        staleTime: 5 * 60 * 1000,
     });
 };
 

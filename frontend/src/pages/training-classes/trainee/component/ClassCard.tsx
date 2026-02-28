@@ -18,7 +18,6 @@ interface ClassCardProps {
 }
 
 export const ClassCard = ({ data, isEnrolled, handleEnroll }: ClassCardProps) => {
-    // Logic: Nếu chưa được duyệt (approverName là null) HOẶC lớp không active thì disable
     const isPending = data.approverName === null;
     const canEnroll = data.isActive && !isPending;
     const getButtonConfig = () => {
@@ -83,7 +82,6 @@ export const ClassCard = ({ data, isEnrolled, handleEnroll }: ClassCardProps) =>
             </CardHeader>
 
             <CardContent className="grid gap-3 text-sm text-muted-foreground flex-1">
-                {/* Giảng viên / Người tạo */}
                 <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-slate-400" />
                     <span className="line-clamp-1">
@@ -91,13 +89,11 @@ export const ClassCard = ({ data, isEnrolled, handleEnroll }: ClassCardProps) =>
                     </span>
                 </div>
 
-                {/* Học kỳ */}
                 <div className="flex items-center gap-2 font-medium text-slate-700">
                     <Clock className="h-4 w-4 text-slate-400" />
                     <span>{data.semesterName}</span>
                 </div>
 
-                {/* Thời gian */}
                 <div className="flex items-center gap-2">
                     <CalendarDays className="h-4 w-4 text-slate-400" />
                     <span className="text-xs italic">
@@ -105,7 +101,6 @@ export const ClassCard = ({ data, isEnrolled, handleEnroll }: ClassCardProps) =>
                     </span>
                 </div>
 
-                {/* Trạng thái duyệt (Nếu chưa duyệt thì hiện nhắc nhở) */}
                 {isPending && (
                     <p className="text-[10px] text-amber-600 font-medium bg-amber-50 p-1 rounded border border-amber-100 mt-2">
                         * Lớp đang chờ phê duyệt để đăng ký
