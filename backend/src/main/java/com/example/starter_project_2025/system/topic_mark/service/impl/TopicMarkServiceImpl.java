@@ -193,6 +193,23 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                         row.getFullName().toLowerCase().contains(keyword.toLowerCase().trim()))
                 .collect(Collectors.toList());
 
+        // Manual sort by pageable sort orders
+        if (pageable.getSort().isSorted()) {
+            Comparator<TopicMarkGradebookResponse.Row> comparator = null;
+            for (org.springframework.data.domain.Sort.Order order : pageable.getSort()) {
+                Comparator<TopicMarkGradebookResponse.Row> c;
+                if ("fullName".equalsIgnoreCase(order.getProperty())) {
+                    c = Comparator.comparing(TopicMarkGradebookResponse.Row::getFullName,
+                            Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+                } else {
+                    continue;
+                }
+                if (order.isDescending()) c = c.reversed();
+                comparator = comparator == null ? c : comparator.thenComparing(c);
+            }
+            if (comparator != null) filtered.sort(comparator);
+        }
+
         // Manual pagination
         int total = filtered.size();
         int start = (int) pageable.getOffset();
