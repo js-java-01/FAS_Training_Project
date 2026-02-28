@@ -73,8 +73,9 @@ public class TopicMarkController {
     public ResponseEntity<com.example.starter_project_2025.system.modulegroups.dto.response.ApiResponse<TopicMarkGradebookSearchResponse>> searchGradebook(
             @Parameter(description = "Course class ID", required = true) @PathVariable UUID courseClassId,
             @Parameter(description = "Student name to search (partial, case-insensitive)") @RequestParam(required = false) String keyword,
+            @Parameter(description = "Filter by pass/fail status (true = passed, false = failed, omit = all)") @RequestParam(required = false) Boolean passed,
             @ParameterObject Pageable pageable) {
-        TopicMarkGradebookSearchResponse result = topicMarkService.searchGradebook(courseClassId, keyword, pageable);
+        TopicMarkGradebookSearchResponse result = topicMarkService.searchGradebook(courseClassId, keyword, passed, pageable);
         return ResponseEntity.ok(com.example.starter_project_2025.system.modulegroups.dto.response.ApiResponse.success(result, "Gradebook retrieved successfully"));
     }
 
