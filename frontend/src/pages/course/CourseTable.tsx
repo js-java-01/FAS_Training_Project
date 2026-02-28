@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
-import {Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useNavigate } from "react-router-dom";
 
-import { DataTable } from "@/components/data_table/DataTable";
+import { ServerDataTable } from "@/components/data_table/ServerDataTable";
+import { FacetedFilter } from "@/components/FacedFilter";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
 
@@ -22,8 +23,19 @@ import {
   useDownloadCourseTemplate,
 } from "./services/mutations";
 import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 
 export default function CourseTable() {
+  /* ---------- permissions ---------- */
+  const { activePermissions } = useRoleSwitch();
+  const permissions = activePermissions || [];
+  const hasPermission = (p: string) => permissions.includes(p);
+  const canCreate = hasPermission("COURSE_CREATE");
+  const canUpdate = hasPermission("COURSE_UPDATE");
+  const canDelete = hasPermission("COURSE_DELETE");
+  const canImport = hasPermission("COURSE_IMPORT");
+  const canExport = hasPermission("COURSE_EXPORT");
+
   /* ---------- modal state ---------- */
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editCourse, setEditCourse] = useState<Course | null>(null);
@@ -37,9 +49,11 @@ export default function CourseTable() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  /* ---------- search ---------- */
+  /* ---------- search + filter ---------- */
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const statusParam = statusFilter.length === 1 ? statusFilter[0] : undefined;
 
   /* ---------- sort param ---------- */
   const sortParam = useMemo(() => {
@@ -59,6 +73,7 @@ export default function CourseTable() {
     pageSize,
     sort: sortParam,
     keyword: debouncedSearch,
+    status: statusParam,
   });
 
   const safeTableData = useMemo(
@@ -97,53 +112,71 @@ export default function CourseTable() {
       getColumns(
         {
           onView: (c) => navigate(`/courses/${c.id}`),
-          onEdit: (c) => setEditCourse(c),
-          onDelete: (c) => setDeletingCourse(c),
+          onEdit: canUpdate ? (c) => setEditCourse(c) : undefined,
+          onDelete: canDelete ? (c) => setDeletingCourse(c) : undefined,
         },
         false,
       ),
-    [navigate],
+    [navigate, canUpdate, canDelete],
   );
 
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
-      <DataTable<Course, unknown>
+      <ServerDataTable<Course, unknown>
         columns={columns as ColumnDef<Course, unknown>[]}
         data={safeTableData.items}
         isLoading={isLoading}
         isFetching={isFetching}
-        manualPagination
         pageIndex={safeTableData.page}
         pageSize={safeTableData.pageSize}
         totalPage={safeTableData.totalPages}
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        manualSearch
         searchPlaceholder="course name or code"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}
-        manualSorting
         headerActions={
-          <div className="flex gap-2">
-            <EntityImportExportButton
-              title="Courses"
-              useImportHook={useImportCourses}
-              useExportHook={useExportCourses}
-              useTemplateHook={useDownloadCourseTemplate}
+          (canCreate || canImport || canExport) && (
+            <div className="flex gap-2">
+              {(canImport || canExport) && (
+                <EntityImportExportButton
+                  title="Courses"
+                  useImportHook={useImportCourses}
+                  useExportHook={useExportCourses}
+                  useTemplateHook={useDownloadCourseTemplate}
+                />
+              )}
+              {canCreate && (
+                <Button
+                  onClick={() => {
+                    setEditCourse(null);
+                    setShowCreateModal(true);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New Course
+                </Button>
+              )}
+            </div>
+          )
+        }
+        facetedFilters={
+          <div>
+            <FacetedFilter
+              title="Status"
+              options={[
+                { value: "DRAFT", label: "Draft" },
+                { value: "UNDER_REVIEW", label: "Under Review" },
+                { value: "ACTIVE", label: "Active" },
+              ]}
+              value={statusFilter}
+              setValue={setStatusFilter}
+              multiple={false}
             />
-            <Button
-              onClick={() => {
-                setEditCourse(null);
-                setShowCreateModal(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add New Course
-            </Button>
           </div>
         }
       />

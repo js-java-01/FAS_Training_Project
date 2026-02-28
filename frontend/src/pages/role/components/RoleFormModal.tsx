@@ -1,7 +1,14 @@
-import React from "react";
-import { FiUser, FiFileText, FiLayers, FiShield, FiX } from "react-icons/fi";
-import { Permission } from "../../../types/permission";
-import { CreateRoleRequest } from "../../../types/role";
+import React, { useState } from "react";
+import {
+  FiUser,
+  FiFileText,
+  FiLayers,
+  FiShield,
+  FiX,
+  FiSearch,
+} from "react-icons/fi";
+import type { Permission } from "../../../types/permission";
+import type { CreateRoleRequest } from "../../../types/role";
 
 interface Props {
   open: boolean;
@@ -24,7 +31,17 @@ export const RoleFormModal: React.FC<Props> = ({
   onSubmit,
   onClose,
 }) => {
+  const [permissionSearch, setPermissionSearch] = useState("");
+
   if (!open) return null;
+
+  const filteredPermissions = permissionSearch.trim()
+    ? permissions.filter(
+        (p) =>
+          p.name.toLowerCase().includes(permissionSearch.toLowerCase()) ||
+          p.description?.toLowerCase().includes(permissionSearch.toLowerCase()),
+      )
+    : permissions;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
@@ -36,7 +53,7 @@ export const RoleFormModal: React.FC<Props> = ({
               {isEditMode ? "Update Role" : "Create Role"}
             </h2>
             <p className="text-sm text-gray-500">
-              Configure role information and modules
+              Configure role information and permissions
             </p>
           </div>
 
@@ -82,7 +99,7 @@ export const RoleFormModal: React.FC<Props> = ({
           </div>
 
           {/* LEVEL */}
-          {/* <div>
+          <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
               <FiLayers /> Hierarchy Level
             </label>
@@ -98,34 +115,97 @@ export const RoleFormModal: React.FC<Props> = ({
               }
               className="mt-1 w-full border rounded-md px-3 py-1 focus:ring-2 focus:ring-blue-500 outline-none"
             />
-          </div> */}
+            <p className="text-xs text-gray-400 mt-0.5">
+              Lower number = higher privilege (e.g. 1 = Super Admin, 2 = Admin).
+              0 = unset.
+            </p>
+          </div>
 
-          {/* MODULES */}
+          {/* PERMISSIONS */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              <FiShield /> Modules
+              <FiShield /> Permissions
             </label>
 
-            <div className="border rounded-md bg-gray-50 max-h-36 overflow-y-auto p-2 space-y-1">
-              {permissions.map((p) => (
-                <label
-                  key={p.id}
-                  className="flex items-start gap-2 p-2 rounded hover:bg-white cursor-pointer transition"
-                >
-                  <input
-                    type="checkbox"
-                    checked={roleForm.permissionIds.includes(p.id)}
-                    onChange={() => onTogglePermission(p.id)}
-                    className="mt-1"
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">
-                      {p.name}
-                    </p>
-                    <p className="text-xs text-gray-500">{p.description}</p>
-                  </div>
-                </label>
-              ))}
+            {/* Search permissions */}
+            <div className="relative mb-2">
+              <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+              <input
+                type="text"
+                placeholder="Search permissions..."
+                value={permissionSearch}
+                onChange={(e) => setPermissionSearch(e.target.value)}
+                className="w-full border rounded-md pl-8 pr-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              />
+            </div>
+
+            <div className="border rounded-md bg-gray-50 max-h-48 overflow-y-auto p-2 space-y-1">
+              {filteredPermissions.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-3">
+                  No permissions found
+                </p>
+              )}
+              {filteredPermissions.map((p, idx) => {
+                const palette = [
+                  {
+                    bg: "bg-blue-50",
+                    text: "text-blue-700",
+                    border: "border-blue-200",
+                  },
+                  {
+                    bg: "bg-purple-50",
+                    text: "text-purple-700",
+                    border: "border-purple-200",
+                  },
+                  {
+                    bg: "bg-green-50",
+                    text: "text-green-700",
+                    border: "border-green-200",
+                  },
+                  {
+                    bg: "bg-orange-50",
+                    text: "text-orange-700",
+                    border: "border-orange-200",
+                  },
+                  {
+                    bg: "bg-pink-50",
+                    text: "text-pink-700",
+                    border: "border-pink-200",
+                  },
+                  {
+                    bg: "bg-teal-50",
+                    text: "text-teal-700",
+                    border: "border-teal-200",
+                  },
+                ];
+                const color = palette[idx % palette.length];
+                const isChecked = roleForm.permissionIds.includes(p.id);
+                return (
+                  <label
+                    key={p.id}
+                    className={`flex items-start gap-2 p-2 rounded border cursor-pointer transition ${
+                      isChecked
+                        ? `${color.bg} ${color.border}`
+                        : "border-transparent hover:bg-white"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => onTogglePermission(p.id)}
+                      className="mt-1"
+                    />
+                    <div>
+                      <p
+                        className={`text-sm font-medium ${isChecked ? color.text : "text-gray-800"}`}
+                      >
+                        {p.name}
+                      </p>
+                      <p className="text-xs text-gray-500">{p.description}</p>
+                    </div>
+                  </label>
+                );
+              })}
             </div>
           </div>
 

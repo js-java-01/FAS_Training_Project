@@ -220,6 +220,11 @@ export function AiPreviewModal({
                                       {typeLabel}
                                     </span>
                                   )}
+                                  {session.duration != null && (
+                                    <span className="ml-auto text-xs text-gray-500">
+                                      {session.duration} min
+                                    </span>
+                                  )}
                                 </div>
                                 {session.topic && (
                                   <p className="text-sm text-gray-800 leading-snug">

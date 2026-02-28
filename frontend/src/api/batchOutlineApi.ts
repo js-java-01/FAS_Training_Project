@@ -1,4 +1,5 @@
 import axiosInstance from "./axiosInstance";
+import type { ImportResult } from '@/components/modal/import-export/ImportTab';
 
 export interface SessionBatchItem {
   type?: string;
@@ -24,6 +25,7 @@ export interface AiPreviewSessionResponse {
   type?: string;
   topic?: string;
   studentTask?: string;
+  duration?: number;
 }
 
 export interface AiPreviewLessonResponse {
@@ -55,12 +57,13 @@ export const batchOutlineApi = {
     return response.data;
   },
 
-  importOutline: async (courseId: string, file: File): Promise<void> => {
+  importOutline: async (courseId: string, file: File): Promise<ImportResult> => {
     const formData = new FormData();
     formData.append("file", file);
-    await axiosInstance.post(`/batch-outline/import/${courseId}`, formData, {
+    const response = await axiosInstance.post<ImportResult>(`/batch-outline/import/${courseId}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+    return response.data;
   },
 
   generateAiPreview: async (courseId: string): Promise<AiPreviewLessonResponse[]> => {

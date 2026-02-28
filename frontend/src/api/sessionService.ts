@@ -1,5 +1,6 @@
 import axiosInstance from "./axiosInstance";
 import type { SessionRequest, SessionResponse } from "@/types/session";
+import type { ImportResult } from '@/components/modal/import-export/ImportTab';
 
 export const sessionService = {
   createSession: async (data: SessionRequest): Promise<SessionResponse> => {
@@ -35,11 +36,12 @@ export const sessionService = {
     return res.data;
   },
 
-  importSessions: async (lessonId: string, file: File): Promise<void> => {
+  importSessions: async (lessonId: string, file: File): Promise<ImportResult> => {
     const formData = new FormData();
     formData.append("file", file);
-    await axiosInstance.post(`/sessions/import/lesson/${lessonId}`, formData, {
+    const response = await axiosInstance.post<ImportResult>(`/sessions/import/lesson/${lessonId}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+    return response.data;
   },
 };

@@ -66,6 +66,7 @@ public class GeminiAiServiceImpl implements AiService {
                                 - Create 3-5 lessons
                                 - Each lesson must have 2-4 sessions
                                 - Session types must be exactly one of: VIDEO_LECTURE, LIVE_SESSION, QUIZ, ASSIGNMENT, PROJECT
+                                - Each session must include a "duration" field in minutes (realistic time estimate, e.g. 30-120 minutes)
 
                                 Return ONLY a valid JSON array, no markdown, no explanation:
                                 [
@@ -77,7 +78,8 @@ public class GeminiAiServiceImpl implements AiService {
                                         "order": 1,
                                         "type": "VIDEO_LECTURE",
                                         "topic": "Session topic",
-                                        "studentTask": "What students should do"
+                                        "studentTask": "What students should do",
+                                        "duration": 45
                                       }
                                     ]
                                   }

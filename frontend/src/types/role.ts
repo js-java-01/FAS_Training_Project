@@ -6,6 +6,7 @@ export interface Role {
   isActive: boolean;
   permissionIds: string[];
   permissionNames: string[];
+  permissionDescriptions: Record<string, string>;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +31,8 @@ export interface RoleSwitchRole {
   id: string;
   name: string;
   permissions: string[];
+  isActive?: boolean;
+  hierarchyLevel?: number;
 }
 
 export const ROLES = {

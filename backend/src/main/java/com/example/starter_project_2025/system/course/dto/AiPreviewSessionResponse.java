@@ -11,4 +11,5 @@ public class AiPreviewSessionResponse {
     private SessionType type;
     private String topic;
     private String studentTask;
+    private Integer duration;
 }

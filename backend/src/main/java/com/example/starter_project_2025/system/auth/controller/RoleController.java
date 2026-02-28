@@ -2,6 +2,7 @@ package com.example.starter_project_2025.system.auth.controller;
 
 import com.example.starter_project_2025.system.auth.dto.role.RoleDTO;
 import com.example.starter_project_2025.system.auth.service.RoleService;
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import io.jsonwebtoken.io.IOException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -30,8 +31,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Role Management", description = "APIs for managing roles and permissions")
 @SecurityRequirement(name = "bearerAuth")
-public class RoleController
-{
+public class RoleController {
 
     private final RoleService roleService;
 
@@ -40,27 +40,24 @@ public class RoleController
     public ResponseEntity<Page<RoleDTO>> getAllRoles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "name,asc") String[] sort)
-    {
-
+            @RequestParam(defaultValue = "name,asc") String[] sort,
+            @RequestParam(required = false) String keyword) {
         Sort.Direction direction = Sort.Direction.fromString(sort[1]);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
-        Page<RoleDTO> roles = roleService.getAllRoles(pageable);
+        Page<RoleDTO> roles = roleService.getAllRoles(pageable, keyword);
         return ResponseEntity.ok(roles);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get role by ID", description = "Retrieve a specific role by ID with permissions")
-    public ResponseEntity<RoleDTO> getRoleById(@PathVariable UUID id)
-    {
+    public ResponseEntity<RoleDTO> getRoleById(@PathVariable UUID id) {
         RoleDTO role = roleService.getRoleById(id);
         return ResponseEntity.ok(role);
     }
 
     @PostMapping
     @Operation(summary = "Create role", description = "Create a new role with permissions")
-    public ResponseEntity<RoleDTO> createRole(@Valid @RequestBody RoleDTO roleDTO)
-    {
+    public ResponseEntity<RoleDTO> createRole(@Valid @RequestBody RoleDTO roleDTO) {
         RoleDTO createdRole = roleService.createRole(roleDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdRole);
     }
@@ -69,24 +66,21 @@ public class RoleController
     @Operation(summary = "Update role", description = "Update an existing role")
     public ResponseEntity<RoleDTO> updateRole(
             @PathVariable UUID id,
-            @Valid @RequestBody RoleDTO roleDTO)
-    {
+            @Valid @RequestBody RoleDTO roleDTO) {
         RoleDTO updatedRole = roleService.updateRole(id, roleDTO);
         return ResponseEntity.ok(updatedRole);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete role", description = "Delete a role by ID")
-    public ResponseEntity<Void> deleteRole(@PathVariable UUID id)
-    {
+    public ResponseEntity<Void> deleteRole(@PathVariable UUID id) {
         roleService.deleteRole(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/toggle-status")
     @Operation(summary = "Toggle role locationStatus", description = "Activate or deactivate a role")
-    public ResponseEntity<RoleDTO> toggleRoleStatus(@PathVariable UUID id)
-    {
+    public ResponseEntity<RoleDTO> toggleRoleStatus(@PathVariable UUID id) {
         RoleDTO role = roleService.toggleRoleStatus(id);
         return ResponseEntity.ok(role);
     }
@@ -95,8 +89,7 @@ public class RoleController
     @Operation(summary = "Add permissions to role", description = "Add multiple permissions to a role")
     public ResponseEntity<RoleDTO> addPermissionsToRole(
             @PathVariable UUID roleId,
-            @RequestBody Map<String, Set<UUID>> request)
-    {
+            @RequestBody Map<String, Set<UUID>> request) {
         Set<UUID> permissionIds = request.get("permissionIds");
         RoleDTO role = roleService.addPermissionsToRole(roleId, permissionIds);
         return ResponseEntity.ok(role);
@@ -106,16 +99,14 @@ public class RoleController
     @Operation(summary = "Remove permissions from role", description = "Remove multiple permissions from a role")
     public ResponseEntity<RoleDTO> removePermissionsFromRole(
             @PathVariable UUID roleId,
-            @RequestBody Map<String, Set<UUID>> request)
-    {
+            @RequestBody Map<String, Set<UUID>> request) {
         Set<UUID> permissionIds = request.get("permissionIds");
         RoleDTO role = roleService.removePermissionsFromRole(roleId, permissionIds);
         return ResponseEntity.ok(role);
     }
 
     @GetMapping("/template")
-    public ResponseEntity<InputStreamResource> downloadTemplate() throws IOException, java.io.IOException
-    {
+    public ResponseEntity<InputStreamResource> downloadTemplate() throws IOException, java.io.IOException {
         ByteArrayInputStream in = roleService.downloadTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -123,22 +114,21 @@ public class RoleController
 
         return ResponseEntity.ok()
                 .headers(headers)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(new InputStreamResource(in));
     }
 
     // API Upload file Import
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> importRoles(@RequestParam("file") MultipartFile file) throws IOException, java.io.IOException
-    {
-        roleService.importRoles(file);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ImportResultResponse> importRoles(@RequestParam("file") MultipartFile file) {
+        ImportResultResponse result = roleService.importRoles(file);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/export")
     @Operation(summary = "Export roles", description = "Export all roles to Excel file")
-    public ResponseEntity<InputStreamResource> exportRoles() throws IOException, java.io.IOException
-    {
+    public ResponseEntity<InputStreamResource> exportRoles() throws IOException, java.io.IOException {
         ByteArrayInputStream in = roleService.exportRoles();
 
         HttpHeaders headers = new HttpHeaders();
@@ -146,7 +136,8 @@ public class RoleController
 
         return ResponseEntity.ok()
                 .headers(headers)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(new InputStreamResource(in));
     }
 }

@@ -13,6 +13,8 @@ interface RoleSwitchContextType {
   isLoading: boolean;
   /** permissions of the currently active role (fall back to Redux permissions) */
   activePermissions: string[];
+  /** manually re-fetch the switchable roles list (e.g. after a role is toggled inactive) */
+  refreshRoles: () => void;
 }
 
 const RoleSwitchContext = createContext<RoleSwitchContextType | undefined>(
@@ -26,46 +28,81 @@ export const RoleSwitchProvider: React.FC<{ children: React.ReactNode }> = ({
     isAuthenticated,
     role: authRole,
     permissions: authPermissions,
+    token,
   } = useSelector((state: RootState) => state.auth);
 
   const [availableRoles, setAvailableRoles] = useState<RoleSwitchRole[]>([]);
   const [activeRole, setActiveRole] = useState<RoleSwitchRole | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
+  const fetchRoles = () => {
     if (!isAuthenticated) {
       setAvailableRoles([]);
       setActiveRole(null);
       return;
     }
-
+    // Reset stale role from previous user immediately
+    setActiveRole(null);
     setIsLoading(true);
     authApi
       .getMyRoles()
       .then((roles) => {
-        setAvailableRoles(roles);
-        // Default to the role matching the user's own role, or the first available
-        const own = roles.find((r) => r.name === authRole) ?? roles[0] ?? null;
-        setActiveRole(own);
+        // Filter out inactive roles (server already does this, but guard client-side too)
+        const activeRoles = roles.filter((r) => r.isActive !== false);
+
+        // Determine the user's own role hierarchy level dynamically from API data
+        const ownRole = activeRoles.find((r) => r.name === authRole);
+        const primaryLevel = ownRole?.hierarchyLevel ?? 0;
+
+        // Only show roles at the same level or below (higher number = lower privilege)
+        // If hierarchyLevel is 0 (unset), skip filtering
+        const filteredRoles =
+          primaryLevel === 0
+            ? activeRoles
+            : activeRoles.filter(
+                (r) =>
+                  r.hierarchyLevel === 0 ||
+                  (r.hierarchyLevel ?? 0) >= primaryLevel,
+              );
+
+        setAvailableRoles(filteredRoles);
+
+        // Keep the active role if it's still in the list; otherwise fall back to own role
+        setActiveRole((prev) => {
+          if (prev) {
+            const stillAvailable = filteredRoles.find(
+              (r) => r.id === prev.id || r.name === prev.name,
+            );
+            if (stillAvailable) return stillAvailable;
+          }
+          return (
+            filteredRoles.find((r) => r.name === authRole) ??
+            filteredRoles[0] ??
+            null
+          );
+        });
       })
       .catch(() => {
-        // Graceful degradation: build a synthetic role from Redux state
         const fallback: RoleSwitchRole = {
           id: "",
           name: authRole ?? "",
           permissions: authPermissions,
+          isActive: true,
         };
         setAvailableRoles([fallback]);
         setActiveRole(fallback);
       })
       .finally(() => setIsLoading(false));
-    // Only re-fetch when authentication status changes
+  };
+
+  useEffect(() => {
+    fetchRoles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isAuthenticated, token]);
 
   const canSwitch = availableRoles.length > 1;
   const activePermissions = activeRole?.permissions ?? authPermissions;
-  console.log("Active role", activeRole)
+  console.log("Active role", activeRole);
 
   return (
     <RoleSwitchContext.Provider
@@ -76,6 +113,7 @@ export const RoleSwitchProvider: React.FC<{ children: React.ReactNode }> = ({
         canSwitch,
         isLoading,
         activePermissions,
+        refreshRoles: fetchRoles,
       }}
     >
       {children}

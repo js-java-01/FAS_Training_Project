@@ -961,13 +961,9 @@ export function OutlineTab({ courseId, course }: OutlineTabProps) {
 
   // ── Import/Export handlers ─────────────────────────────────
   const handleOutlineImport = async (file: File) => {
-    try {
-      await batchOutlineApi.importOutline(courseId, file);
-      toast.success("Outline imported successfully");
-      await loadData();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to import outline");
-    }
+    const result = await batchOutlineApi.importOutline(courseId, file);
+    void loadData();
+    return result;
   };
 
   const handleOutlineExport = async () => {
@@ -1001,13 +997,9 @@ export function OutlineTab({ courseId, course }: OutlineTabProps) {
 
   const handleSessionImport = async (file: File) => {
     if (!sessionLessonId) return;
-    try {
-      await sessionService.importSessions(sessionLessonId, file);
-      toast.success("Sessions imported successfully");
-      await loadSessions(sessionLessonId);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to import sessions");
-    }
+    const result = await sessionService.importSessions(sessionLessonId, file);
+    void loadSessions(sessionLessonId);
+    return result;
   };
 
   const handleSessionExport = async () => {
