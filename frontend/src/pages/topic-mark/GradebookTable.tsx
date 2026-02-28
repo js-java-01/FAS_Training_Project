@@ -72,6 +72,7 @@ export default function GradebookTable({ classId }: Props) {
     pageSize,
     sort: sortParam,
     keyword: debouncedSearch,
+    passed: statusParam,
     enabled: !!selectedCourseClassId,
   })
 

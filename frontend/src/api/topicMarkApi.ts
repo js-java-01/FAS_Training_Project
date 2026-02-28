@@ -10,11 +10,11 @@ export const topicMarkApi = {
   },
 
   getTopicMarksById: async (
-    params: { id: string; page: number; pageSize: number; sort?: string | string[]; keyword?: string,  isPassed?: boolean; }
+    params: { id: string; page: number; pageSize: number; sort?: string | string[]; keyword?: string; passed?: boolean; }
   ): Promise<GradebookTableResponse> => {
     const response = await axiosInstance.get<GradebookTableResponse>(
       `/course-classes/${params.id}/topic-marks/search`,
-      { params: { page: params.page, pageSize: params.pageSize, sort: params.sort, keyword: params.keyword } }
+      { params: { page: params.page, pageSize: params.pageSize, sort: params.sort, keyword: params.keyword, passed: params.passed } }
     )
 
     return response.data
