@@ -13,6 +13,7 @@ import NoResult from "./common/NoResult";
 import { ConfirmDeleteModal } from "./modal/ConfirmDeleteModal";
 import { DetailModal } from "./modal/DetailModal";
 import { FormModal } from "./modal/FormModal";
+import { CardView } from "./table/CardView";
 import { CellRenderer } from "./table/CellRenderer";
 import { Pagination } from "./table/Pagination";
 import { RowActions } from "./table/RowActions";
@@ -20,6 +21,7 @@ import { RowSelection } from "./table/RowSelection";
 import { SelectAllCheckbox } from "./table/SelectAllCheckbox";
 import { SortableHeader } from "./table/SortableHeader";
 import { Toolbar } from "./toolbar/Toolbar";
+import type { ViewMode } from "./toolbar/Toolbar";
 
 interface ProTableProps {
   table: any;
@@ -48,6 +50,7 @@ export function ProTable({
   const [deleteItem, setDeleteItem] = useState<any>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [detailRow, setDetailRow] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
 
   // Column widths state for resizing
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
@@ -102,102 +105,130 @@ export function ProTable({
 
   return (
     <div className="grid gap-4 h-full font-inter grid-rows-[auto_1fr_auto]">
-      <Toolbar table={table} headerActions={headerActions} />
+      <Toolbar
+        table={table}
+        headerActions={headerActions}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
 
       <div
         ref={containerRef}
         className="h-full rounded-md border bg-card text-foreground flex flex-col overflow-hidden w-full"
       >
-        <Table className="table-fixed">
-          <colgroup>
-            <col style={{ width: 20 }} />
-            <col style={{ width: 50 }} />
-            {table.visibleFields.map((f: any) => (
-              <col key={f.name} style={{ width: columnWidths[f.name] || 150 }} />
-            ))}
-            <col style={{ width: 120 }} />
-          </colgroup>
-          <TableHeader className="bg-background z-10 sticky top-0 shadow-xs">
-            <TableRow>
-              <TableHead style={{ width: 20 }}>
-                <SelectAllCheckbox table={table} idField={schema.idField} />
-              </TableHead>
-              <TableHead style={{ width: 50 }} className="text-center">
-                #
-              </TableHead>
-              {table.visibleFields.map((f: any) => (
-                <SortableHeader
-                  key={f.name}
-                  field={f}
-                  sortState={table.sortState}
-                  onToggleSort={table.toggleSort}
-                  width={columnWidths[f.name] || 150}
-                  onResizeStart={(e) => onResizeStart(f.name, e)}
-                />
-              ))}
-              <TableHead style={{ width: 120 }}>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
+        {viewMode === "table" ? (
+          <>
+            <Table className="table-fixed">
+              <colgroup>
+                <col style={{ width: 20 }} />
+                <col style={{ width: 50 }} />
+                {table.visibleFields.map((f: any) => (
+                  <col key={f.name} style={{ width: columnWidths[f.name] || 150 }} />
+                ))}
+                <col style={{ width: 120 }} />
+              </colgroup>
+              <TableHeader className="bg-background z-10 sticky top-0 shadow-xs">
+                <TableRow>
+                  <TableHead style={{ width: 20 }}>
+                    <SelectAllCheckbox table={table} idField={schema.idField} />
+                  </TableHead>
+                  <TableHead style={{ width: 50 }} className="text-center">
+                    #
+                  </TableHead>
+                  {table.visibleFields.map((f: any) => (
+                    <SortableHeader
+                      key={f.name}
+                      field={f}
+                      sortState={table.sortState}
+                      onToggleSort={table.toggleSort}
+                      width={columnWidths[f.name] || 150}
+                      onResizeStart={(e) => onResizeStart(f.name, e)}
+                    />
+                  ))}
+                  <TableHead style={{ width: 120 }}>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
 
-          {table.data?.length > 0 && (
-            <TableBody className={table.isFetching ? "opacity-50 transition-opacity" : "transition-opacity"}>
-              {table.data.map((row: any, index: number) => {
-                const id = row[schema.idField];
+              {table.data?.length > 0 && (
+                <TableBody className={table.isFetching ? "opacity-50 transition-opacity" : "transition-opacity"}>
+                  {table.data.map((row: any, index: number) => {
+                    const id = row[schema.idField];
 
-                return (
-                  <TableRow
-                    key={id}
-                    className="w-full odd:bg-accent even:bg-background"
-                    onClick={(e) => {
-                      try {
-                        const target = e.target as HTMLElement | null;
-                        if (target && target.closest("button, a, input, label"))
-                          return;
-                      } catch (err) {
-                        console.error("Error checking click target:", err);
-                      }
-                      if (onRowClick) onRowClick(row);
-                    }}
-                  >
-                    <TableCell>
-                      <RowSelection id={id} table={table} />
-                    </TableCell>
-
-                    <TableCell className="text-center text-muted-foreground">
-                      {(table.page || 0) * (table.size || 10) + index + 1}
-                    </TableCell>
-
-                    {table.visibleFields.map((f: any) => (
-                      <CellRenderer
-                        key={f.name}
-                        field={f}
-                        value={row[f.name]}
-                        relationOptions={table.relationOptions}
-                        onBooleanToggle={(fieldName, newValue) => {
-                          table.patchField(id, fieldName, newValue);
+                    return (
+                      <TableRow
+                        key={id}
+                        className="w-full odd:bg-accent even:bg-background"
+                        onClick={(e) => {
+                          try {
+                            const target = e.target as HTMLElement | null;
+                            if (target && target.closest("button, a, input, label"))
+                              return;
+                          } catch (err) {
+                            console.error("Error checking click target:", err);
+                          }
+                          if (onRowClick) onRowClick(row);
                         }}
-                      />
-                    ))}
+                      >
+                        <TableCell>
+                          <RowSelection id={id} table={table} />
+                        </TableCell>
 
-                    <TableCell className="flex gap-1">
-                      <RowActions
-                        row={row}
-                        onView={setDetailRow}
-                        onEdit={table.openEdit}
-                        onDelete={setDeleteItem}
-                      />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          )}
-        </Table>
+                        <TableCell className="text-center text-muted-foreground">
+                          {(table.page || 0) * (table.size || 10) + index + 1}
+                        </TableCell>
 
-        {!table.data?.length && (
-          <div className="flex-1 flex items-center justify-center">
-            {table.loading ? <Loading /> : <NoResult />}
-          </div>
+                        {table.visibleFields.map((f: any) => (
+                          <CellRenderer
+                            key={f.name}
+                            field={f}
+                            value={row[f.name]}
+                            relationOptions={table.relationOptions}
+                            onBooleanToggle={(fieldName, newValue) => {
+                              table.patchField(id, fieldName, newValue);
+                            }}
+                          />
+                        ))}
+
+                        <TableCell className="flex gap-1">
+                          <RowActions
+                            row={row}
+                            onView={setDetailRow}
+                            onEdit={table.openEdit}
+                            onDelete={setDeleteItem}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              )}
+            </Table>
+
+            {!table.data?.length && (
+              <div className="flex-1 flex items-center justify-center">
+                {table.loading ? <Loading /> : <NoResult />}
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {table.data?.length > 0 ? (
+              <CardView
+                table={table}
+                onRowClick={onRowClick}
+                onView={setDetailRow}
+                onEdit={table.openEdit}
+                onDelete={setDeleteItem}
+                onBooleanToggle={(id, fieldName, newValue) => {
+                  table.patchField(id, fieldName, newValue);
+                }}
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                {table.loading ? <Loading /> : <NoResult />}
+              </div>
+            )}
+          </>
         )}
       </div>
 

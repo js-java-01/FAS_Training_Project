@@ -3,14 +3,18 @@ import { FilterPopover } from "./FilterPopover";
 import { SearchInput } from "./SearchInput";
 import { ToolbarActions } from "./ToolbarActions";
 import ActionButton from "../common/ActionButton";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, LayoutGrid, Table2 } from "lucide-react";
+
+export type ViewMode = "table" | "card";
 
 interface ToolbarProps {
   table: any;
   headerActions?: React.ReactNode;
+  viewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
 }
 
-export function Toolbar({ table, headerActions }: ToolbarProps) {
+export function Toolbar({ table, headerActions, viewMode = "table", onViewModeChange }: ToolbarProps) {
   const { schema } = table;
 
   const hasFilters = schema.fields.some((f: any) => f.filterable);
@@ -46,6 +50,13 @@ export function Toolbar({ table, headerActions }: ToolbarProps) {
             icon={<ArrowUpDown size={14} />}
           />
         )}
+
+        <ActionButton
+          onClick={() => onViewModeChange?.(viewMode === "table" ? "card" : "table")}
+          tooltip={viewMode === "table" ? "Switch to card view" : "Switch to table view"}
+          variant="outline"
+          icon={viewMode === "table" ? <LayoutGrid size={16} /> : <Table2 size={16} />}
+        />
       </div>
 
       <ToolbarActions table={table} headerActions={headerActions} />

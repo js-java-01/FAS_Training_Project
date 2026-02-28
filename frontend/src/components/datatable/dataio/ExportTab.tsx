@@ -53,7 +53,7 @@ export function ExportTab({ loading, onExport }: ExportTabProps) {
   return (
     <TabsContent value="export" className="mt-4 flex-1 flex flex-col gap-4">
       <div className="text-center">
-        <h3 className="text-lg font-semibold mb-1">Select Export Format</h3>
+        <h1 className="text-[16px] font-semibold">Select Export Format</h1>
         <p className="text-sm text-muted-foreground">
           Choose the format for your exported data
         </p>
