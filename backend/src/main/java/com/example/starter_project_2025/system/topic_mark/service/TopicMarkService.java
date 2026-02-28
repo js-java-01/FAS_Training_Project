@@ -3,7 +3,9 @@ package com.example.starter_project_2025.system.topic_mark.service;
 import com.example.starter_project_2025.system.topic_mark.dto.*;
 
 import java.util.UUID;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ImportResultResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface TopicMarkService {
 
@@ -69,6 +71,13 @@ public interface TopicMarkService {
      * Pass cells are green, Fail cells are red.
      */
     ResponseEntity<byte[]> exportGradebook(UUID courseClassId);
+
+    /**
+     * Import scores from a filled Excel template.
+     * Reads column UUIDs from hidden Row 0 and student IDs from hidden column 1.
+     * Blank cells are skipped (existing score kept). Returns ImportResultResponse.
+     */
+    ImportResultResponse importGradebook(UUID courseClassId, MultipartFile file, UUID editorId);
 
     /**
      * Initialize TopicMark + null entries for a newly enrolled student.

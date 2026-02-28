@@ -18,6 +18,9 @@ import com.example.starter_project_2025.system.topic_mark.repository.*;
 import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ImportResultResponse;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ImportErrorDetail;
+import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -524,6 +527,197 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 .columnLabel(col.getColumnLabel())
                 .columnIndex(col.getColumnIndex())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public ImportResultResponse importGradebook(UUID courseClassId, MultipartFile file, UUID editorId) {
+        CourseClass courseClass = loadCourseClass(courseClassId);
+        User editor = userRepository.findById(editorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Editor not found: " + editorId));
+
+        ImportResultResponse result = new ImportResultResponse();
+        List<ImportErrorDetail> errors = new ArrayList<>();
+
+        try (Workbook wb = new XSSFWorkbook(file.getInputStream())) {
+            Sheet sheet = wb.getSheetAt(0);
+            if (sheet == null) {
+                result.setMessage("Empty workbook");
+                return result;
+            }
+
+            // 1. Parse meta row (row 0) to build colIndex -> columnUUID mapping
+            Row metaRow = sheet.getRow(0);
+            if (metaRow == null || !"#META".equals(getCellString(metaRow.getCell(0)))) {
+                result.setMessage("Invalid template: missing #META row");
+                return result;
+            }
+
+            final int SCORE_COL_START = 4;
+            Map<Integer, UUID> colIndexToColumnId = new LinkedHashMap<>();
+            for (int c = SCORE_COL_START; c <= metaRow.getLastCellNum(); c++) {
+                String uuid = getCellString(metaRow.getCell(c));
+                if (uuid != null && !uuid.isBlank()) {
+                    try {
+                        colIndexToColumnId.put(c, UUID.fromString(uuid.trim()));
+                    } catch (IllegalArgumentException ignored) {
+                        // skip non-UUID cells
+                    }
+                }
+            }
+
+            if (colIndexToColumnId.isEmpty()) {
+                result.setMessage("No column UUIDs found in meta row");
+                return result;
+            }
+
+            // Pre-load valid columns for this courseClass
+            Set<UUID> validColumnIds = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId)
+                    .stream().map(TopicMarkColumn::getId).collect(Collectors.toSet());
+
+            // 2. Parse data rows (row 2+), skip header (row 1)
+            int totalRows = 0;
+            int successCount = 0;
+            Set<UUID> updatedUserIds = new HashSet<>();
+
+            for (int r = 2; r <= sheet.getLastRowNum(); r++) {
+                Row row = sheet.getRow(r);
+                if (row == null) continue;
+
+                totalRows++;
+                int excelRowNum = r + 1; // 1-based for user display
+
+                // Get user ID from hidden column 1
+                String userIdStr = getCellString(row.getCell(1));
+                if (userIdStr == null || userIdStr.isBlank()) {
+                    errors.add(new ImportErrorDetail(excelRowNum, "User ID", "Missing user ID"));
+                    continue;
+                }
+
+                UUID userId;
+                try {
+                    userId = UUID.fromString(userIdStr.trim());
+                } catch (IllegalArgumentException e) {
+                    errors.add(new ImportErrorDetail(excelRowNum, "User ID", "Invalid user UUID: " + userIdStr));
+                    continue;
+                }
+
+                User student = userRepository.findById(userId).orElse(null);
+                if (student == null) {
+                    errors.add(new ImportErrorDetail(excelRowNum, "User ID", "User not found: " + userId));
+                    continue;
+                }
+
+                boolean rowHasError = false;
+                int updatedCells = 0;
+
+                for (Map.Entry<Integer, UUID> mapping : colIndexToColumnId.entrySet()) {
+                    int colIdx = mapping.getKey();
+                    UUID columnId = mapping.getValue();
+
+                    if (!validColumnIds.contains(columnId)) {
+                        errors.add(new ImportErrorDetail(excelRowNum, "Column " + columnId, "Column not found or deleted"));
+                        rowHasError = true;
+                        continue;
+                    }
+
+                    Cell cell = row.getCell(colIdx);
+                    Double score = getCellNumeric(cell);
+
+                    // Blank = skip (keep existing)
+                    if (score == null) continue;
+
+                    // Validate score range
+                    if (score < 0 || score > 10) {
+                        errors.add(new ImportErrorDetail(excelRowNum, "Column " + columnId, "Score out of range [0-10]: " + score));
+                        rowHasError = true;
+                        continue;
+                    }
+
+                    // Upsert entry
+                    TopicMarkColumn column = topicMarkColumnRepository.findById(columnId).orElse(null);
+                    if (column == null) continue;
+
+                    TopicMarkEntry entry = topicMarkEntryRepository
+                            .findByTopicMarkColumnIdAndUserId(columnId, userId)
+                            .orElseGet(() -> topicMarkEntryRepository.save(TopicMarkEntry.builder()
+                                    .topicMarkColumn(column)
+                                    .user(student)
+                                    .courseClass(courseClass)
+                                    .score(null)
+                                    .build()));
+
+                    Double oldScore = entry.getScore();
+                    if (!Objects.equals(oldScore, score)) {
+                        topicMarkEntryHistoryRepository.save(TopicMarkEntryHistory.builder()
+                                .topicMarkEntry(entry)
+                                .oldScore(oldScore)
+                                .newScore(score)
+                                .reason("Excel import")
+                                .updatedBy(editor)
+                                .build());
+                        entry.setScore(score);
+                        topicMarkEntryRepository.save(entry);
+                    }
+                    updatedCells++;
+                }
+
+                if (!rowHasError && updatedCells > 0) {
+                    updatedUserIds.add(userId);
+                    successCount++;
+                } else if (!rowHasError && updatedCells == 0) {
+                    successCount++; // all blank = still a valid row, just nothing to update
+                }
+            }
+
+            // 3. Recompute final scores for all affected students
+            for (UUID userId : updatedUserIds) {
+                TopicMark mark = topicMarkRepository.findByCourseClassIdAndUserId(courseClassId, userId)
+                        .orElseGet(() -> {
+                            User u = userRepository.findById(userId).orElseThrow();
+                            return topicMarkRepository.save(TopicMark.builder()
+                                    .courseClass(courseClass)
+                                    .user(u)
+                                    .isPassed(false)
+                                    .build());
+                        });
+                tryComputeAndSaveFinalScore(courseClass, userId, mark);
+            }
+
+            result.setTotalRows(totalRows);
+            result.setSuccessCount(successCount);
+            result.setFailedCount(errors.size());
+            result.setErrors(errors);
+            return result;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading Excel file: " + e.getMessage(), e);
+        }
+    }
+
+    private String getCellString(Cell cell) {
+        if (cell == null) return null;
+        return switch (cell.getCellType()) {
+            case STRING  -> cell.getStringCellValue();
+            case NUMERIC -> String.valueOf(cell.getNumericCellValue());
+            case BLANK   -> null;
+            default      -> cell.toString();
+        };
+    }
+
+    private Double getCellNumeric(Cell cell) {
+        if (cell == null) return null;
+        return switch (cell.getCellType()) {
+            case NUMERIC -> cell.getNumericCellValue();
+            case STRING  -> {
+                String s = cell.getStringCellValue().trim();
+                if (s.isEmpty()) yield null;
+                try { yield Double.parseDouble(s); }
+                catch (NumberFormatException e) { yield null; }
+            }
+            case BLANK   -> null;
+            default      -> null;
+        };
     }
 
     @Override
