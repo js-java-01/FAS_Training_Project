@@ -11,8 +11,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
 
 import java.util.List;
 
@@ -41,5 +44,24 @@ public class CourseClassController {
     )
     public ResponseEntity<List<CourseClassResponse>> getAll() {
         return ResponseEntity.ok(courseClassService.getAll());
+    }
+
+    /**
+     * GET /api/course-classes/by-class/{classId}
+     * Get all course classes by training class ID.
+     */
+    @GetMapping("/by-class/{classId}")
+    @Operation(
+            summary = "Get course classes by class ID",
+            description = "Retrieve all course classes associated with a specific training class."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Course classes retrieved successfully",
+            content = @Content(schema = @Schema(implementation = CourseClassResponse.class))
+    )
+    public ResponseEntity<List<CourseClassResponse>> getByClassId(
+            @PathVariable UUID classId) {
+        return ResponseEntity.ok(courseClassService.getByClassId(classId));
     }
 }

@@ -124,6 +124,20 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
         TrainingClass trainingClass = findOrCreateTrainingClass(semester, admin);
         CourseClass   courseClass   = findOrCreateCourseClass(course, trainingClass);
 
+        // Extra classes: TC-DEMO-02 and TC-DEMO-03, each linked to 2 courses
+        Course javaCourse  = findCourseByCode("JBM-01");
+        Course reactCourse = findCourseByCode("RFP-01");
+
+        TrainingClass tc02 = findOrCreateTrainingClassByCode("TC-DEMO-02", "Demo Training Class 02", semester, admin);
+        if (javaCourse  != null) findOrCreateCourseClass(javaCourse,  tc02);
+        if (reactCourse != null) findOrCreateCourseClass(reactCourse, tc02);
+
+        TrainingClass tc03 = findOrCreateTrainingClassByCode("TC-DEMO-03", "Demo Training Class 03", semester, admin);
+        if (javaCourse  != null) findOrCreateCourseClass(javaCourse,  tc03);
+        findOrCreateCourseClass(course, tc03); // DEMO-COURSE-TM
+
+        log.info("Extra classes TC-DEMO-02, TC-DEMO-03 initialized with 2 course-classes each");
+
         //  2. Students + enrollments 
 
         User john  = findOrCreateStudent("student@test.com",      "John",  "Doe");
@@ -261,13 +275,17 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
     }
 
     private TrainingClass findOrCreateTrainingClass(Semester semester, User admin) {
+        return findOrCreateTrainingClassByCode("TC-DEMO-01", "Demo Training Class 01", semester, admin);
+    }
+
+    private TrainingClass findOrCreateTrainingClassByCode(String code, String name, Semester semester, User admin) {
         return em.createQuery("SELECT tc FROM TrainingClass tc WHERE tc.classCode = :c", TrainingClass.class)
-                .setParameter("c", "TC-DEMO-01")
+                .setParameter("c", code)
                 .getResultStream().findFirst()
                 .orElseGet(() -> {
                     TrainingClass tc = new TrainingClass();
-                    tc.setClassCode("TC-DEMO-01");
-                    tc.setClassName("Demo Training Class 01");
+                    tc.setClassCode(code);
+                    tc.setClassName(name);
                     tc.setCreator(admin);
                     tc.setSemester(semester);
                     tc.setIsActive(true);
@@ -276,6 +294,13 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                     em.persist(tc);
                     return tc;
                 });
+    }
+
+    private Course findCourseByCode(String code) {
+        return em.createQuery("SELECT c FROM Course c WHERE c.courseCode = :code", Course.class)
+                .setParameter("code", code)
+                .getResultStream().findFirst()
+                .orElse(null);
     }
 
     private CourseClass findOrCreateCourseClass(Course course, TrainingClass tc) {
