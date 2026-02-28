@@ -29,7 +29,7 @@ export default function SelectAssessmentPage() {
   const handleStart = (assessment: UserAssessment) => {
     // If there's an in-progress submission, resume it
     if (assessment.latestStatus === "IN_PROGRESS" && assessment.lastSubmissionId) {
-      navigate(`/exam/quiz/${assessment.lastSubmissionId}`);
+      navigate(`/assessments/quiz/${assessment.lastSubmissionId}`);
       return;
     }
 
@@ -44,7 +44,7 @@ export default function SelectAssessmentPage() {
     const mockSubId = `mock-sub-${assessment.assessmentId}-${Date.now()}`;
     setTimeout(() => {
       setStartingId(null);
-      navigate(`/exam/quiz/${mockSubId}`);
+      navigate(`/assessments/quiz/${mockSubId}`);
     }, 400);
   };
 
@@ -77,13 +77,6 @@ export default function SelectAssessmentPage() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Assessments</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Select an assessment to begin or continue your exam.
-          </p>
-        </div>
-
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabFilter)}>
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
@@ -144,7 +137,7 @@ export default function SelectAssessmentPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => navigate(`/exam/history/${assessment.assessmentId}`)}
+                            onClick={() => navigate(`/assessments/history/${assessment.assessmentId}`)}
                           >
                             History
                           </Button>

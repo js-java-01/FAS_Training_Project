@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +13,8 @@ import {
   Trophy,
   BarChart3,
 } from "lucide-react";
-import { gradeMockSubmission } from "./mockExamData";
+import { gradeMockSubmission, getMockAssessment } from "./mockExamData";
+import { QuestionNavigator } from "./QuestionNavigator";
 
 export default function ResultPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
@@ -22,6 +23,7 @@ export default function ResultPage() {
 
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const questionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   useEffect(() => {
     if (!submissionId) return;
@@ -51,6 +53,12 @@ export default function ResultPage() {
   const incorrectCount = questions.filter((q) => q.isCorrect === false).length;
   const unansweredCount = questions.filter((q) => q.isCorrect === null && !q.userAnswer).length;
 
+  const scrollToQuestion = (questionId: string) => {
+    questionRefs.current[questionId]?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const assessmentTitle = submission ? getMockAssessment(submission.assessmentId)?.title : undefined;
+
   if (isLoading) {
     return (
       <MainLayout>
@@ -68,89 +76,105 @@ export default function ResultPage() {
   const passed = submission.isPassed === true;
 
   return (
-    <MainLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Back button */}
-        <Button variant="ghost" size="sm" onClick={() => navigate("/exam")}>
-          <ChevronLeft className="h-4 w-4 mr-1" /> Back to Assessments
-        </Button>
+    <MainLayout
+      pathName={submissionId && assessmentTitle ? { result: "Result", [submissionId]: assessmentTitle } : undefined}
+    >
+      <div className="flex gap-6">
+        {/* Main content area */}
+        <div className="flex-1 space-y-6">
+          {/* Back button */}
+          <Button variant="ghost" size="sm" onClick={() => navigate("/assessments")}>
+            <ChevronLeft className="h-4 w-4 mr-1" /> Back to Assessments
+          </Button>
 
-        {/* Score card */}
-        <Card
-          className={`border-2 ${
-            passed ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"
-          }`}
-        >
-          <CardContent className="py-8 flex flex-col items-center text-center gap-4">
-            <div
-              className={`h-16 w-16 rounded-full flex items-center justify-center ${
-                passed ? "bg-green-100" : "bg-red-100"
-              }`}
-            >
-              {passed ? (
-                <Trophy className="h-8 w-8 text-green-600" />
-              ) : (
-                <XCircle className="h-8 w-8 text-red-600" />
-              )}
+          {/* Score card */}
+          <Card
+            className={`border-2 ${
+              passed ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"
+            }`}
+          >
+            <CardContent className="py-8 flex flex-col items-center text-center gap-4">
+              <div
+                className={`h-16 w-16 rounded-full flex items-center justify-center ${
+                  passed ? "bg-green-100" : "bg-red-100"
+                }`}
+              >
+                {passed ? (
+                  <Trophy className="h-8 w-8 text-green-600" />
+                ) : (
+                  <XCircle className="h-8 w-8 text-red-600" />
+                )}
+              </div>
+
+              <div>
+                <h2 className="text-3xl font-bold">{submission.totalScore ?? 0}</h2>
+                <p className="text-sm text-muted-foreground mt-1">Total Score</p>
+              </div>
+
+              <Badge
+                className={`text-sm px-4 py-1 ${
+                  passed
+                    ? "bg-green-100 text-green-800 hover:bg-green-100"
+                    : "bg-red-100 text-red-800 hover:bg-red-100"
+                }`}
+              >
+                {passed ? "PASSED" : "FAILED"}
+              </Badge>
+            </CardContent>
+          </Card>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="py-4 flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <div>
+                  <p className="text-lg font-semibold">{correctCount}</p>
+                  <p className="text-xs text-muted-foreground">Correct</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="py-4 flex items-center gap-3">
+                <XCircle className="h-5 w-5 text-red-500" />
+                <div>
+                  <p className="text-lg font-semibold">{incorrectCount}</p>
+                  <p className="text-xs text-muted-foreground">Incorrect</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="py-4 flex items-center gap-3">
+                <BarChart3 className="h-5 w-5 text-gray-400" />
+                <div>
+                  <p className="text-lg font-semibold">{unansweredCount}</p>
+                  <p className="text-xs text-muted-foreground">Unanswered</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Per-question review */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Question Review</h3>
+            <div className="space-y-4">
+              {questions.map((q, idx) => (
+                <div key={q.id} ref={(el) => (questionRefs.current[q.id] = el)}>
+                  <QuestionReviewCard question={q} index={idx} />
+                </div>
+              ))}
             </div>
-
-            <div>
-              <h2 className="text-3xl font-bold">{submission.totalScore ?? 0}</h2>
-              <p className="text-sm text-muted-foreground mt-1">Total Score</p>
-            </div>
-
-            <Badge
-              className={`text-sm px-4 py-1 ${
-                passed
-                  ? "bg-green-100 text-green-800 hover:bg-green-100"
-                  : "bg-red-100 text-red-800 hover:bg-red-100"
-              }`}
-            >
-              {passed ? "PASSED" : "FAILED"}
-            </Badge>
-          </CardContent>
-        </Card>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="py-4 flex items-center gap-3">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="text-lg font-semibold">{correctCount}</p>
-                <p className="text-xs text-muted-foreground">Correct</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="py-4 flex items-center gap-3">
-              <XCircle className="h-5 w-5 text-red-500" />
-              <div>
-                <p className="text-lg font-semibold">{incorrectCount}</p>
-                <p className="text-xs text-muted-foreground">Incorrect</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="py-4 flex items-center gap-3">
-              <BarChart3 className="h-5 w-5 text-gray-400" />
-              <div>
-                <p className="text-lg font-semibold">{unansweredCount}</p>
-                <p className="text-xs text-muted-foreground">Unanswered</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Per-question review */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Question Review</h3>
-          <div className="space-y-4">
-            {questions.map((q, idx) => (
-              <QuestionReviewCard key={q.id} question={q} index={idx} />
-            ))}
           </div>
         </div>
+
+        {/* Question Navigator Sidebar */}
+        <aside className="w-72 shrink-0 hidden lg:block sticky top-6 self-start">
+          <QuestionNavigator
+            mode="result"
+            questions={questions}
+            onQuestionClick={scrollToQuestion}
+          />
+        </aside>
       </div>
     </MainLayout>
   );

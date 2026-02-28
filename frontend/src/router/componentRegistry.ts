@@ -5,11 +5,11 @@ import ModulesManagement from "@/pages/modules/module/ModulesManagement.tsx";
 import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsManagement.tsx";
 import NotFoundPage from "@/pages/NotFoundPage.tsx";
 import { RoleManagement } from "@/pages/RoleManagement.tsx";
-import ProgrammingLanguageManagement from "@/pages/ProgrammingLanguageManagement";
-import AssessmentManagement from "@/pages/AssessmentManagement";
+import ProgrammingLanguageManagement  from "@/pages/programming-language/ProgrammingLanguageManagement.tsx";
+import AssessmentManagement from "@/pages/assessment-type/AssessmentManagement.tsx";
 import { LocationManagement } from "@/pages/LocationManagement";
 import CourseManagement from "@/pages/course/CourseManagement";
-import { SelectAssessmentPage } from "@/pages/exam";
+import { SelectAssessmentPage } from "@/pages/assessment";
 import { TeacherAssessmentPage } from "@/pages/teacher-assessment";
 import { QuestionCategoryManagement } from "@/pages/question-category";
 import { QuestionManagementPage } from "@/pages/question";
@@ -25,7 +25,7 @@ import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 // Parameterized route components
 import CourseDetailPage from "@/pages/course/CourseDetailPage";
 import StudentCourseContent from "@/pages/learning/StudentCourseContent";
-import { QuizPage, ResultPage, AttemptHistoryPage } from "@/pages/exam";
+import { QuizPage, ResultPage, AttemptHistoryPage } from "@/pages/assessment";
 import { AssessmentFormPage } from "@/pages/teacher-assessment";
 import { CreateQuestionPage, EditQuestionPage } from "@/pages/question";
 
