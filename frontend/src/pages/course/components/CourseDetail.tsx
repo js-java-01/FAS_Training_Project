@@ -427,6 +427,10 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
       {activeTab === "Materials" && <MaterialTab courseId={course.id} />}
 
+      {activeTab === "Objectives" && (
+        <CourseObjectivesTab courseId={course.id} />
+      )}
+
       {activeTab === "Time Allocation" && (
         <TimeAllocationTab courseId={course.id} />
       )}
@@ -436,20 +440,13 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
         "Cohort",
         "Outline",
         "Objectives",
+        "Materials",
         "Time Allocation",
       ].includes(activeTab) && (
-        <div className="text-gray-400 text-sm">
-          This tab is implemented by another team.
+        <div className="text-gray-400 text-sm py-10 text-center border-2 border-dashed rounded-lg">
+          This tab ({activeTab}) is being developed by another team.
         </div>
       )}
-      {activeTab !== "Overview" &&
-        activeTab !== "Cohort" &&
-        activeTab !== "Outline" &&
-        activeTab !== "Materials" && (
-          <div className="text-gray-400 text-sm py-10 text-center border-2 border-dashed rounded-lg">
-            This tab ({activeTab}) is being developed by another team.
-          </div>
-        )}
     </div>
   );
 }
