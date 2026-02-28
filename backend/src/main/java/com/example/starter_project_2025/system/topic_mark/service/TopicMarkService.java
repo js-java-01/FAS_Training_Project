@@ -34,6 +34,7 @@ public interface TopicMarkService {
      * (FINAL_SCORE, IS_PASSED, COMMENT), plus one row per enrolled student.
      */
     TopicMarkGradebookResponse getGradebook(UUID courseClassId);
+
     /**
      * Paginated gradebook search.
      * Filters enrolled students by full name (case-insensitive, partial match).

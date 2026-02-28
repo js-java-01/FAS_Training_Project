@@ -29,9 +29,15 @@ import java.util.UUID;
  *
  * <pre>
  * Gradebook:
- *   GET    /api/course-classes/{courseClassId}/topic-marks              → full gradebook
- *   GET    /api/course-classes/{courseClassId}/topic-marks/{userId}     → student detail
- *   PUT    /api/course-classes/{courseClassId}/topic-marks/{userId}     → update scores
+ *   GET    /api/course-classes/{courseClassId}/topic-marks                → full gradebook
+ *   GET    /api/course-classes/{courseClassId}/topic-marks/search         → paginated search
+ *   GET    /api/course-classes/{courseClassId}/topic-marks/{userId}       → student detail
+ *   PUT    /api/course-classes/{courseClassId}/topic-marks/{userId}       → update scores
+ *
+ * Import / Export:
+ *   GET    /api/course-classes/{courseClassId}/topic-marks/export          → export gradebook (scores)
+ *   GET    /api/course-classes/{courseClassId}/topic-marks/export/template → download template
+ *   POST   /api/course-classes/{courseClassId}/topic-marks/import          → import scores
  *
  * Column management:
  *   POST   /api/course-classes/{courseClassId}/topic-mark-columns             → add column

@@ -1,10 +1,9 @@
-package com.example.starter_project_2025.system.topic_mark.service.impl;
+﻿package com.example.starter_project_2025.system.topic_mark.service.impl;
 
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
-import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeightRepository;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
@@ -386,7 +385,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                         .build());
                 entry.setScore(newScore);
                 topicMarkEntryRepository.save(entry);
-                log.debug("Updated entry id={} col=[{}] {} â†’ {}", entry.getId(),
+                log.debug("Updated entry id={} col=[{}] {} -> {}", entry.getId(),
                         column.getColumnLabel(), oldScore, newScore);
             }
         }
@@ -394,8 +393,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
         return getStudentDetail(courseClassId, userId);
     }
-
-
 
     @Override
     public void initializeForNewStudent(UUID courseClassId, UUID userId) {
@@ -422,7 +419,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         }
         log.info("Initialized TopicMark + {} entries for user={} in courseClass={}", columns.size(), userId, courseClassId);
     }
-
 
     private CourseClass loadCourseClass(UUID id) {
         return courseClassRepository.findById(id)
@@ -506,7 +502,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         topicMarkRepository.save(mark);
         log.info("Computed finalScore={} isPassed={} for user={} courseClass={}", finalScore, isPassed, userId, courseClass.getId());
     }
-
 
     private double computeSectionScore(List<Double> scores, GradingMethod gradingMethod) {
         if (scores == null || scores.isEmpty()) return 0.0;
@@ -804,7 +799,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         }
     }
 
-
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> exportGradebook(UUID courseClassId) {
@@ -814,17 +808,17 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 .findByCourseIdAndStatus(courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
 
         // Build score lookup: userId -> columnId -> score
-        Map<UUID, Map<UUID, Double>> scoreMap = new java.util.HashMap<>();
+        Map<UUID, Map<UUID, Double>> scoreMap = new HashMap<>();
         topicMarkEntryRepository.findByCourseClassId(courseClassId).forEach(entry -> {
             if (entry.getScore() != null) {
                 scoreMap
-                    .computeIfAbsent(entry.getUser().getId(), k -> new java.util.HashMap<>())
+                    .computeIfAbsent(entry.getUser().getId(), k -> new HashMap<>())
                     .put(entry.getTopicMarkColumn().getId(), entry.getScore());
             }
         });
 
         // Build final-mark lookup: userId -> TopicMark
-        Map<UUID, TopicMark> markMap = new java.util.HashMap<>();
+        Map<UUID, TopicMark> markMap = new HashMap<>();
         topicMarkRepository.findAllByCourseClassId(courseClassId)
                 .forEach(tm -> markMap.put(tm.getUser().getId(), tm));
 
@@ -859,7 +853,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             int stt = 1;
             for (Enrollment enrollment : enrollments) {
                 User student = enrollment.getUser();
-                Map<UUID, Double> studentScores = scoreMap.getOrDefault(student.getId(), java.util.Collections.emptyMap());
+                Map<UUID, Double> studentScores = scoreMap.getOrDefault(student.getId(), Collections.emptyMap());
                 TopicMark tm = markMap.get(student.getId());
 
                 Row row = sheet.createRow(stt);
