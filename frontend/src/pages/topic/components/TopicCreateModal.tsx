@@ -28,18 +28,26 @@ export function TopicCreateModal({ open, onClose, onSuccess, topic }: Props) {
   });
 
   useEffect(() => {
-    if (topic) {
-      reset({
-        topicName: topic.topicName ?? "",
-        topicCode: topic.topicCode ?? "",
-        status: topic.status ?? "ACTIVE",
-        description: topic.description ?? "",
-        note: topic.note ?? "",
-      });
+    if (open) { 
+        if (topic) {
+        reset({
+            topicName: topic.topicName,
+            topicCode: topic.topicCode,
+            status: topic.status,
+            description: topic.description,
+            note: topic.note,
+        });
     } else {
-      reset({ status: "ACTIVE", topicName: "", topicCode: "", description: "", note: "" });
+        reset({
+            topicName: "",
+            topicCode: "",
+            status: "ACTIVE",
+            description: "",
+            note: "",
+        });
+        }
     }
-  }, [topic, reset, open]);
+    }, [topic, open, reset]);
 
   if (!open) return null;
 

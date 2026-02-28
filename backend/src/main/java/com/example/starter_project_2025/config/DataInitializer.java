@@ -956,35 +956,33 @@ public class DataInitializer implements CommandLineRunner {
                         return;
                 }
 
-                // Lấy admin để gán vào creator/trainer nếu Entity Topic có hỗ trợ
                 User admin = userRepository.findByEmail("admin@example.com").orElseThrow();
 
                 Topic javaTopic = Topic.builder()
-                        .name("Java Spring Boot Master")
-                        .code("TOPIC-JAVA-01")
-                        .level(CourseLevel.ADVANCED)       
-                        .status(CourseStatus.ACTIVE)      
+                        .topicCode("Java Spring Boot Master")
+                        .topicName("TOPIC-JAVA-01")
+                        .level(TopicLevel.ADVANCED)
+                        .status(TopicStatus.ACTIVE)
                         .version("v2.1")
                         .description("Lộ trình học Java chuyên sâu từ Spring Core đến Microservices.")
-                        // Gán các trường audit nếu có
-                        // .creator(admin)
-                        // .trainer(admin)
+                        .creator(admin)
+                        //.trainer(admin)
                         .build();
 
                 Topic frontendTopic = Topic.builder()
-                        .name("Frontend React Pro")
-                        .code("TOPIC-FE-01")
-                        .level(CourseLevel.INTERMEDIATE)   
-                        .status(CourseStatus.ACTIVE)      
+                        .topicCode("Frontend React Pro")
+                        .topicName("TOPIC-FE-01")
+                        .level(TopicLevel.INTERMEDIATE)
+                        .status(TopicStatus.ACTIVE)
                         .version("v1.5")
                         .description("Học React, Next.js và tối ưu hóa hiệu năng ứng dụng Client-side.")
                         .build();
 
                 Topic databaseTopic = Topic.builder()
-                        .name("Database Design & SQL")
-                        .code("TOPIC-DB-01")
-                        .level(CourseLevel.BEGINNER)       
-                        .status(CourseStatus.ACTIVE)     
+                        .topicCode("Database Design & SQL")
+                        .topicName("TOPIC-DB-01")
+                        .level(TopicLevel.BEGINNER)
+                        .status(TopicStatus.ACTIVE)
                         .version("v1.0")
                         .description("Thiết kế cơ sở dữ liệu chuẩn hóa và tối ưu truy vấn SQL.")
                         .build();

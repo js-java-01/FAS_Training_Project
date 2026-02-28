@@ -26,7 +26,6 @@ export interface TopicPageResponse {
 }
 
 export const topicApi = {
-  // Lấy danh sách Topic kèm phân trang và tìm kiếm (Transform content -> items)
   getTopics: async (params: {
     page?: number;
     size?: number;
@@ -54,7 +53,7 @@ export const topicApi = {
 
     const d = response.data;
     return {
-      items: d.content, // Transform ở đây để đồng bộ với Table
+      items: d.content, 
       pagination: {
         page: d.number,
         pageSize: d.size,

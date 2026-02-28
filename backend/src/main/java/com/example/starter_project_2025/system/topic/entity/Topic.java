@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.topic.entity;
 
-import com.example.starter_project_2025.system.course.enums.CourseLevel;
+import com.example.starter_project_2025.system.topic.enums.TopicLevel;
+import com.example.starter_project_2025.system.topic.enums.TopicStatus; // Nên tạo Enum này
 import com.example.starter_project_2025.system.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,22 +22,27 @@ public class Topic {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    // ===== BASIC =====
     @Column(nullable = false)
-    private String name;
+    private String topicName;
 
     @Column(nullable = false, unique = true)
-    private String code;
+    private String topicCode;
 
-    private String level;    // Beginner, Intermediate, Advanced
+    // ===== DETAILS =====
+    @Enumerated(EnumType.STRING)
+    private TopicLevel level;    // Beginner, Intermediate, Advanced
 
-    private String status;   // Draft, Active, Rejected...
-
-    private String version;  // v1.0, v1.1...
+    private String version;      // v1.0, v1.1...
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // ===== METADATA (Audit fields giống Course) =====
+    // ===== WORKFLOW =====
+    @Enumerated(EnumType.STRING)
+    private TopicStatus status;  // DRAFT, ACTIVE, REJECTED...
+
+    // ===== METADATA (Audit fields khớp hoàn toàn với Course) =====
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 
@@ -54,10 +60,10 @@ public class Topic {
         this.createdDate = LocalDateTime.now();
         this.updatedDate = LocalDateTime.now();
         if (this.status == null) {
-            this.status = "DRAFT"; // Mặc định theo SRS
+            this.status = TopicStatus.DRAFT;
         }
         if (this.version == null) {
-            this.version = "v1.0"; // Mặc định theo SRS
+            this.version = "v1.0";
         }
     }
 
