@@ -39,6 +39,8 @@ import Unauthorized from "./pages/Unauthorized";
 import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import { TopicManagement } from "./pages/topic/TopicManagement";
 import TopicDetailPage from "./pages/topic/TopicDetailPage";
+import ProgramsManagement from "./pages/programs/ProgramsManagement";
+import ProgramCreatePage from "./pages/programs/ProgramCreatePage";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -113,6 +115,22 @@ function App() {
               element={
                 <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
                   <ProgrammingLanguageManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programs"
+              element={
+                <ProtectedRoute>
+                  <ProgramsManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programs/new"
+              element={
+                <ProtectedRoute>
+                  <ProgramCreatePage />
                 </ProtectedRoute>
               }
             />
