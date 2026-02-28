@@ -24,27 +24,38 @@ export interface ImportResult {
   }[];
 }
 
+interface Props {
+  onImport?: (file: File) => Promise<ImportResult | void>;
+  onDownloadTemplate?: () => Promise<void>;
+}
+
 export default function ImportTab({
   onImport,
   onDownloadTemplate,
-}: {
-  onImport: (file: File) => Promise<ImportResult | void>;
-  onDownloadTemplate: () => Promise<void>;
-}) {
+}: Props) {
   /* ================= STATE ================= */
 
   const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false); // no more boolean | null
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  /* ================= UTIL ================= */
+
+  const formatSize = (size: number) => {
+    const mb = size / (1024 * 1024);
+    return mb >= 1
+      ? `${mb.toFixed(2)} MB`
+      : `${(size / 1024).toFixed(1)} KB`;
+  };
+
   /* ================= VALIDATE FILE ================= */
 
   const validateFile = (selected: File): boolean => {
-    if (!selected.name.endsWith(".xlsx") && !selected.name.endsWith(".xls")) {
+    if (!selected.name.match(/\.(xlsx|xls)$/i)) {
       setError("Invalid file format. Only Excel files (.xlsx, .xls) allowed.");
       return false;
     }
@@ -71,7 +82,7 @@ export default function ImportTab({
   /* ================= IMPORT ================= */
 
   const handleImportClick = async () => {
-    if (!file || loading) return;
+    if (!file || loading || !onImport) return;
 
     try {
       setLoading(true);
@@ -81,24 +92,27 @@ export default function ImportTab({
       const res = await onImport(file);
 
       if (res) {
-        setResult(res as ImportResult);
+        setResult(res);
       }
 
-      // Clear file only if fully success (or void = success)
-      if (!res || (res as ImportResult).failedCount === 0) {
+      const isFullSuccess =
+        !res || (typeof res === "object" && res?.failedCount === 0);
+
+      if (isFullSuccess) {
         setFile(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       }
     } catch (err: any) {
       const errorData = err?.response?.data;
 
       if (errorData && typeof errorData.totalRows === "number") {
-        // API trả về result dù có lỗi
         setResult(errorData);
       } else {
         setError(
           errorData?.message ??
-            "Import failed. Please check your file and try again.",
+            "Import failed. Please check your file and try again."
         );
       }
     } finally {
@@ -117,8 +131,7 @@ export default function ImportTab({
 
   return (
     <div className="space-y-6">
-      {/* ================= REQUIREMENTS ================= */}
-
+      {/* REQUIREMENTS */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg text-sm">
         <div className="flex gap-3 p-4">
           <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
@@ -135,8 +148,7 @@ export default function ImportTab({
         </div>
       </div>
 
-      {/* ================= STEP 1 ================= */}
-
+      {/* STEP 1 */}
       <div>
         <h3 className="font-semibold text-sm">Step 1: Download Template</h3>
         <p className="text-xs text-muted-foreground mb-2">
@@ -145,8 +157,8 @@ export default function ImportTab({
 
         <Button
           size="sm"
-          onClick={onDownloadTemplate}
-          disabled={loading}
+          onClick={() => onDownloadTemplate?.()}
+          disabled={loading || !onDownloadTemplate}
           className="bg-green-600 hover:bg-green-700"
         >
           <Download className="h-4 w-4 mr-1" />
@@ -154,8 +166,7 @@ export default function ImportTab({
         </Button>
       </div>
 
-      {/* ================= STEP 2 ================= */}
-
+      {/* STEP 2 */}
       <div>
         <h3 className="font-semibold text-sm">Step 2: Select File</h3>
         <p className="text-xs text-muted-foreground mb-3">
@@ -199,7 +210,7 @@ export default function ImportTab({
                   {file.name}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {(file.size / 1024).toFixed(1)} KB
+                  {formatSize(file.size)}
                 </p>
               </div>
             </div>
@@ -234,8 +245,7 @@ export default function ImportTab({
         </div>
       </div>
 
-      {/* ================= ERROR ALERT ================= */}
-
+      {/* ERROR ALERT */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm flex justify-between items-start gap-3">
           <div className="flex gap-2">
@@ -249,8 +259,7 @@ export default function ImportTab({
         </div>
       )}
 
-      {/* ================= STEP 3 ================= */}
-
+      {/* STEP 3 */}
       {file && (
         <div className="border rounded-xl p-5 bg-white shadow-sm space-y-4">
           <div className="flex justify-between items-center">
@@ -258,7 +267,7 @@ export default function ImportTab({
 
             <Button
               onClick={handleImportClick}
-              disabled={loading}
+              disabled={loading || !file || !!error || !onImport}
               className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-6"
             >
               <ImportIcon className="h-4 w-4 mr-1" />
@@ -268,8 +277,7 @@ export default function ImportTab({
         </div>
       )}
 
-      {/* ================= RESULT ================= */}
-
+      {/* RESULT */}
       {result && (
         <div className="border rounded-xl p-6 bg-white shadow-sm space-y-5">
           <div>
@@ -279,11 +287,7 @@ export default function ImportTab({
 
           <div className="grid grid-cols-3 gap-4 text-center">
             <StatCard label="Total" value={result.totalRows} />
-            <StatCard
-              label="Success"
-              value={result.successCount}
-              color="green"
-            />
+            <StatCard label="Success" value={result.successCount} color="green" />
             <StatCard label="Failed" value={result.failedCount} color="red" />
           </div>
 
@@ -336,7 +340,9 @@ function StatCard({
     <div className="bg-gray-50 rounded-lg p-4">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p
-        className={`text-xl font-semibold mt-1 ${color ? colorMap[color] : ""}`}
+        className={`text-xl font-semibold mt-1 ${
+          color ? colorMap[color] : ""
+        }`}
       >
         {value}
       </p>

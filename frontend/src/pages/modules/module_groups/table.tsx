@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
-import { DatabaseBackup, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ import { getColumns } from "./column";
 import { ModuleGroupForm } from "./form";
 import type { ModuleGroupDto } from "./form";
 import { ModuleGroupDetailDialog } from "./DetailDialog";
-import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import {
   useDownloadTemplate,
   useExportModuleGroup,
@@ -21,9 +20,8 @@ import {
 } from "@/pages/modules/module_groups/services/mutations";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
-import dayjs from "dayjs";
-import type { ImportResult } from "@/components/modal/import-export/ImportTab";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
+import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
 
 /* ======================================================= */
 
@@ -54,16 +52,11 @@ export default function ModuleGroupsTable() {
   const [editing, setEditing] = useState<ModuleGroupDto | null>(null);
   const [deleting, setDeleting] = useState<ModuleGroup | null>(null);
   const [viewingGroup, setViewingGroup] = useState<ModuleGroup | null>(null);
-  const [openBackupModal, setOpenBackupModal] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
 
   const statusParam =
     statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
-
-  const { mutateAsync: importModuleGroup } = useImportModuleGroup();
-  const { mutateAsync: exportModuleGroup } = useExportModuleGroup();
-  const { mutateAsync: downloadTemplate } = useDownloadTemplate();
 
   const queryClient = useQueryClient();
 
@@ -164,44 +157,6 @@ export default function ModuleGroupsTable() {
     }
   };
 
-  /* ================= IMPORT / EXPORT ================= */
-  const handleImport = async (file: File): Promise<ImportResult> => {
-    const result = await importModuleGroup(file);
-    toast.success(result.message);
-    setOpenBackupModal(false);
-    await invalidateAll();
-    return result;
-  };
-
-  const handleExport = async () => {
-    const blob = await exportModuleGroup();
-    downloadBlob(
-      blob,
-      `module_groups_${dayjs().format("DD MM YYYY hh mm ss")}.xlsx`
-    );
-    toast.success("Export module groups successfully");
-  };
-
-  const handleDownloadTemplate = async () => {
-    const blob = await downloadTemplate();
-    downloadBlob(
-      blob,
-      `module_groups_template_${dayjs().format("DD MM YYYY hh mm ss")}.xlsx`
-    );
-    toast.success("Download template successfully");
-  };
-
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-  };
-
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
@@ -224,13 +179,12 @@ export default function ModuleGroupsTable() {
           (canCreate || canImport || canExport) && (
             <div className="flex gap-2">
               {(canImport || canExport) && (
-                <Button
-                  variant="secondary"
-                  onClick={() => setOpenBackupModal(true)}
-                >
-                  <DatabaseBackup className="h-4 w-4" />
-                  Import / Export
-                </Button>
+                <EntityImportExportButton
+                  title="Module Groups"
+                  useImportHook={useImportModuleGroup}
+                  useExportHook={useExportModuleGroup}
+                  useTemplateHook={useDownloadTemplate}
+                />
               )}
 
               {canCreate && (
@@ -287,15 +241,6 @@ export default function ModuleGroupsTable() {
         open={!!viewingGroup}
         group={viewingGroup}
         onClose={() => setViewingGroup(null)}
-      />
-
-      <ImportExportModal
-        title="Module Groups"
-        open={openBackupModal}
-        setOpen={setOpenBackupModal}
-        onImport={handleImport}
-        onExport={handleExport}
-        onDownloadTemplate={handleDownloadTemplate}
       />
     </div>
   );

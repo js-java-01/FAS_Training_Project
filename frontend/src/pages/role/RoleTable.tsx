@@ -1,16 +1,13 @@
 import React, { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
-import { DatabaseBackup, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { AxiosError } from "axios";
-
 import { DataTable } from "@/components/data_table/DataTable";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
-
 import { roleApi } from "@/api/roleApi";
 import { permissionApi } from "@/api/permissionApi";
 import type { Role, CreateRoleRequest } from "@/types/role";
@@ -20,11 +17,8 @@ import { getColumns } from "./columns";
 import { RoleFormModal } from "./components/RoleFormModal";
 import { RoleDetailDialog } from "./components/RoleDetailDialog";
 import { ROLE_QUERY_KEY, useGetAllRoles } from "./services/queries";
-import {
-  useExportRoles,
-  useImportRoles,
-  useDownloadRoleTemplate,
-} from "./services/mutations";
+import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import { useDownloadRoleTemplate, useExportRoles, useImportRoles } from "./services/mutations";
 
 /* ===================== MAIN ===================== */
 export default function RoleTable() {
@@ -34,7 +28,6 @@ export default function RoleTable() {
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [viewingRole, setViewingRole] = useState<Role | null>(null);
   const [deletingRole, setDeletingRole] = useState<Role | null>(null);
-  const [openBackupModal, setOpenBackupModal] = useState(false);
   const [permissions, setPermissions] = useState<Permission[]>([]);
 
   const [roleForm, setRoleForm] = useState<CreateRoleRequest>({
@@ -61,11 +54,6 @@ export default function RoleTable() {
     const { id, desc } = sorting[0];
     return `${id},${desc ? "desc" : "asc"}`;
   }, [sorting]);
-
-  /* ---------- mutations ---------- */
-  const { mutateAsync: importRoles } = useImportRoles();
-  const { mutateAsync: exportRoles } = useExportRoles();
-  const { mutateAsync: downloadTemplate } = useDownloadRoleTemplate();
 
   /* ---------- query ---------- */
   const {
@@ -94,17 +82,6 @@ export default function RoleTable() {
   /* ---------- helpers ---------- */
   const invalidateRoles = async () => {
     await queryClient.invalidateQueries({ queryKey: [ROLE_QUERY_KEY] });
-  };
-
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
   };
 
   /* ---------- open create ---------- */
@@ -192,40 +169,6 @@ export default function RoleTable() {
     }
   };
 
-  /* ---------- import / export ---------- */
-  const handleImport = async (file: File) => {
-    try {
-      await importRoles(file);
-      toast.success("Import roles successfully");
-      setOpenBackupModal(false);
-      await invalidateRoles();
-      await reload();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Failed to import roles");
-      throw err;
-    }
-  };
-
-  const handleExport = async () => {
-    try {
-      const blob = await exportRoles();
-      downloadBlob(blob, `roles_${new Date().toISOString().slice(0, 10)}.xlsx`);
-      toast.success("Export roles successfully");
-    } catch {
-      toast.error("Failed to export roles");
-    }
-  };
-
-  const handleDownloadTemplate = async () => {
-    try {
-      const blob = await downloadTemplate();
-      downloadBlob(blob, "roles_template.xlsx");
-      toast.success("Download template successfully");
-    } catch {
-      toast.error("Failed to download template");
-    }
-  };
-
   /* ---------- columns ---------- */
   const columns = useMemo(
     () =>
@@ -261,13 +204,12 @@ export default function RoleTable() {
         manualSorting
         headerActions={
           <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setOpenBackupModal(true)}
-            >
-              <DatabaseBackup className="h-4 w-4" />
-              Import / Export
-            </Button>
+            <EntityImportExportButton
+              title="Roles"
+              useImportHook={useImportRoles}
+              useExportHook={useExportRoles}
+              useTemplateHook={useDownloadRoleTemplate}
+            />
             <Button
               onClick={openCreate}
               className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
@@ -314,15 +256,6 @@ export default function RoleTable() {
         onConfirm={() => void handleDelete()}
       />
 
-      {/* ===== Import / Export modal ===== */}
-      <ImportExportModal
-        title="Roles"
-        open={openBackupModal}
-        setOpen={setOpenBackupModal}
-        onImport={handleImport}
-        onExport={handleExport}
-        onDownloadTemplate={handleDownloadTemplate}
-      />
     </div>
   );
 }
