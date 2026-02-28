@@ -3,12 +3,12 @@ import { Input } from "@/components/ui/input"
 
 import { Separator } from "@/components/ui/separator"
 import { Loader2, Search } from "lucide-react"
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { ClassCard } from "./component/ClassCard"
 import { useDebounce } from "@/hooks/useDebounce"
 import { useMemo, useState } from "react"
 import { useGetAllTrainingClasses, useGetMyClasses } from "./service/queries"
 import { EnrollModal } from "./component/EnrollModal"
+import CustomPagination from "./component/StudentPagination"
 
 export const StudentClassManagement = () => {
     const [pageIndex, setPageIndex] = useState(0);
@@ -23,6 +23,7 @@ export const StudentClassManagement = () => {
         page: pageIndex,
         size: pageSize,
         keyword: debouncedSearch,
+        sort: "startDate,desc",
     });
 
     const { data: apiResponseMyClasses, isLoading: isLoadingMyClasses } = useGetMyClasses();
@@ -101,51 +102,7 @@ export const StudentClassManagement = () => {
                         <p className="text-sm text-muted-foreground whitespace-nowrap">
                             Hiển thị <b>{pageIndex * pageSize + 1}-{Math.min((pageIndex + 1) * pageSize, safeData.totalElements)}</b> trong tổng số <b>{safeData.totalElements}</b> lớp học
                         </p>
-                        <Pagination className="justify-end">
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <PaginationPrevious
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            setPageIndex(prev => Math.max(0, prev - 1));
-                                        }}
-                                        className={pageIndex === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                                    />
-                                </PaginationItem>
-
-                                {Array.from({ length: safeData.totalPages }).map((_, i) => {
-
-                                    return (
-                                        <PaginationItem key={i} className="hidden md:inline-block">
-                                            <PaginationLink
-                                                href="#"
-                                                isActive={pageIndex === i}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    setPageIndex(i);
-                                                }}
-                                            >
-                                                {i + 1}
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                    );
-                                })}
-
-                                {safeData.totalPages > 5 && <PaginationEllipsis />}
-
-                                <PaginationItem>
-                                    <PaginationNext
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            setPageIndex(prev => Math.min(safeData.totalPages - 1, prev + 1));
-                                        }}
-                                        className={pageIndex >= safeData.totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                                    />
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
+                        <CustomPagination pageIndex={pageIndex} totalPages={safeData.totalPages} setPageIndex={setPageIndex} />
                     </div></>)}
 
             </div>

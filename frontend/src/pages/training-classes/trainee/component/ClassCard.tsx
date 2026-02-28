@@ -19,7 +19,6 @@ interface ClassCardProps {
 
 export const ClassCard = ({ data, isEnrolled, handleEnroll }: ClassCardProps) => {
     const isPending = data.approverName === null;
-    const canEnroll = data.isActive && !isPending;
     const getButtonConfig = () => {
         if (isEnrolled) {
             return {

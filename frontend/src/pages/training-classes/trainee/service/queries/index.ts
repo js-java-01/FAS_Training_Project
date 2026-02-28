@@ -7,6 +7,8 @@ export const useGetAllTrainingClasses = (params: {
     size: number;
     keyword?: string;
     isActive?: boolean;
+    sort?: string;
+
 }) => {
     return useQuery<PagedData<TrainingClass>>({
         queryKey: ["training-classes", params],
