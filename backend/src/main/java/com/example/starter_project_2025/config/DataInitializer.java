@@ -1064,7 +1064,7 @@ public class DataInitializer implements CommandLineRunner {
                         .build();
 
                 Location xavaloShtp = Location.builder()
-                        .name("Xavalo - Khu Cong Nghe Cao Sai Gon")
+                        .name("Xavalo -  Khu Cong Nghe Cao Sai Gon")
                         .address("Duong So 8, Khu Cong nghe cao, Phuong Linh Xuan, TP. Thu Duc")
                         .communeId("26800")
                         .locationStatus(LocationStatus.INACTIVE)
