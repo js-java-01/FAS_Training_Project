@@ -9,6 +9,7 @@ import LocationsManagement from "@/pages/locations/LocationsManagement";
 import ClassesComponent from "@/pages/classes/ClassesManagement";
 import PermissionsManagement from "@/pages/permissions/PermissionsManagement";
 import { TopicManagement } from "@/pages/topic/TopicManagement";
+import SkillManagementPage from "@/pages/skill/SkillManagementPage";
 
 
 export const componentRegistry: Record<string, ComponentType> = {
@@ -22,4 +23,5 @@ export const componentRegistry: Record<string, ComponentType> = {
     "/locations": LocationsManagement,
     "/permissions": PermissionsManagement,
     "/topics": TopicManagement,
+    "/skills": SkillManagementPage,
 };

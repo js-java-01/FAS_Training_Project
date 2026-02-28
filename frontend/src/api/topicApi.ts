@@ -1,5 +1,36 @@
 import axiosInstance from './axiosInstance';
 
+/* ─── Skill types ─────────────────────────────────────────── */
+export interface TopicSkillResponse {
+  topicSkillId: string;
+  skillId: string;
+  skillName: string;
+  code: string;
+  groupName: string;
+  description: string;
+  required: boolean;
+}
+
+export interface SkillResponse {
+  id: string;
+  name: string;
+  code: string;
+  groupName: string;
+  description: string;
+}
+
+export interface SkillGroup {
+  id: string;
+  name: string;
+  code: string;
+  skillCount?: number;
+}
+
+export interface UpdateTopicSkillRequest {
+  skills: { skillId: string; required: boolean }[];
+}
+
+/* ─── Topic types ─────────────────────────────────────────── */
 export interface Topic {
   note: string;
   id: string;
@@ -98,5 +129,34 @@ export const topicApi = {
     await axiosInstance.post('/topics/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+  },
+
+  /* ─── Skills ─── */
+  getTopicSkills: async (topicId: string): Promise<TopicSkillResponse[]> => {
+    const res = await axiosInstance.get(`/topics/${topicId}/skills`);
+    return res.data;
+  },
+
+  getAvailableSkills: async (
+    topicId: string,
+    groupId?: string,
+    keyword?: string,
+  ): Promise<SkillResponse[]> => {
+    const res = await axiosInstance.get(`/topics/${topicId}/skills/available`, {
+      params: { groupId, keyword },
+    });
+    return res.data;
+  },
+
+  updateTopicSkills: async (
+    topicId: string,
+    payload: UpdateTopicSkillRequest,
+  ): Promise<void> => {
+    await axiosInstance.put(`/topics/${topicId}/skills`, payload);
+  },
+
+  getSkillGroups: async (): Promise<SkillGroup[]> => {
+    const res = await axiosInstance.get('/skills/groups');
+    return res.data;
   },
 };

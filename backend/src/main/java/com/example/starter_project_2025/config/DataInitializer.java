@@ -35,9 +35,13 @@ import com.example.starter_project_2025.system.location.data.repository.Province
 import com.example.starter_project_2025.system.location.entity.Location;
 import com.example.starter_project_2025.system.location.repository.LocationRepository;
 import com.example.starter_project_2025.system.topic.entity.Topic;
+import com.example.starter_project_2025.system.topic.entity.Skill;
+import com.example.starter_project_2025.system.topic.entity.SkillGroup;
 import com.example.starter_project_2025.system.topic.enums.TopicLevel;
 import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import com.example.starter_project_2025.system.topic.repository.TopicRepository;
+import com.example.starter_project_2025.system.topic.repository.SkillGroupRepository;
+import com.example.starter_project_2025.system.topic.repository.SkillRepository;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
 import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
@@ -122,6 +126,8 @@ public class DataInitializer implements CommandLineRunner {
         private final CourseClassRepository courseClassRepository;
         private final EnrollmentRepository enrollmentRepository;
         private final TopicRepository topicRepository;
+        private final SkillGroupRepository skillGroupRepository;
+        private final SkillRepository skillRepository;
 
         @Override
         @Transactional
@@ -147,6 +153,7 @@ public class DataInitializer implements CommandLineRunner {
                         ensureProgrammingLanguagePermissions();
                         initializeProgrammingLanguages();
                         initializeTopics();
+                        initializeSkills();
                         log.info("Full database initialization completed!");
                 } else {
                         log.info("Database exists, ensuring new features are added...");
@@ -155,6 +162,7 @@ public class DataInitializer implements CommandLineRunner {
                 ensureOutlinePermissions();
                 ensurePermissionManagementPermissions();
                 ensureTopicsModule();
+                ensureSkillsModule();
                 if (userRoleRepository.count() == 0)
 
                 {
@@ -1289,6 +1297,126 @@ public class DataInitializer implements CommandLineRunner {
                 topicRepository.saveAll(List.of(javaTopic, frontendTopic, databaseTopic));
 
                 log.info("Initialized {} topics (Same style as Courses)", 3);
+        }
+
+        private void initializeSkills() {
+                if (skillGroupRepository.count() > 0) {
+                        return;
+                }
+
+                // ─── Skill Groups ───
+                SkillGroup creativeGroup = SkillGroup.builder()
+                                .name("Creative Group")
+                                .code("CREA")
+                                .build();
+                SkillGroup managementGroup = SkillGroup.builder()
+                                .name("Management Group")
+                                .code("MGMT")
+                                .build();
+                SkillGroup softSkillGroup = SkillGroup.builder()
+                                .name("Soft Skill Group")
+                                .code("SOFT")
+                                .build();
+                SkillGroup languageGroup = SkillGroup.builder()
+                                .name("Language Group")
+                                .code("LANG")
+                                .build();
+                SkillGroup technicalGroup = SkillGroup.builder()
+                                .name("Technical Group")
+                                .code("TECH")
+                                .build();
+
+                skillGroupRepository.saveAll(
+                                List.of(creativeGroup, managementGroup, softSkillGroup, languageGroup, technicalGroup));
+
+                // ─── Skills ───
+                List<Skill> skills = List.of(
+                                // Creative
+                                Skill.builder().code("PHOTO").name("Photography")
+                                                .description("Digital photography and photo editing")
+                                                .group(creativeGroup).build(),
+                                Skill.builder().code("WRITING").name("Creative Writing")
+                                                .description("Writing creative content, stories, and scripts")
+                                                .group(creativeGroup).build(),
+                                Skill.builder().code("DESIGN").name("Design Thinking")
+                                                .description("Human-centered design approach and prototyping")
+                                                .group(creativeGroup).build(),
+                                Skill.builder().code("ART").name("Digital Art")
+                                                .description("Illustration and digital artwork creation")
+                                                .group(creativeGroup).build(),
+                                Skill.builder().code("UIUX").name("UI/UX Design")
+                                                .description("User interface and experience design")
+                                                .group(creativeGroup).build(),
+                                // Management
+                                Skill.builder().code("STRAT").name("Strategic Thinking")
+                                                .description("Long-term strategic planning and analysis")
+                                                .group(managementGroup).build(),
+                                Skill.builder().code("RISK").name("Risk Management")
+                                                .description("Identifying and mitigating project risks")
+                                                .group(managementGroup).build(),
+                                Skill.builder().code("HRM").name("Human Resource Management")
+                                                .description("Managing people and organizational resources")
+                                                .group(managementGroup).build(),
+                                Skill.builder().code("TIME").name("Time Management")
+                                                .description("Efficient use of time and prioritization")
+                                                .group(managementGroup).build(),
+                                Skill.builder().code("PM").name("Project Management")
+                                                .description("Managing project scope, schedule, and budget")
+                                                .group(managementGroup).build(),
+                                // Soft Skills
+                                Skill.builder().code("LEADER").name("Leadership")
+                                                .description("Inspiring and guiding teams").group(softSkillGroup)
+                                                .build(),
+                                Skill.builder().code("PROB").name("Problem Solving")
+                                                .description("Analytical thinking and solution design")
+                                                .group(softSkillGroup).build(),
+                                Skill.builder().code("LEARN").name("Continuous Learning")
+                                                .description("Adapting to new knowledge and skills")
+                                                .group(softSkillGroup).build(),
+                                Skill.builder().code("COMM").name("Communication")
+                                                .description("Effective verbal and written communication")
+                                                .group(softSkillGroup).build(),
+                                Skill.builder().code("TEAMWORK").name("Teamwork")
+                                                .description("Collaboration and team dynamics").group(softSkillGroup)
+                                                .build(),
+                                // Language
+                                Skill.builder().code("VIE").name("Vietnamese")
+                                                .description("Vietnamese language proficiency").group(languageGroup)
+                                                .build(),
+                                Skill.builder().code("JPN").name("Japanese")
+                                                .description("Japanese language proficiency").group(languageGroup)
+                                                .build(),
+                                Skill.builder().code("CHN").name("Chinese")
+                                                .description("Chinese Mandarin language proficiency")
+                                                .group(languageGroup).build(),
+                                Skill.builder().code("ENG").name("English").description("English language proficiency")
+                                                .group(languageGroup).build(),
+                                // Technical
+                                Skill.builder().code("JAVA").name("Java")
+                                                .description("Java programming and Spring Boot development")
+                                                .group(technicalGroup).build(),
+                                Skill.builder().code("REACT").name("React").description("React.js frontend development")
+                                                .group(technicalGroup).build(),
+                                Skill.builder().code("SQL").name("SQL").description("Relational database query writing")
+                                                .group(technicalGroup).build(),
+                                Skill.builder().code("DOCKER").name("Docker")
+                                                .description("Containerization with Docker and Docker Compose")
+                                                .group(technicalGroup).build());
+
+                skillRepository.saveAll(skills);
+                log.info("Initialized {} skill groups and {} skills", 5, skills.size());
+        }
+
+        private void ensureSkillsModule() {
+                boolean moduleExists = moduleRepository.existsByUrl("/skills");
+                if (!moduleExists) {
+                        moduleGroupsRepository.findByName("Training").ifPresent(trainingGroup -> {
+                                moduleRepository.save(createModule(
+                                                trainingGroup, "Skills", "/skills", "award", 7,
+                                                "TOPIC_READ", "Manage skills and skill groups"));
+                                log.info("Added Skills module to Training group");
+                        });
+                }
         }
 
 }
