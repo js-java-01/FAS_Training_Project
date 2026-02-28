@@ -14,7 +14,6 @@ import { UpdateLanguageModal } from './UpdateLanguageModal';
 import { ViewLanguageModal } from './ViewLanguageModal';
 
 import { DataTable } from '@/components/data_table/DataTable';
-import DataIOModal from '@/components/dataio/DataIOModal';
 import { getColumns } from './column';
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/useToast';

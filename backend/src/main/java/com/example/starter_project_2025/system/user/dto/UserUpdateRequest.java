@@ -21,7 +21,7 @@ public record UserUpdateRequest(
         String lastName,
 
         Boolean isActive,
-        
+
         List<UUID> roleIds
 ) {
 }

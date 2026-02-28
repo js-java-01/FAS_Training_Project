@@ -1,36 +1,32 @@
-import AssessmentManagement from "@/pages/AssessmentManagement";
+import type { ComponentType } from "react";
 import { Dashboard } from "@/pages/Dashboard";
-import { LocationManagement } from "@/pages/LocationManagement";
+import ModulesManagement from "@/pages/modules/module/ModulesManagement.tsx";
+import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsManagement.tsx";
 import NotFoundPage from "@/pages/NotFoundPage.tsx";
-import { RoleManagement } from "@/pages/RoleManagement.tsx";
-import ProgrammingLanguageManagement  from "@/pages/programming-language/ProgrammingLanguageManagement.tsx";
-import AssessmentManagement from "@/pages/assessment-type/AssessmentManagement.tsx";
+import AssessmentManagement from "@/pages/AssessmentManagement";
 import { LocationManagement } from "@/pages/LocationManagement";
 import CourseManagement from "@/pages/course/CourseManagement";
-import { SelectAssessmentPage } from "@/pages/assessment";
 import { TeacherAssessmentPage } from "@/pages/teacher-assessment";
 import { QuestionCategoryManagement } from "@/pages/question-category";
-import { TeacherAssessmentPage } from "@/pages/teacher-assessment";
-import type { ComponentType } from "react";
+import { QuestionManagementPage } from "@/pages/question";
 
 // Auth components
-import { Logout } from "@/components/auth/Logout";
 import { OAuth2RedirectHandler } from "@/components/auth/OAuth2RedirectHandler";
-import { Unauthorized } from "@/pages/Unauthorized";
-import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import { Login } from "@/pages/auth/Login";
+import { Logout } from "@/components/auth/Logout";
+import { Unauthorized } from "@/pages/Unauthorized";
 import RegisterPage from "@/pages/auth/RegisterPage";
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 
 // Parameterized route components
 import CourseDetailPage from "@/pages/course/CourseDetailPage";
-import { AttemptHistoryPage, QuizPage, ResultPage } from "@/pages/exam";
 import StudentCourseContent from "@/pages/learning/StudentCourseContent";
-import { QuizPage, ResultPage, AttemptHistoryPage } from "@/pages/assessment";
 import { AssessmentFormPage } from "@/pages/teacher-assessment";
 import { CreateQuestionPage, EditQuestionPage } from "@/pages/question";
-import { AssessmentFormPage } from "@/pages/teacher-assessment";
-import { UserManagementPage } from "@/pages/user";
+import UserManagement from "@/pages/user/management";
+import { AttemptHistoryPage, QuizPage, ResultPage, SelectAssessmentPage } from "@/pages/assessment";
 import { RoleManagementPage } from "@/pages/role";
+import ProgrammingLanguageManagement from "@/pages/programming-language/ProgrammingLanguageManagement";
 
 // ── Route Configuration Types ─────────────────────────────────────────────────
 export interface RouteConfig {
@@ -44,7 +40,7 @@ export interface RouteConfig {
 export const routes: RouteConfig[] = [
     // Module-driven routes (rendered from Module table, but need component mapping)
     { path: "/dashboard", component: Dashboard, isModuleDriven: true },
-    { path: "/users", component: UserManagementPage, isModuleDriven: true },
+    { path: "/users", component: UserManagement, isModuleDriven: true },
     { path: "/modules", component: ModulesManagement, isModuleDriven: true },
     { path: "/moduleGroups", component: ModuleGroupsManagement, isModuleDriven: true },
     { path: "/notFoundPage", component: NotFoundPage, isModuleDriven: true },
