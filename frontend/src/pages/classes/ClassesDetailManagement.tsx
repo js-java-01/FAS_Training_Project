@@ -20,7 +20,7 @@ export default function ClassesDetailComponent() {
 
   const getComponent = () => {
     switch (activeRole?.name) {
-      case "SUPERADMIN":
+      case "SUPER_ADMIN":
       case "ADMIN":
         return roleComponents.adminDetail;
 

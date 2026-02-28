@@ -10,38 +10,13 @@ import { trainingClassKeys } from "./keys";
 import type { TrainingClass } from "@/types/trainingClass";
 import type { ClassInfoFormData } from "./components/ClassInfoTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-    Breadcrumb,
-    BreadcrumbList,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Pencil, Save, X } from "lucide-react";
+import { ArrowLeft, FileBarChartIcon, Pencil, Save, X } from "lucide-react";
 import ClassInfoTab from "./components/ClassInfoTab";
 import { getTrainingClassStatusPresentation } from "./utils/statusPresentation";
 import { decodeRouteId } from "@/utils/routeIdCodec";
-
-function ClassBreadcrumb() {
-    return (
-        <Breadcrumb>
-            <BreadcrumbList>
-                <BreadcrumbItem>
-                    <BreadcrumbLink asChild>
-                        <Link to="/classes">Classes</Link>
-                    </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator>&gt;</BreadcrumbSeparator>
-                <BreadcrumbItem>
-                    <BreadcrumbPage>Detail</BreadcrumbPage>
-                </BreadcrumbItem>
-            </BreadcrumbList>
-        </Breadcrumb>
-    );
-}
+import TopicMarkModal from "../topic-mark/TopicMarkManagement";
 
 const TABS = [
     { value: "class-info", label: "Class Info" },
@@ -95,6 +70,7 @@ export default function ClassDetailPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const queryClient = useQueryClient();
+    const [openTopicMark, setOpenTopicMark] = useState(false);
 
     /* Data passed from the table via navigate state */
     const stateClass = (location.state as { trainingClass?: TrainingClass })?.trainingClass ?? null;
@@ -178,7 +154,16 @@ export default function ClassDetailPage() {
     }, [decodedClassId, formData, queryClient]);
 
     return (
-        <MainLayout customBreadcrumb={<ClassBreadcrumb />}>
+      <MainLayout
+        pathName={
+          decodedClassId && trainingClass
+            ? {
+                classes: "Classes",
+                [id as string]: trainingClass.className ?? "Detail",
+              }
+            : undefined
+        }
+      >
             {isLoading && !trainingClass ? (
                 <div className="flex items-center justify-center py-20 text-muted-foreground">
                     Loading…
@@ -286,8 +271,10 @@ export default function ClassDetailPage() {
                         </TabsContent>
 
                         {/* Placeholder tabs */}
-                        <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1">
-                            <PlaceholderTab label="Trainee List" />
+                  <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1">
+                     <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button>
+                    <PlaceholderTab label="Trainee List" />
+
                         </TabsContent>
                         <TabsContent value="calendar" className="pt-6 overflow-y-auto flex-1">
                             <PlaceholderTab label="Calendar" />
@@ -303,7 +290,9 @@ export default function ClassDetailPage() {
                         </TabsContent>
                     </Tabs>
                 </div>
-            )}
+        )}
+
+        <TopicMarkModal open={openTopicMark} onOpenChange={setOpenTopicMark} />
         </MainLayout>
     );
 }
