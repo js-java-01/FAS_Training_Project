@@ -41,6 +41,7 @@ public interface TopicMarkService {
      * Returns column definitions once + paginated student rows.
      */
     TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword,
+                                                     Boolean passed,
                                                      org.springframework.data.domain.Pageable pageable);
     /**
      * Get the detailed score breakdown for a single student in a course class.

@@ -185,13 +185,18 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
     @Override
     @Transactional(readOnly = true)
-    public TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword, Pageable pageable) {
+    public TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword, Boolean passed, Pageable pageable) {
         TopicMarkGradebookResponse full = getGradebook(courseClassId);
 
-        // Filter rows by student full name
+        // Filter rows by student full name and passed status
         List<TopicMarkGradebookResponse.Row> filtered = full.getRows().stream()
                 .filter(row -> keyword == null || keyword.isBlank() ||
                         row.getFullName().toLowerCase().contains(keyword.toLowerCase().trim()))
+                .filter(row -> {
+                    if (passed == null) return true;
+                    Object val = row.getValues().get("IS_PASSED");
+                    return passed.equals(val instanceof Boolean b ? b : false);
+                })
                 .collect(Collectors.toList());
 
         // Manual sort by pageable sort orders
