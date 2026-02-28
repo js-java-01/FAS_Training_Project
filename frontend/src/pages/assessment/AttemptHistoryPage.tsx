@@ -4,6 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import type { Submission } from "@/types/exam";
 import { ChevronLeft, Eye, CheckCircle2, XCircle, Clock } from "lucide-react";
-import { getMockAttemptHistory } from "./mockExamData";
+import { getMockAttemptHistory, getMockAssessment } from "./mockExamData";
 
 export default function AttemptHistoryPage() {
   const { assessmentId } = useParams<{ assessmentId: string }>();
@@ -22,6 +23,7 @@ export default function AttemptHistoryPage() {
 
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [assessmentTitle, setAssessmentTitle] = useState<string>();
 
   useEffect(() => {
     if (!assessmentId) return;
@@ -29,6 +31,8 @@ export default function AttemptHistoryPage() {
     setIsLoading(true);
     const timer = setTimeout(() => {
       setSubmissions(getMockAttemptHistory(assessmentId));
+      const assessment = getMockAssessment(assessmentId);
+      setAssessmentTitle(assessment?.title);
       setIsLoading(false);
     }, 400);
 
@@ -69,41 +73,44 @@ export default function AttemptHistoryPage() {
   };
 
   return (
-    <MainLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/exam")}>
-            <ChevronLeft className="h-4 w-4 mr-1" /> Back
+    <MainLayout
+      pathName={assessmentId && assessmentTitle ? { history: "History", [assessmentId]: assessmentTitle } : undefined}
+    >
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/assessments")}>
+            <ChevronLeft className="h-4 w-4 mr-1" /> Back to Assessments
           </Button>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Attempt History</h2>
-            <p className="text-sm text-muted-foreground">
-              All your attempts for this assessment, newest first.
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Showing all attempts, newest first
+          </p>
         </div>
 
         {isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
+          <Card className="p-4">
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          </Card>
         ) : submissions.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">
-            <p>No attempts found for this assessment.</p>
-          </div>
+          <Card className="p-12">
+            <div className="text-center text-muted-foreground">
+              <p>No attempts found for this assessment.</p>
+            </div>
+          </Card>
         ) : (
-          <div className="border rounded-lg overflow-hidden">
+          <Card>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-16">#</TableHead>
                   <TableHead>Started</TableHead>
                   <TableHead>Submitted</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-20 text-right">Action</TableHead>
+                  <TableHead className="w-24">Score</TableHead>
+                  <TableHead className="w-32">Status</TableHead>
+                  <TableHead className="w-24 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -121,7 +128,7 @@ export default function AttemptHistoryPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => navigate(`/exam/result/${sub.id}`)}
+                          onClick={() => navigate(`/assessments/result/${sub.id}`)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -129,7 +136,7 @@ export default function AttemptHistoryPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => navigate(`/exam/quiz/${sub.id}`)}
+                          onClick={() => navigate(`/assessments/quiz/${sub.id}`)}
                         >
                           Continue
                         </Button>
@@ -139,7 +146,7 @@ export default function AttemptHistoryPage() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         )}
       </div>
     </MainLayout>

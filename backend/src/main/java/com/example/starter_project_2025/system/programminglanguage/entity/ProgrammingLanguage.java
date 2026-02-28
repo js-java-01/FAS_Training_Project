@@ -1,83 +1,70 @@
 package com.example.starter_project_2025.system.programminglanguage.entity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import com.example.starter_project_2025.system.course_programing_language.entity.CourseProgrammingLanguage;
+import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportEntity;
+import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportField;
+import com.example.starter_project_2025.system.dataio.core.importer.annotation.ImportField;
+import com.example.starter_project_2025.system.dataio.core.template.annotation.ImportEntity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+@Data
 @Entity
+@ExportEntity
+@ImportEntity("programming-language")
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "programming_languages", uniqueConstraints = {
         @UniqueConstraint(columnNames = "name")
 })
 public class ProgrammingLanguage {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    UUID id;
 
     @Column(nullable = false, length = 255, unique = true)
-    private String name;
+    @ImportField(name = "Name", required = true)
+    @ExportField(name = "Name")
+    String name;
 
+    @ImportField(name = "Version", required = true)
+    @ExportField(name = "Version")
     @Column(length = 255)
-    private String version;
+    String version;
 
+    @ImportField(name = "Description")
+    @ExportField(name = "Description")
     @Column(length = 1000)
-    private String description;
+    String description;
 
+    @ImportField(name = "Supported")
+    @ExportField(name = "Supported")
     @Column(nullable = false)
-    private Boolean isSupported;
+    boolean isSupported;
 
-    @OneToMany(mappedBy = "programmingLanguage")
+    @OneToMany(mappedBy = "programmingLanguage", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonManagedReference
-    private Set<CourseProgrammingLanguage> courseProgrammingLanguages;
+    Set<CourseProgrammingLanguage> courseProgrammingLanguages;
 
-    public ProgrammingLanguage() {
-    }
+    @CreationTimestamp
+    @Column(updatable = false)
+    LocalDateTime createdAt;
 
-    public ProgrammingLanguage(String name, String version, String description, Boolean isSupported) {
-        this.name = name;
-        this.version = version;
-        this.description = description;
-        this.isSupported = isSupported;
-    }
-
-    public ProgrammingLanguage(String name, String version, String description) {
-        this.name = name;
-        this.version = version;
-        this.description = description;
-        this.isSupported = false; // Set default value
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public Boolean isSupported() {
-        return isSupported;
-    }
-
-    public void updateDetails(String name, String version, String description) {
-        this.name = name;
-        this.version = version;
-        this.description = description;
-    }
-
-    void setSupported(Boolean supported) {
-        this.isSupported = supported;
-    }
+    @UpdateTimestamp
+    LocalDateTime updatedAt;
 }

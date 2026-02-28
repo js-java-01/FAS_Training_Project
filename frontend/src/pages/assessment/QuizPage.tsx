@@ -15,6 +15,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { getMockSubmission, gradeMockSubmission } from "./mockExamData";
+import { QuestionNavigator } from "./QuestionNavigator";
 
 // ===== Local answer state =====
 interface LocalAnswer {
@@ -165,22 +166,13 @@ export default function QuizPage() {
     setTimeout(() => {
       const { result } = gradeMockSubmission(submissionId, bulkAnswers);
       toast.success(result.isPassed ? "Congratulations! You passed!" : "Quiz submitted.");
-      navigate(`/exam/result/${result.submissionId}`, {
+      navigate(`/assessments/result/${result.submissionId}`, {
         replace: true,
         state: { answers: bulkAnswers },
       });
       setIsSubmitting(false);
       setShowConfirm(false);
     }, 800);
-  };
-
-  // ===== Status helpers =====
-  const getQuestionStatus = (q: SubmissionQuestion): "answered" | "review" | "unanswered" => {
-    const hasAnswer = answers.has(q.id) && answers.get(q.id)!.answerValue !== "";
-    const isReview = markedForReview.has(q.id);
-    if (isReview) return "review";
-    if (hasAnswer) return "answered";
-    return "unanswered";
   };
 
   const answeredCount = questions.filter(
@@ -218,7 +210,7 @@ export default function QuizPage() {
             <p className="text-sm text-muted-foreground">
               This assessment has no questions assigned to it. Please contact your instructor.
             </p>
-            <Button onClick={() => navigate("/exam")} className="w-full">
+            <Button onClick={() => navigate("/assessments")} className="w-full">
               Back to Assessments
             </Button>
           </CardContent>
@@ -237,7 +229,7 @@ export default function QuizPage() {
       {/* Top bar */}
       <header className="bg-white border-b px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/exam")}>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/assessments")}>
             <ChevronLeft className="h-4 w-4 mr-1" /> Exit
           </Button>
           <span className="text-sm font-medium text-muted-foreground">
@@ -260,7 +252,7 @@ export default function QuizPage() {
           </Badge>
           <Button
             size="sm"
-            variant="destructive"
+            variant="default"
             disabled={isSubmitting}
             onClick={() => setShowConfirm(true)}
           >
@@ -273,7 +265,11 @@ export default function QuizPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* Question panel (70%) */}
         <div className="flex-1 overflow-y-auto p-6">
-          <Card className="max-w-3xl mx-auto">
+          <Card className="max-w-3xl mx-auto relative">
+            {/* Marked indicator - small yellow dot */}
+            {markedForReview.has(currentQuestion.id) && (
+              <div className="absolute top-4 right-4 w-3 h-3 bg-yellow-400 rounded-full shadow-sm" title="Marked for review" />
+            )}
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between gap-2">
                 <CardTitle className="text-lg">
@@ -360,52 +356,14 @@ export default function QuizPage() {
 
         {/* Question nav panel (30%) */}
         <aside className="w-72 border-l bg-white p-4 overflow-y-auto shrink-0 hidden md:block">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Question Navigator</h3>
-
-          <div className="grid grid-cols-5 gap-2">
-            {questions.map((q, idx) => {
-              const status = getQuestionStatus(q);
-              const isCurrent = idx === currentIdx;
-
-              let bg = "bg-gray-100 text-gray-600 border-gray-200";
-              if (status === "answered") bg = "bg-green-100 text-green-700 border-green-300";
-              if (status === "review") bg = "bg-amber-100 text-amber-700 border-amber-300";
-              if (isCurrent) bg += " ring-2 ring-blue-500";
-
-              return (
-                <button
-                  key={q.id}
-                  onClick={() => setCurrentIdx(idx)}
-                  className={`h-10 w-full rounded border text-sm font-medium transition-all ${bg}`}
-                  title={`Q${idx + 1} — ${status}`}
-                >
-                  {idx + 1}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Legend */}
-          <div className="mt-4 space-y-1.5">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="h-3 w-3 rounded bg-gray-200" /> Unanswered
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="h-3 w-3 rounded bg-green-200" /> Answered
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="h-3 w-3 rounded bg-amber-200" /> Marked for Review
-            </div>
-          </div>
-
-          {/* Summary */}
-          <div className="mt-6 p-3 rounded-lg bg-gray-50 text-xs space-y-1">
-            <p>Answered: <strong>{answeredCount}</strong> / {questions.length}</p>
-            <p>Marked: <strong>{markedForReview.size}</strong></p>
-            <p>
-              Unanswered: <strong>{questions.length - answeredCount}</strong>
-            </p>
-          </div>
+          <QuestionNavigator
+            mode="quiz"
+            questions={questions}
+            currentIndex={currentIdx}
+            answers={answers}
+            markedForReview={markedForReview}
+            onQuestionClick={setCurrentIdx}
+          />
 
           <div className="mt-4 text-xs text-muted-foreground space-y-0.5">
             <p><kbd className="px-1 py-0.5 rounded bg-gray-200 text-[10px]">←</kbd> <kbd className="px-1 py-0.5 rounded bg-gray-200 text-[10px]">→</kbd> Navigate</p>
@@ -452,7 +410,7 @@ export default function QuizPage() {
                   Cancel
                 </Button>
                 <Button
-                  variant="destructive"
+                  variant="default"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                 >

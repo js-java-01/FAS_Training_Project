@@ -1008,7 +1008,11 @@ public class DataInitializer implements CommandLineRunner
     private ProgrammingLanguage createProgrammingLanguage(String name, String version, String description,
                                                           boolean isSupported)
     {
-        ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
+        ProgrammingLanguage language = new ProgrammingLanguage();
+        language.setName(name);
+        language.setVersion(version);
+        language.setDescription(description);
+        language.setSupported(isSupported);
         return language;
     }
 

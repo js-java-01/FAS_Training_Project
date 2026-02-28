@@ -93,6 +93,12 @@ export const MOCK_ASSESSMENTS: UserAssessment[] = [
   },
 ];
 
+// ===== HELPER: Get assessment by ID =====
+export function getMockAssessment(assessmentId: number | string): UserAssessment | undefined {
+  const id = typeof assessmentId === 'string' ? parseInt(assessmentId, 10) : assessmentId;
+  return MOCK_ASSESSMENTS.find(a => a.assessmentId === id);
+}
+
 // ===== MOCK QUESTIONS (for QuizPage) =====
 const MOCK_QUESTIONS: SubmissionQuestion[] = [
   {

@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    Download,
     Plus,
-    Upload
 } from 'lucide-react';
 import React, { useState, useMemo, useCallback } from 'react';
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
@@ -12,12 +10,11 @@ import { PermissionGate } from '../../components/PermissionGate';
 
 import { CreateLanguageModal } from './CreateLanguageModal';
 import { DeleteLanguageDialog } from './DeleteLanguageDialog';
-import { ImportLanguageDialog } from './ImportLanguageDialog';
 import { UpdateLanguageModal } from './UpdateLanguageModal';
 import { ViewLanguageModal } from './ViewLanguageModal';
-// import { ExportModal } from './ExportModal';
 
 import { DataTable } from '@/components/data_table/DataTable';
+import DataIOModal from '@/components/dataio/DataIOModal';
 import { getColumns } from './column';
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/useToast';
@@ -44,8 +41,6 @@ export const ProgrammingLanguageTable: React.FC = () => {
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showViewModal, setShowViewModal] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    const [showImportDialog, setShowImportDialog] = useState(false);
-    const [showExportModal, setShowExportModal] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState<ProgrammingLanguage | null>(null);
 
     // ========================================
@@ -111,23 +106,6 @@ export const ProgrammingLanguageTable: React.FC = () => {
         }
     });
 
-    const importMutation = useMutation({
-        mutationFn: programmingLanguageApi.import,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['programmingLanguages'] });
-        },
-        onError: (error: any) => {
-            const errorMessage = error.response?.data?.message;
-            if (!errorMessage || !errorMessage.includes('Missing required column')) {
-                toast({
-                    variant: "destructive",
-                    title: "Import Failed",
-                    description: errorMessage || "An error occurred during import",
-                });
-            }
-        }
-    });
-
     // ========================================
     // Columns & Actions
     // ========================================
@@ -154,27 +132,7 @@ export const ProgrammingLanguageTable: React.FC = () => {
 
     const headerActions = (
         <div className="flex gap-2">
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowExportModal(true)}
-                className="h-8"
-            >
-                <Download className="mr-2 h-4 w-4" />
-                Export
-            </Button>
-
-            <PermissionGate permission="PROGRAMMING_LANGUAGE_CREATE">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowImportDialog(true)}
-                    className="h-8"
-                >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Import
-                </Button>
-            </PermissionGate>
+            <DataIOModal entity="programming-language" />
 
             <PermissionGate permission="PROGRAMMING_LANGUAGE_CREATE">
                 <Button
@@ -252,22 +210,7 @@ export const ProgrammingLanguageTable: React.FC = () => {
                 isPending={deleteMutation.isPending}
             />
 
-            <ImportLanguageDialog
-                isOpen={showImportDialog}
-                onClose={() => {
-                    setShowImportDialog(false);
-                    importMutation.reset();
-                }}
-                onImport={(file) => importMutation.mutate(file)}
-                isPending={importMutation.isPending}
-                importResult={importMutation.data as ImportResult ?? null}
-                onSuccess={() => queryClient.invalidateQueries({ queryKey: ['programmingLanguages'] })}
-            />
 
-            {/* <ExportModal
-                isOpen={showExportModal}
-                onClose={() => setShowExportModal(false)}
-            /> */}
         </div>
     );
 };
