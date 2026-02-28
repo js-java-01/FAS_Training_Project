@@ -26,6 +26,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import com.example.starter_project_2025.system.modulegroups.dto.response.PageResponse;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -174,6 +179,33 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         return TopicMarkGradebookResponse.builder()
                 .columns(columnDefs)
                 .rows(rows)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword, Pageable pageable) {
+        TopicMarkGradebookResponse full = getGradebook(courseClassId);
+
+        // Filter rows by student full name
+        List<TopicMarkGradebookResponse.Row> filtered = full.getRows().stream()
+                .filter(row -> keyword == null || keyword.isBlank() ||
+                        row.getFullName().toLowerCase().contains(keyword.toLowerCase().trim()))
+                .collect(Collectors.toList());
+
+        // Manual pagination
+        int total = filtered.size();
+        int start = (int) pageable.getOffset();
+        int end   = Math.min(start + pageable.getPageSize(), total);
+        List<TopicMarkGradebookResponse.Row> pageContent = start >= total
+                ? Collections.emptyList()
+                : filtered.subList(start, end);
+
+        Page<TopicMarkGradebookResponse.Row> page = new PageImpl<>(pageContent, pageable, total);
+
+        return TopicMarkGradebookSearchResponse.builder()
+                .columns(full.getColumns())
+                .rows(PageResponse.from(page))
                 .build();
     }
 

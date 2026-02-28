@@ -35,7 +35,13 @@ public interface TopicMarkService {
      * (FINAL_SCORE, IS_PASSED, COMMENT), plus one row per enrolled student.
      */
     TopicMarkGradebookResponse getGradebook(UUID courseClassId);
-
+    /**
+     * Paginated gradebook search.
+     * Filters enrolled students by full name (case-insensitive, partial match).
+     * Returns column definitions once + paginated student rows.
+     */
+    TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword,
+                                                     org.springframework.data.domain.Pageable pageable);
     /**
      * Get the detailed score breakdown for a single student in a course class.
      * Includes per-section computed scores, full column list, and audit history.
