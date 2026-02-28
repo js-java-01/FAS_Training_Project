@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
-import { DatabaseBackup, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
@@ -14,27 +14,39 @@ import { ModuleForm } from "./ModuleForm";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useGetAllModules } from "./services/queries/index";
 import { ModuleDetailDialog } from "./DetailDialog";
-import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import {
   useDownloadTemplate,
   useExportModules,
   useImportModules,
 } from "@/pages/modules/module/services/mutations";
 import { FacetedFilter } from "@/components/FacedFilter";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/store/store";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
+import { ROLES } from "@/types/role";
+import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
-  /* ---------- get role ---------- */
-  const role = useSelector((state: RootState) => state.auth.role);
+  /* ---------- permission---------- */
+  const { activePermissions, activeRole } = useRoleSwitch();
+  const isSuperAdmin = activeRole?.name === ROLES.SUPER_ADMIN;
+  const permissions = activePermissions || [];
+  console.log("active", permissions)
+
+  const hasPermission = (permission: string) =>
+    permissions.includes(permission);
+
+  const canCreate = hasPermission("MODULE_CREATE") && isSuperAdmin;
+  const canUpdate = hasPermission("MODULE_UPDATE") && isSuperAdmin;
+  const canDelete = hasPermission("MODULE_DELETE") && isSuperAdmin;
+  const canImport = hasPermission("MODULE_IMPORT") && isSuperAdmin;
+  const canExport = hasPermission("MODULE_EXPORT") && isSuperAdmin;
+
 
   /* ---------- modal & view ---------- */
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [viewingModule, setViewingModule] = useState<Module | null>(null);
   const [deletingModule, setDeletingModule] = useState<Module | null>(null);
-  const [openBackupModal, setOpenBackupModal] = useState(false);
 
   /* ---------- table state ---------- */
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -65,10 +77,6 @@ export default function ModulesTable() {
     const { id, desc } = sorting[0];
     return `${id},${desc ? "desc" : "asc"}`;
   }, [sorting]);
-
-  const { mutateAsync: importModules } = useImportModules();
-  const { mutateAsync: exportModules } = useExportModules();
-  const { mutateAsync: downloadTemplate } = useDownloadTemplate();
 
   /* ---------- query ---------- */
   const {
@@ -157,68 +165,25 @@ export default function ModulesTable() {
 
   /* ---------- columns ---------- */
   const columns = useMemo(
-    () =>
-      getColumns({
-        onView: setViewingModule,
-        onEdit: (m) => {
-          setEditingModule(m);
-          setIsFormOpen(true);
-        },
-        onDelete: setDeletingModule,
-      }, role),
-    [role],
-  );
-
-  /* ================= IMPORT / EXPORT / TEMPLATE ================= */
-  const handleImport = async (file: File) => {
-    try {
-      const res = await importModules(file);
-      return res;
-    } catch (err: any) {
-      const errorData = err?.response?.data;
-
-      if (errorData?.totalRows !== undefined) {
-        return errorData;
-      }
-
-      toast.error(
-        errorData?.message ?? "Failed to import modules"
-      );
-
-      throw err;
-    }
-  };
-
-  const handleExport = async () => {
-    try {
-      const blob = await exportModules();
-      downloadBlob(blob, "modules.xlsx");
-      toast.success("Export modules successfully");
-    } catch {
-      toast.error("Failed to export modules");
-    }
-  };
-
-  const handleDownloadTemplate = async () => {
-    try {
-      const blob = await downloadTemplate();
-      downloadBlob(blob, "modules_template.xlsx");
-      toast.success("Download template successfully");
-    } catch {
-      toast.error("Failed to download template");
-    }
-  };
-
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-  };
+     () =>
+       getColumns(
+         {
+           onView: setViewingModule,
+           onEdit: canUpdate
+             ? (m) => {
+                 setEditingModule(m);
+                 setIsFormOpen(true);
+               }
+             : undefined,
+           onDelete: canDelete ? setDeletingModule : undefined,
+         },
+         {
+           canUpdate,
+           canDelete,
+         }
+       ),
+     [canUpdate, canDelete]
+   );
 
   const { data: moduleGroups } = useQuery({
     queryKey: ["module-groups-list"],
@@ -252,29 +217,32 @@ export default function ModulesTable() {
         manualSorting
         /* Header */
         headerActions={
-          role === "ADMIN" && (
-            <div className="flex flex-row gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => setOpenBackupModal(true)}
-              >
-                <DatabaseBackup className="h-4 w-4" />
-                Import / Export
-              </Button>
+                 (canCreate || canImport || canExport) && (
+                   <div className="flex flex-row gap-2">
+                     {(canImport || canExport) && (
+                       <EntityImportExportButton
+                         title="Modules"
+                         useImportHook={useImportModules}
+                         useExportHook={useExportModules}
+                         useTemplateHook={useDownloadTemplate}
+                       />
+                     )}
 
-              <Button
-                onClick={() => {
-                  setEditingModule(null);
-                  setIsFormOpen(true);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add New Module
-              </Button>
-            </div>
-          )
-        }
+                     {canCreate && (
+                       <Button
+                         onClick={() => {
+                           setEditingModule(null);
+                           setIsFormOpen(true);
+                         }}
+                         className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                       >
+                         <Plus className="h-4 w-4" />
+                         Add New Module
+                       </Button>
+                     )}
+                   </div>
+                 )
+               }
         /*Faced filter */
         facetedFilters={
           <div className="flex gap-1">
@@ -325,15 +293,6 @@ export default function ModulesTable() {
         description={`Are you sure you want to delete "${deletingModule?.title}"?`}
         onCancel={() => setDeletingModule(null)}
         onConfirm={() => void handleDelete()}
-      />
-
-      <ImportExportModal
-        title="Modules"
-        open={openBackupModal}
-        setOpen={setOpenBackupModal}
-        onImport={handleImport}
-        onExport={handleExport}
-        onDownloadTemplate={handleDownloadTemplate}
       />
     </div>
   );

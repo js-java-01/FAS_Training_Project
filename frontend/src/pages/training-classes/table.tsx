@@ -4,14 +4,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import type { TrainingClass } from "@/types/trainingClass";
 import { useGetAllTrainingClasses } from "./services/queries";
 import { getColumns } from "./column";
 import { TrainingClassForm } from "./form";
-import { TrainingClassDetailDialog } from "./DetailDialog";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
+import { ReviewActionModal } from "@/components/ReviewActionModal";
+import { trainingClassApi } from "@/api/trainingClassApi";
+import { trainingClassKeys } from "./keys";
+import { encodeRouteId } from "@/utils/routeIdCodec";
 
 /* ======================================================= */
 
@@ -25,7 +29,12 @@ export default function TrainingClassesTable() {
     const debouncedSearch = useDebounce(searchValue, 300);
 
     const [openForm, setOpenForm] = useState(false);
-    const [viewingClass, setViewingClass] = useState<TrainingClass | null>(null);
+    const navigate = useNavigate();
+
+    /* ---------- approve / reject ---------- */
+    const [approveTarget, setApproveTarget] = useState<TrainingClass | null>(null);
+    const [rejectTarget, setRejectTarget] = useState<TrainingClass | null>(null);
+    const [actionLoading, setActionLoading] = useState(false);
 
     /* ---------- faceted filter ---------- */
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
@@ -71,9 +80,11 @@ export default function TrainingClassesTable() {
     const columns = useMemo(
         () =>
             getColumns({
-                onView: setViewingClass,
+                onNavigate: (row) => navigate(`/classes/${encodeRouteId("classes", row.id)}`, { state: { trainingClass: row } }),
+                onApprove: (row) => setApproveTarget(row),
+                onReject: (row) => setRejectTarget(row),
             }),
-        [],
+        [navigate],
     );
 
     /* ===================== HANDLERS ===================== */
@@ -85,6 +96,49 @@ export default function TrainingClassesTable() {
         toast.success("Class request submitted successfully");
         await invalidateAll();
         setOpenForm(false);
+    };
+
+    const handleApprove = async (reason: string) => {
+        if (!approveTarget) return;
+        setActionLoading(true);
+        try {
+            await trainingClassApi.approveClass(approveTarget.id, reason);
+            toast.success(`Class "${approveTarget.className}" approved successfully`);
+            await invalidateAll();
+            await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(approveTarget.id) });
+            setApproveTarget(null); // Move hide after success to prevent flicker before refresh in optimistic scenarios
+        } catch (err: unknown) {
+            const msg =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                (err as { message?: string })?.message ||
+                "Failed to approve class";
+            toast.error(msg);
+        } finally {
+            setActionLoading(false);
+            // setApproveTarget(null); // Moved to try block to keep modal on error? No, typically hide or retry. Let's hide on success only or error.
+            // On error, we usually want to let user retry or see what happened. But modal is simple.
+            // I'll keep it hiding on close/cancel.
+        }
+    };
+
+    const handleReject = async (reason: string) => {
+        if (!rejectTarget) return;
+        setActionLoading(true);
+        try {
+            await trainingClassApi.rejectClass(rejectTarget.id, reason);
+            toast.success(`Class "${rejectTarget.className}" rejected`);
+            await invalidateAll();
+            await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(rejectTarget.id) });
+            setRejectTarget(null); // Hide on success
+        } catch (err: unknown) {
+            const msg =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                (err as { message?: string })?.message ||
+                "Failed to reject class";
+            toast.error(msg);
+        } finally {
+            setActionLoading(false);
+        }
     };
 
     /* ===================== RENDER ===================== */
@@ -147,11 +201,39 @@ export default function TrainingClassesTable() {
                 onSaved={handleSaved}
             />
 
-            <TrainingClassDetailDialog
-                open={!!viewingClass}
-                trainingClass={viewingClass}
-                onClose={() => setViewingClass(null)}
-            />
+            {/* ── Approve confirmation ── */}
+            {approveTarget && (
+                <ReviewActionModal
+                    open={!!approveTarget}
+                    title="Approve Training Request"
+                    description="Please provide approval notes for this request."
+                    label="Approval Note"
+                    placeholder="Enter approval notes..."
+                    confirmText="Approve"
+                    variant="approve"
+                    loading={actionLoading}
+                    requireReason={true} // Screenshot shows *
+                    onConfirm={handleApprove}
+                    onCancel={() => setApproveTarget(null)}
+                />
+            )}
+
+            {/* ── Reject confirmation ── */}
+            {rejectTarget && (
+                <ReviewActionModal
+                    open={!!rejectTarget}
+                    title="Reject Training Request"
+                    description="Please provide a reason for rejecting this request."
+                    label="Rejection Reason"
+                    placeholder="Enter rejection reason..."
+                    confirmText="Reject"
+                    variant="destructive"
+                    loading={actionLoading}
+                    requireReason={true}
+                    onConfirm={handleReject}
+                    onCancel={() => setRejectTarget(null)}
+                />
+            )}
         </div>
     );
 }

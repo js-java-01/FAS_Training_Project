@@ -6,14 +6,16 @@ import type {
   UpdateCohortRequest,
 } from "@/api/cohortApi";
 import { toast } from "sonner";
-import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { DatabaseBackup, Plus } from "lucide-react";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
-import { ImportExportActions } from "@/components/import-export/ImportExportActions";
 import { DataTable } from "@/components/data_table/DataTable";
 import SortHeader from "@/components/data_table/SortHeader";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { type ColumnDef, type SortingState } from "@tanstack/react-table";
-import { BaseImportModal } from "@/components/import-export/BaseImportModal";
+import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
+import { Button } from "@/components/ui/button";
+import { useDebounce } from "@uidotdev/usehooks";
 
 // ─── Status badge ─────────────────────────────────────────
 const STATUS_COLORS: Record<string, string> = {
@@ -323,7 +325,9 @@ export function CohortTab({ courseId }: Props) {
   const [editCohort, setEditCohort] = useState<Cohort | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [showImportModal, setShowImportModal] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const debouncedSearch = useDebounce(searchValue, 300);
+  const [openBackupModal, setOpenBackupModal] = useState(false);
 
   const loadData = async () => {
     try {
@@ -353,17 +357,47 @@ export function CohortTab({ courseId }: Props) {
     }
   };
 
+  /* ================= IMPORT / EXPORT / TEMPLATE ================= */
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleImport = async (file: File) => {
+    try {
+      await cohortApi.importCohorts(courseId, file);
+      toast.success("Import cohorts successfully");
+      setOpenBackupModal(false);
+      loadData();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "Failed to import cohorts");
+      throw err;
+    }
+  };
+
   const handleExport = async () => {
     try {
       const blob = await cohortApi.exportCohorts(courseId);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "cohorts_export.xlsx";
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, "cohorts_export.xlsx");
+      toast.success("Export cohorts successfully");
     } catch {
-      toast.error("Export failed");
+      toast.error("Failed to export cohorts");
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await cohortApi.downloadTemplate();
+      downloadBlob(blob, "cohorts_template.xlsx");
+      toast.success("Download template successfully");
+    } catch {
+      toast.error("Failed to download template");
     }
   };
 
@@ -379,35 +413,51 @@ export function CohortTab({ courseId }: Props) {
     [],
   );
 
+  // Filter by search (client-side since API doesn't support keyword search)
+  const filteredCohorts = useMemo(() => {
+    if (!debouncedSearch) return cohorts;
+    const kw = debouncedSearch.toLowerCase();
+    return cohorts.filter(
+      (c) =>
+        c.code?.toLowerCase().includes(kw) ||
+        c.status?.toLowerCase().includes(kw),
+    );
+  }, [cohorts, debouncedSearch]);
+
   return (
     <div className="space-y-4">
-      {/* ─ Toolbar ─ */}
-      <div className="flex items-center justify-end">
-        <div className="flex items-center gap-2">
-          <ImportExportActions
-            onImportClick={() => setShowImportModal(true)}
-            onExportClick={handleExport}
-          />
-          <button
-            onClick={() => {
-              setEditCohort(null);
-              setShowForm(true);
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700"
-          >
-            <FiPlus size={14} /> Add Cohort
-          </button>
-        </div>
-      </div>
-
       {/* ─ DataTable ─ */}
       <DataTable
         columns={columns}
-        data={cohorts}
+        data={filteredCohorts}
         isLoading={loading}
         sorting={sorting}
         onSortingChange={setSorting}
-        isSearch={false}
+        isSearch
+        manualSearch
+        searchPlaceholder="cohort code"
+        onSearchChange={setSearchValue}
+        headerActions={
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => setOpenBackupModal(true)}
+            >
+              <DatabaseBackup className="h-4 w-4" />
+              Import / Export
+            </Button>
+            <Button
+              onClick={() => {
+                setEditCohort(null);
+                setShowForm(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Cohort
+            </Button>
+          </div>
+        }
       />
 
       {/* ─ Modals ─ */}
@@ -435,14 +485,13 @@ export function CohortTab({ courseId }: Props) {
         onConfirm={handleDelete}
       />
 
-      <BaseImportModal
-        open={showImportModal}
-        title="Import Cohorts"
-        templateFileName="cohorts_import_template.xlsx"
-        onClose={() => setShowImportModal(false)}
-        onSuccess={loadData}
-        onDownloadTemplate={() => cohortApi.downloadTemplate()}
-        onImport={(file: File) => cohortApi.importCohorts(courseId, file)}
+      <ImportExportModal
+        title="Cohorts"
+        open={openBackupModal}
+        setOpen={setOpenBackupModal}
+        onImport={handleImport}
+        onExport={handleExport}
+        onDownloadTemplate={handleDownloadTemplate}
       />
     </div>
   );

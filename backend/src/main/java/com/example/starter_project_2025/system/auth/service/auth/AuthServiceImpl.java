@@ -188,8 +188,9 @@ public class AuthServiceImpl implements AuthService
     }
 
     @Override
-    public LoginResponse refresh(String token)
+    public LoginResponse refresh(String token, HttpServletResponse response)
     {
+        refreshTokenService.verifyRefreshToken(token);
         if (jwtUtils.validateToken(token))
         {
             String email = jwtUtils.getEmailFromToken(token);
@@ -211,6 +212,10 @@ public class AuthServiceImpl implements AuthService
             userDetails.setPermissions(permissions);
 
             String newToken = jwtUtils.generateToken(userDetails);
+
+            refreshTokenService.revokeAllByUser(user.getId());
+            String newRt = refreshTokenService.generateAndSaveRefreshToken(user, Optional.of(role));
+            cookieUtil.addCookie(response, newRt);
 
             var res = authMapper.toLoginResponse(userDetails);
             res.setToken(newToken);
@@ -244,6 +249,7 @@ public class AuthServiceImpl implements AuthService
         userDetails.setPermissions(permissions);
 
         String newAt = jwtUtils.generateToken(userDetails);
+        refreshTokenService.revokeAllByUser(user.getId());
         String newRt = refreshTokenService.generateAndSaveRefreshToken(user, Optional.of(role));
         cookieUtil.addCookie(response, newRt);
 

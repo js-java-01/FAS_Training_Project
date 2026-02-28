@@ -45,6 +45,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -239,9 +240,21 @@ export function DataTable<TData, TValue>({
   return (
     <div className="grid gap-4 h-full font-inter grid-rows-[auto_1fr_auto]">
       {/* --- TABLE ACTIONS --- */}
-      <div className="grid lg:grid-cols-[1fr_auto] grid-cols-1 gap-2 w-full">
-        {/* Left: search + columns */}
-        <div className="flex flex-col gap-2">
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-2 w-full",
+          headerActions
+            ? "lg:grid-cols-[1fr_auto]"
+            : "lg:grid-cols-1"
+        )}
+      >
+        <div
+          className={cn(
+            "flex gap-2 w-full",
+             headerActions ? "flex-col" : "flex-col lg:flex-row items-center"
+          )}
+        >
+          {/* Row 1: Columns + Search */}
           <div className="flex flex-col lg:flex-row justify-start items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -270,6 +283,7 @@ export function DataTable<TData, TValue>({
                   ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
             {isSearch && (
               <div className="relative w-full lg:w-[420px]">
                 <Search
@@ -285,7 +299,13 @@ export function DataTable<TData, TValue>({
               </div>
             )}
           </div>
-          {facetedFilters}
+
+          {/* Faceted filters */}
+          {facetedFilters && (
+            <div className={cn(!headerActions && "lg:ml-1")}>
+              {facetedFilters}
+            </div>
+          )}
         </div>
 
         {/* Right: header actions */}

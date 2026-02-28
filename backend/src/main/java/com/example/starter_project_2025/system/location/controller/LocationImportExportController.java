@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.location.controller;
 
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.location.dto.LocationImportResult;
 import com.example.starter_project_2025.system.location.service.LocationImportExportService;
 import com.example.starter_project_2025.system.location.util.ExcelUtil;
@@ -33,8 +34,10 @@ public class LocationImportExportController {
     }
 
     @PostMapping("/import")
-    public LocationImportResult importLocations(@RequestParam("file") MultipartFile[] files) {
-        return service.importLocations(files);
+    public ImportResultResponse importLocations(
+            @RequestParam("file") MultipartFile file) {
+
+        return service.importLocations(file);
     }
 
     @GetMapping("/import/template")

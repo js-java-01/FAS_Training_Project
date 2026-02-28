@@ -14,7 +14,16 @@ export type TableActions = {
   onDelete?: (row: Module) => void;
 };
 
-export const getColumns = (actions?: TableActions, role?: string) => {
+interface PermissionFlags {
+  canUpdate?: boolean;
+  canDelete?: boolean;
+}
+
+
+export const getColumns = (
+  actions?: TableActions,
+  permissions?: PermissionFlags
+) => {
   const columnHelper = createColumnHelper<Module>();
 
   return [
@@ -130,30 +139,32 @@ export const getColumns = (actions?: TableActions, role?: string) => {
       header: "Actions",
       size: 120,
       cell: ({ row }) => (
-        <div className="flex gap-2">
-          {actions?.onView && (
-            <ActionBtn
-              tooltipText="View"
-              icon={<EyeIcon size={12} />}
-              onClick={() => actions.onView!(row.original)}
-            />
-          )}
-          {role === "ADMIN" && actions?.onEdit && (
-            <ActionBtn
-              tooltipText="Edit"
-              icon={<EditIcon size={12} />}
-              onClick={() => actions.onEdit!(row.original)}
-            />
-          )}
-          {role === "ADMIN" && actions?.onDelete && (
-            <ActionBtn
-              tooltipText="Delete"
-              icon={<Trash size={12} />}
-              onClick={() => actions.onDelete!(row.original)}
-            />
-          )}
-        </div>
-      ),
+             <div className="flex gap-2">
+               {actions?.onView && (
+                 <ActionBtn
+                   tooltipText="View"
+                   icon={<EyeIcon size={12} />}
+                   onClick={() => actions.onView!(row.original)}
+                 />
+               )}
+
+               {permissions?.canUpdate && actions?.onEdit && (
+                 <ActionBtn
+                   tooltipText="Edit"
+                   icon={<EditIcon size={12} />}
+                   onClick={() => actions.onEdit!(row.original)}
+                 />
+               )}
+
+               {permissions?.canDelete && actions?.onDelete && (
+                 <ActionBtn
+                   tooltipText="Delete"
+                   icon={<Trash size={12} />}
+                   onClick={() => actions.onDelete!(row.original)}
+                 />
+               )}
+             </div>
+           ),
       enableSorting: false,
     }),
   ];

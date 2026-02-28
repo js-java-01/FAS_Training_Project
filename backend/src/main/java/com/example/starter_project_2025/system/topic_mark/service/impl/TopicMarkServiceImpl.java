@@ -137,7 +137,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
         // Enrolled students
         List<Enrollment> enrollments = enrollmentRepository
-                .findByTrainingClassIdAndStatus(courseClass.getClassInfo().getId(), EnrollmentStatus.ACTIVE);
+                .findByCourseIdAndStatus(courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
 
         // All entries for this courseClass: userId â†’ (columnId â†’ score)
         List<TopicMarkEntry> allEntries = topicMarkEntryRepository.findByCourseClassId(courseClassId);
@@ -384,8 +384,8 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     }
 
     private void createNullEntriesForColumn(TopicMarkColumn column, CourseClass courseClass) {
-        List<Enrollment> enrollments = enrollmentRepository.findByTrainingClassIdAndStatus(
-                courseClass.getClassInfo().getId(), EnrollmentStatus.ACTIVE);
+        List<Enrollment> enrollments = enrollmentRepository.findByCourseIdAndStatus(
+                courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
         for (Enrollment enrollment : enrollments) {
             User student = enrollment.getUser();
             topicMarkEntryRepository.findByTopicMarkColumnIdAndUserId(column.getId(), student.getId())

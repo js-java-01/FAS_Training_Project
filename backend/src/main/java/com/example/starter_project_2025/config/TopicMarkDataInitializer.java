@@ -4,6 +4,7 @@ import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.classes.repository.ClassRepository;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
@@ -133,7 +134,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
         User eva   = findOrCreateStudent("eva.chen@test.com",      "Eva",   "Chen");
 
         for (User s : List.of(john, alice, bob, carol, david, eva)) {
-            findOrCreateEnrollment(s, trainingClass);
+            findOrCreateEnrollment(s, courseClass.getCourse());
         }
         log.info("6 students enrolled");
 
@@ -303,16 +304,16 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                         .build()));
     }
 
-    private void findOrCreateEnrollment(User user, TrainingClass tc) {
+    private void findOrCreateEnrollment(User user, Course course) {
         Long count = em.createQuery(
-                "SELECT COUNT(e) FROM Enrollment e WHERE e.user.id = :u AND e.trainingClass.id = :t", Long.class)
+                "SELECT COUNT(e) FROM Enrollment e WHERE e.user.id = :u AND e.course.id = :c", Long.class)
                 .setParameter("u", user.getId())
-                .setParameter("t", tc.getId())
+                .setParameter("c", course.getId())
                 .getSingleResult();
         if (count == 0) {
             Enrollment e = new Enrollment();
             e.setUser(user);
-            e.setTrainingClass(tc);
+            e.setCourse(course);
             e.setStatus(EnrollmentStatus.ACTIVE);
             em.persist(e);
         }

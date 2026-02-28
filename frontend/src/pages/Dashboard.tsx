@@ -105,6 +105,75 @@ export const Dashboard: React.FC = () => {
             <p className="text-gray-600">Configure application menus</p>
           </Link>
         </PermissionGate>
+
+        <PermissionGate permission="LOCATION_READ">
+          <Link
+              to="/locations"
+              className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">Location Management</h3>
+            </div>
+            <p className="text-gray-600">Manage organizational departments and locations</p>
+          </Link>
+        </PermissionGate>
+
+        <PermissionGate permission="DEPARTMENT_READ">
+          <Link
+              to="/departments"
+              className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">Department Management</h3>
+            </div>
+            <p className="text-gray-600">Manage organizational departments and locations</p>
+          </Link>
+        </PermissionGate>
+
+        <PermissionGate permission="COURSE_READ">
+          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Courses</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">{isLoading ? "..." : stats?.totalCourses || 0}</p>
+                <p className="text-sm text-green-600 mt-1">Active learning</p>
+              </div>
+              <div className="text-4xl">📚</div>
+            </div>
+          </div>
+        </PermissionGate>
+
+        <PermissionGate permission="TOPIC_READ">
+          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-emerald-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Topics</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">{isLoading ? "..." : stats?.totalTopics || 0}</p>
+                <p className="text-sm text-gray-500 mt-1">Knowledge base</p>
+              </div>
+              <div className="text-4xl">🔖</div>
+            </div>
+          </div>
+        </PermissionGate>
+
+        // Thêm vào phần Quick Actions grid
+        <PermissionGate permission="COURSE_READ">
+          <Link to="/courses" className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-all border border-transparent hover:border-blue-200">
+            <h3 className="text-lg font-semibold text-blue-700 mb-2 flex items-center gap-2">
+              <span>📖</span> Course Management
+            </h3>
+            <p className="text-gray-600 text-sm">Create, edit courses and manage student enrollments</p>
+          </Link>
+        </PermissionGate>
+
+        <PermissionGate permission="TOPIC_READ">
+          <Link to="/topics" className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-all border border-transparent hover:border-emerald-200">
+            <h3 className="text-lg font-semibold text-emerald-700 mb-2 flex items-center gap-2">
+              <span>📂</span> Topic Management
+            </h3>
+            <p className="text-gray-600 text-sm">Organize curriculum by topics and categories</p>
+          </Link>
+        </PermissionGate>
       </div>
 
       <div className="mt-8 bg-white rounded-lg shadow p-6">
