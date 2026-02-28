@@ -1,15 +1,3 @@
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  roleId: string;
-  roleName: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface LoginRequest {
   email: string;
   password: string;
@@ -24,14 +12,6 @@ export interface LoginResponse {
   lastName: string;
   role: string;
   permissions: string[];
-}
-
-export interface CreateUserRequest {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  roleId: string;
 }
 
 export interface AuthContextType {

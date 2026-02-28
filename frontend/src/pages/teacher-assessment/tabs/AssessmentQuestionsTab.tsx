@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, FileQuestion, CheckCircle2, XCircle, Save, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { assessmentQuestionApi } from '@/api/assessmentQuestionApi';
+import { assessmentQuestionApi } from '@/api/service/assessment/assessmentQuestionApi';
 
 import { AddQuestionModal } from './AddQuestionModal';
 import { useToast } from '@/hooks/useToast';

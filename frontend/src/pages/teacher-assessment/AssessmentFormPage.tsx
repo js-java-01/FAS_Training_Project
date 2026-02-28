@@ -2,13 +2,13 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import MainHeader from '@/components/layout/MainHeader';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { assessmentApi } from '@/api/assessmentApi';
-import { assessmentQuestionApi } from '@/api/assessmentQuestionApi';
+import { assessmentApi } from '@/api/service/assessment/assessmentApi';
+import { assessmentQuestionApi } from '@/api/service/assessment/assessmentQuestionApi';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Save, X } from 'lucide-react';
-import type { AssessmentCreateRequest, AssessmentUpdateRequest } from '@/types/assessment';
+import type { AssessmentCreateRequest, AssessmentUpdateRequest } from '@/types/feature/assessment/assessment';
 import { AssessmentBasicInfoTab } from './tabs/AssessmentBasicInfoTab';
 import { AssessmentChallengesTab } from './tabs/AssessmentChallengesTab';
 import { AssessmentQuestionsTab } from './tabs/AssessmentQuestionsTab';

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AlertCircle } from 'lucide-react';
-import type { Assessment } from '../../types/assessment';
+import type { Assessment } from '../../types/feature/assessment/assessment';
 import { Modal } from '@/components/modal/Modal';
 
 interface DeleteAssessmentDialogProps {

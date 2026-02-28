@@ -1,5 +1,5 @@
 import { AssessmentFormFields } from '../AssessmentFormFields';
-import type { AssessmentUpdateRequest, AssessmentCreateRequest, Assessment } from '@/types/assessment';
+import type { AssessmentUpdateRequest, AssessmentCreateRequest, Assessment } from '@/types/feature/assessment/assessment';
 
 interface AssessmentBasicInfoTabProps {
     formData: AssessmentUpdateRequest | AssessmentCreateRequest;

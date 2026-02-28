@@ -11,12 +11,12 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useExport } from "@/hooks/useExport";
 import { useImport } from "@/hooks/useImport";
-import type { ExportFormat } from "@/types/export";
+import type { FileFormat } from "@/types";
 import { DatabaseBackup } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ExportTab } from "./ExportTab";
-import { ImportTab } from "./ImportTab";
 import ImportResultModal from "./ImportResultModal";
+import { ImportTab } from "./ImportTab";
 
 interface DataIOModalProps {
     entity: string
@@ -66,7 +66,7 @@ export default function DataIOModal({
         await handleImport(file);
     };
 
-    const handleExportFile = async (format: ExportFormat) => {
+    const handleExportFile = async (format: FileFormat) => {
         await exportFile(format);
     };
 

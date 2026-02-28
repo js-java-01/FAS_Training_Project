@@ -7,11 +7,8 @@ import {
 import React, { useState, useMemo, useCallback } from 'react';
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
-import { assessmentTypeApi } from '../../api/assessmentTypeApi';
 import { PermissionGate } from '../../components/PermissionGate';
 
-import type { AssessmentTypeRequest, ImportResult } from '../../types/assessmentType';
-import type { AssessmentType } from '../../types/assessmentType';
 
 import { CreateAssessmentModal } from './CreateAssessmentModal';
 import { DeleteAssessmentDialog } from './DeleteAssessmentDialog';
@@ -24,6 +21,8 @@ import { DataTable } from '@/components/data_table/DataTable';
 import { getColumns } from './columns';
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/useToast';
+import type { AssessmentType } from '@/types';
+import { assessmentTypeApi } from '@/api';
 
 export const AssessmentTable: React.FC = () => {
     const { toast } = useToast();

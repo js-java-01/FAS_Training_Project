@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 
 import { AssessmentFormFields } from './AssessmentFormFields';
-import type { AssessmentTypeRequest } from '../../types/assessmentType';
+import type { AssessmentTypeRequest } from '../../types/feature/assessment/assessment-type';
 import { Modal } from '@/components/modal/Modal';
 
 interface CreateAssessmentModalProps {

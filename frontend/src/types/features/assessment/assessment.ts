@@ -1,7 +1,5 @@
-// ===== Enum =====
-export type AssessmentStatus = 'DRAFT' | 'ACTIVE' | 'INACTIVE';
+import type { AssessmentStatus } from "@/types";
 
-// ===== Core Entity =====
 export interface Assessment {
   id: number;
   code: string;
@@ -9,17 +7,13 @@ export interface Assessment {
   description: string;
   assessmentTypeId: string;
   assessmentTypeName?: string;
-
   totalScore: number;
   passScore: number;
   timeLimitMinutes: number;
   attemptLimit: number;
-
   isShuffleQuestion: boolean;
   isShuffleOption: boolean;
-
   status: AssessmentStatus;
-
   createdAt: string;
   updatedAt: string;
 }
@@ -29,15 +23,12 @@ export interface AssessmentCreateRequest {
   title: string;
   description: string;
   assessmentTypeId: string;
-
   totalScore: number;
   passScore: number;
   timeLimitMinutes: number;
   attemptLimit: number;
-
   isShuffleQuestion: boolean;
   isShuffleOption: boolean;
-
   status: AssessmentStatus;
 }
 
@@ -45,36 +36,11 @@ export interface AssessmentUpdateRequest {
   title: string;
   description: string;
   assessmentTypeId: string;
-
   totalScore: number;
   passScore: number;
   timeLimitMinutes: number;
   attemptLimit: number;
-
   isShuffleQuestion: boolean;
   isShuffleOption: boolean;
-
   status: AssessmentStatus;
-}
-
-export interface AssessmentSearchParams {
-  page?: number;
-  size?: number;
-
-  keyword?: string;
-  status?: AssessmentStatus;
-  assessmentTypeId?: string;
-
-  createdFrom?: string; // ISO date
-  createdTo?: string;   // ISO date
-}
-
-export interface PaginatedResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
-  first: boolean;
-  last: boolean;
 }

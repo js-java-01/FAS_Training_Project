@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { courseApi } from "@/api/courseApi";
-import { userApi } from "@/api/userApi";
+import { userApi } from "@/api/service/user.api";
 import type { User } from "@/types/auth";
 import type { Course } from "@/types/course";
 import {

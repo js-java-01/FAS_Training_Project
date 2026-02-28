@@ -1,24 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
-import type { ExportFormat } from "@/types/export";
+import type { FileFormat } from "@/types";
 import { Download, FileBarChart, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 const exportOptions = [
     {
-        format: "EXCEL" as ExportFormat,
+        format: "EXCEL" as FileFormat,
         label: "Excel",
         description: "Download as Excel file (.xlsx)",
         icon: FileSpreadsheet,
     },
     {
-        format: "CSV" as ExportFormat,
+        format: "CSV" as FileFormat,
         label: "CSV",
         description: "Download as CSV file (.csv)",
         icon: FileText,
     },
     {
-        format: "PDF" as ExportFormat,
+        format: "PDF" as FileFormat,
         label: "PDF",
         description: "Download as PDF file (.pdf)",
         icon: FileBarChart,
@@ -27,11 +27,11 @@ const exportOptions = [
 
 interface ExportTabProps {
     loading: boolean;
-    onExport: (format: ExportFormat) => Promise<void>;
+    onExport: (format: FileFormat) => Promise<void>;
 }
 
 export function ExportTab({ loading, onExport }: ExportTabProps) {
-    const [selectedFormat, setSelectedFormat] = useState<ExportFormat | null>(null);
+    const [selectedFormat, setSelectedFormat] = useState<FileFormat | null>(null);
 
     const handleExportClick = async () => {
         if (!selectedFormat) return;

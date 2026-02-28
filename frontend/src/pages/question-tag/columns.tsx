@@ -1,7 +1,7 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import type { QuestionTag } from "../../types/questionTag";
+import type { QuestionTag } from "../../types/feature/assessment/question-tag";
 import { Badge } from "@/components/ui/badge";
 import { Eye, SquarePen, Trash2, Hash } from "lucide-react";
 import { PermissionGate } from "@/components/PermissionGate";

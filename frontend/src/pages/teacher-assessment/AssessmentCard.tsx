@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, Settings, SquarePen, Trash2, Copy } from 'lucide-react';
 import { PermissionGate } from '@/components/PermissionGate';
 import ActionBtn from '@/components/data_table/ActionBtn';
-import type { Assessment } from '@/types/assessment';
+import type { Assessment } from '@/types/feature/assessment/assessment';
 
 interface AssessmentCardProps {
     assessment: Assessment;

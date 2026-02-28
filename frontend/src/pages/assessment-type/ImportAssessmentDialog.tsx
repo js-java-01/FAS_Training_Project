@@ -3,7 +3,7 @@ import { Download, FileCheck, AlertCircle, X } from 'lucide-react';
 
 import { downloadTemplate } from '../../hooks/useAssessment';
 import { useToast } from '../../hooks/useToast.ts';
-import type { ImportResult } from '../../types/assessmentType';
+import type { ImportResult } from '../../types/feature/assessment/assessment-type.ts';
 import { Modal } from '@/components/modal/Modal.tsx';
 import { Button } from '@/components/ui/button.tsx';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ProgrammingLanguageRequest } from '../../types/programmingLanguage';
+import type { ProgrammingLanguageRequest } from '../../types/feature/assessment/programming-language';
 
 interface LanguageFormFieldsProps {
     /** Form data object */

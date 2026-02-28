@@ -2,12 +2,12 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import MainHeader from '@/components/layout/MainHeader';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { questionApi } from '@/api/questionApi';
+import { questionApi } from '@/api/service/assessment/questionApi';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Save, X, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
-import type { QuestionCreateRequest } from '@/types/question';
+import type { QuestionCreateRequest } from '@/types/feature/assessment/question';
 import { QuestionFormFields, QuestionOptionsManager } from './components';
 import { useToast } from '@/hooks/useToast';
 

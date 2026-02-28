@@ -1,5 +1,5 @@
-import { exportFileApi } from "@/api/dataio-api";
-import type { ExportFormat } from "@/types/export";
+import { exportFileApi } from "@/api/service/dataio-api";
+import type { FileFormat } from "@/types/enum/file-format";
 import { downloadBlob, getFilenameFromHeader } from "@/utils/dataio.utils";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -7,7 +7,7 @@ import { toast } from "sonner";
 export function useExport(exportUrl: string) {
   const [loading, setLoading] = useState(false);
 
-  const exportFile = async (format: ExportFormat) => {
+  const exportFile = async (format: FileFormat) => {
     try {
       setLoading(true);
 

@@ -4,7 +4,6 @@ export interface QuestionOption {
   correct: boolean;
   orderIndex: number;
   questionId: string;
-
   createdAt?: string;
   updatedAt?: string;
 }

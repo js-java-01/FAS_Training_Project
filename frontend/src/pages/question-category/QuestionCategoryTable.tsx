@@ -5,11 +5,11 @@ import {
 import React, { useState, useMemo, useCallback } from 'react';
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
-import { questionCategoryApi } from '../../api/questionCategoryApi';
+import { questionCategoryApi } from '../../api/service/assessment/questionCategoryApi';
 import { PermissionGate } from '../../components/PermissionGate';
 
-import type { QuestionCategoryRequest } from '../../types/questionCategory';
-import type { QuestionCategory } from '../../types/questionCategory';
+import type { QuestionCategoryRequest } from '../../types/feature/assessment/question-category';
+import type { QuestionCategory } from '../../types/feature/assessment/question-category';
 
 import { CreateQuestionCategoryModal } from './CreateQuestionCategoryModal';
 import { DeleteQuestionCategoryDialog } from './DeleteQuestionCategoryDialog';

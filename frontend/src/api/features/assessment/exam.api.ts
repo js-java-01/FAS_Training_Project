@@ -1,4 +1,4 @@
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../../axiosInstance';
 import type {
   UserAssessment,
   Submission,
@@ -7,7 +7,7 @@ import type {
   SubmitAnswerRequest,
   SubmitSubmissionRequest,
   PaginatedResponse,
-} from '../types/exam';
+} from '../../../types/exam';
 
 export const examApi = {
 

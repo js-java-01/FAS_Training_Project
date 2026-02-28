@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Trash2, GripVertical, CheckCircle2, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
-import type { QuestionCreateRequest, QuestionOptionRequest } from '@/types/question';
+import type { QuestionCreateRequest, QuestionOptionRequest } from '@/types/feature/assessment/question';
 import { useToast } from '@/hooks/useToast';
 
 interface QuestionOptionsManagerProps {

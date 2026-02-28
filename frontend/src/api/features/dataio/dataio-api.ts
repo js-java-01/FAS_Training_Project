@@ -1,5 +1,5 @@
-import type { ExportFormat } from "@/types/export";
-import axiosInstance from "./axiosInstance";
+import type { FileFormat } from "@/types/enum/file-format";
+import axiosInstance from "../axiosInstance";
 import { downloadBlob, getFilenameFromHeader } from "@/utils/dataio.utils";
 
 export const importFileApi = (url: string, file: File) => {
@@ -13,7 +13,7 @@ export const importFileApi = (url: string, file: File) => {
   });
 };
 
-export const exportFileApi = (url: string, format: ExportFormat) => {
+export const exportFileApi = (url: string, format: FileFormat) => {
   return axiosInstance.get(url, {
     params: { format },
     responseType: "blob",

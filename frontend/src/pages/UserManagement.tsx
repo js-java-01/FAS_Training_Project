@@ -2,18 +2,18 @@ import DataIOModal from "@/components/dataio/DataIOModal.tsx";
 import MainHeader from "@/components/layout/MainHeader.tsx";
 import React, { useEffect, useState } from "react";
 import { roleApi } from "../api/roleApi";
-import { userApi } from "../api/userApi";
 import { PermissionGate } from "../components/PermissionGate";
 import { MainLayout } from "../components/layout/MainLayout.tsx";
-import type { CreateUserRequest, User } from "../types/auth";
 import type { Role } from "../types/role";
+import type { User, UserCreateRequest } from "@/types/index.ts";
+import { userApi } from "@/api/index.ts";
 
 export const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newUser, setNewUser] = useState<CreateUserRequest>({
+  const [newUser, setNewUser] = useState<UserCreateRequest>({
     email: "",
     password: "",
     firstName: "",
@@ -43,7 +43,7 @@ export const UserManagement: React.FC = () => {
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await userApi.createUser(newUser);
+      await userApi.create(newUser);
       setShowCreateModal(false);
       setNewUser({
         email: "",
@@ -63,14 +63,14 @@ export const UserManagement: React.FC = () => {
       await userApi.toggleUserStatus(id);
       loadData();
     } catch (error) {
-      alert("Error toggling user locationStatus");
+      alert("Error toggling user status");
     }
   };
 
   const handleDeleteUser = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
-        await userApi.deleteUser(id);
+        await userApi.delete(id);
         loadData();
       } catch (error) {
         alert("Error deleting user");
@@ -91,7 +91,7 @@ export const UserManagement: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <MainHeader title={"User Management"} />
         <div className="flex gap-3">
-          
+
           <DataIOModal entity="user" />
 
           <PermissionGate permission="USER_CREATE">

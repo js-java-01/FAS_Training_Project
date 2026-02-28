@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from '@/components/data_table/DataTable';
 import { PermissionGate } from '@/components/PermissionGate';
 
-import { assessmentApi } from '@/api/assessmentApi';
-import type { Assessment, AssessmentStatus } from '@/types/assessment';
+import { assessmentApi } from '@/api/service/assessment/assessmentApi';
+import type { Assessment, AssessmentStatus } from '@/types/feature/assessment/assessment';
 import { AssessmentGrid } from './AssessmentGrid';
 import { getColumns } from './columns';
 import { ViewAssessmentModal } from './ViewAssessmentModal';

@@ -4,7 +4,7 @@ import { Download, FileCheck, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadTemplate } from '../../hooks/useProgrammingLanguages';
 import { useToast } from '../../hooks/useToast.ts';
-import type { ImportResult } from '../../types/programmingLanguage';
+import type { ImportResult } from '../../types/feature/assessment/programming-language.ts';
 import { Modal } from '@/components/modal/Modal.tsx';
 
 interface ImportLanguageDialogProps {

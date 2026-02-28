@@ -7,11 +7,11 @@ import {
 import React, { useState, useMemo, useCallback } from 'react';
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
-import { programmingLanguageApi } from '../../api/programmingLanguageApi';
+import { programmingLanguageApi } from '../../api/service/assessment/programmingLanguageApi';
 import { PermissionGate } from '../../components/PermissionGate';
 
-import type { ProgrammingLanguageRequest, ImportResult } from '../../types/programmingLanguage';
-import type { ProgrammingLanguage } from '../../types/programmingLanguage';
+import type { ProgrammingLanguageRequest, ImportResult } from '../../types/feature/assessment/programming-language';
+import type { ProgrammingLanguage } from '../../types/feature/assessment/programming-language';
 
 import { CreateLanguageModal } from './CreateLanguageModal';
 import { DeleteLanguageDialog } from './DeleteLanguageDialog';
