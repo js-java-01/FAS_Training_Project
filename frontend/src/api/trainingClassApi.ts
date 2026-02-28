@@ -2,6 +2,7 @@ import axiosInstance from "./axiosInstance";
 import type {
     TrainingClass,
     CreateTrainingClassRequest,
+    TrainingClassSemesterResponse,
 } from "@/types/trainingClass";
 import type { ApiResponse, PagedData } from "@/types/response";
 
@@ -33,4 +34,11 @@ export const trainingClassApi = {
         );
         return res.data;
     },
+    getMyClasses: async () => {
+        const res = await axiosInstance.get<ApiResponse<TrainingClassSemesterResponse[]>>(
+            `/classes/me`,
+        );
+        return res.data;
+    }
+
 };

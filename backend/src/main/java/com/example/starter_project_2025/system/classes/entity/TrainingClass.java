@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.semester.entity.Semester;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -32,6 +33,10 @@ public class TrainingClass {
     @OneToMany(mappedBy = "classInfo")
     @JsonManagedReference
     private List<CourseClass> courseClasses;
+
+    @OneToMany(mappedBy = "trainingClass")
+    @JsonManagedReference
+    private List<Enrollment> enrollments;
 
     @Column(name = "class_code", unique = true)
     private String classCode;

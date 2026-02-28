@@ -15,8 +15,8 @@ export const enrollmentApi = {
    * Enroll the current logged-in user into a cohort.
    * Requires ENROLL_COURSE permission.
    */
-  enroll: async (cohortId: string): Promise<EnrollmentResponse> => {
-    const response = await axiosInstance.post<EnrollmentResponse>('/enrollments', { cohortId });
+  enroll: async (enrollKey: string, classID: string): Promise<string> => {
+    const response = await axiosInstance.post<string>('/enrollments', { enrollKey, classID });
     return response.data;
   },
 

@@ -36,7 +36,8 @@ public class ClassSpecification {
                 Predicate searchByCode = cb.like(cb.lower(root.get("classCode")), likeKeyword);
                 Predicate searchByName = cb.like(cb.lower(root.get("className")), likeKeyword);
                 Predicate searchByTrainer = cb.like(
-                        cb.lower(root.join("courseClasses", JoinType.LEFT).join("trainer")
+                        cb.lower(root.join("courseClasses", JoinType.LEFT)
+                                .join("trainer", JoinType.LEFT)
                                 .get("fullName")),
                         likeKeyword);
                 predicates.add(cb.or(searchByCode, searchByName, searchByTrainer));

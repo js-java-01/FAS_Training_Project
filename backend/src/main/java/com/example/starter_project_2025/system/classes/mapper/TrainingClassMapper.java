@@ -1,9 +1,14 @@
 package com.example.starter_project_2025.system.classes.mapper;
 
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
+import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.semester.entity.Semester;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -42,5 +47,31 @@ public class TrainingClassMapper {
                                 .endDate(entity.getEndDate())
                                 .trainerNames(trainers)
                                 .build();
+        }
+
+        public List<TrainingClassSemesterResponse> toSemesterResponse(List<TrainingClass> classes) {
+                if (classes == null || classes.isEmpty()) {
+                        return List.of();
+                }
+
+                return classes.stream()
+                                .collect(Collectors.groupingBy(
+                                                TrainingClass::getSemester,
+                                                LinkedHashMap::new,
+                                                Collectors.toList()))
+                                .entrySet().stream()
+                                .map(entry -> {
+                                        Semester semester = entry.getKey();
+                                        List<TrainingClass> classList = entry.getValue();
+
+                                        List<TrainingClassResponse> classResponses = classList.stream()
+                                                        .map(this::toResponse)
+                                                        .collect(Collectors.toList());
+
+                                        return new TrainingClassSemesterResponse(semester.getId(), semester.getName(),
+                                                        classResponses);
+                                })
+                                .toList();
+
         }
 }

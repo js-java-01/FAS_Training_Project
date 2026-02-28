@@ -1,12 +1,14 @@
 package com.example.starter_project_2025.system.classes.service.classes;
 
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
+import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
 import com.example.starter_project_2025.system.classes.dto.request.CreateTrainingClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.classes.mapper.TrainingClassMapper;
 import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
 import com.example.starter_project_2025.system.classes.spec.ClassSpecification;
+import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.modulegroups.util.StringNormalizer;
 import com.example.starter_project_2025.system.semester.entity.Semester;
 import com.example.starter_project_2025.system.semester.repository.SemesterRepository;
@@ -21,6 +23,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -91,6 +95,12 @@ public class ClassServiceImpl implements ClassService {
 
         Page<TrainingClass> page = trainingClassRepository.findAll(spec, pageable);
         return page.map(mapper::toResponse);
+    }
+
+    @Override
+    public List<TrainingClassSemesterResponse> getMyClasses(UUID id) {
+        List<TrainingClass> classes = trainingClassRepository.findByStudentId(id);
+        return mapper.toSemesterResponse(classes);
     }
 
 }

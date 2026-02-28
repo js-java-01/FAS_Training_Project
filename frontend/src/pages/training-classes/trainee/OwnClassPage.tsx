@@ -3,23 +3,28 @@ import { MainLayout } from "@/components/layout/MainLayout"
 
 
 import { Separator } from "@/components/ui/separator"
-import { BookOpen, GraduationCap } from "lucide-react"
-import { ClassCard } from "../component/ClassCard"
-import { MOCK } from "./MockData"
+import { GraduationCap, Loader2 } from "lucide-react"
+import { ClassCard } from "./component/ClassCard"
+import { useGetMyClasses } from "./service/queries"
+
+
 
 export const OwnClassPage = () => {
-    // Tạm thời comment API lại, dùng data fake
-    const isLoading = false;
-    const data = MOCK
 
-    const groupedClasses = useMemo(() => {
-        return data.reduce((acc, curr) => {
-            const semester = curr.semesterName || "Other";
-            if (!acc[semester]) acc[semester] = [];
-            acc[semester].push(curr);
-            return acc;
-        }, {} as Record<string, typeof MOCK>);
-    }, [data]);
+    const { data: apiResponse, isLoading } = useGetMyClasses();
+    const semesters = useMemo(() => apiResponse?.data ?? [], [apiResponse]);
+    if (isLoading) {
+        return (
+            <MainLayout pathName={{ ownClasses: "My Classes" }}>
+                <div className="flex h-[50vh] items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-800" />
+                </div>
+            </MainLayout>
+        );
+    }
+    const handleClickClassCard = (classId: string) => {
+        alert(`Chuyển đến trang chi tiết lớp học với ID: ${classId}`);
+    }
 
     return (
         <MainLayout pathName={{ ownClasses: "My Classes" }}>
@@ -38,18 +43,30 @@ export const OwnClassPage = () => {
 
                 <Separator className="bg-slate-200" />
 
-                {Object.entries(groupedClasses).map(([semester, classes]) => (
-                    <section key={semester} className="space-y-6">
+                {!isLoading && semesters.length === 0 && (
+                    <div className="text-center py-20 text-slate-500">
+                        Bạn chưa tham gia lớp học nào.
+                    </div>
+                )}
+
+
+                {semesters.map((semesterGroup) => (
+                    <section key={semesterGroup.semesterId} className="space-y-6">
+
                         <div className="flex items-center gap-4">
                             <h2 className="text-xl font-bold text-slate-700 min-w-max">
-                                {semester}
+                                {semesterGroup.semesterName}
                             </h2>
                             <div className="h-[2px] w-full bg-gradient-to-r from-slate-200 to-transparent"></div>
                         </div>
-
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {classes.map((item) => (
-                                <ClassCard key={item.id} data={item} isEnrolled={true} />
+                            {semesterGroup.classes.map((cls) => (
+                                <ClassCard
+                                    key={cls.id}
+                                    data={cls}
+                                    isEnrolled={true}
+                                    handleEnroll={handleClickClassCard}
+                                />
                             ))}
                         </div>
                     </section>

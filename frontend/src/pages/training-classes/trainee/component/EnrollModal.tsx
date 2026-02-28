@@ -13,26 +13,30 @@ import { Label } from "@/components/ui/label"
 import { KeyRound, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
+import { enrollmentApi } from "@/api/enrollmentApi"
+import { useQueryClient } from "@tanstack/react-query"
 
 interface EnrollModalProps {
     classId: string;
     className: string;
     isOpen: boolean;
     onClose: () => void;
-    onConfirm: (enrollKey: string) => Promise<void>;
+
 }
 
-export const EnrollModal = ({ classId, className, isOpen, onClose, onConfirm }: EnrollModalProps) => {
+export const EnrollModal = ({ classId, className, isOpen, onClose }: EnrollModalProps) => {
     const [enrollKey, setEnrollKey] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const handleEnroll = async () => {
         if (!enrollKey) return;
 
         setIsSubmitting(true);
         try {
-            await onConfirm(enrollKey);
-            toast.success("Đăng ký lớp học thành công!");
+            await enrollmentApi.enroll(enrollKey, classId);
+            toast.success("Đăng ký thành công! Chuyển đến trang lớp học của bạn...");
+            queryClient.invalidateQueries({ queryKey: ["my-classes"] });
             navigate('/my-classes');
             setEnrollKey("");
             onClose();

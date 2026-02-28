@@ -4,11 +4,13 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Loader2, Search } from "lucide-react"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
-import { ClassCard } from "../component/ClassCard"
+import { ClassCard } from "./component/ClassCard"
 import { useDebounce } from "@/hooks/useDebounce"
 import { useMemo, useState } from "react"
-import { useGetAllTrainingClasses } from "../service/queries"
-import { EnrollModal } from "../component/EnrollModal"
+import { useGetAllTrainingClasses, useGetMyClasses } from "./service/queries"
+import { EnrollModal } from "./component/EnrollModal"
+import { enrollmentApi } from "@/api/enrollmentApi"
+import { toast } from "sonner"
 
 export const StudentClassManagement = () => {
     const [pageIndex, setPageIndex] = useState(0);
@@ -24,6 +26,9 @@ export const StudentClassManagement = () => {
         size: pageSize,
         keyword: debouncedSearch,
     });
+
+    const { data: apiResponseMyClasses, isLoading: isLoadingMyClasses } = useGetMyClasses();
+    const myClassIds = useMemo(() => new Set(apiResponseMyClasses?.data.flatMap(semester => semester.classes.map(cls => cls.id)) || []), [apiResponseMyClasses]);
     const safeData = useMemo(() => ({
         items: apiResponse?.items ?? [],
         page: apiResponse?.pagination?.page ?? 0,
@@ -36,7 +41,12 @@ export const StudentClassManagement = () => {
         setPageIndex(0);
     }
 
+
     const handleEnrollForm = (classId: string) => {
+        if (myClassIds.has(classId)) {
+            alert("Bạn đã đăng ký lớp học này rồi! chuyển đến trang xem chi tiết...");
+            return;
+        }
         setIsOpenEnrollModal(true);
         setSelectedClassId(classId);
 
@@ -77,6 +87,8 @@ export const StudentClassManagement = () => {
                         <ClassCard key={i}
                             data={item}
                             handleEnroll={handleEnrollForm}
+                            isEnrolled={myClassIds.has(item.id)}
+
                         />
                     ))}
                 </div>
@@ -85,9 +97,7 @@ export const StudentClassManagement = () => {
                         className={safeData.items.find(c => c.id === selectedClassId)?.className ?? ""}
                         isOpen={isOpenEnrollModal}
                         onClose={() => setIsOpenEnrollModal(false)}
-                        onConfirm={async (enrollKey) => {
-                            console.log("Enroll key:", enrollKey, "for class ID:", selectedClassId);
-                        }}
+
                     />
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">
                         <p className="text-sm text-muted-foreground whitespace-nowrap">
