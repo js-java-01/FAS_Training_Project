@@ -3,10 +3,9 @@ package com.example.starter_project_2025.system.topic_mark.service;
 import com.example.starter_project_2025.system.topic_mark.dto.*;
 
 import java.util.UUID;
+import org.springframework.http.ResponseEntity;
 
 public interface TopicMarkService {
-
-    // ── Column management ────────────────────────────────────────────────────
 
     /**
      * Add a new gradebook column to a course class.
@@ -26,8 +25,6 @@ public interface TopicMarkService {
      * Only allowed if NO student has a non-null score on this column.
      */
     void deleteColumn(UUID courseClassId, UUID columnId);
-
-    // ── Gradebook ────────────────────────────────────────────────────────────
 
     /**
      * Get the full gradebook for a course class.
@@ -49,8 +46,6 @@ public interface TopicMarkService {
      */
     TopicMarkDetailResponse getStudentDetail(UUID courseClassId, UUID userId);
 
-    // ── Score entry ──────────────────────────────────────────────────────────
-
     /**
      * Save / update scores for a student.
      * For every changed score, an audit history record is written.
@@ -59,7 +54,13 @@ public interface TopicMarkService {
     TopicMarkDetailResponse updateScores(UUID courseClassId, UUID userId,
                                          UpdateTopicMarkRequest request, UUID editorId);
 
-    // ── Initialization ───────────────────────────────────────────────────────
+    /**
+     * Generate an Excel template for score entry.
+     * Row 0 (hidden meta): column IDs for machine matching on import.
+     * Row 1 (bold header): visible labels (STT | Họ và tên | Email | col labels…).
+     * Row 2+ : one row per enrolled student, score cells empty (ready to fill).
+     */
+    ResponseEntity<byte[]> exportGradebookTemplate(UUID courseClassId);
 
     /**
      * Initialize TopicMark + null entries for a newly enrolled student.

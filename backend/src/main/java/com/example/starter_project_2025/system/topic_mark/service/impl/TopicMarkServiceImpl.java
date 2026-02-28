@@ -20,9 +20,16 @@ import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,15 +54,12 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     private final CourseAssessmentTypeWeightRepository courseAssessmentTypeWeightRepository;
     private final UserRepository userRepository;
 
-    // â”€â”€ Column management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     @Override
     public TopicMarkColumnResponse addColumn(UUID courseClassId, TopicMarkColumnRequest request, UUID editorId) {
         CourseClass courseClass = loadCourseClass(courseClassId);
         assessmentTypeRepository.findById(request.getAssessmentTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException("AssessmentType not found: " + request.getAssessmentTypeId()));
 
-        // Validate that a weight config exists for this AssessmentType in the course
         CourseAssessmentTypeWeight weight = courseAssessmentTypeWeightRepository
                 .findByCourseIdAndAssessmentTypeId(courseClass.getCourse().getId(), request.getAssessmentTypeId())
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -77,7 +81,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 .build();
         column = topicMarkColumnRepository.save(column);
 
-        // Create null entries for all currently enrolled students
         createNullEntriesForColumn(column, courseClass);
 
         return mapToColumnResponse(column, weight);
@@ -113,8 +116,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         log.info("Soft-deleted TopicMarkColumn id={} label={}", columnId, column.getColumnLabel());
     }
 
-    // â”€â”€ Gradebook â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     @Override
     @Transactional(readOnly = true)
     public TopicMarkGradebookResponse getGradebook(UUID courseClassId) {
@@ -123,7 +124,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
         Map<String, CourseAssessmentTypeWeight> weightMap = buildWeightMap(courseClass);
 
-        // Build column definitions
+
         List<TopicMarkGradebookResponse.Column> columnDefs = new ArrayList<>();
         for (TopicMarkColumn col : columns) {
             CourseAssessmentTypeWeight w = weightMap.get(col.getAssessmentType().getId());
@@ -140,11 +141,9 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         columnDefs.add(new TopicMarkGradebookResponse.Column("FINAL_SCORE", "Final Score"));
         columnDefs.add(new TopicMarkGradebookResponse.Column("IS_PASSED", "Passed"));
 
-        // Enrolled students
         List<Enrollment> enrollments = enrollmentRepository
                 .findByCourseIdAndStatus(courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
 
-        // All entries for this courseClass: userId â†’ (columnId â†’ score)
         List<TopicMarkEntry> allEntries = topicMarkEntryRepository.findByCourseClassId(courseClassId);
         Map<UUID, Map<UUID, Double>> scoresByUser = new HashMap<>();
         for (TopicMarkEntry entry : allEntries) {
@@ -188,7 +187,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     public TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword, Boolean passed, Pageable pageable) {
         TopicMarkGradebookResponse full = getGradebook(courseClassId);
 
-        // Filter rows by student full name and passed status
         List<TopicMarkGradebookResponse.Row> filtered = full.getRows().stream()
                 .filter(row -> keyword == null || keyword.isBlank() ||
                         row.getFullName().toLowerCase().contains(keyword.toLowerCase().trim()))
@@ -199,7 +197,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 })
                 .collect(Collectors.toList());
 
-        // Manual sort by pageable sort orders
         if (pageable.getSort().isSorted()) {
             Comparator<TopicMarkGradebookResponse.Row> comparator = null;
             for (org.springframework.data.domain.Sort.Order order : pageable.getSort()) {
@@ -212,7 +209,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                     c = Comparator.comparing(TopicMarkGradebookResponse.Row::getEmail,
                             Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
                 } else if ("IS_PASSED".equalsIgnoreCase(prop)) {
-                    // false(0) < true(1) when asc → failed first; desc → passed first
+
                     c = Comparator.comparing(
                             row -> {
                                 Object val = row.getValues().get("IS_PASSED");
@@ -220,7 +217,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                             },
                             Comparator.nullsLast(Comparator.naturalOrder()));
                 } else {
-                    // Sort by column score value (UUID key or FINAL_SCORE)
                     c = Comparator.comparing(
                             row -> {
                                 Object val = row.getValues().get(prop);
@@ -235,7 +231,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             if (comparator != null) filtered.sort(comparator);
         }
 
-        // Manual pagination
         int total = filtered.size();
         int start = (int) pageable.getOffset();
         int end   = Math.min(start + pageable.getPageSize(), total);
@@ -268,7 +263,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                         TopicMarkEntry::getScore,
                         (a, b) -> a));
 
-        // Group columns by assessmentType preserving order
+
         Map<String, List<TopicMarkColumn>> columnsByType = columns.stream()
                 .collect(Collectors.groupingBy(
                         c -> c.getAssessmentType().getId(),
@@ -337,8 +332,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 .build();
     }
 
-    // â”€â”€ Score entry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     @Override
     public TopicMarkDetailResponse updateScores(UUID courseClassId, UUID userId,
                                                 UpdateTopicMarkRequest request, UUID editorId) {
@@ -394,15 +387,12 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                         column.getColumnLabel(), oldScore, newScore);
             }
         }
-
-        // Recompute (or clear) final score
         tryComputeAndSaveFinalScore(courseClass, userId, mark);
 
         return getStudentDetail(courseClassId, userId);
     }
 
 
-    // â”€â”€ Initialization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Override
     public void initializeForNewStudent(UUID courseClassId, UUID userId) {
@@ -430,7 +420,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         log.info("Initialized TopicMark + {} entries for user={} in courseClass={}", columns.size(), userId, courseClassId);
     }
 
-    // â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private CourseClass loadCourseClass(UUID id) {
         return courseClassRepository.findById(id)
@@ -472,10 +461,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         }
     }
 
-    /**
-     * Tries to compute finalScore if all active column entries are filled.
-     * Sets finalScore = null and isPassed = false if any entry is still null.
-     */
     private void tryComputeAndSaveFinalScore(CourseClass courseClass, UUID userId, TopicMark mark) {
         long nullCount = topicMarkEntryRepository.countNullEntriesForUser(courseClass.getId(), userId);
         if (nullCount > 0) {
@@ -519,7 +504,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         log.info("Computed finalScore={} isPassed={} for user={} courseClass={}", finalScore, isPassed, userId, courseClass.getId());
     }
 
-    /** Apply grading method to a list of scores (order matters for LATEST = last by columnIndex). */
+
     private double computeSectionScore(List<Double> scores, GradingMethod gradingMethod) {
         if (scores == null || scores.isEmpty()) return 0.0;
         return switch (gradingMethod) {
@@ -539,5 +524,144 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 .columnLabel(col.getColumnLabel())
                 .columnIndex(col.getColumnIndex())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportGradebookTemplate(UUID courseClassId) {
+        CourseClass courseClass = loadCourseClass(courseClassId);
+        List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
+        List<Enrollment> enrollments = enrollmentRepository
+                .findByCourseIdAndStatus(courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
+
+        try (Workbook wb = new XSSFWorkbook()) {
+            String rawName = courseClass.getCourse().getCourseCode()
+                    + " - " + courseClass.getClassInfo().getClassCode();
+            Sheet sheet = wb.createSheet(rawName.length() > 31 ? rawName.substring(0, 31) : rawName);
+
+            
+            CellStyle metaStyle  = buildMetaStyle(wb);
+            CellStyle headerStyle = buildHeaderStyle(wb);
+            CellStyle lockedStyle = buildLockedStyle(wb);
+            CellStyle inputStyle  = buildInputStyle(wb);
+
+
+            final int SCORE_COL_START = 4;
+
+
+            Row metaRow = sheet.createRow(0);
+            metaRow.setHeight((short) 300);   
+            putCell(metaRow, 0, "#META",   metaStyle);
+            putCell(metaRow, 1, "USER_ID", metaStyle);
+            putCell(metaRow, 2, "",        metaStyle);
+            putCell(metaRow, 3, "",        metaStyle);
+            for (int i = 0; i < columns.size(); i++) {
+                putCell(metaRow, SCORE_COL_START + i, columns.get(i).getId().toString(), metaStyle);
+            }
+
+
+            Row headerRow = sheet.createRow(1);
+            putCell(headerRow, 0, "STT",       headerStyle);
+            putCell(headerRow, 1, "User ID",   headerStyle);
+            putCell(headerRow, 2, "Họ và tên", headerStyle);
+            putCell(headerRow, 3, "Email",     headerStyle);
+            for (int i = 0; i < columns.size(); i++) {
+                putCell(headerRow, SCORE_COL_START + i, columns.get(i).getColumnLabel(), headerStyle);
+            }
+
+
+            int stt = 1;
+            for (Enrollment enrollment : enrollments) {
+                User student = enrollment.getUser();
+                Row row = sheet.createRow(1 + stt);
+                putCell(row, 0, stt,                                                        lockedStyle);
+                putCell(row, 1, student.getId().toString(),                                 lockedStyle);
+                putCell(row, 2, student.getFirstName() + " " + student.getLastName(),       lockedStyle);
+                putCell(row, 3, student.getEmail(),                                         lockedStyle);
+                for (int i = 0; i < columns.size(); i++) {
+                    row.createCell(SCORE_COL_START + i).setCellStyle(inputStyle); // blank – teacher fills in
+                }
+                stt++;
+            }
+
+
+            sheet.setColumnWidth(0, 1500);   // STT
+            sheet.setColumnHidden(1, true);  // USER_ID hidden
+            sheet.setColumnWidth(2, 7000);   // Họ và tên
+            sheet.setColumnWidth(3, 8000);   // Email
+            for (int i = 0; i < columns.size(); i++) {
+                sheet.setColumnWidth(SCORE_COL_START + i, 4500);
+            }
+
+
+            sheet.createFreezePane(0, 2);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            wb.write(out);
+            String filename = "gradebook-template-" + courseClassId + ".xlsx";
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(out.toByteArray());
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating gradebook template: " + e.getMessage(), e);
+        }
+    }
+
+
+    private void putCell(Row row, int col, Object value, CellStyle style) {
+        Cell cell = row.createCell(col);
+        if (value instanceof String s)       cell.setCellValue(s);
+        else if (value instanceof Number n)  cell.setCellValue(n.doubleValue());
+        else if (value instanceof Boolean b) cell.setCellValue(b);
+        if (style != null) cell.setCellStyle(style);
+    }
+
+    private CellStyle buildMetaStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        Font f = wb.createFont();
+        f.setFontHeightInPoints((short) 8);
+        f.setColor(IndexedColors.GREY_50_PERCENT.getIndex());
+        s.setFont(f);
+        s.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        return s;
+    }
+
+    private CellStyle buildHeaderStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        Font f = wb.createFont();
+        f.setBold(true);
+        s.setFont(f);
+        s.setFillForegroundColor(IndexedColors.LIGHT_CORNFLOWER_BLUE.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        s.setAlignment(HorizontalAlignment.CENTER);
+        return s;
+    }
+
+    private CellStyle buildLockedStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        s.setFillForegroundColor(IndexedColors.LEMON_CHIFFON.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        return s;
+    }
+
+    private CellStyle buildInputStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        return s;
     }
 }

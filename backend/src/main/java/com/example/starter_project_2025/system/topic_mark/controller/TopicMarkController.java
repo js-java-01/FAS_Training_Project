@@ -46,8 +46,6 @@ public class TopicMarkController {
     private final TopicMarkService topicMarkService;
     private final UserRepository userRepository;
 
-    // ── Gradebook ────────────────────────────────────────────────────────────
-
     @GetMapping("/api/course-classes/{courseClassId}/topic-marks")
     @Operation(summary = "Get full gradebook for a course class",
                description = "Returns all active column definitions and one row per enrolled student with their current scores, final score, and pass/fail status.")
@@ -111,7 +109,22 @@ public class TopicMarkController {
         return ResponseEntity.ok(topicMarkService.updateScores(courseClassId, userId, request, editorId));
     }
 
-    // ── Column management ────────────────────────────────────────────────────
+    @GetMapping("/api/course-classes/{courseClassId}/topic-marks/export/template")
+    @Operation(
+            summary = "Download gradebook score-entry template",
+            description = "Returns an Excel (.xlsx) file with:\n" +
+                          "- Row 0 (hidden): machine-readable column UUIDs for import matching\n" +
+                          "- Row 1: visible header (STT | Họ và tên | Email | <column labels…>)\n" +
+                          "- Row 2+: one row per enrolled student, score cells empty (ready to fill)\n\n" +
+                          "Teacher downloads → fills scores offline → uploads via POST /import.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Template file generated"),
+        @ApiResponse(responseCode = "404", description = "CourseClass not found", content = @Content)
+    })
+    public ResponseEntity<byte[]> exportGradebookTemplate(
+            @Parameter(description = "Course class ID", required = true) @PathVariable UUID courseClassId) {
+        return topicMarkService.exportGradebookTemplate(courseClassId);
+    }
 
     @PostMapping("/api/course-classes/{courseClassId}/topic-mark-columns")
     @Operation(summary = "Add a new gradebook column",
@@ -162,8 +175,6 @@ public class TopicMarkController {
         topicMarkService.deleteColumn(courseClassId, columnId);
         return ResponseEntity.noContent().build();
     }
-
-    // ── Helper ───────────────────────────────────────────────────────────────
 
     /** Resolve the currently authenticated user's UUID from the security context. */
     private UUID resolveCurrentUserId(Authentication authentication) {

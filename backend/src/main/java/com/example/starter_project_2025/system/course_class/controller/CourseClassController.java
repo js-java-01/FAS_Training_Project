@@ -82,23 +82,4 @@ public class CourseClassController {
         return ResponseEntity.ok(courseClassService.getByClassId(classId));
     }
 
-    /**
-     * POST /api/course-classes
-     * Create a new course class.
-     */
-    @PostMapping
-    @Operation(
-            summary = "Create a course class",
-            description = "Assign a course to a training class, optionally with a trainer."
-    )
-    @ApiResponse(
-            responseCode = "201",
-            description = "Course class created successfully",
-            content = @Content(schema = @Schema(implementation = CourseClassResponse.class))
-    )
-    public ResponseEntity<CourseClassResponse> create(
-            @Valid @RequestBody CourseClassRequest request) {
-        CourseClassResponse response = courseClassService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
 }
