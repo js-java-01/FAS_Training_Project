@@ -1,4 +1,5 @@
 import { userApi } from "@/api";
+import { roleApi } from "@/api/features/auth/role.api";
 import { ProTable } from "@/components/datatable/ProTable";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useProTable } from "@/hooks/useProTable";
@@ -27,9 +28,22 @@ const userSchema: EntitySchema = {
       sortable: true,
     },
     {
-      name: "role",
+      name: "password",
+      label: "Password",
+      type: "password",
+      visible: false,
+      hideable: false,
+    },
+    {
+      name: "roleIds",
       label: "Role",
-      type: "text",
+      type: "relation",
+      relation: {
+        api: roleApi,
+        valueField: "id",
+        labelField: "name",
+        multiple: true,
+      },
       filterable: true,
       filterType: "select",
     },
@@ -37,14 +51,36 @@ const userSchema: EntitySchema = {
       name: "isActive",
       label: "Status",
       type: "boolean",
-      booleanLabels: { true: "Active", false: "Inactive" },
+      booleanLabels: {
+        true: "Active",
+        false: "Inactive",
+        trueColor: "bg-green-500 text-white",
+        falseColor: "bg-red-400 text-white",
+      },
       filterable: true,
       filterType: "boolean",
+    },
+    {
+      name: "createdAt",
+      label: "Created At",
+      type: "date",
+      sortable: true,
+      editable: false,
+      filterable: true,
+      filterType: "dateRange",
+    },
+    {
+      name: "updatedAt",
+      label: "Updated At",
+      type: "date",
+      sortable: true,
+      editable: false,
+      visible: false,
     },
   ],
 };
 
-const UserManagementTest = () => {
+const UserManagementPage = () => {
   const table = useProTable(userApi, userSchema);
 
   return (
@@ -54,4 +90,4 @@ const UserManagementTest = () => {
   );
 };
 
-export default UserManagementTest;
+export default UserManagementPage;

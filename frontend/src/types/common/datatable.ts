@@ -1,9 +1,11 @@
 export type FieldType =
   | "text"
+  | "password"
   | "number"
   | "date"
   | "select"
-  | "boolean";
+  | "boolean"
+  | "relation";
 
 export type FilterType = "text" | "select" | "boolean" | "dateRange" | "numberRange";
 
@@ -25,10 +27,18 @@ export interface FieldSchema {
     trueColor?: string; 
     falseColor?: string;
   };
+  relation?: RelationConfig;
 }
 
 export interface EntitySchema {
   entityName: string;
   idField: string;
   fields: FieldSchema[];
+}
+
+export interface RelationConfig {
+  api: any;             
+  valueField: string;  
+  labelField: string;   
+  multiple?: boolean;
 }

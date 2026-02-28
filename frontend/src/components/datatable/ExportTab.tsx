@@ -97,7 +97,7 @@ export function ExportTab({ loading, onExport }: ExportTabProps) {
       </div>
 
       <Button
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-auto"
+        className="w-full bg-primary hover:bg-primary/80 text-white mt-auto"
         onClick={handleExportClick}
         disabled={!selectedFormat || loading}
         size="lg"

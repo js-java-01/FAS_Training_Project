@@ -8,30 +8,27 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public interface UserService {
 
-    Page<UserResponse> getUsersPage(
+    Page<UserResponse> getAll(
             Pageable pageable,
             String search,
-            UUID roleId,
+            List<UUID> roleIds,
             LocalDateTime createFrom,
             LocalDateTime createTo,
             Boolean isActive
     );
 
-    UserResponse getUserById(UUID id);
+    UserResponse getById(UUID id);
 
-    UserResponse createUser(UserCreateRequest request);
+    UserResponse create(UserCreateRequest request);
 
-    UserResponse updateUser(UUID id, UserUpdateRequest request);
+    UserResponse update(UUID id, UserUpdateRequest request);
 
-    void deleteUser(UUID id);
-
-    UserResponse toggleUserStatus(UUID id);
-
-    UserResponse assignRole(UUID userId, UUID roleId);
+    void delete(UUID id);
 
     User getCurrentUser();
 }

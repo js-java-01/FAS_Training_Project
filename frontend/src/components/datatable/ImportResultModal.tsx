@@ -43,10 +43,10 @@ export const ImportResultContent = ({ result }: ImportResultContentProps) => {
 
       {result.errors.length > 0 && (
         <ScrollArea className="rounded-md border max-h-[250px]">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm table-fixed">
             <thead className="bg-muted/50 sticky top-0 z-10">
               <tr>
-                <th className="px-4 py-2 text-left font-medium border-b w-24">
+                <th className="px-4 py-2 text-left font-medium border-b w-20">
                   Row
                 </th>
                 <th className="px-4 py-2 text-left font-medium border-b">
@@ -60,12 +60,12 @@ export const ImportResultContent = ({ result }: ImportResultContentProps) => {
                   key={index}
                   className="border-b hover:bg-muted/50 transition-colors"
                 >
-                  <td className="px-4 py-3 border-r">
+                  <td className="px-4 py-3 border-r align-top">
                     <Badge variant="outline" className="font-mono">
                       #{err.rowNumber}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 break-words overflow-hidden">
                     <span className="text-red-600 dark:text-red-400">
                       {err.message}
                     </span>

@@ -6,25 +6,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
 import { useAutoPageSize } from "@/hooks/useAutoPageSize";
-import { ArrowDown, ArrowUp, ArrowUpDown, Pen, Trash2 } from "lucide-react";
 import { useState } from "react";
-import ActionButton from "./ActionButton";
+import { CellRenderer } from "./CellRenderer";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
+import { DetailModal } from "./DetailModal";
 import Loading from "./Loading";
 import NoResult from "./NoResult";
-import { RowSelection } from "./RowSelection";
 import { Pagination } from "./Pagination";
+import { RowActions } from "./RowActions";
+import { RowSelection } from "./RowSelection";
+import { SelectAllCheckbox } from "./SelectAllCheckbox";
+import { SortableHeader } from "./SortableHeader";
 import { FormModal } from "./FormModal";
 import { Toolbar } from "./Toolbar";
 
 interface ProTableProps {
   table: any;
-  isLoading?: boolean;
-  isFetching?: boolean;
   headerActions?: React.ReactNode;
   onRowClick?: (row: any) => void;
   autoPageSize?: boolean;
@@ -33,8 +31,6 @@ interface ProTableProps {
 
 export function ProTable({
   table,
-  isLoading,
-  isFetching,
   headerActions,
   onRowClick,
   autoPageSize = true,
@@ -49,14 +45,10 @@ export function ProTable({
 
   const [deleteItem, setDeleteItem] = useState<any>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-
-  const handleDeleteClick = (row: any) => {
-    setDeleteItem(row);
-  };
+  const [detailRow, setDetailRow] = useState<any>(null);
 
   const handleDeleteConfirm = async () => {
     if (!deleteItem) return;
-
     try {
       setDeleteLoading(true);
       await table.remove(deleteItem[schema.idField]);
@@ -70,7 +62,7 @@ export function ProTable({
     <div className="grid gap-4 h-full font-inter grid-rows-[auto_1fr_auto]">
       <Toolbar table={table} headerActions={headerActions} />
 
-      <div 
+      <div
         ref={containerRef}
         className="h-full rounded-md border bg-card text-foreground flex flex-col overflow-hidden w-full"
       >
@@ -78,73 +70,25 @@ export function ProTable({
           <TableHeader className="bg-background z-10 sticky top-0 shadow-xs">
             <TableRow>
               <TableHead style={{ width: 40 }}>
-                {(() => {
-                  const allIds = table.data?.map((row: any) => row[schema.idField]) ?? [];
-                  const allSelected = allIds.length > 0 && allIds.every((id: any) => table.selected?.includes(id));
-                  const someSelected = !allSelected && allIds.some((id: any) => table.selected?.includes(id));
-                  return (
-                    <Checkbox
-                      checked={allSelected}
-                      data-state={someSelected ? "indeterminate" : undefined}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          table.setSelected((prev: any[]) => {
-                            const newIds = allIds.filter((id: any) => !prev.includes(id));
-                            return [...prev, ...newIds];
-                          });
-                        } else {
-                          table.setSelected((prev: any[]) =>
-                            prev.filter((id: any) => !allIds.includes(id))
-                          );
-                        }
-                      }}
-                      aria-label="Select all rows"
-                    />
-                  );
-                })()}
+                <SelectAllCheckbox table={table} idField={schema.idField} />
               </TableHead>
               <TableHead style={{ width: 50 }} className="text-center">
                 #
               </TableHead>
-              {table.visibleFields.map((f: any) => {
-                const isSortable = f.sortable === true;
-                const isCurrentSort = table.sortState?.field === f.name;
-                const sortDirection = isCurrentSort ? table.sortState?.direction : null;
-
-                const SortIcon = sortDirection === "asc" 
-                  ? ArrowUp 
-                  : sortDirection === "desc" 
-                    ? ArrowDown 
-                    : ArrowUpDown;
-
-                return (
-                  <TableHead
-                    key={f.name}
-                    className={cn(
-                      isSortable && "cursor-pointer select-none hover:bg-muted/50"
-                    )}
-                    onClick={() => isSortable && table.toggleSort(f.name)}
-                  >
-                    <div className="flex items-center gap-1">
-                      {f.label}
-                      {isSortable && (
-                        <SortIcon
-                          className={cn(
-                            "h-4 w-4",
-                            isCurrentSort ? "text-foreground text-blue-500 font-bold" : "text-muted-foreground/50"
-                          )}
-                        />
-                      )}
-                    </div>
-                  </TableHead>
-                );
-              })}
+              {table.visibleFields.map((f: any) => (
+                <SortableHeader
+                  key={f.name}
+                  field={f}
+                  sortState={table.sortState}
+                  onToggleSort={table.toggleSort}
+                />
+              ))}
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
 
           {table.data?.length > 0 && (
-            <TableBody>
+            <TableBody className={table.isFetching ? "opacity-50 transition-opacity" : "transition-opacity"}>
               {table.data.map((row: any, index: number) => {
                 const id = row[schema.idField];
 
@@ -171,36 +115,24 @@ export function ProTable({
                       {(table.page || 0) * (table.size || 10) + index + 1}
                     </TableCell>
 
-                    {table.visibleFields.map((f: any) => {
-                      const value = row[f.name];
-                      
-                      if (f.type === "boolean") {
-                        const labels = f.booleanLabels || { true: "Yes", false: "No" };
-                        const colorClass = value 
-                          ? (labels.trueColor || "bg-green-500 text-white") 
-                          : (labels.falseColor || "bg-red-400 text-white");
-                        return (
-                          <TableCell key={f.name}>
-                            <Badge className={colorClass}>
-                              {value ? labels.true : labels.false}
-                            </Badge>
-                          </TableCell>
-                        );
-                      }
-                      
-                      return <TableCell key={f.name}>{value}</TableCell>;
-                    })}
+                    {table.visibleFields.map((f: any) => (
+                      <CellRenderer
+                        key={f.name}
+                        field={f}
+                        value={row[f.name]}
+                        relationOptions={table.relationOptions}
+                        onBooleanToggle={(fieldName, newValue) => {
+                          table.patchField(id, fieldName, newValue);
+                        }}
+                      />
+                    ))}
 
                     <TableCell className="flex gap-1">
-                      <ActionButton
-                        onClick={() => table.openEdit(row)}
-                        tooltip="Edit"
-                        icon={<Pen size={10} className="text-gray-500" />}
-                      />
-                      <ActionButton
-                        onClick={() => handleDeleteClick(row)}
-                        tooltip="Delete"
-                        icon={<Trash2 size={10} className="text-red-500" />}
+                      <RowActions
+                        row={row}
+                        onView={setDetailRow}
+                        onEdit={table.openEdit}
+                        onDelete={setDeleteItem}
                       />
                     </TableCell>
                   </TableRow>
@@ -212,7 +144,7 @@ export function ProTable({
 
         {!table.data?.length && (
           <div className="flex-1 flex items-center justify-center">
-            {isLoading || isFetching ? <Loading /> : <NoResult />}
+            {table.loading ? <Loading /> : <NoResult />}
           </div>
         )}
       </div>
@@ -221,11 +153,16 @@ export function ProTable({
 
       <FormModal
         open={table.isFormOpen}
-        onClose={table.setFormOpen}
+        onClose={(open) => {
+          if (!open) table.setFieldErrors({});
+          table.setFormOpen(open);
+        }}
         schema={schema}
         initial={table.editingRow}
         title={table.editingRow ? "Edit" : "Create"}
         isSubmitting={table.isSubmitting}
+        relationOptions={table.relationOptions}
+        fieldErrors={table.fieldErrors}
         onSubmit={(data) => {
           table.editingRow
             ? table.update({ id: table.editingRow[schema.idField], data })
@@ -238,6 +175,14 @@ export function ProTable({
         onOpenChange={(open) => !open && setDeleteItem(null)}
         onConfirm={handleDeleteConfirm}
         loading={deleteLoading}
+      />
+
+      <DetailModal
+        open={!!detailRow}
+        onClose={(open) => !open && setDetailRow(null)}
+        schema={schema}
+        row={detailRow}
+        relationOptions={table.relationOptions}
       />
     </div>
   );

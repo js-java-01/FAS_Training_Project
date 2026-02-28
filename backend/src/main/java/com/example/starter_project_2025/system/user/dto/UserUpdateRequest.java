@@ -17,7 +17,11 @@ public record UserUpdateRequest(
         String password,
 
         String firstName,
+
         String lastName,
+
+        Boolean isActive,
+        
         List<UUID> roleIds
 ) {
 }

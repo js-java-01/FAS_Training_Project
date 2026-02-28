@@ -17,4 +17,5 @@ export * from "./features/assessment/question-option";
 export * from "./features/assessment/question-tag";
 export * from "./features/assessment/question";
 export * from "./features/user/user";
+export * from "./features/auth/role";
 

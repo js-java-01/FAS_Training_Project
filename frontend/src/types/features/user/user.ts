@@ -3,8 +3,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  roleId: string;
-  roleName: string;
+  roleIds: string[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -15,21 +14,20 @@ export interface UserCreateRequest {
   password: string;
   firstName: string;
   lastName: string;
-  roleId: string;
+  roleIds: string[];
 }
 
 export interface UserUpdateRequest {
   email?: string;
   firstName?: string;
   lastName?: string;
-  roleId?: string;
+  roleIds?: string[];
   isActive?: boolean;
 }
 
 export interface UserFilter {
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  roleId?: string;
+  roleIds?: string[];
+  createFrom?: string;
+  createTo?: string;
   isActive?: boolean;
 }

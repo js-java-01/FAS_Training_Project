@@ -1,7 +1,8 @@
-package com.example.starter_project_2025.system.user.dto;
+package com.example.starter_project_2025.system.auth.dto.role;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -12,14 +13,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserResponse {
+public class RoleResponse {
 
     UUID id;
-    String email;
-    String firstName;
-    String lastName;
-    Set<UUID> roleIds;
+    String name;
+    String description;
     Boolean isActive;
+    Set<UUID> permissionIds;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }

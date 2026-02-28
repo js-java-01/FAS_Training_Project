@@ -35,23 +35,60 @@ export const createBaseApiService = <
       pagination: Pagination,
       search?: string,
       filter?: Filter,
-    ): Promise<PageResponse<Response>> =>
-      (
-        await instance.get<PageResponse<Response>>(path, {
-          params: { ...pagination, search, ...filter },
-        })
-      ).data,
+    ): Promise<PageResponse<Response>> => {
+      const { sort, ...rest } = pagination;
+      const params = new URLSearchParams();
 
-    getById: async (id: string): Promise<Response> =>
-      (await instance.get<Response>(`${path}/${id}`)).data,
+      Object.entries(rest).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) params.append(key, String(value));
+      });
 
-    create: async (data: CreateRequest): Promise<Response> =>
-      (await instance.post<Response>(path, data)).data,
+      if (sort) {
+        const sortArr = Array.isArray(sort) ? sort : [sort];
+        sortArr.forEach((s) => params.append("sort", s));
+      }
 
-    update: async (id: string, data: UpdateRequest): Promise<Response> =>
-      (await instance.put<Response>(`${path}/${id}`, data)).data,
+      if (search) params.append("search", search);
 
-    delete: async (id: string): Promise<void> =>
-      (await instance.delete(`${path}/${id}`)).data,
+      if (filter) {
+        Object.entries(filter as Record<string, any>).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            params.append(key, String(value));
+          }
+        });
+      }
+
+      const response = await instance.get<PageResponse<Response>>(path, { params });
+      console.log("GetPage response:", response);
+      return response.data;
+    },
+
+    getById: async (id: string): Promise<Response> => {
+      console.log(`Fetching ${path} with ID:`, id);
+      const response = await instance.get<Response>(`${path}/${id}`);
+      console.log("GetById response:", response);
+      return response.data;
+    },
+
+    create: async (data: CreateRequest): Promise<Response> => {
+      console.log("Creating new entry at", path, "with data:", data);
+      const response = await instance.post<Response>(path, data);
+      console.log("Create response:", response);
+      return response.data;
+    },
+
+    update: async (id: string, data: UpdateRequest): Promise<Response> => {
+      console.log(`Updating ${path} with ID:`, id, "and data:", data);
+      const response = await instance.put<Response>(`${path}/${id}`, data);
+      console.log("Update response:", response);
+      return response.data;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      console.log(`Deleting ${path} with ID:`, id);
+      const response = await instance.delete(`${path}/${id}`);
+      console.log("Delete response:", response);
+      return response.data;
+    },
   };
 };

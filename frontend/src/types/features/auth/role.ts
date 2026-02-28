@@ -2,25 +2,29 @@ export interface Role {
   id: string;
   name: string;
   description: string;
-  hierarchyLevel: number;
   isActive: boolean;
   permissionIds: string[];
-  permissionNames: string[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateRoleRequest {
+export interface RoleCreateRequest {
   name: string;
   description: string;
-  hierarchyLevel: number;
   permissionIds: string[];
 }
 
 
-export interface UpdateRoleRequest {
+export interface RoleUpdateRequest {
   name?: string;
   description?: string;
-  hierarchyLevel?: number;
+  isActive?: boolean;
   permissionIds?: string[];
+}
+
+export interface RoleFilter {
+  isActive?: boolean;
+  permissionIds?: string[];
+  createFrom?: string;
+  createTo?: string;
 }

@@ -1,5 +1,8 @@
 package com.example.starter_project_2025.exception;
 
+import com.example.starter_project_2025.system.common.error.ValidationErrorResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -10,7 +13,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -58,22 +63,55 @@ public class GlobalExceptionHandler
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex)
-    {
-        Map<String, Object> response = new HashMap<>();
-        Map<String, String> errors = new HashMap<>();
+    public ResponseEntity<ValidationErrorResponse> handleValidation(
+            MethodArgumentNotValidException ex) {
 
-        ex.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
+        Map<String, List<String>> errors = new HashMap<>();
 
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("errors", errors);
-        response.put("timestamp", LocalDateTime.now());
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
 
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            errors.computeIfAbsent(
+                    fieldError.getField(),
+                    key -> new ArrayList<>()
+            ).add(fieldError.getDefaultMessage());
+        }
+
+        ValidationErrorResponse response = new ValidationErrorResponse(
+                "Validation failed",
+                errors
+        );
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ValidationErrorResponse> handleConstraintViolation(
+            ConstraintViolationException ex) {
+
+        Map<String, List<String>> errors = new HashMap<>();
+
+        for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
+
+            String field = violation.getPropertyPath().toString();
+
+            errors.computeIfAbsent(field, k -> new ArrayList<>())
+                    .add(violation.getMessage());
+        }
+
+        ValidationErrorResponse response =
+                new ValidationErrorResponse("Validation failed", errors);
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(BusinessValidationException.class)
+    public ResponseEntity<ValidationErrorResponse> handleBusiness(
+            BusinessValidationException ex) {
+
+        ValidationErrorResponse response =
+                new ValidationErrorResponse("Validation failed", ex.getErrors());
+
+        return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(Exception.class)

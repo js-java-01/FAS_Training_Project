@@ -26,6 +26,8 @@ public record UserCreateRequest(
         @NotBlank(message = "Last name is required")
         String lastName,
 
+        Boolean isActive,
+
         @NotNull(message = "Role ID is required")
         List<UUID> roleIds
 ) {

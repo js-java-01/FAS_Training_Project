@@ -9,4 +9,5 @@ export const Url = {
   QUESTION: "/questions",
   SUBMISSION: "/submissions",
   USER: "/users",
+  ROLE: "/roles",
 };

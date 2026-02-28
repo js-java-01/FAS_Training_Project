@@ -28,6 +28,7 @@ function getFilterType(field: FieldSchema): FilterType {
     case "boolean":
       return "boolean";
     case "select":
+    case "relation":
       return "select";
     case "date":
       return "dateRange";
@@ -296,11 +297,23 @@ export function Filters({ table }: FiltersProps) {
                 }
               />
             );
-          case "select":
+          case "select": {
+            // For relation fields, build options from relationOptions
+            const filterField = field.type === "relation" && field.relation
+              ? {
+                  ...field,
+                  filterOptions: (table.relationOptions?.[field.name] ?? []).map(
+                    (item: any) => ({
+                      label: item[field.relation!.labelField],
+                      value: item[field.relation!.valueField],
+                    })
+                  ),
+                }
+              : field;
             return (
               <SelectFilter
                 key={field.name}
-                field={field}
+                field={filterField}
                 value={value}
                 onChange={(val) =>
                   table.setFilters((prev: any) => ({
@@ -310,6 +323,7 @@ export function Filters({ table }: FiltersProps) {
                 }
               />
             );
+          }
           case "boolean":
             return (
               <BooleanFilter

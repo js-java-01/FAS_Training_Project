@@ -1,34 +1,33 @@
-import type { ComponentType } from "react";
-import { UserManagement } from "@/pages/UserManagement";
-import { Dashboard } from "@/pages/Dashboard";
-import ModulesManagement from "@/pages/modules/module/ModulesManagement.tsx";
-import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsManagement.tsx";
-import NotFoundPage from "@/pages/NotFoundPage.tsx";
-import { RoleManagement } from "@/pages/RoleManagement.tsx";
-import ProgrammingLanguageManagement from "@/pages/ProgrammingLanguageManagement";
 import AssessmentManagement from "@/pages/AssessmentManagement";
+import { Dashboard } from "@/pages/Dashboard";
 import { LocationManagement } from "@/pages/LocationManagement";
+import NotFoundPage from "@/pages/NotFoundPage.tsx";
+import ProgrammingLanguageManagement from "@/pages/ProgrammingLanguageManagement";
 import CourseManagement from "@/pages/course/CourseManagement";
 import { SelectAssessmentPage } from "@/pages/exam";
-import { TeacherAssessmentPage } from "@/pages/teacher-assessment";
-import { QuestionCategoryManagement } from "@/pages/question-category";
+import ModulesManagement from "@/pages/modules/module/ModulesManagement.tsx";
+import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsManagement.tsx";
 import { QuestionManagementPage } from "@/pages/question";
+import { QuestionCategoryManagement } from "@/pages/question-category";
+import { TeacherAssessmentPage } from "@/pages/teacher-assessment";
+import type { ComponentType } from "react";
 
 // Auth components
-import { OAuth2RedirectHandler } from "@/components/auth/OAuth2RedirectHandler";
-import { Login } from "@/pages/auth/Login";
 import { Logout } from "@/components/auth/Logout";
+import { OAuth2RedirectHandler } from "@/components/auth/OAuth2RedirectHandler";
 import { Unauthorized } from "@/pages/Unauthorized";
-import RegisterPage from "@/pages/auth/RegisterPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+import { Login } from "@/pages/auth/Login";
+import RegisterPage from "@/pages/auth/RegisterPage";
 
 // Parameterized route components
 import CourseDetailPage from "@/pages/course/CourseDetailPage";
+import { AttemptHistoryPage, QuizPage, ResultPage } from "@/pages/exam";
 import StudentCourseContent from "@/pages/learning/StudentCourseContent";
-import { QuizPage, ResultPage, AttemptHistoryPage } from "@/pages/exam";
-import { AssessmentFormPage } from "@/pages/teacher-assessment";
 import { CreateQuestionPage, EditQuestionPage } from "@/pages/question";
-import UserManagementTest from "@/pages/UserManagementTest";
+import { AssessmentFormPage } from "@/pages/teacher-assessment";
+import { UserManagementPage } from "@/pages/user";
+import { RoleManagementPage } from "@/pages/role";
 
 // ── Route Configuration Types ─────────────────────────────────────────────────
 export interface RouteConfig {
@@ -42,11 +41,11 @@ export interface RouteConfig {
 export const routes: RouteConfig[] = [
     // Module-driven routes (rendered from Module table, but need component mapping)
     { path: "/dashboard", component: Dashboard, isModuleDriven: true },
-    { path: "/users", component: UserManagementTest, isModuleDriven: true },
+    { path: "/users", component: UserManagementPage, isModuleDriven: true },
     { path: "/modules", component: ModulesManagement, isModuleDriven: true },
     { path: "/moduleGroups", component: ModuleGroupsManagement, isModuleDriven: true },
     { path: "/notFoundPage", component: NotFoundPage, isModuleDriven: true },
-    { path: "/roles", component: RoleManagement, isModuleDriven: true },
+    { path: "/roles", component: RoleManagementPage, isModuleDriven: true },
     { path: "/locations", component: LocationManagement, isModuleDriven: true },
     { path: "/programming-languages", component: ProgrammingLanguageManagement, isModuleDriven: true },
     { path: "/assessment-type", component: AssessmentManagement, isModuleDriven: true },

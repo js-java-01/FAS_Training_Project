@@ -3,16 +3,27 @@ package com.example.starter_project_2025.system.user.spec;
 import com.example.starter_project_2025.system.user.entity.User;
 import org.springframework.data.jpa.domain.Specification;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public final class UserSpecification {
 
     private UserSpecification() {}
 
-    public static Specification<User> hasRoleId(UUID roleId) {
-        return (root, query, cb) ->
-                roleId == null ? null :
-                        cb.equal(root.get("role").get("id"), roleId);
+    public static Specification<User> hasRoleIds(List<UUID> roleIds) {
+        return (root, query, cb) -> {
+
+            if (roleIds == null || roleIds.isEmpty()) {
+                return null;
+            }
+
+            query.distinct(true);
+
+            var userRoleJoin = root.join("userRoles");
+            var roleJoin = userRoleJoin.join("role");
+
+            return roleJoin.get("id").in(roleIds);
+        };
     }
 
     public static Specification<User> isActive(Boolean isActive) {
@@ -33,7 +44,7 @@ public final class UserSpecification {
                         cb.lessThanOrEqualTo(root.get("createdAt"), to);
     }
 
-    public static Specification<User> hasUserKeyword(String keyword) {
+    public static Specification<User> hasKeyword(String keyword) {
         return (root, query, cb) -> {
             if (keyword == null || keyword.isBlank()) return null;
 

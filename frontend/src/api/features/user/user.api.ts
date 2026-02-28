@@ -15,19 +15,4 @@ const base = createBaseApiService<
   UserUpdateRequest
 >(axiosInstance, Url.USER);
 
-export const userApi = Object.assign({}, base, {
-  toggleUserStatus: async (id: string): Promise<User> => {
-    const response = await axiosInstance.post<User>(
-      `${Url.USER}/${id}/toggle-status`,
-    );
-    return response.data;
-  },
-
-  assignRole: async (userId: string, roleId: string): Promise<User> => {
-    const response = await axiosInstance.post<User>(
-      `${Url.USER}/${userId}/assign-role`,
-      { roleId },
-    );
-    return response.data;
-  },
-});
+export const userApi = Object.assign({}, base, {});

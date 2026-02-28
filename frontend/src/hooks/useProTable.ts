@@ -4,43 +4,37 @@ import {
   type FileFormat,
   type ImportResult,
   type Pagination,
+  type SortEntry,
 } from "@/types";
 import { downloadBlob, getFilenameFromHeader } from "@/utils/dataio.utils";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-
-export type SortDirection = "asc" | "desc" | null;
-
-export interface SortState {
-  field: string | null;
-  direction: SortDirection;
-}
-
-const parseSortString = (sort?: string): SortState => {
-  if (!sort) return { field: null, direction: null };
-  const [field, dir] = sort.split(",");
-  return { field, direction: (dir as SortDirection) || "asc" };
-};
-
-const buildSortString = (field: string | null, direction: SortDirection): string | undefined => {
-  if (!field || !direction) return undefined;
-  return `${field},${direction}`;
-};
+import {
+  keepPreviousData,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import type { ValidationErrorResponse } from "@/types/common/error";
+import { useMemo, useState } from "react";
+import axios from "axios";
 
 export function useProTable(api: any, schema: EntitySchema) {
   const qc = useQueryClient();
 
   const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
-  const [sortState, setSortState] = useState<SortState>(() => parseSortString(DefaultPagination.sort));
+  const [sortState, setSortState] = useState<SortEntry[]>([]);
   const [filters, setFilters] = useState<any>({});
-  const [search, setSearch] = useState<string>("")
+  const [search, setSearch] = useState<string>("");
 
   const [selected, setSelected] = useState<any[]>([]);
 
   const [editingRow, setEditingRow] = useState<any | null>(null);
   const [isFormOpen, setFormOpen] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
-  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(() => {
+  const [columnVisibility, setColumnVisibility] = useState<
+    Record<string, boolean>
+  >(() => {
     const initial: Record<string, boolean> = {};
     schema.fields.forEach((field) => {
       initial[field.name] = field.visible !== false;
@@ -49,7 +43,7 @@ export function useProTable(api: any, schema: EntitySchema) {
   });
 
   const visibleFields = schema.fields.filter(
-    (field) => columnVisibility[field.name] !== false
+    (field) => columnVisibility[field.name] !== false,
   );
 
   const toggleFieldVisibility = (fieldName: string, visible: boolean) => {
@@ -61,20 +55,50 @@ export function useProTable(api: any, schema: EntitySchema) {
 
   const toggleSort = (fieldName: string) => {
     setSortState((prev) => {
-      if (prev.field !== fieldName) {
-        return { field: fieldName, direction: "asc" };
+      const idx = prev.findIndex((s) => s.field === fieldName);
+      if (idx === -1)
+        return [...prev, { field: fieldName, direction: "asc" as const }];
+      if (prev[idx].direction === "asc") {
+        return prev.map((s, i) =>
+          i === idx ? { ...s, direction: "desc" as const } : s,
+        );
       }
-      if (prev.direction === "asc") {
-        return { field: fieldName, direction: "desc" };
-      }
-      if (prev.direction === "desc") {
-        return { field: null, direction: null };
-      }
-      return { field: fieldName, direction: "asc" };
+      return prev.filter((_, i) => i !== idx);
     });
   };
 
-  const currentSort = buildSortString(sortState.field, sortState.direction);
+  const clearSort = () => setSortState([]);
+
+  const currentSort: string[] = sortState.map(
+    (s) => `${s.field},${s.direction}`,
+  );
+
+  const relationFields = useMemo(
+    () => schema.fields.filter((f) => f.type === "relation" && f.relation),
+    [schema],
+  );
+
+  const relationQueries = useQueries({
+    queries: relationFields.map((field) => ({
+      queryKey: ["relation", schema.entityName, field.name],
+      queryFn: async () => {
+        const res = await field.relation!.api.getPage({
+          page: 0,
+          size: 9999,
+        });
+        return res.content;
+      },
+      staleTime: 5 * 60 * 1000,
+    })),
+  });
+
+  const relationOptions = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    relationFields.forEach((field, index) => {
+      map[field.name] = relationQueries[index]?.data ?? [];
+    });
+    return map;
+  }, [relationFields, relationQueries]);
 
   const queryKey = [
     schema.entityName,
@@ -87,33 +111,97 @@ export function useProTable(api: any, schema: EntitySchema) {
 
   const query = useQuery({
     queryKey,
-    queryFn: () => api.getPage({ ...pagination, sort: currentSort }, search, filters),
+    queryFn: () =>
+      api.getPage(
+        {
+          ...pagination,
+          sort: currentSort.length > 0 ? currentSort : undefined,
+        },
+        search,
+        filters,
+      ),
+    placeholderData: keepPreviousData,
   });
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: [schema.entityName] });
+  const invalidate = () =>
+    qc.invalidateQueries({ queryKey: [schema.entityName] });
+
+  const handleMutationError = (error: unknown) => {
+    if (axios.isAxiosError(error) && error.response?.status === 400) {
+      const body = error.response.data as ValidationErrorResponse;
+      if (body?.errors) {
+        setFieldErrors(body.errors);
+      }
+    }
+  };
 
   const createMutation = useMutation({
     mutationFn: (data: any) => api.create(data),
     onSuccess: () => {
       invalidate();
+      setFieldErrors({});
       setEditingRow(null);
       setFormOpen(false);
     },
+    onError: handleMutationError,
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: any) => api.update(id, data),
     onSuccess: () => {
       invalidate();
+      setFieldErrors({});
       setEditingRow(null);
       setFormOpen(false);
     },
+    onError: handleMutationError,
   });
 
   const removeMutation = useMutation({
     mutationFn: (id: any) => api.delete(id),
     onSuccess: invalidate,
   });
+
+  const patchFieldMutation = useMutation({
+    mutationFn: ({ id, data }: { id: any; data: Record<string, any> }) =>
+      api.update(id, data),
+    onSuccess: invalidate,
+  });
+
+  const patchField = (id: any, fieldName: string, value: any) => {
+    // Find the full row from current data
+    const currentData: any[] = query.data?.content ?? [];
+    const row = currentData.find((r: any) => r[schema.idField] === id);
+    if (!row) return;
+
+    // Build full update payload with the changed field
+    const updateData = { ...row, [fieldName]: value };
+
+    // Remove read-only / server-managed fields
+    delete updateData[schema.idField];
+    delete updateData.createdAt;
+    delete updateData.updatedAt;
+
+    // Optimistically update the cache
+    qc.setQueryData(queryKey, (old: any) => {
+      if (!old?.content) return old;
+      return {
+        ...old,
+        content: old.content.map((r: any) =>
+          r[schema.idField] === id ? { ...r, [fieldName]: value } : r,
+        ),
+      };
+    });
+    patchFieldMutation.mutate(
+      { id, data: updateData },
+      {
+        onError: () => {
+          // Revert on error
+          invalidate();
+        },
+      },
+    );
+  };
 
   const importMutation = useMutation<ImportResult, any, File>({
     mutationFn: api.import,
@@ -140,11 +228,13 @@ export function useProTable(api: any, schema: EntitySchema) {
 
   const openCreate = () => {
     setEditingRow(null);
+    setFieldErrors({});
     setFormOpen(true);
   };
 
   const openEdit = (row: any) => {
     setEditingRow(row);
+    setFieldErrors({});
     setFormOpen(true);
   };
 
@@ -165,6 +255,7 @@ export function useProTable(api: any, schema: EntitySchema) {
     size: pagination.size,
     sortState,
     toggleSort,
+    clearSort,
     setPage: (page: number) => setPagination((prev) => ({ ...prev, page })),
     setSize: (size: number) => setPagination((prev) => ({ ...prev, size })),
 
@@ -191,11 +282,16 @@ export function useProTable(api: any, schema: EntitySchema) {
     create: createMutation.mutate,
     update: updateMutation.mutate,
     remove: removeMutation.mutate,
+    patchField,
     bulkDelete,
 
     isSubmitting: createMutation.isPending || updateMutation.isPending,
 
     importFile: importMutation.mutateAsync,
     exportFile,
+
+    fieldErrors,
+    setFieldErrors,
+    relationOptions,
   };
 }

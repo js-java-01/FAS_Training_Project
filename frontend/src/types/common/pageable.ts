@@ -11,11 +11,17 @@ export interface PageResponse<T> {
 export interface Pagination {
   page?: number;
   size?: number;
-  sort?: string;
+  sort?: string | string[];
 }
 
 export const DefaultPagination: Pagination = {
   page: 0,
   size: 10,
-  sort: "id,asc",
 };
+
+export type SortDirection = "asc" | "desc";
+
+export interface SortEntry {
+  field: string;
+  direction: SortDirection;
+}
