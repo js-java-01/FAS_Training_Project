@@ -58,9 +58,14 @@ public class SemesterController
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(defaultValue = "false") boolean unpaged,
             Pageable pageable
     )
     {
+        if (unpaged)
+        {
+            pageable = Pageable.unpaged();
+        }
         var userId = userDetails.getId();
         Page<SemesterResponse> pageResult =
                 semesterService.getAllSemesters(userId, userDetails.getRole(), keyword, startDate, endDate, pageable);

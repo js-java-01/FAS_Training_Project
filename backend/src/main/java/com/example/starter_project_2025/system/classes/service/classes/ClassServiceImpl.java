@@ -1,11 +1,17 @@
 package com.example.starter_project_2025.system.classes.service.classes;
 
-import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
+import com.example.starter_project_2025.constant.ErrorMessage;
 import com.example.starter_project_2025.system.classes.dto.request.CreateTrainingClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
+import com.example.starter_project_2025.system.classes.dto.request.SearchTrainerClassInSemesterRequest;
+import com.example.starter_project_2025.system.classes.dto.response.TrainerClassSemesterResponse;
+import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
+import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.classes.mapper.TrainerClassMapper;
 import com.example.starter_project_2025.system.classes.mapper.TrainingClassMapper;
 import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
+import com.example.starter_project_2025.system.classes.spec.ClassSpecification;
 import com.example.starter_project_2025.system.modulegroups.util.StringNormalizer;
 import com.example.starter_project_2025.system.semester.entity.Semester;
 import com.example.starter_project_2025.system.semester.repository.SemesterRepository;
@@ -14,39 +20,48 @@ import com.example.starter_project_2025.system.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class ClassServiceImpl implements ClassService {
+public class ClassServiceImpl implements ClassService
+{
 
     private final TrainingClassRepository trainingClassRepository;
     private final SemesterRepository semesterRepository;
     private final UserRepository userRepository;
     private final TrainingClassMapper mapper;
+    private final TrainerClassMapper trainerClassMapper;
 
     @Override
-    public TrainingClassResponse openClassRequest(CreateTrainingClassRequest request, String email) {
+    public TrainingClassResponse openClassRequest(CreateTrainingClassRequest request, String email)
+    {
 
         // ===== NORMALIZE =====
         String className = StringNormalizer.normalize(request.getClassName());
         String classCode = StringNormalizer.normalize(request.getClassCode());
 
         // ===== DUPLICATE CHECK =====
-        if (trainingClassRepository.existsByClassNameIgnoreCase(className)) {
+        if (trainingClassRepository.existsByClassNameIgnoreCase(className))
+        {
             throw new RuntimeException("Class name already exists");
         }
 
-        if (trainingClassRepository.existsByClassCodeIgnoreCase(classCode)) {
+        if (trainingClassRepository.existsByClassCodeIgnoreCase(classCode))
+        {
             throw new RuntimeException("Class code already exists");
         }
 
         // ===== DATE CHECK =====
-        if (request.getStartDate().isAfter(request.getEndDate())) {
+        if (request.getStartDate().isAfter(request.getEndDate()))
+        {
             throw new RuntimeException("Start date must be before end date");
         }
 
@@ -54,13 +69,15 @@ public class ClassServiceImpl implements ClassService {
                 .orElseThrow(() -> new RuntimeException("Semester not found"));
 
         // ===== SEMESTER MUST BE CURRENT OR FUTURE =====
-        if (semester.getEndDate().isBefore(LocalDate.now())) {
+        if (semester.getEndDate().isBefore(LocalDate.now()))
+        {
             throw new RuntimeException("Cannot open class for past semester");
         }
 
         // ===== CLASS DURATION MUST INSIDE SEMESTER =====
         if (request.getStartDate().isBefore(semester.getStartDate())
-                || request.getEndDate().isAfter(semester.getEndDate())) {
+                || request.getEndDate().isAfter(semester.getEndDate()))
+        {
             throw new RuntimeException("Class duration must be within semester period");
         }
 
@@ -82,9 +99,41 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
-    public Page<TrainingClassResponse> searchTrainingClasses(SearchClassRequest request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'searchTrainingClasses'");
+    public Page<TrainingClassResponse> searchTrainingClasses(SearchClassRequest request, Pageable pageable)
+    {
+        Specification<TrainingClass> spec = Specification
+                .where(ClassSpecification.filterClasses(request));
+
+        Page<TrainingClass> page = trainingClassRepository.findAll(spec, pageable);
+        return page.map(mapper::toResponse);
     }
 
+    @Override
+    public List<TrainingClassSemesterResponse> getMyClasses(UUID id)
+    {
+        List<TrainingClass> classes = trainingClassRepository.findByStudentId(id);
+        return mapper.toSemesterResponse(classes);
+    }
+
+    @Override
+    public TrainerClassSemesterResponse getTrainerClasses(UUID trainerId, SearchTrainerClassInSemesterRequest request)
+    {
+        Specification<TrainingClass> spec = ClassSpecification.filterTrainerClasses(trainerId, request);
+        List<TrainingClass> classes = trainingClassRepository.findAll(spec);
+        if (classes.isEmpty())
+        {
+            throw new RuntimeException(ErrorMessage.TRAINING_CLASS_NOT_FOUND);
+        }
+        var mappedClasses = trainerClassMapper.toTrainerClassResponseList(classes);
+
+        var semester = semesterRepository.findById(request.getSemesterId())
+                .orElseThrow(() -> new RuntimeException(ErrorMessage.SEMESTER_NOT_FOUND));
+
+        var res = new TrainerClassSemesterResponse();
+        res.setSemesterID(request.getSemesterId());
+        res.setSemesterName(semester.getName());
+        res.setClasses(mappedClasses);
+
+        return res;
+    }
 }

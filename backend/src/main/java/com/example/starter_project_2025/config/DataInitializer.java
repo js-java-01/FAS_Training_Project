@@ -19,6 +19,8 @@ import com.example.starter_project_2025.system.course.enums.CourseStatus;
 import com.example.starter_project_2025.system.course.repository.CourseRepository;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
+import com.example.starter_project_2025.system.learning.entity.Enrollment;
+import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.location.data.entity.Commune;
 import com.example.starter_project_2025.system.location.data.entity.Province;
 import com.example.starter_project_2025.system.location.data.repository.CommuneRepository;
@@ -83,6 +85,7 @@ public class DataInitializer implements CommandLineRunner
     private final SemesterRepository semesterRepository;
     private final TrainingClassRepository trainingClassRepository;
     private final CourseClassRepository courseClassRepository;
+    private final EnrollmentRepository enrollmentRepository;
 
     @Override
     @Transactional
@@ -121,6 +124,7 @@ public class DataInitializer implements CommandLineRunner
         {
             initializeUserRoles();
         }
+        initializeEnrollments();
     }
 
     private void initializePermissions()
@@ -639,8 +643,8 @@ public class DataInitializer implements CommandLineRunner
         moduleRepository.save(
                 createModule(
                         trainingGroup,
-                        "Semesters",
-                        "/semesters",
+                        "Trainer Semesters",
+                        "/trainer-semesters",
                         "calendar",
                         1,
                         "SEMESTER_READ",
@@ -1095,6 +1099,88 @@ public class DataInitializer implements CommandLineRunner
         cc.setClassInfo(classInfo);
         cc.setTrainer(trainer);
         return cc;
+    }
+
+    private void initializeEnrollments()
+    {
+        if (enrollmentRepository.count() > 0)
+        {
+            log.info("Enrollments already exist, skipping initialization");
+            return;
+        }
+
+        User student1 = userRepository.findByEmail("student1@example.com").orElse(null);
+        User student2 = userRepository.findByEmail("student2@example.com").orElse(null);
+        User student3 = userRepository.findByEmail("student3@example.com").orElse(null);
+        User student4 = userRepository.findByEmail("student4@example.com").orElse(null);
+        User student5 = userRepository.findByEmail("student5@example.com").orElse(null);
+
+        List<TrainingClass> classes = trainingClassRepository.findAll();
+
+        if (classes.isEmpty() || student1 == null)
+        {
+            log.warn("Missing Students or Training Classes! Please run their initializers first.");
+            return;
+        }
+
+        List<Enrollment> enrollments = new ArrayList<>();
+
+        int totalClasses = classes.size();
+
+        if (totalClasses > 0)
+        {
+            enrollments.add(buildEnrollment(student1, classes.get(0)));
+            enrollments.add(buildEnrollment(student2, classes.get(0)));
+            enrollments.add(buildEnrollment(student3, classes.get(0)));
+        }
+
+        if (totalClasses > 1)
+        {
+            enrollments.add(buildEnrollment(student4, classes.get(1)));
+            enrollments.add(buildEnrollment(student5, classes.get(1)));
+        }
+
+        if (totalClasses > 2)
+        {
+            enrollments.add(buildEnrollment(student1, classes.get(2)));
+            enrollments.add(buildEnrollment(student2, classes.get(2)));
+            enrollments.add(buildEnrollment(student4, classes.get(2)));
+            enrollments.add(buildEnrollment(student5, classes.get(2)));
+        }
+
+        if (totalClasses > 3)
+        {
+            enrollments.add(buildEnrollment(student3, classes.get(3)));
+        }
+
+        if (totalClasses > 4)
+        {
+            enrollments.add(buildEnrollment(student1, classes.get(4)));
+        }
+        if (totalClasses > 5)
+        {
+            enrollments.add(buildEnrollment(student2, classes.get(5)));
+        }
+        if (totalClasses > 6)
+        {
+            enrollments.add(buildEnrollment(student3, classes.get(6)));
+        }
+        if (totalClasses > 7)
+        {
+            enrollments.add(buildEnrollment(student4, classes.get(7)));
+        }
+
+        enrollmentRepository.saveAll(enrollments);
+
+        log.info("Initialized {} Enrollments successfully. Students are now in classes!", enrollments.size());
+    }
+
+    private Enrollment buildEnrollment(User student, TrainingClass trainingClass)
+    {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUser(student);
+        enrollment.setTrainingClass(trainingClass);
+        return enrollment;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

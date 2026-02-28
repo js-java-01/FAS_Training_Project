@@ -101,4 +101,5 @@ public class ClassSpecification
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
+    
 }

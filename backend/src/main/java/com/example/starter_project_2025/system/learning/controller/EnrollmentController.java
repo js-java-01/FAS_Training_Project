@@ -1,35 +1,32 @@
 package com.example.starter_project_2025.system.learning.controller;
 
-import com.example.starter_project_2025.system.course.dto.CourseResponse;
+import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
-import com.example.starter_project_2025.system.learning.dto.EnrollmentResponse;
-import com.example.starter_project_2025.system.learning.service.EnrollmentService;
+import com.example.starter_project_2025.system.learning.service.enroll.EnrollmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/enrollments")
 @RequiredArgsConstructor
-public class EnrollmentController {
+public class EnrollmentController
+{
 
-    // private final EnrollmentService enrollmentService;
+    private final EnrollmentService enrollmentService;
 
-    // @PostMapping
-    // @ResponseStatus(HttpStatus.CREATED)
-    // @PreAuthorize("hasAuthority('ENROLL_COURSE')")
-    // public EnrollmentResponse enroll(@Valid @RequestBody EnrollmentRequest
-    // request) {
-    // return enrollmentService.enroll(request);
-    // }
+    @PostMapping("")
+    public ResponseEntity<String> enroll(@Valid @RequestBody EnrollmentRequest request,
+                                         @AuthenticationPrincipal UserDetailsImpl userDetails)
+    {
 
-    // @GetMapping("/my-courses")
-    // @PreAuthorize("isAuthenticated()")
-    // public List<CourseResponse> getMyEnrolledCourses() {
-    // return enrollmentService.getMyEnrolledCourses();
-    // }
+        String result = enrollmentService.enroll(request, userDetails.getId());
+        return ResponseEntity.ok(result);
+    }
+
 }

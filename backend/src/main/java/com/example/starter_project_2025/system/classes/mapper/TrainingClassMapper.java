@@ -1,13 +1,27 @@
 package com.example.starter_project_2025.system.classes.mapper;
 
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
+import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.semester.entity.Semester;
 import org.springframework.stereotype.Component;
 
-@Component
-public class TrainingClassMapper {
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
-    public TrainingClassResponse toResponse(TrainingClass entity) {
+@Component
+public class TrainingClassMapper
+{
+
+    public TrainingClassResponse toResponse(TrainingClass entity)
+    {
+        List<String> trainers = entity.getCourseClasses() != null
+                ? entity.getCourseClasses().stream()
+                .map(cc -> cc.getTrainer().getFirstName() + " "
+                        + cc.getTrainer().getLastName())
+                .toList()
+                : List.of();
 
         return TrainingClassResponse.builder()
                 .id(entity.getId())
@@ -16,11 +30,13 @@ public class TrainingClassMapper {
                 .isActive(entity.getIsActive())
 
                 .creatorName(entity.getCreator() != null
-                        ? entity.getCreator().getFirstName() + " " + entity.getCreator().getLastName()
+                        ? entity.getCreator().getFirstName() + " "
+                        + entity.getCreator().getLastName()
                         : null)
 
                 .approverName(entity.getApprover() != null
-                        ? entity.getApprover().getFirstName() + " " + entity.getApprover().getLastName()
+                        ? entity.getApprover().getFirstName() + " "
+                        + entity.getApprover().getLastName()
                         : null)
 
                 .semesterName(entity.getSemester() != null
@@ -29,7 +45,35 @@ public class TrainingClassMapper {
 
                 .startDate(entity.getStartDate())
                 .endDate(entity.getEndDate())
-
+                .trainerNames(trainers)
                 .build();
+    }
+
+    public List<TrainingClassSemesterResponse> toSemesterResponse(List<TrainingClass> classes)
+    {
+        if (classes == null || classes.isEmpty())
+        {
+            return List.of();
+        }
+
+        return classes.stream()
+                .collect(Collectors.groupingBy(
+                        TrainingClass::getSemester,
+                        LinkedHashMap::new,
+                        Collectors.toList()))
+                .entrySet().stream()
+                .map(entry -> {
+                    Semester semester = entry.getKey();
+                    List<TrainingClass> classList = entry.getValue();
+
+                    List<TrainingClassResponse> classResponses = classList.stream()
+                            .map(this::toResponse)
+                            .collect(Collectors.toList());
+
+                    return new TrainingClassSemesterResponse(semester.getId(), semester.getName(),
+                            classResponses);
+                })
+                .toList();
+
     }
 }

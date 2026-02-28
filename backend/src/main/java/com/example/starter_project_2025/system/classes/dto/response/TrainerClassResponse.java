@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.classes.dto.response;
 
+import com.example.starter_project_2025.system.classes.entity.ClassStatus;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,7 @@ public class TrainerClassResponse
     private String className;
     private String classCode;
     private Boolean isActive;
+    private ClassStatus status;
 
     private String creatorName;
     private String approverName;
