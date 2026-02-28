@@ -1,21 +1,23 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { courseApi } from "@/api/courseApi";
 import type { Course } from "@/types/course";
+import { useEffect, useState, useCallback } from "react";
 import { lessonApi } from "@/api/lessonApi";
 import type { Lesson } from "@/api/lessonApi";
 import { sessionService } from "@/api/sessionService";
 import type { SessionResponse } from "@/types/session";
 import { SESSION_TYPE_OPTIONS } from "@/types/session";
+import { materialApi } from "@/api/materialApi";
+import type { Material } from "@/types/material";
 import { toast } from "sonner";
 import {
   ChevronLeft,
   ChevronDown,
   ChevronRight,
   BookOpen,
-  PlayCircle,
   FileText,
   CheckSquare,
+  CheckCircle2,
   Circle,
   Loader2,
   Menu,
@@ -23,6 +25,11 @@ import {
   Video,
   Radio,
   FolderKanban,
+  ExternalLink,
+  Film,
+  Music,
+  Image,
+  Link as LinkIcon,
 } from "lucide-react";
 
 // ── Type helpers ──────────────────────────────────────────────────────────────
@@ -59,6 +66,219 @@ function SessionIcon({ type }: { type: string | null }) {
   return <Icon size={14} className={config?.color ?? "text-gray-400"} />;
 }
 
+// ── localStorage helpers for completion tracking ──────────────────────────────
+const storageKey = (cohortId: string, materialId: string) =>
+  `fas_done_${cohortId}_${materialId}`;
+
+function setMatDone(cohortId: string, materialId: string, done: boolean) {
+  if (done) localStorage.setItem(storageKey(cohortId, materialId), "1");
+  else localStorage.removeItem(storageKey(cohortId, materialId));
+}
+
+// ── URL resolver for relative backend paths ───────────────────────────────────
+function resolveUrl(url: string): string {
+  if (url.startsWith("/")) {
+    const apiBase = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+    return apiBase.replace(/\/api$/, "") + url;
+  }
+  return url;
+}
+
+// ── YouTube embed helper ──────────────────────────────────────────────────────
+function getYouTubeEmbed(url: string): string | null {
+  try {
+    if (url.includes("youtube.com/watch")) {
+      const v = new URL(url).searchParams.get("v");
+      return v ? `https://www.youtube.com/embed/${v}` : null;
+    }
+    if (url.includes("youtu.be/")) {
+      const v = url.split("youtu.be/")[1]?.split(/[?#]/)[0];
+      return v ? `https://www.youtube.com/embed/${v}` : null;
+    }
+    if (url.includes("youtube.com/shorts/")) {
+      const v = url.split("youtube.com/shorts/")[1]?.split(/[?#]/)[0];
+      return v ? `https://www.youtube.com/embed/${v}` : null;
+    }
+    if (url.includes("youtube.com/embed/")) return url;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+// ── Single Material Item ──────────────────────────────────────────────────────
+function MaterialItem({
+  material,
+  done,
+  onToggle,
+}: {
+  material: Material;
+  done: boolean;
+  onToggle: (id: string, val: boolean) => void;
+}) {
+  const resolved = resolveUrl(material.sourceUrl);
+  const ytEmbed = getYouTubeEmbed(resolved);
+
+  const renderPreview = () => {
+    if (ytEmbed) {
+      return (
+        <div className="w-full rounded-xl overflow-hidden bg-black mb-3">
+          <iframe
+            width="100%"
+            src={ytEmbed}
+            title={material.title}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            className="w-full aspect-video"
+          />
+        </div>
+      );
+    }
+    switch (material.type) {
+      case "VIDEO":
+        return (
+          <div className="w-full rounded-xl overflow-hidden bg-black mb-3">
+            <video
+              controls
+              className="w-full aspect-video"
+              src={resolved}
+              controlsList="nodownload"
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        );
+      case "IMAGE":
+        return (
+          <div className="w-full rounded-xl overflow-hidden bg-gray-100 mb-3">
+            <img
+              src={resolved}
+              alt={material.title}
+              className="w-full h-auto object-contain max-h-96"
+            />
+          </div>
+        );
+      case "AUDIO":
+        return (
+          <div className="w-full mb-3">
+            <audio controls className="w-full" src={resolved}>
+              Your browser does not support the audio tag.
+            </audio>
+          </div>
+        );
+      case "DOCUMENT":
+        if (
+          resolved.toLowerCase().endsWith(".pdf") ||
+          resolved.includes("/pdf")
+        ) {
+          return (
+            <div
+              className="w-full mb-3 rounded-xl overflow-hidden border"
+              style={{ height: 480 }}
+            >
+              <iframe
+                src={resolved}
+                title={material.title}
+                className="w-full h-full"
+                frameBorder="0"
+              />
+            </div>
+          );
+        }
+        return (
+          <a
+            href={resolved}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 mb-3 text-blue-600 hover:underline text-sm"
+          >
+            <ExternalLink size={14} /> Open document
+          </a>
+        );
+      case "LINK":
+        return (
+          <a
+            href={resolved}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 mb-3 text-blue-600 hover:underline text-sm break-all"
+          >
+            <ExternalLink size={14} /> {material.sourceUrl}
+          </a>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const typeIconMap: Record<string, React.ElementType> = {
+    VIDEO: Film,
+    AUDIO: Music,
+    IMAGE: Image,
+    DOCUMENT: FileText,
+    LINK: LinkIcon,
+  };
+  const TypeIcon = typeIconMap[material.type] ?? FileText;
+
+  return (
+    <div
+      className={`rounded-xl border p-4 transition-all ${done ? "border-green-200 bg-green-50/40" : "border-gray-200 bg-white"}`}
+    >
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <TypeIcon size={16} className="text-gray-400 shrink-0" />
+          <span className="font-semibold text-sm text-gray-800 truncate">
+            {material.title}
+          </span>
+          <span className="text-xs text-gray-400 shrink-0 bg-gray-100 px-2 py-0.5 rounded-full">
+            {material.type}
+          </span>
+        </div>
+        {/* Complete toggle */}
+        <button
+          onClick={() => onToggle(material.id, !done)}
+          className={`flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            done
+              ? "bg-green-100 text-green-700 hover:bg-green-200"
+              : "bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-600"
+          }`}
+        >
+          {done ? <CheckCircle2 size={14} /> : <Circle size={14} />}
+          {done ? "Completed" : "Mark complete"}
+        </button>
+      </div>
+
+      {/* Description */}
+      {material.description && (
+        <p className="text-xs text-gray-500 mb-3">{material.description}</p>
+      )}
+
+      {/* Preview */}
+      {renderPreview()}
+
+      {/* Tags */}
+      {material.tags && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {material.tags
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+            .map((tag) => (
+              <span
+                key={tag}
+                className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"
+              >
+                {tag}
+              </span>
+            ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Lesson + Sessions combined type ───────────────────────────────────────────
 interface LessonWithSessions {
   lesson: Lesson;
@@ -74,6 +294,7 @@ interface SidebarLessonProps {
   onSelectSession: (session: SessionResponse) => void;
   onExpand: () => void;
   expanded: boolean;
+  completedSessionIds: Set<string>;
 }
 
 function SidebarLesson({
@@ -83,7 +304,14 @@ function SidebarLesson({
   onSelectSession,
   onExpand,
   expanded,
+  completedSessionIds,
 }: SidebarLessonProps) {
+  const doneCount = item.sessions.filter((s) =>
+    completedSessionIds.has(s.id),
+  ).length;
+  const allDone =
+    item.sessions.length > 0 && doneCount === item.sessions.length;
+
   return (
     <div className="border-b border-gray-100 last:border-0">
       <button
@@ -95,8 +323,11 @@ function SidebarLesson({
             {idx + 1}. {item.lesson.lessonName}
           </p>
           <p className="text-xs text-gray-400 mt-0.5">
-            {item.sessions.length} session
+            {doneCount}/{item.sessions.length} session
             {item.sessions.length !== 1 ? "s" : ""}
+            {allDone && (
+              <span className="ml-1 text-green-500 font-medium">✓</span>
+            )}
           </p>
         </div>
         {expanded ? (
@@ -125,6 +356,7 @@ function SidebarLesson({
           ) : (
             item.sessions.map((session) => {
               const isActive = activeSessionId === session.id;
+              const isDone = completedSessionIds.has(session.id);
               return (
                 <button
                   key={session.id}
@@ -136,12 +368,20 @@ function SidebarLesson({
                   }`}
                 >
                   <div className="mt-0.5 shrink-0">
-                    <Circle size={14} className="text-gray-300" />
+                    {isDone ? (
+                      <CheckCircle2 size={14} className="text-green-500" />
+                    ) : (
+                      <Circle size={14} className="text-gray-300" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p
                       className={`text-xs font-medium leading-snug ${
-                        isActive ? "text-blue-700" : "text-gray-700"
+                        isActive
+                          ? "text-blue-700"
+                          : isDone
+                            ? "text-gray-400 line-through"
+                            : "text-gray-700"
                       }`}
                     >
                       {session.topic || "Untitled Session"}
@@ -166,25 +406,113 @@ function SidebarLesson({
 }
 
 // ── Session Content Renderer ──────────────────────────────────────────────────
-function SessionContent({ session }: { session: SessionResponse }) {
+function SessionContent({
+  session,
+  completedMaterials,
+  onToggleMaterial,
+  onMaterialsLoaded,
+}: {
+  session: SessionResponse;
+  completedMaterials: Set<string>;
+  onToggleMaterial: (materialId: string, done: boolean) => void;
+  onMaterialsLoaded: (sessionId: string, materials: Material[]) => void;
+}) {
   const typeConfig = session.type ? SESSION_TYPE_CONFIG[session.type] : null;
   const Icon = typeConfig?.icon ?? FileText;
+
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [loadingMaterials, setLoadingMaterials] = useState(false);
+
+  useEffect(() => {
+    if (!session.id) return;
+    setLoadingMaterials(true);
+    materialApi
+      .getActiveMaterialsBySession(session.id)
+      .then((mats) => {
+        setMaterials(mats);
+        onMaterialsLoaded(session.id, mats);
+      })
+      .catch(() => toast.error("Failed to load materials"))
+      .finally(() => setLoadingMaterials(false));
+  }, [session.id]);
+
+  const doneCount = materials.filter((m) =>
+    completedMaterials.has(m.id),
+  ).length;
+
+  const renderMaterials = () => {
+    if (loadingMaterials) {
+      return (
+        <div className="flex items-center gap-2 text-sm text-gray-400 py-4">
+          <Loader2 size={16} className="animate-spin" /> Loading materials...
+        </div>
+      );
+    }
+    if (materials.length === 0) {
+      return (
+        <div className="text-sm text-gray-400 text-center py-8 border border-dashed rounded-xl">
+          No materials for this session yet.
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-4">
+        {/* Progress bar */}
+        <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
+          <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div
+              className="bg-green-500 h-2 rounded-full transition-all duration-500"
+              style={{
+                width: `${materials.length > 0 ? (doneCount / materials.length) * 100 : 0}%`,
+              }}
+            />
+          </div>
+          <span className="text-xs font-semibold text-gray-500 shrink-0">
+            {doneCount}/{materials.length} completed
+          </span>
+        </div>
+
+        {materials.map((mat) => (
+          <MaterialItem
+            key={mat.id}
+            material={mat}
+            done={completedMaterials.has(mat.id)}
+            onToggle={onToggleMaterial}
+          />
+        ))}
+      </div>
+    );
+  };
 
   if (session.type === "QUIZ") {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-8 text-center">
-          <CheckSquare size={48} className="text-orange-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            {session.topic}
-          </h2>
-          <p className="text-gray-500 mb-6">
+        <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
+          <Icon size={14} className={typeConfig?.color ?? "text-gray-400"} />
+          <span>{typeConfig?.label ?? "Session"}</span>
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          {session.topic}
+        </h1>
+        {session.studentTasks && (
+          <div className="bg-orange-50 rounded-xl p-4 border border-orange-100 mb-6">
+            <h3 className="font-semibold text-gray-800 mb-2">Student Tasks</h3>
+            <p className="text-sm text-gray-600 whitespace-pre-wrap">
+              {session.studentTasks}
+            </p>
+          </div>
+        )}
+        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6 text-center mb-6">
+          <CheckSquare size={40} className="text-orange-400 mx-auto mb-3" />
+          <p className="text-gray-500 text-sm mb-4">
             This quiz tests your understanding of the material covered so far.
           </p>
           <button className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition-colors">
             Start Quiz
           </button>
         </div>
+        <h2 className="text-base font-bold text-gray-800 mb-3">Materials</h2>
+        {renderMaterials()}
       </div>
     );
   }
@@ -192,25 +520,26 @@ function SessionContent({ session }: { session: SessionResponse }) {
   if (session.type === "ASSIGNMENT") {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="bg-purple-50 border border-purple-200 rounded-2xl p-8">
-          <div className="flex items-center gap-3 mb-4">
-            <BookOpen size={28} className="text-purple-500" />
-            <h2 className="text-xl font-bold text-gray-900">{session.topic}</h2>
-          </div>
-          {session.studentTasks && (
-            <div className="bg-white rounded-xl p-4 border border-purple-100 mb-6">
-              <h3 className="font-semibold text-gray-800 mb-2">
-                Student Tasks
-              </h3>
-              <p className="text-sm text-gray-600 whitespace-pre-wrap">
-                {session.studentTasks}
-              </p>
-            </div>
-          )}
-          <button className="py-3 px-6 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors">
-            Start Assignment
-          </button>
+        <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
+          <Icon size={14} className={typeConfig?.color ?? "text-gray-400"} />
+          <span>{typeConfig?.label ?? "Session"}</span>
         </div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          {session.topic}
+        </h1>
+        {session.studentTasks && (
+          <div className="bg-purple-50 rounded-xl p-4 border border-purple-100 mb-4">
+            <h3 className="font-semibold text-gray-800 mb-2">Student Tasks</h3>
+            <p className="text-sm text-gray-600 whitespace-pre-wrap">
+              {session.studentTasks}
+            </p>
+          </div>
+        )}
+        <button className="mb-6 py-3 px-6 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors">
+          Start Assignment
+        </button>
+        <h2 className="text-base font-bold text-gray-800 mb-3">Materials</h2>
+        {renderMaterials()}
       </div>
     );
   }
@@ -218,78 +547,48 @@ function SessionContent({ session }: { session: SessionResponse }) {
   if (session.type === "PROJECT") {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-8">
-          <div className="flex items-center gap-3 mb-4">
-            <FolderKanban size={28} className="text-indigo-500" />
-            <h2 className="text-xl font-bold text-gray-900">{session.topic}</h2>
-          </div>
-          {session.studentTasks && (
-            <div className="bg-white rounded-xl p-4 border border-indigo-100 mb-6">
-              <h3 className="font-semibold text-gray-800 mb-2">
-                Student Tasks
-              </h3>
-              <p className="text-sm text-gray-600 whitespace-pre-wrap">
-                {session.studentTasks}
-              </p>
-            </div>
-          )}
-          <button className="py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors">
-            Start Project
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (session.type === "VIDEO_LECTURE") {
-    return (
-      <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
           <Icon size={14} className={typeConfig?.color ?? "text-gray-400"} />
           <span>{typeConfig?.label ?? "Session"}</span>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
           {session.topic}
         </h1>
-        <div className="bg-gray-900 rounded-2xl aspect-video flex items-center justify-center mb-6 shadow-lg">
-          <div className="text-center text-white">
-            <PlayCircle size={64} className="mx-auto mb-3 text-white/70" />
-            <p className="text-white/60 text-sm">Video Lecture</p>
-          </div>
-        </div>
         {session.studentTasks && (
-          <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+          <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100 mb-4">
             <h3 className="font-semibold text-gray-800 mb-2">Student Tasks</h3>
             <p className="text-sm text-gray-600 whitespace-pre-wrap">
               {session.studentTasks}
             </p>
           </div>
         )}
+        <button className="mb-6 py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors">
+          Start Project
+        </button>
+        <h2 className="text-base font-bold text-gray-800 mb-3">Materials</h2>
+        {renderMaterials()}
       </div>
     );
   }
 
-  // LIVE_SESSION or default
+  // VIDEO_LECTURE, LIVE_SESSION, default
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
         <Icon size={14} className={typeConfig?.color ?? "text-gray-400"} />
         <span>{typeConfig?.label ?? "Session"}</span>
       </div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">{session.topic}</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-4">{session.topic}</h1>
       {session.studentTasks && (
-        <div className="bg-gray-50 rounded-xl p-6 border">
+        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 mb-6">
           <h3 className="font-semibold text-gray-800 mb-2">Student Tasks</h3>
           <p className="text-sm text-gray-600 whitespace-pre-wrap">
             {session.studentTasks}
           </p>
         </div>
       )}
-      {!session.studentTasks && (
-        <div className="text-sm text-gray-400 text-center py-12">
-          No content available for this session yet.
-        </div>
-      )}
+      <h2 className="text-base font-bold text-gray-800 mb-3">Materials</h2>
+      {renderMaterials()}
     </div>
   );
 }
@@ -322,6 +621,71 @@ export default function StudentCourseContent() {
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
   const [activeSession, setActiveSession] = useState<SessionResponse | null>(
     null,
+  );
+
+  // Material completion tracking (persisted in localStorage)
+  const [completedMaterialIds, setCompletedMaterialIds] = useState<Set<string>>(
+    new Set(),
+  );
+  // Track which materials belong to which session (populated lazily as sessions are viewed)
+  const [sessionMaterialsMap, setSessionMaterialsMap] = useState<
+    Map<string, Material[]>
+  >(new Map());
+
+  // Initialize completedMaterialIds from localStorage when courseId is known
+  useEffect(() => {
+    if (!courseId) return;
+    const saved = new Set<string>();
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (
+        k &&
+        k.startsWith(`fas_done_${courseId}_`) &&
+        localStorage.getItem(k) === "1"
+      ) {
+        saved.add(k.replace(`fas_done_${courseId}_`, ""));
+      }
+    }
+    setCompletedMaterialIds(saved);
+  }, [courseId]);
+
+  // Derive completed session IDs: a session is complete when all its materials are done (min 1 material)
+  const completedSessionIds = useCallback((): Set<string> => {
+    const result = new Set<string>();
+    sessionMaterialsMap.forEach((mats, sessionId) => {
+      if (
+        mats.length > 0 &&
+        mats.every((m) => completedMaterialIds.has(m.id))
+      ) {
+        result.add(sessionId);
+      }
+    });
+    return result;
+  }, [sessionMaterialsMap, completedMaterialIds])();
+
+  const handleToggleMaterial = useCallback(
+    (materialId: string, done: boolean) => {
+      if (!courseId) return;
+      setMatDone(courseId, materialId, done);
+      setCompletedMaterialIds((prev) => {
+        const next = new Set(prev);
+        if (done) next.add(materialId);
+        else next.delete(materialId);
+        return next;
+      });
+    },
+    [courseId],
+  );
+
+  const handleMaterialsLoaded = useCallback(
+    (sessionId: string, materials: Material[]) => {
+      setSessionMaterialsMap((prev) => {
+        const next = new Map(prev);
+        next.set(sessionId, materials);
+        return next;
+      });
+    },
+    [],
   );
 
   // Load course
@@ -440,11 +804,16 @@ export default function StudentCourseContent() {
         </div>
 
         {/* Info */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           <span className="text-xs text-gray-500">
             {lessonItems.length} lesson{lessonItems.length !== 1 ? "s" : ""} ·{" "}
             {totalSessions} session{totalSessions !== 1 ? "s" : ""}
           </span>
+          {completedSessionIds.size > 0 && (
+            <span className="text-xs font-semibold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+              {completedSessionIds.size}/{totalSessions} done
+            </span>
+          )}
         </div>
       </div>
 
@@ -483,6 +852,7 @@ export default function StudentCourseContent() {
                     }}
                     onExpand={() => handleExpandLesson(item.lesson.id)}
                     expanded={expandedLessonId === item.lesson.id}
+                    completedSessionIds={completedSessionIds}
                   />
                 ))
               )}
@@ -494,7 +864,12 @@ export default function StudentCourseContent() {
         <main className="flex-1 overflow-y-auto">
           <div className="p-6 sm:p-10">
             {activeSession ? (
-              <SessionContent session={activeSession} />
+              <SessionContent
+                session={activeSession}
+                completedMaterials={completedMaterialIds}
+                onToggleMaterial={handleToggleMaterial}
+                onMaterialsLoaded={handleMaterialsLoaded}
+              />
             ) : (
               <EmptyContent />
             )}
