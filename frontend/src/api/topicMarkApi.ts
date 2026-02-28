@@ -10,7 +10,7 @@ export const topicMarkApi = {
   },
 
   getTopicMarksById: async (
-    params: { id: string; page: number; pageSize: number; sort?: string | string[]; keyword?: string }
+    params: { id: string; page: number; pageSize: number; sort?: string | string[]; keyword?: string,  isPassed?: boolean; }
   ): Promise<GradebookTableResponse> => {
     const response = await axiosInstance.get<GradebookTableResponse>(
       `/course-classes/${params.id}/topic-marks/search`,

@@ -17,6 +17,7 @@ interface GradebookParams {
   pageSize: number
   sort?: string
   keyword?: string
+  isPassed?: boolean
   enabled?: boolean
 }
 
@@ -26,6 +27,7 @@ export const useGetGradebookTable = ({
   pageSize,
   sort,
   keyword,
+  isPassed,
   enabled = true,
 }: GradebookParams) => {
   return useQuery({
@@ -36,6 +38,7 @@ export const useGetGradebookTable = ({
       pageSize,
       sort,
       keyword,
+      isPassed,
     ],
     queryFn: () =>
       topicMarkApi.getTopicMarksById({
@@ -45,6 +48,9 @@ export const useGetGradebookTable = ({
         sort: sort ?? "fullName,asc",
         ...(keyword?.trim()
           ? { keyword: keyword.trim() }
+          : {}),
+        ...(isPassed !== undefined
+          ? { isPassed }
           : {}),
       }),
     enabled: enabled && !!id,

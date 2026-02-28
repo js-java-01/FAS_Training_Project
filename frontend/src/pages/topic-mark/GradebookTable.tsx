@@ -49,7 +49,10 @@ export default function GradebookTable({ classId }: Props) {
     }
   }, [courseClasses, selectedCourseClassId])
 
-  /* ================= SORT PARAM ================= */
+  /* ================= SORT & STATUS PARAM ================= */
+
+  const statusParam =
+    statusFilter.length === 1 ? statusFilter[0] === "PASSED" : undefined;
 
   const sortParam = useMemo(() => {
     if (!sorting.length) return "fullName,asc"
