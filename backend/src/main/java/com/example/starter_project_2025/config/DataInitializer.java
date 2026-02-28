@@ -773,11 +773,6 @@ public class DataInitializer implements CommandLineRunner {
                                 "Manage students"
                         ),
 
-                        createModule(trainingGroup, "Training Classes", "/training-classes", "people", 5,
-                                "CLASS_READ",
-                                "Manage Classes and Open Class Requests"
-                        ),
-
                         createModule(trainingGroup, "Classes", "/classes", "people", 6,
                                 "CLASS_USER_READ",
                                 "User search and view classes"
