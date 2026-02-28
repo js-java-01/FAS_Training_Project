@@ -1,5 +1,5 @@
-export type CourseStatus = 'DRAFT' | 'UNDER_REVIEW' | 'ACTIVE';
-export type CourseLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+export type CourseStatus = "DRAFT" | "UNDER_REVIEW" | "ACTIVE";
+export type CourseLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 
 export interface Course {
   id: string;
@@ -42,3 +42,17 @@ export interface CreateCourseRequest {
 }
 
 export type UpdateCourseRequest = Partial<CreateCourseRequest>;
+
+export interface CourseDetailsResponse {
+  id: string;
+  courseName: string;
+  courseCode: string;
+  level: string;
+  note?: string;
+  description?: string;
+  minGpaToPass: number;
+  minAttendancePercent: number;
+  allowFinalRetake: boolean;
+  semesterId: string;
+  semesterName: string;
+}

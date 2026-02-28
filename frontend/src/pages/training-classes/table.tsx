@@ -1,157 +1,167 @@
 import { useMemo, useState } from "react";
-import type { ColumnDef, SortingState } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { useDebounce } from "@uidotdev/usehooks";
 import { Button } from "@/components/ui/button";
 import type { TrainingClass } from "@/types/trainingClass";
-import { useGetAllTrainingClasses } from "./services/queries";
-import { getColumns } from "./column";
+import { getColumns, type TablePermissions } from "./column";
 import { TrainingClassForm } from "./form";
 import { TrainingClassDetailDialog } from "./DetailDialog";
 import { FacetedFilter } from "@/components/FacedFilter";
-import { ServerDataTable } from "@/components/data_table/ServerDataTable";
+import { ClassStatus } from "./enum/ClassStatus";
+import { useGetTrainerClasses } from "./trainer/services/queries";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { ClientDataTable } from "@/components/data_table/ClientDataTable";
 
 /* ======================================================= */
+interface TrainingClassesTableProps {
+  role: string;
+  semesterId: string;
+  onSelectSemester: (semesterId: string | null) => void;
+  permissions: string[];
+  onViewDetails: (id: string, name: string) => void;
+}
 
-export default function TrainingClassesTable() {
-    /* ===================== STATE ===================== */
-    const [sorting, setSorting] = useState<SortingState>([]);
-    const [pageIndex, setPageIndex] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
+export default function TrainingClassesTable({
+  role,
+  semesterId,
+  onSelectSemester,
+  permissions,
+  onViewDetails,
+}: TrainingClassesTableProps) {
+  /* ===================== STATE ===================== */
 
-    const [searchValue, setSearchValue] = useState("");
-    const debouncedSearch = useDebounce(searchValue, 300);
+  const [openForm, setOpenForm] = useState(false);
+  const [viewingClass, setViewingClass] = useState<TrainingClass | null>(null);
 
-    const [openForm, setOpenForm] = useState(false);
-    const [viewingClass, setViewingClass] = useState<TrainingClass | null>(null);
+  /* ---------- faceted filter ---------- */
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const statusParam = statusFilter.length === 1 ? statusFilter[0] : undefined;
 
-    /* ---------- faceted filter ---------- */
-    const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const queryClient = useQueryClient();
 
-    /* ---------- filter param (server side) ---------- */
-    const statusParam =
-        statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
+  /* ===================== DATA ===================== */
+  const {
+    data: tableData,
+    isLoading,
+    isFetching,
+  } = useGetTrainerClasses({
+    semesterId,
+    classStatus: statusParam,
+  });
 
-    const queryClient = useQueryClient();
+  const safeTableData = useMemo(() => {
+    return tableData?.data?.classes || [];
+  }, [tableData]);
 
-    /* ===================== SORT ===================== */
-    const sortParam = useMemo(() => {
-        if (!sorting.length) return "className,asc";
-        const { id, desc } = sorting[0];
-        return `${id},${desc ? "desc" : "asc"}`;
-    }, [sorting]);
+  /* ===================== COLUMNS ===================== */
+  const tablePermissions: TablePermissions = {
+    canUpdate: permissions.includes("CLASS_UPDATE"),
+    canDelete: permissions.includes("CLASS_DELETE"),
+  };
 
-    /* ===================== DATA ===================== */
-    const {
-        data: tableData,
-        isLoading,
-        isFetching,
-    } = useGetAllTrainingClasses({
-        page: pageIndex,
-        pageSize,
-        sort: sortParam,
-        keyword: debouncedSearch,
-        isActive: statusParam,
-    });
+  const columns = useMemo(
+    () =>
+      getColumns(role, tablePermissions, {
+        onView: setViewingClass,
+      }),
+    [],
+  );
 
-    const safeTableData = useMemo(
-        () => ({
-            items: tableData?.items ?? [],
-            page: tableData?.pagination?.page ?? pageIndex,
-            pageSize: tableData?.pagination?.pageSize ?? pageSize,
-            totalPages: tableData?.pagination?.totalPages ?? 0,
-            totalElements: tableData?.pagination?.totalElements ?? 0,
-        }),
-        [tableData, pageIndex, pageSize],
-    );
+  /* ===================== HANDLERS ===================== */
+  const invalidateAll = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["training-classes"] });
+  };
 
-    /* ===================== COLUMNS ===================== */
-    const columns = useMemo(
-        () =>
-            getColumns({
-                onView: setViewingClass,
-            }),
-        [],
-    );
+  const handleSaved = async () => {
+    toast.success("Class request submitted successfully");
+    await invalidateAll();
+    setOpenForm(false);
+  };
 
-    /* ===================== HANDLERS ===================== */
-    const invalidateAll = async () => {
-        await queryClient.invalidateQueries({ queryKey: ["training-classes"] });
-    };
+  /* ===================== RENDER ===================== */
+  return (
+    <div className="relative space-y-4 h-full flex-1">
+      <Breadcrumb className="mb-4">
+        <BreadcrumbList className="text-base sm:text-lg">
+          <BreadcrumbItem>
+            <BreadcrumbLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                onSelectSemester(null);
+              }}
+              className="text-muted-foreground hover:text-blue-600 font-medium"
+            >
+              Danh sách Học kỳ
+            </BreadcrumbLink>
+          </BreadcrumbItem>
 
-    const handleSaved = async () => {
-        toast.success("Class request submitted successfully");
-        await invalidateAll();
-        setOpenForm(false);
-    };
+          <BreadcrumbSeparator />
 
-    /* ===================== RENDER ===================== */
-    return (
-        <div className="relative space-y-4 h-full flex-1">
-            <ServerDataTable<TrainingClass, unknown>
-                columns={columns as ColumnDef<TrainingClass, unknown>[]}
-                data={safeTableData.items}
-                isLoading={isLoading}
-                isFetching={isFetching}
+          <BreadcrumbItem>
+            <BreadcrumbPage className="font-bold text-foreground tracking-tight">
+              Học kỳ {tableData?.data?.semesterName || "..."}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
-                /* PAGINATION */
-                pageIndex={safeTableData.page}
-                pageSize={safeTableData.pageSize}
-                totalPage={safeTableData.totalPages}
-                onPageChange={setPageIndex}
-                onPageSizeChange={setPageSize}
+      <ClientDataTable<TrainingClass, unknown>
+        columns={columns as ColumnDef<TrainingClass, unknown>[]}
+        data={safeTableData}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        /* SEARCH */
+        isSearch={true}
+        searchPlaceholder="class name or code"
+        searchValue={["className", "classCode"]}
+        /* ACTIONS */
+        headerActions={
+          role === "MANAGER" && (
+            <div className="flex gap-2">
+              <Button onClick={() => setOpenForm(true)} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                <Plus className="h-4 w-4" />
+                Open Class Request
+              </Button>
+            </div>
+          )
+        }
+        facetedFilters={
+          role === "MANAGER" && (
+            <div>
+              <FacetedFilter
+                title="Trạng thái"
+                options={[
+                  { value: ClassStatus.APPROVED, label: "Approved" },
+                  { value: ClassStatus.PENDING_APPROVAL, label: "Pending Approval" },
+                  { value: ClassStatus.REJECTED, label: "Rejected" },
+                ]}
+                value={statusFilter}
+                setValue={setStatusFilter}
+                multiple={false}
+              />
+            </div>
+          )
+        }
+      />
 
-                /* SEARCH */
-                isSearch
-                searchPlaceholder="class name or code"
-                onSearchChange={setSearchValue}
+      <TrainingClassForm role={role} open={openForm} onClose={() => setOpenForm(false)} onSaved={handleSaved} />
 
-                /* SORTING */
-                sorting={sorting}
-                onSortingChange={setSorting}
-
-                /* ACTIONS */
-                headerActions={
-                    <div className="flex gap-2">
-                        <Button
-                            onClick={() => setOpenForm(true)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-                        >
-                            <Plus className="h-4 w-4" />
-                            Open Class Request
-                        </Button>
-                    </div>
-                }
-
-                facetedFilters={
-                    <div>
-                        <FacetedFilter
-                            title="Status"
-                            options={[
-                                { value: "ACTIVE", label: "Active" },
-                                { value: "INACTIVE", label: "Pending" },
-                            ]}
-                            value={statusFilter}
-                            setValue={setStatusFilter}
-                            multiple={false}
-                        />
-                    </div>
-                }
-            />
-
-            <TrainingClassForm
-                open={openForm}
-                onClose={() => setOpenForm(false)}
-                onSaved={handleSaved}
-            />
-
-            <TrainingClassDetailDialog
-                open={!!viewingClass}
-                trainingClass={viewingClass}
-                onClose={() => setViewingClass(null)}
-            />
-        </div>
-    );
+      <TrainingClassDetailDialog
+        open={!!viewingClass}
+        trainingClass={viewingClass}
+        onClose={() => setViewingClass(null)}
+        onViewDetails={onViewDetails}
+      />
+    </div>
+  );
 }

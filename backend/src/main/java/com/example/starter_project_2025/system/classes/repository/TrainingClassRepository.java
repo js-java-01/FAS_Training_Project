@@ -1,15 +1,14 @@
 package com.example.starter_project_2025.system.classes.repository;
 
+import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Repository;
-
-import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 
 import java.util.List;
 import java.util.UUID;
@@ -43,4 +42,6 @@ public interface TrainingClassRepository
                         "WHERE e.user.id = :studentId " +
                         "ORDER BY s.startDate DESC")
         List<TrainingClass> findByStudentId(@Param("studentId") UUID studentId);
+
+        List<TrainingClass> findByCreator(User user);
 }

@@ -2,9 +2,14 @@ package com.example.starter_project_2025.system.classes.service.classes;
 
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
+import com.example.starter_project_2025.constant.ErrorMessage;
 import com.example.starter_project_2025.system.classes.dto.request.CreateTrainingClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
+import com.example.starter_project_2025.system.classes.dto.request.SearchTrainerClassInSemesterRequest;
+import com.example.starter_project_2025.system.classes.dto.response.TrainerClassSemesterResponse;
+
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.classes.mapper.TrainerClassMapper;
 import com.example.starter_project_2025.system.classes.mapper.TrainingClassMapper;
 import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
 import com.example.starter_project_2025.system.classes.spec.ClassSpecification;
@@ -19,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
+
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +41,7 @@ public class ClassServiceImpl implements ClassService {
     private final SemesterRepository semesterRepository;
     private final UserRepository userRepository;
     private final TrainingClassMapper mapper;
+    private final TrainerClassMapper trainerClassMapper;
 
     @Override
     public TrainingClassResponse openClassRequest(CreateTrainingClassRequest request, String email) {
@@ -103,4 +110,23 @@ public class ClassServiceImpl implements ClassService {
         return mapper.toSemesterResponse(classes);
     }
 
+    @Override
+    public TrainerClassSemesterResponse getTrainerClasses(UUID trainerId, SearchTrainerClassInSemesterRequest request) {
+        Specification<TrainingClass> spec = ClassSpecification.filterTrainerClasses(trainerId, request);
+        List<TrainingClass> classes = trainingClassRepository.findAll(spec);
+        if (classes.isEmpty()) {
+            throw new RuntimeException(ErrorMessage.TRAINING_CLASS_NOT_FOUND);
+        }
+        var mappedClasses = trainerClassMapper.toTrainerClassResponseList(classes);
+
+        var semester = semesterRepository.findById(request.getSemesterId())
+                .orElseThrow(() -> new RuntimeException(ErrorMessage.SEMESTER_NOT_FOUND));
+
+        var res = new TrainerClassSemesterResponse();
+        res.setSemesterID(request.getSemesterId());
+        res.setSemesterName(semester.getName());
+        res.setClasses(mappedClasses);
+
+        return res;
+    }
 }

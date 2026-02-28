@@ -3,12 +3,13 @@ package com.example.starter_project_2025.system.classes.controller;
 import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.classes.dto.request.CreateTrainingClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
+import com.example.starter_project_2025.system.classes.dto.request.SearchTrainerClassInSemesterRequest;
+import com.example.starter_project_2025.system.classes.dto.response.TrainerClassSemesterResponse;
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
 import com.example.starter_project_2025.system.classes.service.classes.ClassService;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ApiResponse;
 import com.example.starter_project_2025.system.modulegroups.dto.response.PageResponse;
-import com.example.starter_project_2025.system.user.entity.User;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.List;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -66,6 +68,15 @@ public class ClassController {
 
                 List<TrainingClassSemesterResponse> response = classService.getMyClasses(userDetails.getId());
                 return ResponseEntity.ok(ApiResponse.success(response, "My classes retrieved successfully"));
+
         }
 
+        @GetMapping("/trainer/my-classes")
+        @PreAuthorize("hasAuthority('CLASS_READ')")
+        public ResponseEntity<ApiResponse<TrainerClassSemesterResponse>> getMyTrainerClasses(
+                        @AuthenticationPrincipal UserDetailsImpl userDetails,
+                        @ModelAttribute SearchTrainerClassInSemesterRequest request) {
+                var response = classService.getTrainerClasses(userDetails.getId(), request);
+                return ResponseEntity.ok(ApiResponse.success(response, "My trainer classes retrieved successfully"));
+        }
 }

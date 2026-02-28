@@ -1,6 +1,5 @@
 package com.example.starter_project_2025.system.learning.service.enroll;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,7 +39,6 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public String enroll(EnrollmentRequest request, UUID id) {
         var classes = trainingClassRepository.findById(request.getClassID())
                 .orElseThrow(() -> new RuntimeException("Class not found"));
-        System.out.println("Enrollment key provided: " + id);
         if (!classes.getEnrollmentKey().equals(request.getEnrollKey())) {
             throw new RuntimeException("Invalid enrollment key");
         }

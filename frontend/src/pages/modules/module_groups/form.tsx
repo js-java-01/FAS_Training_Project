@@ -58,10 +58,7 @@ export const ModuleGroupForm: React.FC<{
   const maxAllowedOrder = initial ? totalRecords : totalRecords + 1;
 
   // Tạo schema mới mỗi khi maxAllowedOrder thay đổi
-  const formSchema = useMemo(
-    () => createSchema(maxAllowedOrder),
-    [maxAllowedOrder]
-  );
+  const formSchema = useMemo(() => createSchema(maxAllowedOrder), [maxAllowedOrder]);
 
   const {
     register,
@@ -140,8 +137,7 @@ export const ModuleGroupForm: React.FC<{
     } catch (err: unknown) {
       console.error("Save error", err);
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ||
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         (err as { message?: string })?.message ||
         "Error saving data";
       setServerError(msg);
@@ -159,9 +155,7 @@ export const ModuleGroupForm: React.FC<{
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>
-              {initial?.id ? "Edit Module Group" : "Add Module Group"}
-            </DialogTitle>
+            <DialogTitle>{initial?.id ? "Edit Module Group" : "Add Module Group"}</DialogTitle>
             <DialogDescription>
               {initial?.id
                 ? "Make changes to your module group here."
@@ -171,9 +165,7 @@ export const ModuleGroupForm: React.FC<{
 
           <div className="grid gap-4 py-4">
             {serverError && (
-              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
-                {serverError}
-              </div>
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">{serverError}</div>
             )}
 
             {/* Name */}
@@ -184,14 +176,14 @@ export const ModuleGroupForm: React.FC<{
               <input
                 {...register("name")}
                 className={`w-full px-3 py-2 border rounded-md outline-none transition
-                  ${errors.name
-                    ? "border-red-500 focus:ring-red-200"
-                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
+                  ${
+                    errors.name
+                      ? "border-red-500 focus:ring-red-200"
+                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  }`}
                 placeholder="Enter module group name"
               />
-              {errors.name && (
-                <p className="text-xs text-red-600">{errors.name.message}</p>
-              )}
+              {errors.name && <p className="text-xs text-red-600">{errors.name.message}</p>}
             </div>
 
             {/* Description */}
@@ -203,16 +195,14 @@ export const ModuleGroupForm: React.FC<{
                 {...register("description")}
                 rows={3}
                 className={`w-full px-3 py-2 border rounded-md outline-none transition resize-none
-                  ${errors.description
-                    ? "border-red-500 focus:ring-red-200"
-                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
+                  ${
+                    errors.description
+                      ? "border-red-500 focus:ring-red-200"
+                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  }`}
                 placeholder="Short description..."
               />
-              {errors.description && (
-                <p className="text-xs text-red-600">
-                  {errors.description.message}
-                </p>
-              )}
+              {errors.description && <p className="text-xs text-red-600">{errors.description.message}</p>}
             </div>
 
             {/* Order + Status Row */}
@@ -225,36 +215,27 @@ export const ModuleGroupForm: React.FC<{
                   type="number"
                   {...register("displayOrder")}
                   className={`w-full px-3 py-2 border rounded-md outline-none transition
-                    ${errors.displayOrder
-                      ? "border-red-500 focus:ring-red-200"
-                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    ${
+                      errors.displayOrder
+                        ? "border-red-500 focus:ring-red-200"
+                        : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     }`}
                   placeholder={`Max: ${maxAllowedOrder}`}
                 />
-                {errors.displayOrder && (
-                  <p className="text-xs text-red-600">
-                    {errors.displayOrder.message}
-                  </p>
-                )}
+                {errors.displayOrder && <p className="text-xs text-red-600">{errors.displayOrder.message}</p>}
                 {!errors.displayOrder && (
-                  <p className="text-[10px] text-gray-400 text-right">
-                    Max allowed: {maxAllowedOrder}
-                  </p>
+                  <p className="text-[10px] text-gray-400 text-right">Max allowed: {maxAllowedOrder}</p>
                 )}
               </div>
 
               {/* Status (Chỉ hiện khi Edit) */}
               {initial?.id && (
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    Status
-                  </label>
+                  <label className="text-sm font-medium text-gray-700">Status</label>
                   <select
                     className="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     defaultValue={initial.isActive ? "active" : "inactive"}
-                    onChange={(e) =>
-                      setValue("isActive", e.target.value === "active")
-                    }
+                    onChange={(e) => setValue("isActive", e.target.value === "active")}
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -265,12 +246,7 @@ export const ModuleGroupForm: React.FC<{
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={saving}
-            >
+            <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
               Cancel
             </Button>
             <Button type="submit" disabled={saving}>

@@ -1,15 +1,11 @@
 package com.example.starter_project_2025.system.learning.entity;
 
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
-import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
 import com.example.starter_project_2025.system.user.entity.User;
-
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
-
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity

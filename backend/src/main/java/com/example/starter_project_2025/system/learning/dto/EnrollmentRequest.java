@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EnrollmentRequest {
-        private UUID classID;
-        private String enrollKey;
+    private UUID classID;
+    private String enrollKey;
 
 }

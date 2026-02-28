@@ -11,7 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrainingClassSemesterResponse {
-        private UUID SemesterID;
-        private String SemesterName;
-        private List<TrainingClassResponse> classes;
+    private UUID SemesterID;
+    private String SemesterName;
+    private List<TrainingClassResponse> classes;
 }
