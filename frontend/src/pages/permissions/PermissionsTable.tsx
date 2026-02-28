@@ -226,28 +226,30 @@ export default function PermissionsTable() {
         onSortingChange={setSorting}
         /* Header actions */
         headerActions={
-          <div className="flex flex-row gap-2">
-            {(canImport || canExport) && (
-              <EntityImportExportButton
-                title="Permissions"
-                useImportHook={useImportPermissions}
-                useExportHook={useExportPermissions}
-                useTemplateHook={useDownloadPermissionTemplate}
-              />
-            )}
-            {canCreate && (
-              <Button
-                onClick={() => {
-                  setEditingPermission(null);
-                  setIsFormOpen(true);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add Permission
-              </Button>
-            )}
-          </div>
+        (canCreate || canImport || canExport) && (
+            <div className="flex gap-2">
+              {(canImport || canExport) && (
+                <EntityImportExportButton
+                  title="Permissions"
+                  useImportHook={useImportPermissions}
+                  useExportHook={useExportPermissions}
+                  useTemplateHook={useDownloadPermissionTemplate}
+                />
+              )}
+              {canCreate && (
+                <Button
+                  onClick={() => {
+                    setEditingPermission(null);
+                    setIsFormOpen(true);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Permission
+                </Button>
+              )}
+            </div>
+        )
         }
         /* Faceted filters */
         facetedFilters={
