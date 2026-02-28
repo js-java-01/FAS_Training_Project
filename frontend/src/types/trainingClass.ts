@@ -5,19 +5,6 @@
 import type { ClassStatusType } from "@/pages/training-classes/enum/ClassStatus";
 
 export interface TrainingClass {
-<<<<<<< HEAD
-    id: string;
-    className: string;
-    description?: string;
-    classCode: string;
-    isActive: boolean;
-    creatorName?: string;
-    approverName?: string;
-    semesterName?: string;
-    trainerNames?: string[];
-    startDate: string;
-    endDate: string;
-=======
   id: string;
   className: string;
   description?: string;
@@ -29,7 +16,6 @@ export interface TrainingClass {
   startDate: string;
   endDate: string;
   status: ClassStatusType;
->>>>>>> bf3e821c795747fef401ba451a2d1b75fb814374
 }
 
 export interface CreateTrainingClassRequest {
@@ -52,7 +38,7 @@ export interface Semester {
 }
 
 export interface TrainingClassSemesterResponse {
-    semesterId: string;
-    semesterName: string;
-    classes: TrainingClass[];
+  semesterId: string;
+  semesterName: string;
+  classes: TrainingClass[];
 }

@@ -7,7 +7,6 @@ import com.example.starter_project_2025.system.semester.entity.Semester;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;

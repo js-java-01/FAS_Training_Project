@@ -223,6 +223,7 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("SEMESTER_CREATE", "Create new semesters", "SEMESTER", "CREATE"),
                                 createPermission("SEMESTER_READ", "View semesters", "SEMESTER", "READ"),
                                 createPermission("SEMESTER_UPDATE", "Update semesters", "SEMESTER", "UPDATE"),
+                                createPermission("CLASS_VIEW_OWN_CLASSES_READ", "View own classes", "CLASS", "READ"),
                                 createPermission("SEMESTER_DELETE", "Delete semesters", "SEMESTER", "DELETE"));
                 permissionRepository.saveAll(permissions);
                 log.info("Initialized {} permissions", permissions.size());
@@ -640,6 +641,10 @@ public class DataInitializer implements CommandLineRunner {
                                                 1,
                                                 "CLASS_USER_READ",
                                                 "User search and view classes"));
+                moduleRepository.save(
+                                createModule(trainingGroup, "My Classes", "/my-classes", "user-round", 6,
+                                                "CLASS_VIEW_OWN_CLASSES_READ",
+                                                "View and manage personal profile"));
 
                 moduleRepository.save(
                                 createModule(
