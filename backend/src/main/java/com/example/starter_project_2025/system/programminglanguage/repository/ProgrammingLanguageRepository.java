@@ -12,4 +12,5 @@ public interface ProgrammingLanguageRepository
 
     boolean existsByNameIgnoreCase(String name);
     Page<ProgrammingLanguage> findByNameContainingIgnoreCase(String name, Pageable pageable);
+    ProgrammingLanguage findByName(String name);
 }

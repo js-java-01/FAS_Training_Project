@@ -3,6 +3,12 @@ package com.example.starter_project_2025.system.assessment.entity;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentDifficulty;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
+import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportField;
+import com.example.starter_project_2025.system.dataio.core.importer.annotation.ImportField;
+import com.example.starter_project_2025.system.dataio.mapping.assessmentType.AssessmentTypeExtractor;
+import com.example.starter_project_2025.system.dataio.mapping.assessmentType.AssessmentTypeResolver;
+import com.example.starter_project_2025.system.dataio.mapping.programmingLanguage.ProgrammingLanguageExtractor;
+import com.example.starter_project_2025.system.dataio.mapping.programmingLanguage.ProgrammingLanguageResolver;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -37,6 +43,14 @@ public class Assessment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assessment_type_id", nullable = false)
     @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
+    @ImportField(
+            name = "Assessment Type",
+            resolver = AssessmentTypeResolver.class
+    )
+    @ExportField(
+            name = "Assessment Type",
+            extractor = AssessmentTypeExtractor.class
+    )
     AssessmentType assessmentType;
 
     @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -48,19 +62,35 @@ public class Assessment {
     Set<Submission> submissions;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "programming_language_id")
+    @ImportField(
+            name = "Programming Language",
+            resolver = ProgrammingLanguageResolver.class
+    )
+    @ExportField(
+            name = "Programming Language",
+            extractor = ProgrammingLanguageExtractor.class
+    )
     ProgrammingLanguage programmingLanguage;
 
     @Column(nullable = false, unique = true, length = 50)
+    @ImportField(name = "Code")
+    @ExportField(name = "Code")
     String code;
 
     @Column(nullable = false)
     @NotBlank
     @Size(max = 255)
+    @ImportField(name = "Title")
+    @ExportField(name = "Title")
     String title;
 
     @Column(columnDefinition = "TEXT")
+    @ImportField(name = "Description")
+    @ExportField(name = "Description")
     String description;
 
+    @ImportField(name = "totalScore")
+    @ExportField(name = "totalScore")
     Integer totalScore;
 
     @Enumerated(EnumType.STRING)
@@ -68,6 +98,8 @@ public class Assessment {
 
     Integer passScore;
 
+    @ImportField(name = "Time Limit (minutes)")
+    @ExportField(name = "Time Limit (minutes)")
     Integer timeLimitMinutes;
 
     Integer attemptLimit;
