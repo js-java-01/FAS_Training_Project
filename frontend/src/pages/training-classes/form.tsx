@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { trainingClassApi } from "@/api/trainingClassApi";
-import { useGetAllSemesters } from "../semesters/services/queries/useSemesters";
 import type { TrainingClass } from "@/types/trainingClass";
+import { useGetAllSemesters } from "../semesters/services/queries/useSemesters";
 
 type FormValues = {
   className: string;
@@ -43,10 +43,18 @@ export const TrainingClassForm: React.FC<{
   open: boolean;
   onClose: () => void;
   onSaved?: (saved: TrainingClass) => void;
-}> = ({ open, onClose, onSaved }) => {
+  role: string;
+}> = ({ open, onClose, onSaved, role }) => {
   const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const { data: semesters = [], isLoading: loadingSemesters } = useGetAllSemesters();
+  const { data: semesters, isLoading: loadingSemesters } = useGetAllSemesters(
+    {
+      page: 0,
+      size: 20,
+      unpaged: true,
+    },
+    role,
+  );
 
   const {
     register,
@@ -174,7 +182,7 @@ export const TrainingClassForm: React.FC<{
                 disabled={loadingSemesters}
               >
                 <option value="">{loadingSemesters ? "Loading semesters..." : "Select a semester"}</option>
-                {semesters.map((s) => (
+                {semesters?.items.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
                   </option>

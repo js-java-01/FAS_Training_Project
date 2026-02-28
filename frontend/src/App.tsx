@@ -24,7 +24,7 @@ import { LocationManagement } from "./pages/LocationManagement";
 import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
-import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
+import ClassDetailManagement from "./pages/classes/ClassDetailManagement";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -70,14 +70,14 @@ function App() {
               }),
             )}
             <Route path="*" element={<NotFoundRedirect />} />
-            <Route
+            {/* <Route
               path="/training-classes"
               element={
                 <ProtectedRoute requiredPermission="CLASS_CREATE">
                   <TrainingClassesManagement />
                 </ProtectedRoute>
               }
-            />
+            /> */}
             <Route
               path="/assessment-type"
               element={

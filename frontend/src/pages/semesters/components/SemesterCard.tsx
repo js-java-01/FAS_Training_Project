@@ -20,9 +20,10 @@ interface SemesterCardProps {
   onViewDetails?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onSelect?: () => void;
 }
 
-export const SemesterCard = ({ semester, onViewDetails, onEdit, onDelete }: SemesterCardProps) => {
+export const SemesterCard = ({ semester, onViewDetails, onEdit, onDelete, onSelect }: SemesterCardProps) => {
   const items: DataItem[] = [
     {
       icon: CalendarDays,
@@ -79,8 +80,7 @@ export const SemesterCard = ({ semester, onViewDetails, onEdit, onDelete }: Seme
           label: "Xem lớp học",
           className: "bg-blue-800 hover:bg-blue-900 text-white",
           onClick: () => {
-            console.log("Xem danh sách lớp của học kỳ ID:", semester.id);
-            // TODO: Navigate sang trang /semesters/{id}/classes
+            if (onSelect) onSelect();
           },
         }}
       />

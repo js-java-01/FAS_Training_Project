@@ -13,7 +13,7 @@ export const componentRegistry: Record<string, ComponentType> = {
   "/users": UserManagement,
   "/modules": ModulesManagement,
   "/moduleGroups": ModuleGroupsManagement,
-  "/semesters": TrainerClassesManagement,
+  "/trainer-semesters": TrainerClassesManagement,
   "/notFoundPage": NotFoundPage,
   "/roles": RoleManagement,
   "/classes": StudentClassManagement,

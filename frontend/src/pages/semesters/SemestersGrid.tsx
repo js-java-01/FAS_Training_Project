@@ -25,8 +25,12 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 import { Select, SelectContent, SelectValue, SelectTrigger, SelectItem } from "@/components/ui/select";
 
+interface SemestersGridProps {
+  onSelectSemester: (id: string) => void;
+}
+
 /* ===================== MAIN ===================== */
-export default function SemestersGrid() {
+export default function SemestersGrid({ onSelectSemester }: SemestersGridProps) {
   const { permissions, role } = useSelector((state: RootState) => state.auth);
   const canCreate = permissions.includes("SEMESTER_CREATE");
   const canUpdate = permissions.includes("SEMESTER_UPDATE");
@@ -73,6 +77,7 @@ export default function SemestersGrid() {
       sort: "startDate,desc",
       startDate: startDateFilter,
       endDate: endDateFilter,
+      unpaged: false,
     },
     role,
   );
@@ -352,6 +357,7 @@ export default function SemestersGrid() {
                     : undefined
                 }
                 onDelete={canDelete ? () => setDeletingSemester(semester) : undefined}
+                onSelect={() => onSelectSemester(semester.id)}
               />
             ))}
           </div>

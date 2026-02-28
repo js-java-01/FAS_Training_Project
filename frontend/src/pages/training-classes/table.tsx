@@ -1,78 +1,76 @@
 import { useMemo, useState } from "react";
-import type { ColumnDef, SortingState } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { useDebounce } from "@uidotdev/usehooks";
 import { Button } from "@/components/ui/button";
 import type { TrainingClass } from "@/types/trainingClass";
-import { useGetAllTrainingClasses } from "../semesters/services/queries";
-import { getColumns } from "./column";
+import { getColumns, type TablePermissions } from "./column";
 import { TrainingClassForm } from "./form";
 import { TrainingClassDetailDialog } from "./DetailDialog";
 import { FacetedFilter } from "@/components/FacedFilter";
-import { ServerDataTable } from "@/components/data_table/ServerDataTable";
+import { ClassStatus } from "./enum/ClassStatus";
+import { useGetTrainerClasses } from "./trainer/services/queries";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { ClientDataTable } from "@/components/data_table/ClientDataTable";
 
 /* ======================================================= */
 interface TrainingClassesTableProps {
   role: string;
+  semesterId: string;
+  onSelectSemester: (semesterId: string | null) => void;
+  permissions: string[];
+  onViewDetails: (id: string, name: string) => void;
 }
 
-export default function TrainingClassesTable({ role }: TrainingClassesTableProps) {
+export default function TrainingClassesTable({
+  role,
+  semesterId,
+  onSelectSemester,
+  permissions,
+  onViewDetails,
+}: TrainingClassesTableProps) {
   /* ===================== STATE ===================== */
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-
-  const [searchValue, setSearchValue] = useState("");
-  const debouncedSearch = useDebounce(searchValue, 300);
 
   const [openForm, setOpenForm] = useState(false);
   const [viewingClass, setViewingClass] = useState<TrainingClass | null>(null);
 
   /* ---------- faceted filter ---------- */
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
-
-  /* ---------- filter param (server side) ---------- */
-  const statusParam = statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
+  const statusParam = statusFilter.length === 1 ? statusFilter[0] : undefined;
 
   const queryClient = useQueryClient();
-
-  /* ===================== SORT ===================== */
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return "className,asc";
-    const { id, desc } = sorting[0];
-    return `${id},${desc ? "desc" : "asc"}`;
-  }, [sorting]);
 
   /* ===================== DATA ===================== */
   const {
     data: tableData,
     isLoading,
     isFetching,
-  } = useGetAllTrainingClasses({
-    page: pageIndex,
-    pageSize,
-    sort: sortParam,
-    keyword: debouncedSearch,
-    isActive: statusParam,
+  } = useGetTrainerClasses({
+    semesterId,
+    classStatus: statusParam,
   });
 
-  const safeTableData = useMemo(
-    () => ({
-      items: tableData?.items ?? [],
-      page: tableData?.pagination?.page ?? pageIndex,
-      pageSize: tableData?.pagination?.pageSize ?? pageSize,
-      totalPages: tableData?.pagination?.totalPages ?? 0,
-      totalElements: tableData?.pagination?.totalElements ?? 0,
-    }),
-    [tableData, pageIndex, pageSize],
-  );
+  const safeTableData = useMemo(() => {
+    return tableData?.data?.classes || [];
+  }, [tableData]);
 
   /* ===================== COLUMNS ===================== */
+  const tablePermissions: TablePermissions = {
+    canUpdate: permissions.includes("CLASS_UPDATE"),
+    canDelete: permissions.includes("CLASS_DELETE"),
+  };
+
   const columns = useMemo(
     () =>
-      getColumns({
+      getColumns(role, tablePermissions, {
         onView: setViewingClass,
       }),
     [],
@@ -92,27 +90,43 @@ export default function TrainingClassesTable({ role }: TrainingClassesTableProps
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
-      <ServerDataTable<TrainingClass, unknown>
+      <Breadcrumb className="mb-4">
+        <BreadcrumbList className="text-base sm:text-lg">
+          <BreadcrumbItem>
+            <BreadcrumbLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                onSelectSemester(null);
+              }}
+              className="text-muted-foreground hover:text-blue-600 font-medium"
+            >
+              Danh sách Học kỳ
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+
+          <BreadcrumbSeparator />
+
+          <BreadcrumbItem>
+            <BreadcrumbPage className="font-bold text-foreground tracking-tight">
+              Học kỳ {tableData?.data?.semesterName || "..."}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <ClientDataTable<TrainingClass, unknown>
         columns={columns as ColumnDef<TrainingClass, unknown>[]}
-        data={safeTableData.items}
+        data={safeTableData}
         isLoading={isLoading}
         isFetching={isFetching}
-        /* PAGINATION */
-        pageIndex={safeTableData.page}
-        pageSize={safeTableData.pageSize}
-        totalPage={safeTableData.totalPages}
-        onPageChange={setPageIndex}
-        onPageSizeChange={setPageSize}
         /* SEARCH */
-        isSearch
+        isSearch={true}
         searchPlaceholder="class name or code"
-        onSearchChange={setSearchValue}
-        /* SORTING */
-        sorting={sorting}
-        onSortingChange={setSorting}
+        searchValue={["className", "classCode"]}
         /* ACTIONS */
         headerActions={
-          role === "DEPARTMENT_MANAGER" && (
+          role === "MANAGER" && (
             <div className="flex gap-2">
               <Button onClick={() => setOpenForm(true)} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
                 <Plus className="h-4 w-4" />
@@ -122,27 +136,31 @@ export default function TrainingClassesTable({ role }: TrainingClassesTableProps
           )
         }
         facetedFilters={
-          <div>
-            <FacetedFilter
-              title="Status"
-              options={[
-                { value: "ACTIVE", label: "Active" },
-                { value: "INACTIVE", label: "Pending" },
-              ]}
-              value={statusFilter}
-              setValue={setStatusFilter}
-              multiple={false}
-            />
-          </div>
+          role === "MANAGER" && (
+            <div>
+              <FacetedFilter
+                title="Trạng thái"
+                options={[
+                  { value: ClassStatus.APPROVED, label: "Approved" },
+                  { value: ClassStatus.PENDING_APPROVAL, label: "Pending Approval" },
+                  { value: ClassStatus.REJECTED, label: "Rejected" },
+                ]}
+                value={statusFilter}
+                setValue={setStatusFilter}
+                multiple={false}
+              />
+            </div>
+          )
         }
       />
 
-      <TrainingClassForm open={openForm} onClose={() => setOpenForm(false)} onSaved={handleSaved} />
+      <TrainingClassForm role={role} open={openForm} onClose={() => setOpenForm(false)} onSaved={handleSaved} />
 
       <TrainingClassDetailDialog
         open={!!viewingClass}
         trainingClass={viewingClass}
         onClose={() => setViewingClass(null)}
+        onViewDetails={onViewDetails}
       />
     </div>
   );

@@ -5,4 +5,5 @@ export type GetSemestersParams = {
   keyword?: string;
   startDate?: string;
   endDate?: string;
+  unpaged: boolean;
 };
