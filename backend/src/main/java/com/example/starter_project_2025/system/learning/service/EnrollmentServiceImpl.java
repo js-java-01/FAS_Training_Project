@@ -12,8 +12,11 @@ import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
 import com.example.starter_project_2025.system.learning.mapper.EnrollmentMapper;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
+import com.example.starter_project_2025.system.topic.dto.TopicResponse;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
+
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     private final UserRepository userRepository;
     private final EnrollmentMapper mapper;
     private final CourseMapper courseMapper;
+    
 
     @Override
     public EnrollmentResponse enroll(EnrollmentRequest request) {
@@ -95,4 +99,5 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 .orElseThrow();
         return user.getId();
     }
+
 }

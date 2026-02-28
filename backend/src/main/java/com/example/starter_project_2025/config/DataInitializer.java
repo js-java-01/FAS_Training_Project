@@ -19,6 +19,10 @@ import com.example.starter_project_2025.system.course.enums.CourseStatus;
 import com.example.starter_project_2025.system.course.repository.CourseCohortRepository;
 import com.example.starter_project_2025.system.course.repository.CourseLessonRepository;
 import com.example.starter_project_2025.system.course.repository.CourseRepository;
+import com.example.starter_project_2025.system.topic.entity.Topic;
+import com.example.starter_project_2025.system.topic.enums.TopicLevel;
+import com.example.starter_project_2025.system.topic.enums.TopicStatus;
+import com.example.starter_project_2025.system.topic.repository.TopicRepository;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
 import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;
@@ -41,6 +45,7 @@ import com.example.starter_project_2025.system.modulegroups.repository.ModuleGro
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
 import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,12 +53,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -81,6 +82,7 @@ public class DataInitializer implements CommandLineRunner {
         private final QuestionCategoryRepository questionCategoryRepository;
         private final QuestionRepository questionRepository;
         private final CourseLessonRepository courseLessonRepository;
+        private final TopicRepository topicRepository; 
 
         @Override
         @Transactional
@@ -100,19 +102,22 @@ public class DataInitializer implements CommandLineRunner {
                         initializeQuestions();
                         initializeCourses();
                         initializeCohorts();
-
-                        log.info("Database initialization completed successfully!");
+                        initializeTopics();
+                        log.info("Full database initialization completed!");
                 } else {
-                        log.info("Database already initialized, checking for missing permissions...");
-                        // Check if programming language permissions exist, if not, add them
+                        log.info("Database exists, ensuring new features are added...");       
                         ensureProgrammingLanguagePermissions();
                         ensureOutlinePermissions();
                         initializeProgrammingLanguages();
                         initializeCourses();
                         initializeCohorts();
                         initializeLessons();
+                        initializeTopics();
+                        
+                        log.info("Database updates completed!");
                 }
         }
+
 
         private void initializePermissions() {
                 List<Permission> permissions = Arrays.asList(
@@ -218,7 +223,13 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("SESSION_READ", "View sessions", "SESSION", "READ"),
                                 createPermission("SESSION_UPDATE", "Update existing sessions", "SESSION", "UPDATE"),
                                 createPermission("SESSION_DELETE", "Delete sessions", "SESSION", "DELETE"),
-                                createPermission("COURSE_OUTLINE_EDIT", "Edit course outline", "COURSE", "EDIT")
+                                createPermission("COURSE_OUTLINE_EDIT", "Edit course outline", "COURSE", "EDIT"),
+                                createPermission("TOPIC_CREATE", "Create new topics", "TOPIC", "CREATE"),
+                                createPermission("TOPIC_READ", "View topics", "TOPIC", "READ"),
+                                createPermission("TOPIC_UPDATE", "Update existing topics", "TOPIC", "UPDATE"),
+                                createPermission("TOPIC_DELETE", "Delete topics", "TOPIC", "DELETE"),
+                                createPermission("TOPIC_IMPORT","Import topics from Excel", "TOPIC", "IMPORT"),
+                                createPermission("TOPIC_EXPORT", "Export topics to Excel", "TOPIC", "EXPORT")
 
                 );
                 permissionRepository.saveAll(permissions);
@@ -320,8 +331,11 @@ public class DataInitializer implements CommandLineRunner {
                                 4,
                                 "COURSE_READ");
 
+                MenuItem topicManagement = createMenuItem(adminMenu, null, "Topic Management", "/topics", "topic", 5,
+                                "TOPIC_READ");
+
                 menuItemRepository.saveAll(
-                                Arrays.asList(userManagement, roleManagement, locationManagement, courseManagement));
+                                Arrays.asList(userManagement, roleManagement, locationManagement, courseManagement, topicManagement));
 
                 log.info("Initialized 2 menus with menu items");
         }
@@ -540,11 +554,11 @@ public class DataInitializer implements CommandLineRunner {
                 // Nhóm này có 2 module con
                 Module courseSub = createModule(trainingGroup, "Courses", "/courses", "book-open", 1, "COURSE_READ",
                                 "Manage training courses");
-                Module courseCatalogSub = createModule(trainingGroup, "Course Catalog", "/my-courses", "graduation-cap",
-                                2,
-                                "ENROLL_COURSE", "Browse and enroll in available courses");
+        
+                Module topicSub = createModule(trainingGroup, "Topics", "/topics", "book-open", 2, "TOPIC_READ", 
+                "Manage training topics");
 
-                moduleRepository.saveAll(Arrays.asList(courseSub, courseCatalogSub));
+                moduleRepository.saveAll(Arrays.asList(courseSub, topicSub));
 
                 log.info("Initialized 5 module groups and their respective modules.");
                 // 5. Nhóm: Assessment Type Management
@@ -603,6 +617,8 @@ public class DataInitializer implements CommandLineRunner {
                                                 "Manage programming languages"));
 
                 log.info("Initialized 6 module groups and their respective modules.");
+
+                        
         }
 
         private Module createModule(ModuleGroups group, String title, String url, String icon,
@@ -933,4 +949,50 @@ public class DataInitializer implements CommandLineRunner {
                                 .sortOrder(order)
                                 .build();
         }
+
+        private void initializeTopics() {
+               if (topicRepository.count() > 0) {
+                        log.info("Topics already exist, skipping initialization");
+                        return;
+                }
+
+                // Lấy admin để gán vào creator/trainer nếu Entity Topic có hỗ trợ
+                User admin = userRepository.findByEmail("admin@example.com").orElseThrow();
+
+                Topic javaTopic = Topic.builder()
+                        .name("Java Spring Boot Master")
+                        .code("TOPIC-JAVA-01")
+                        .level(CourseLevel.ADVANCED)       
+                        .status(CourseStatus.ACTIVE)      
+                        .version("v2.1")
+                        .description("Lộ trình học Java chuyên sâu từ Spring Core đến Microservices.")
+                        // Gán các trường audit nếu có
+                        // .creator(admin)
+                        // .trainer(admin)
+                        .build();
+
+                Topic frontendTopic = Topic.builder()
+                        .name("Frontend React Pro")
+                        .code("TOPIC-FE-01")
+                        .level(CourseLevel.INTERMEDIATE)   
+                        .status(CourseStatus.ACTIVE)      
+                        .version("v1.5")
+                        .description("Học React, Next.js và tối ưu hóa hiệu năng ứng dụng Client-side.")
+                        .build();
+
+                Topic databaseTopic = Topic.builder()
+                        .name("Database Design & SQL")
+                        .code("TOPIC-DB-01")
+                        .level(CourseLevel.BEGINNER)       
+                        .status(CourseStatus.ACTIVE)     
+                        .version("v1.0")
+                        .description("Thiết kế cơ sở dữ liệu chuẩn hóa và tối ưu truy vấn SQL.")
+                        .build();
+
+                topicRepository.saveAll(List.of(javaTopic, frontendTopic, databaseTopic));
+
+                log.info("Initialized {} topics (Same style as Courses)", 3);
+                }
+
+
 }
