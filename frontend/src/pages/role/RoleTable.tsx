@@ -221,25 +221,27 @@ export default function RoleTable() {
         sorting={sorting}
         onSortingChange={setSorting}
         headerActions={
-          <div className="flex gap-2">
-            {(canImport || canExport) && (
-              <EntityImportExportButton
-                title="Roles"
-                useImportHook={useImportRoles}
-                useExportHook={useExportRoles}
-                useTemplateHook={useDownloadRoleTemplate}
-              />
-            )}
-            {canCreate && (
-              <Button
-                onClick={openCreate}
-                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add New Role
-              </Button>
-            )}
-          </div>
+          (canCreate || canImport || canExport) && (
+            <div className="flex gap-2">
+              {(canImport || canExport) && (
+                <EntityImportExportButton
+                  title="Roles"
+                  useImportHook={useImportRoles}
+                  useExportHook={useExportRoles}
+                  useTemplateHook={useDownloadRoleTemplate}
+                />
+              )}
+              {canCreate && (
+                <Button
+                  onClick={openCreate}
+                  className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New Role
+                </Button>
+              )}
+            </div>
+       )
         }
         facetedFilters={
           <div>
