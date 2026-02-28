@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.course_class.controller;
 
+import com.example.starter_project_2025.system.course_class.dto.CourseClassRequest;
 import com.example.starter_project_2025.system.course_class.dto.CourseClassResponse;
 import com.example.starter_project_2025.system.course_class.service.CourseClassService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,12 +9,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -63,5 +63,25 @@ public class CourseClassController {
     public ResponseEntity<List<CourseClassResponse>> getByClassId(
             @PathVariable UUID classId) {
         return ResponseEntity.ok(courseClassService.getByClassId(classId));
+    }
+
+    /**
+     * POST /api/course-classes
+     * Create a new course class.
+     */
+    @PostMapping
+    @Operation(
+            summary = "Create a course class",
+            description = "Assign a course to a training class, optionally with a trainer."
+    )
+    @ApiResponse(
+            responseCode = "201",
+            description = "Course class created successfully",
+            content = @Content(schema = @Schema(implementation = CourseClassResponse.class))
+    )
+    public ResponseEntity<CourseClassResponse> create(
+            @Valid @RequestBody CourseClassRequest request) {
+        CourseClassResponse response = courseClassService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
