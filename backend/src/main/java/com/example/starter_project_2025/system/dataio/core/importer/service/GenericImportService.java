@@ -31,10 +31,10 @@ public class GenericImportService implements ImportService {
     HashService hashService;
 
     @Override
-    public <T> ImportResult importFile(
+    public <T, ID> ImportResult importFile(
             MultipartFile file,
             Class<T> entityClass,
-            JpaRepository<T, UUID> repository
+            JpaRepository<T, ID> repository
     ) {
 
         ImportResult result = new ImportResult();

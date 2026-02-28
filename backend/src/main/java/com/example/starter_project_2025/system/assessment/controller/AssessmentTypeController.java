@@ -4,7 +4,14 @@ import com.example.starter_project_2025.system.assessment.dto.assessmentType.res
 import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.CreateAssessmentTypeRequest;
 import com.example.starter_project_2025.system.assessment.dto.ImportResultDTO;
 import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.UpdateAssessmentTypeRequest;
+import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.assessment.service.assessmentType.AssessmentTypeService;
+import com.example.starter_project_2025.system.dataio.core.common.FileFormat;
+import com.example.starter_project_2025.system.dataio.core.exporter.service.ExportService;
+import com.example.starter_project_2025.system.dataio.core.importer.result.ImportResult;
+import com.example.starter_project_2025.system.dataio.core.importer.service.ImportService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +37,9 @@ public class AssessmentTypeController {
 
 
     private final AssessmentTypeService assessService;
+    private final AssessmentTypeRepository assessmentTypeRepository;
+    private final ExportService exportService;
+    private final ImportService importService;
 
     @PostMapping
     public ResponseEntity<AssessmentTypeDTO> create(
@@ -84,41 +94,71 @@ public class AssessmentTypeController {
                 )
         );
     }
-    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ImportResultDTO> importAssessments(@RequestParam("file") MultipartFile file) {
 
-        return ResponseEntity.ok(assessService.importAssessments(file));
-    }
 
     @GetMapping("/export")
-    public ResponseEntity<InputStreamResource> exportAssessmentTypes() throws IOException {
+    public void exportAssessmentTypes(
+            @RequestParam(defaultValue = "EXCEL") FileFormat format,
+            HttpServletResponse response
+    ) throws IOException {
 
-        ByteArrayInputStream in = assessService.exportAssessments();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=assessment-types.xlsx");
-
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(new InputStreamResource(in));
+        exportService.export(
+                format,
+                assessmentTypeRepository.findAll(),
+                AssessmentType.class,
+                response
+        );
     }
 
-    @GetMapping("/template")
-    public ResponseEntity<InputStreamResource> downloadTemplate() throws IOException {
+    @PostMapping(value = "/import", consumes = "multipart/form-data")
+    public ImportResult importAssessmentTypes(
+            @RequestParam("file") MultipartFile file
+    ) {
 
-        ByteArrayInputStream in = assessService.downloadAssessmentTemplate();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=assessment-template.xlsx");
-
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(new InputStreamResource(in));
+        return importService.importFile(
+                file,
+                AssessmentType.class,
+                assessmentTypeRepository
+        );
     }
+
+
+
+//    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<ImportResultDTO> importAssessments(@RequestParam("file") MultipartFile file) {
+//
+//        return ResponseEntity.ok(assessService.importAssessments(file));
+//    }
+
+//    @GetMapping("/export")
+//    public ResponseEntity<InputStreamResource> exportAssessmentTypes() throws IOException {
+//
+//        ByteArrayInputStream in = assessService.exportAssessments();
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.add("Content-Disposition", "attachment; filename=assessment-types.xlsx");
+//
+//        return ResponseEntity
+//                .ok()
+//                .headers(headers)
+//                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+//                .body(new InputStreamResource(in));
+//    }
+
+//    @GetMapping("/template")
+//    public ResponseEntity<InputStreamResource> downloadTemplate() throws IOException {
+//
+//        ByteArrayInputStream in = assessService.downloadAssessmentTemplate();
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=assessment-template.xlsx");
+//
+//        return ResponseEntity
+//                .ok()
+//                .headers(headers)
+//                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+//                .body(new InputStreamResource(in));
+//    }
 
 
 
