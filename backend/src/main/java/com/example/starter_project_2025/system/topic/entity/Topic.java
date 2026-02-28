@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -71,4 +72,7 @@ public class Topic {
     public void preUpdate() {
         this.updatedDate = LocalDateTime.now();
     }
+
+    @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TopicObjective> objectives;
 }
