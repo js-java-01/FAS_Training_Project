@@ -1,6 +1,6 @@
 import { GripVertical } from "lucide-react";
-import { TooltipWrapper } from "../TooltipWrapper";
-import { Button } from "../ui/button";
+import { TooltipWrapper } from "../../TooltipWrapper";
+import { Button } from "../../ui/button";
 
 interface ActionButtonProps {
   onClick: () => void;
@@ -25,7 +25,7 @@ const ActionButton = ({
     <TooltipWrapper content={tooltip}>
       <Button
         variant={variant || "outline"}
-        size={title ? "sm" : "icon"}
+        size={title ? "default" : "icon"}
         onClick={onClick}
         disabled={disabled}
         className={className}

@@ -1,5 +1,5 @@
 import { Eye, Pen, Trash2 } from "lucide-react";
-import ActionButton from "./ActionButton";
+import ActionButton from "../common/ActionButton";
 
 interface RowActionsProps {
   row: any;
@@ -14,7 +14,7 @@ export function RowActions({ row, onView, onEdit, onDelete }: RowActionsProps) {
       <ActionButton
         onClick={() => onView(row)}
         tooltip="View detail"
-        icon={<Eye size={10} className="text-blue-500" />}
+        icon={<Eye size={10} className="text-gray-500" />}
       />
       <ActionButton
         onClick={() => onEdit(row)}

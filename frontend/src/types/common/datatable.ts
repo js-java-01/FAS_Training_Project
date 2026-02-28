@@ -20,6 +20,8 @@ export interface FieldSchema {
   editable?: boolean;
   visible?: boolean;
   hideable?: boolean;
+  width?: number;
+  minWidth?: number;
   options?: { label: string; value: any }[];
   booleanLabels?: {
     true: string;

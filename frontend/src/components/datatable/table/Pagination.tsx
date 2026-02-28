@@ -5,11 +5,27 @@ import {
   PaginationEllipsis,
   PaginationItem,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { usePagination } from "@/hooks/usePagination";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import ActionButton from "./ActionButton";
+import ActionButton from "../common/ActionButton";
 
-export function Pagination({ table }: { table: any }) {
+const PAGE_SIZE_OPTIONS = [10, 20, 30, 50, 100];
+
+interface PaginationProps {
+  table: any;
+  isAutoSize?: boolean;
+  autoSize?: number;
+  onPageSizeChange?: (value: string) => void;
+}
+
+export function Pagination({ table, isAutoSize = true, autoSize, onPageSizeChange }: PaginationProps) {
   const totalPages = Math.ceil(table.total / table.size) || 1;
   const currentPage = table.page + 1;
 
@@ -22,22 +38,45 @@ export function Pagination({ table }: { table: any }) {
   const canPreviousPage = table.page > 0;
   const canNextPage = table.page < totalPages - 1;
 
+  const currentSelectValue = isAutoSize ? "auto" : String(table.size);
+
   return (
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      {table.selected?.length >= 0 && (
-        <div className="text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">
-            {table.selected?.length || 0}
-          </span>{" "}
-          of{" "}
-          <span className="font-medium text-foreground">
-            {table.total || table.data?.length || 0}
-          </span>{" "}
-          rows selected
-        </div>
-      )}
+      <div className="flex items-center gap-4">
+        {table.selected?.length >= 0 && (
+          <div className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">
+              {table.selected?.length || 0}
+            </span>{" "}
+            of{" "}
+            <span className="font-medium text-foreground">
+              {table.total || table.data?.length || 0}
+            </span>{" "}
+            rows selected
+          </div>
+        )}
+      </div>
 
       <div className="flex flex-col items-end gap-5 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</span>
+          <Select value={currentSelectValue} onValueChange={onPageSizeChange}>
+            <SelectTrigger className="h-8 w-[80px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="auto">
+                Auto{autoSize ? ` (${autoSize})` : ""}
+              </SelectItem>
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <SelectItem key={size} value={String(size)}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div
           className="text-sm text-muted-foreground whitespace-nowrap"
           aria-live="polite"
