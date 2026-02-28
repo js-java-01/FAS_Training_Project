@@ -78,7 +78,7 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
   useEffect(() => {
     userApi
       .getAllUsers(0, 100)
-      .then((res) => setUsers(res.content ?? []))
+      .then((res) => setUsers(res?.content ?? []))
       .catch(() => {});
   }, []);
 

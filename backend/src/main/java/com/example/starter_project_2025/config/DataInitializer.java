@@ -143,6 +143,7 @@ public class DataInitializer implements CommandLineRunner {
 
                 }
                 ensureOutlinePermissions();
+                ensurePermissionManagementPermissions();
                 if (userRoleRepository.count() == 0)
 
                 {
@@ -277,7 +278,16 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("CLASS_USER_READ", "User can view classes", "CLASS_USER", "READ"),
                                 createPermission("SWITCH_ROLE", "Switch to another role view", "ROLE", "SWITCH"),
                                 createPermission("DASHBOARD_READ", "View Dashboard", "DASHBOARD", "READ"),
-                                createPermission("SIDEBAR_READ", "View Sidebar", "SIDEBAR", "READ"));
+                                createPermission("SIDEBAR_READ", "View Sidebar", "SIDEBAR", "READ"),
+
+                                /* ================= PERMISSION ================= */
+                                createPermission("PERMISSION_CREATE", "Create new permissions", "PERMISSION", "CREATE"),
+                                createPermission("PERMISSION_READ", "View permissions", "PERMISSION", "READ"),
+                                createPermission("PERMISSION_UPDATE", "Update existing permissions", "PERMISSION",
+                                                "UPDATE"),
+                                createPermission("PERMISSION_DELETE", "Delete permissions", "PERMISSION", "DELETE"),
+                                createPermission("PERMISSION_IMPORT", "Import permissions", "PERMISSION", "IMPORT"),
+                                createPermission("PERMISSION_EXPORT", "Export permissions", "PERMISSION", "EXPORT"));
                 permissionRepository.saveAll(permissions);
                 log.info("Initialized {} permissions", permissions.size());
         }
@@ -696,11 +706,15 @@ public class DataInitializer implements CommandLineRunner {
                                                 "ROLE_READ",
                                                 "Manage roles and permissions"),
 
-                                createModule(systemGroup, "Locations", "/locations", "map-pin", 5,
+                                createModule(systemGroup, "Permissions", "/permissions", "key", 5,
+                                                "PERMISSION_READ",
+                                                "Manage system permissions"),
+
+                                createModule(systemGroup, "Locations", "/locations", "map-pin", 6,
                                                 "LOCATION_READ",
                                                 "Manage office locations"),
 
-                                createModule(systemGroup, "Departments", "/departments", "university", 6,
+                                createModule(systemGroup, "Departments", "/departments", "university", 7,
                                                 "DEPARTMENT_READ",
                                                 "Manage departments")));
 
@@ -858,6 +872,47 @@ public class DataInitializer implements CommandLineRunner {
                                         log.info("Added outline permissions to role: {}", role.getName());
                                 }
                         }
+                }
+        }
+
+        private void ensurePermissionManagementPermissions() {
+                boolean hasPermPerm = permissionRepository.existsByName("PERMISSION_READ");
+
+                if (!hasPermPerm) {
+                        log.info("Permission management permissions not found, adding them...");
+
+                        List<Permission> permPermissions = Arrays.asList(
+                                        createPermission("PERMISSION_CREATE", "Create new permissions", "PERMISSION",
+                                                        "CREATE"),
+                                        createPermission("PERMISSION_READ", "View permissions", "PERMISSION", "READ"),
+                                        createPermission("PERMISSION_UPDATE", "Update existing permissions",
+                                                        "PERMISSION", "UPDATE"),
+                                        createPermission("PERMISSION_DELETE", "Delete permissions", "PERMISSION",
+                                                        "DELETE"),
+                                        createPermission("PERMISSION_IMPORT", "Import permissions", "PERMISSION",
+                                                        "IMPORT"),
+                                        createPermission("PERMISSION_EXPORT", "Export permissions", "PERMISSION",
+                                                        "EXPORT"));
+
+                        permissionRepository.saveAll(permPermissions);
+
+                        // Add to SUPER_ADMIN role
+                        roleRepository.findByName("SUPER_ADMIN").ifPresent(superAdmin -> {
+                                superAdmin.getPermissions().addAll(permPermissions);
+                                roleRepository.save(superAdmin);
+                                log.info("Added permission management permissions to SUPER_ADMIN role");
+                        });
+
+                        // Add sidebar module for permissions in System Management group
+                        moduleGroupsRepository.findByName("System Management").ifPresent(systemGroup -> {
+                                boolean moduleExists = moduleRepository.existsByUrl("/permissions");
+                                if (!moduleExists) {
+                                        moduleRepository.save(createModule(
+                                                        systemGroup, "Permissions", "/permissions", "key", 5,
+                                                        "PERMISSION_READ", "Manage system permissions"));
+                                        log.info("Added Permissions module to System Management group");
+                                }
+                        });
                 }
         }
 

@@ -95,21 +95,13 @@ export function RoleDetailDialog({
             <div className="px-4 py-2.5 bg-muted border border-border rounded-lg text-sm min-h-[42px] max-h-40 overflow-y-auto">
               {role.permissionNames?.length ? (
                 <div className="flex flex-wrap gap-2">
-                  {role.permissionNames.map((p, idx) => {
-                    const colors = [
-                      "bg-blue-100 text-blue-700 border-blue-200",
-                      "bg-purple-100 text-purple-700 border-purple-200",
-                      "bg-green-100 text-green-700 border-green-200",
-                      "bg-orange-100 text-orange-700 border-orange-200",
-                      "bg-pink-100 text-pink-700 border-pink-200",
-                      "bg-teal-100 text-teal-700 border-teal-200",
-                    ];
+                  {role.permissionNames.map((p) => {
                     const desc = role.permissionDescriptions?.[p];
                     return (
                       <Badge
                         key={p}
                         title={desc || p}
-                        className={`text-xs border shadow-none cursor-default ${colors[idx % colors.length]}`}
+                        className="text-xs border shadow-none cursor-default bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
                       >
                         {p}
                       </Badge>

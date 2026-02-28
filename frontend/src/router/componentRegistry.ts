@@ -7,6 +7,7 @@ import NotFoundPage from "@/pages/NotFoundPage.tsx";
 import { RoleManagement } from "@/pages/role/RoleManagement";
 import LocationsManagement from "@/pages/locations/LocationsManagement";
 import ClassesComponent from "@/pages/classes/ClassesManagement";
+import PermissionsManagement from "@/pages/permissions/PermissionsManagement";
 
 
 export const componentRegistry: Record<string, ComponentType> = {
@@ -17,5 +18,6 @@ export const componentRegistry: Record<string, ComponentType> = {
     "/notFoundPage": NotFoundPage,
     "/roles": RoleManagement,
     "/classes": ClassesComponent,
-    "/locations": LocationsManagement
+    "/locations": LocationsManagement,
+    "/permissions": PermissionsManagement,
 };

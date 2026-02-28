@@ -12,6 +12,7 @@ import ConfirmDialog from "@/components/ui/confirmdialog";
 import { roleApi } from "@/api/roleApi";
 import { permissionApi } from "@/api/permissionApi";
 import type { Role, CreateRoleRequest } from "@/types/role";
+import { ROLES } from "@/types/role";
 import type { Permission } from "@/types/permission";
 
 import { getColumns } from "./columns";
@@ -50,14 +51,14 @@ export default function RoleTable() {
 
   const queryClient = useQueryClient();
 
-  const { refreshRoles, activePermissions } = useRoleSwitch();
+  const { refreshRoles, activePermissions, activeRole } = useRoleSwitch();
   const activePerms = activePermissions || [];
   const hasPermission = (p: string) => activePerms.includes(p);
-  const canCreate = hasPermission("ROLE_CREATE");
-  const canUpdate = hasPermission("ROLE_UPDATE");
-  const canDelete = hasPermission("ROLE_DELETE");
-  const canImport = hasPermission("ROLE_IMPORT");
-  const canExport = hasPermission("ROLE_EXPORT");
+  const isSuperAdmin = activeRole?.name === ROLES.SUPER_ADMIN;
+  const canCreate = hasPermission("ROLE_CREATE") && isSuperAdmin;
+  const canUpdate = hasPermission("ROLE_UPDATE") && isSuperAdmin;
+  const canImport = hasPermission("ROLE_IMPORT") && isSuperAdmin;
+  const canExport = hasPermission("ROLE_EXPORT") && isSuperAdmin;
 
   /* ---------- search + filter ---------- */
   const [searchValue, setSearchValue] = useState("");
@@ -196,10 +197,9 @@ export default function RoleTable() {
       getColumns({
         onView: setViewingRole,
         onEdit: canUpdate ? openEdit : undefined,
-        onDelete: canDelete ? setDeletingRole : undefined,
         onToggleStatus: canUpdate ? handleToggleStatus : undefined,
       }),
-    [canUpdate, canDelete],
+    [canUpdate],
   );
 
   /* ===================== RENDER ===================== */

@@ -109,7 +109,7 @@ export const useAssessment = () => {
     const handleImport = async (file: File) => {
         try {
             setIsLoading(true);
-            await assessmentTypeApi.importAssessments(file);
+            await assessmentTypeApi.importAssessment(file);
             await loadData();
             alert('Import successful');
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -125,7 +125,7 @@ export const useAssessment = () => {
             return;
 
         try {
-            await assessmentTypeApi.exportAssessments();
+            await assessmentTypeApi.exportAssessment();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             alert(error.response?.data?.message || 'Export failed');

@@ -145,48 +145,15 @@ export const RoleFormModal: React.FC<Props> = ({
                   No permissions found
                 </p>
               )}
-              {filteredPermissions.map((p, idx) => {
-                const palette = [
-                  {
-                    bg: "bg-blue-50",
-                    text: "text-blue-700",
-                    border: "border-blue-200",
-                  },
-                  {
-                    bg: "bg-purple-50",
-                    text: "text-purple-700",
-                    border: "border-purple-200",
-                  },
-                  {
-                    bg: "bg-green-50",
-                    text: "text-green-700",
-                    border: "border-green-200",
-                  },
-                  {
-                    bg: "bg-orange-50",
-                    text: "text-orange-700",
-                    border: "border-orange-200",
-                  },
-                  {
-                    bg: "bg-pink-50",
-                    text: "text-pink-700",
-                    border: "border-pink-200",
-                  },
-                  {
-                    bg: "bg-teal-50",
-                    text: "text-teal-700",
-                    border: "border-teal-200",
-                  },
-                ];
-                const color = palette[idx % palette.length];
+              {filteredPermissions.map((p) => {
                 const isChecked = roleForm.permissionIds.includes(p.id);
                 return (
                   <label
                     key={p.id}
                     className={`flex items-start gap-2 p-2 rounded border cursor-pointer transition ${
                       isChecked
-                        ? `${color.bg} ${color.border}`
-                        : "border-transparent hover:bg-white"
+                        ? "bg-gray-100 border-gray-300"
+                        : "border-transparent hover:bg-gray-50"
                     }`}
                   >
                     <input
@@ -197,7 +164,7 @@ export const RoleFormModal: React.FC<Props> = ({
                     />
                     <div>
                       <p
-                        className={`text-sm font-medium ${isChecked ? color.text : "text-gray-800"}`}
+                        className={`text-sm font-medium ${isChecked ? "text-gray-800" : "text-gray-800"}`}
                       >
                         {p.name}
                       </p>

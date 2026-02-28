@@ -31,6 +31,7 @@ import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import { RoleManagement } from "./pages/role/RoleManagement";
+import PermissionsManagement from "./pages/permissions/PermissionsManagement";
 import MfaSettings from "./pages/MfaSettings";
 import { MfaGateProvider } from "./components/MfaGateProvider";
 import ClassesDetailComponent from "./pages/classes/ClassesDetailManagement";
@@ -153,6 +154,15 @@ function App() {
               element={
                 <ProtectedRoute requiredPermission="ROLE_READ">
                   <RoleManagement />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/permissions"
+              element={
+                <ProtectedRoute requiredPermission="PERMISSION_READ">
+                  <PermissionsManagement />
                 </ProtectedRoute>
               }
             />

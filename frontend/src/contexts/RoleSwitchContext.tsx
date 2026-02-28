@@ -36,13 +36,12 @@ export const RoleSwitchProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchRoles = () => {
+    // Reset state when not authenticated
     if (!isAuthenticated) {
       setAvailableRoles([]);
       setActiveRole(null);
       return;
     }
-    // Reset stale role from previous user immediately
-    setActiveRole(null);
     setIsLoading(true);
     authApi
       .getMyRoles()
@@ -102,7 +101,6 @@ export const RoleSwitchProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const canSwitch = availableRoles.length > 1;
   const activePermissions = activeRole?.permissions ?? authPermissions;
-  console.log("Active role", activeRole);
 
   return (
     <RoleSwitchContext.Provider
