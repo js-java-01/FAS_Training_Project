@@ -11,11 +11,14 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
 import type { GradebookRow } from "@/types/topicMark"
+import { SearchableSelect } from "@/components/SearchableSelect"
 
 interface Props {
   classId: string
@@ -95,41 +98,31 @@ export default function GradebookTable({ classId }: Props) {
   )
 
   /* ================= RENDER ================= */
+  const courseOptions = courseClasses.map((cc) => ({
+    value: cc.id,
+    label: cc.course.courseCode,
+    raw: cc,
+  }))
 
   return (
-    <div className="relative space-y-4 h-full flex-1">
+    <div className="relative space-y-4 h-[calc(100%-90px)] flex-1">
       {/* Dropdown */}
-      <div className="w-[320px]">
-        <Select
-          value={selectedCourseClassId}
-          onValueChange={setSelectedCourseClassId}
-        >
-          <div className="flex gap-4 items-center">
-            <p className="font-semibold">Course Code:</p>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Course" />
-            </SelectTrigger>
+      <SearchableSelect
+        label="Course Code"
+        value={selectedCourseClassId}
+        onChange={(val) => setSelectedCourseClassId(val)}
+        options={courseOptions}
+        renderOption={(option) => (
+          <div className="flex flex-col">
+            <span className="font-medium">
+              {option.raw?.course.courseCode}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {option.raw?.course.courseName}
+            </span>
           </div>
-
-          <SelectContent>
-            {courseClasses.length ? (
-              courseClasses.map((cc) => (
-                <SelectItem key={cc.id} value={cc.id}>
-                  <div className="flex flex-col">
-                    <span className="font-medium">
-                      {cc.course.courseCode}
-                    </span>
-                  </div>
-                </SelectItem>
-              ))
-            ) : (
-              <SelectItem value="no-data" disabled>
-                No course found
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
-      </div>
+        )}
+      />
 
       <DataTable<GradebookRow, unknown>
         columns={columns}
