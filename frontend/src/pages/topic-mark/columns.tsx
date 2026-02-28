@@ -1,57 +1,25 @@
 import {
-  type ColumnDef,
   createColumnHelper,
+  type ColumnDef,
 } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import SortHeader from "@/components/data_table/SortHeader"
+import { Badge } from "@/components/ui/badge"
+import type {
+  GradebookColumnMeta,
+  GradebookRow,
+} from "@/types/topicMark"
 
-/**
- * =========================
- * Row Type
- * =========================
- */
-export interface GradebookRow {
-  userId: string
-  fullName: string
-  values: Record<string, number | boolean | null>
-}
-
-/**
- * =========================
- * Column Meta From API
- * =========================
- */
-export interface GradebookColumnMeta {
-  key: string
-  label: string
-  assessmentTypeId: string | null
-  assessmentTypeName: string | null
-  weight: number | null
-  gradingMethod: string | null
-  columnIndex: number | null
-}
-
-const columnHelper = createColumnHelper<GradebookRow>()
-
-/**
- * =========================
- * Build Columns
- * =========================
- */
 export const buildGradebookColumns = (
-  apiColumns: GradebookColumnMeta[]
-): ColumnDef<GradebookRow>[] => {
-  const sortedColumns = [...apiColumns].sort(
-    (a, b) => (a.columnIndex ?? 999) - (b.columnIndex ?? 999)
-  )
+  metaColumns: GradebookColumnMeta[]
+): ColumnDef<GradebookRow, any>[] => {
+  const columnHelper = createColumnHelper<GradebookRow>()
 
-  return [
-    /**
-     * Select column
-     */
+  const baseColumns: ColumnDef<GradebookRow, any>[] = [
     columnHelper.display({
       id: "select",
       size: 50,
+      enableSorting: false,
       header: ({ table }) => (
         <Checkbox
           checked={table.getIsAllPageRowsSelected()}
@@ -68,94 +36,82 @@ export const buildGradebookColumns = (
           }
         />
       ),
-      enableSorting: false,
     }),
 
-    /**
-     * Row number
-     */
     columnHelper.display({
       id: "number",
       header: "#",
       size: 60,
+      enableSorting: false,
       cell: ({ row, table }) =>
         row.index +
         1 +
         table.getState().pagination.pageIndex *
           table.getState().pagination.pageSize,
-      enableSorting: false,
     }),
 
-    /**
-     * Student Name (sortable)
-     */
-     columnHelper.accessor("fullName", {
-       header: (info) => <SortHeader title="Name" info={info} />,
-       size: 200,
-       cell: (info) => (
-         <span className="font-medium">{info.getValue()}</span>
-       ),
-     }),
+    columnHelper.accessor("fullName", {
+      size: 220,
+      header: (info) => (
+        <SortHeader info={info} title="Student Name" />
+      ),
+      cell: (info) => (
+        <span className="font-medium">
+          {info.getValue()}
+        </span>
+      ),
+    }),
+  ]
 
-    /**
-     * Dynamic Columns
-     */
-    ...sortedColumns.map((col) =>
-      columnHelper.display({
+  const dynamicColumns = metaColumns.map((col) =>
+    columnHelper.accessor(
+      (row) => row.values[col.key],
+      {
         id: col.key,
-
+        size: 120,
         header: (info) => (
-          <SortHeader info={info} title={col.label} />
+          <div className="flex flex-col items-center text-center">
+            <SortHeader info={info} title={col.label} />
+            {col.weight && (
+              <span className="text-xs text-muted-foreground">
+                {col.weight}%
+              </span>
+            )}
+          </div>
         ),
+        cell: (info) => {
+          const value = info.getValue()
 
-        cell: ({ row }) => {
-          const value = row.original.values?.[col.key]
-
-          if (value === null || value === undefined)
-            return "-"
+          if (value == null)
+            return (
+              <span className="text-muted-foreground">
+                -
+              </span>
+            )
 
           if (typeof value === "boolean") {
-            return value ? (
-              <span className="text-green-600 font-medium">
-                Passed
-              </span>
-            ) : (
-              <span className="text-red-600 font-medium">
-                Failed
-              </span>
+            return (
+              <Badge
+                className={
+                  value
+                    ? "bg-green-100 text-green-700 border-green-200 shadow-none"
+                    : "bg-red-100 text-red-700 border-red-200 shadow-none"
+                }
+              >
+                {value ? "Pass" : "Fail"}
+              </Badge>
             )
           }
 
-          if (typeof value === "number") {
-            return value.toFixed(2)
-          }
-
-          return value
+          return (
+            <span className="text-center block">
+              {value}
+            </span>
+          )
         },
+      }
+    )
+  )
 
-        enableSorting: true,
-
-        /**
-         * Custom sorting function
-         */
-        sortingFn: (rowA, rowB) => {
-          const a = rowA.original.values?.[col.key]
-          const b = rowB.original.values?.[col.key]
-
-          if (a == null) return -1
-          if (b == null) return 1
-
-          if (typeof a === "number" && typeof b === "number") {
-            return a - b
-          }
-
-          if (typeof a === "boolean" && typeof b === "boolean") {
-            return Number(a) - Number(b)
-          }
-
-          return String(a).localeCompare(String(b))
-        },
-      })
-    ),
-  ]
+  return [...baseColumns, ...dynamicColumns]
 }

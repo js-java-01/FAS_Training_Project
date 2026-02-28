@@ -31,7 +31,7 @@ export default function TopicMarkModal({ open, onOpenChange, trainingClass }: To
         </DialogHeader>
 
         <ScrollArea className="h-full p-6 flex-1 flex flex-col">
-          <GradebookTable />
+          <GradebookTable classId={trainingClass.id}/>
         </ScrollArea>
 
       </DialogContent>
