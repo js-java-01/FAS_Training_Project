@@ -9,12 +9,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class CourseClassServiceImpl implements CourseClassService {
 
     private final CourseClassRepository courseClassRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CourseClassResponse> getByClassId(UUID classId) {
+        return courseClassRepository.findByClassInfo_Id(classId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
     @Override
     @Transactional(readOnly = true)

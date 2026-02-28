@@ -172,6 +172,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             return TopicMarkGradebookResponse.Row.builder()
                     .userId(user.getId())
                     .fullName(user.getFirstName() + " " + user.getLastName())
+                    .email(user.getEmail())
                     .values(values)
                     .build();
         }).collect(Collectors.toList());
@@ -184,14 +185,55 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
     @Override
     @Transactional(readOnly = true)
-    public TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword, Pageable pageable) {
+    public TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword, Boolean passed, Pageable pageable) {
         TopicMarkGradebookResponse full = getGradebook(courseClassId);
 
-        // Filter rows by student full name
+        // Filter rows by student full name and passed status
         List<TopicMarkGradebookResponse.Row> filtered = full.getRows().stream()
                 .filter(row -> keyword == null || keyword.isBlank() ||
                         row.getFullName().toLowerCase().contains(keyword.toLowerCase().trim()))
+                .filter(row -> {
+                    if (passed == null) return true;
+                    Object val = row.getValues().get("IS_PASSED");
+                    return passed.equals(val instanceof Boolean b ? b : false);
+                })
                 .collect(Collectors.toList());
+
+        // Manual sort by pageable sort orders
+        if (pageable.getSort().isSorted()) {
+            Comparator<TopicMarkGradebookResponse.Row> comparator = null;
+            for (org.springframework.data.domain.Sort.Order order : pageable.getSort()) {
+                Comparator<TopicMarkGradebookResponse.Row> c;
+                String prop = order.getProperty();
+                if ("fullName".equalsIgnoreCase(prop)) {
+                    c = Comparator.comparing(TopicMarkGradebookResponse.Row::getFullName,
+                            Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+                } else if ("email".equalsIgnoreCase(prop)) {
+                    c = Comparator.comparing(TopicMarkGradebookResponse.Row::getEmail,
+                            Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+                } else if ("IS_PASSED".equalsIgnoreCase(prop)) {
+                    // false(0) < true(1) when asc → failed first; desc → passed first
+                    c = Comparator.comparing(
+                            row -> {
+                                Object val = row.getValues().get("IS_PASSED");
+                                return (val instanceof Boolean b) ? (b ? 1 : 0) : -1;
+                            },
+                            Comparator.nullsLast(Comparator.naturalOrder()));
+                } else {
+                    // Sort by column score value (UUID key or FINAL_SCORE)
+                    c = Comparator.comparing(
+                            row -> {
+                                Object val = row.getValues().get(prop);
+                                if (val instanceof Number) return ((Number) val).doubleValue();
+                                return null;
+                            },
+                            Comparator.nullsLast(Comparator.naturalOrder()));
+                }
+                if (order.isDescending()) c = c.reversed();
+                comparator = comparator == null ? c : comparator.thenComparing(c);
+            }
+            if (comparator != null) filtered.sort(comparator);
+        }
 
         // Manual pagination
         int total = filtered.size();

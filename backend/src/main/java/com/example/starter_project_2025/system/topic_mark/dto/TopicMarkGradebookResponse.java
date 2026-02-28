@@ -88,6 +88,9 @@ public class TopicMarkGradebookResponse {
         @Schema(description = "Student full name", example = "John Doe")
         private String fullName;
 
+        @Schema(description = "Student email", example = "john.doe@example.com")
+        private String email;
+
         /**
          * Map of column key → value.
          * - UUID key      → Double score (nullable = not entered yet)
