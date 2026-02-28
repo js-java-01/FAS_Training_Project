@@ -121,6 +121,22 @@ public class SecurityConfig {
 
 //                        .anyRequest().authenticated()
 
+                                                .requestMatchers(HttpMethod.GET, "/api/topics/**")
+                                                .hasAuthority("TOPIC_READ")
+                                                .requestMatchers(HttpMethod.POST, "/api/topics")
+                                                .hasAuthority("TOPIC_CREATE")
+                                                .requestMatchers(HttpMethod.PUT, "/api/topics/**")
+                                                .hasAuthority("TOPIC_UPDATE")
+                                                .requestMatchers(HttpMethod.DELETE, "/api/topics/**")
+                                                .hasAuthority("TOPIC_DELETE")
+                                                .requestMatchers(HttpMethod.GET, "/api/topics/export")
+                                                .hasAuthority("TOPIC_EXPORT")
+                                                .requestMatchers(HttpMethod.GET, "/api/topics/import/template")
+                                                .hasAuthority("TOPIC_READ")
+                                                .requestMatchers(HttpMethod.POST, "/api/topics/import")
+                                                .hasAuthority("TOPIC_IMPORT")
+
+
                                                 // Batch outline endpoints
                                                 .requestMatchers(HttpMethod.POST, "/api/batch-outline")
                                                 .hasAuthority("COURSE_UPDATE")

@@ -36,6 +36,9 @@ import MfaSettings from "./pages/MfaSettings";
 import { MfaGateProvider } from "./components/MfaGateProvider";
 import ClassesDetailComponent from "./pages/classes/ClassesDetailManagement";
 import Unauthorized from "./pages/Unauthorized";
+import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
+import { TopicManagement } from "./pages/topic/TopicManagement";
+import TopicDetailPage from "./pages/topic/TopicDetailPage";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -123,6 +126,7 @@ function App() {
             />
             <Route path="/courses/:id" element={<CourseDetailPage />} />
             {/* /my-courses redirects to /courses for backward compat */}
+            <Route path="/courses/:id" element={<CourseDetailPage />} />
             <Route
               path="/my-courses"
               element={<Navigate to="/courses" replace />}
@@ -139,6 +143,35 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/topics"
+              element={
+                <ProtectedRoute requiredPermission="TOPIC_READ">
+                  <TopicManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/courses/:id" element={<CourseDetailPage />} />
+            {/* /my-courses redirects to /courses for backward compat */}
+            <Route
+              path="/topics"
+              element={
+                <ProtectedRoute requiredPermission="TOPIC_READ">
+                  <TopicManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/topics/:id" element={<TopicDetailPage />} />
+            <Route
+              path="/my-topics"
+              element={<Navigate to="/topics" replace />}
+            />
+            <Route
+              path="/my-topics/:id"
+              element={<Navigate to="/topics" replace />}
+            />
+
 
             <Route
               path="/teacher-assessment"
