@@ -63,6 +63,14 @@ public interface TopicMarkService {
     ResponseEntity<byte[]> exportGradebookTemplate(UUID courseClassId);
 
     /**
+     * Export the full gradebook with actual scores.
+     * Row 0 (bold header): STT | Họ và tên | Email | <col labels…> | Final Score | Passed.
+     * Row 1+: one row per enrolled student with all entered scores, final score, and pass/fail.
+     * Pass cells are green, Fail cells are red.
+     */
+    ResponseEntity<byte[]> exportGradebook(UUID courseClassId);
+
+    /**
      * Initialize TopicMark + null entries for a newly enrolled student.
      * Called by EnrollmentService when a student joins a training class.
      */

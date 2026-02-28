@@ -611,6 +611,111 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     }
 
 
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportGradebook(UUID courseClassId) {
+        CourseClass courseClass = loadCourseClass(courseClassId);
+        List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
+        List<Enrollment> enrollments = enrollmentRepository
+                .findByCourseIdAndStatus(courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
+
+        // Build score lookup: userId -> columnId -> score
+        Map<UUID, Map<UUID, Double>> scoreMap = new java.util.HashMap<>();
+        topicMarkEntryRepository.findByCourseClassId(courseClassId).forEach(entry -> {
+            if (entry.getScore() != null) {
+                scoreMap
+                    .computeIfAbsent(entry.getUser().getId(), k -> new java.util.HashMap<>())
+                    .put(entry.getTopicMarkColumn().getId(), entry.getScore());
+            }
+        });
+
+        // Build final-mark lookup: userId -> TopicMark
+        Map<UUID, TopicMark> markMap = new java.util.HashMap<>();
+        topicMarkRepository.findAllByCourseClassId(courseClassId)
+                .forEach(tm -> markMap.put(tm.getUser().getId(), tm));
+
+        try (Workbook wb = new XSSFWorkbook()) {
+            String rawName = courseClass.getCourse().getCourseCode()
+                    + " - " + courseClass.getClassInfo().getClassCode();
+            Sheet sheet = wb.createSheet(rawName.length() > 31 ? rawName.substring(0, 31) : rawName);
+
+            CellStyle headerStyle  = buildHeaderStyle(wb);
+            CellStyle lockedStyle  = buildLockedStyle(wb);
+            CellStyle scoreStyle   = buildInputStyle(wb);
+            CellStyle passStyle    = buildPassStyle(wb);
+            CellStyle failStyle    = buildFailStyle(wb);
+            CellStyle boldCenter   = buildBoldCenterStyle(wb);
+
+            final int SCORE_COL_START = 3;
+            int finalScoreCol = SCORE_COL_START + columns.size();
+            int passedCol     = finalScoreCol + 1;
+
+            // Header row
+            Row headerRow = sheet.createRow(0);
+            putCell(headerRow, 0, "STT",         headerStyle);
+            putCell(headerRow, 1, "Họ và tên",   headerStyle);
+            putCell(headerRow, 2, "Email",        headerStyle);
+            for (int i = 0; i < columns.size(); i++) {
+                putCell(headerRow, SCORE_COL_START + i, columns.get(i).getColumnLabel(), headerStyle);
+            }
+            putCell(headerRow, finalScoreCol, "Final Score", headerStyle);
+            putCell(headerRow, passedCol,     "Passed",      headerStyle);
+
+            // Student rows
+            int stt = 1;
+            for (Enrollment enrollment : enrollments) {
+                User student = enrollment.getUser();
+                Map<UUID, Double> studentScores = scoreMap.getOrDefault(student.getId(), java.util.Collections.emptyMap());
+                TopicMark tm = markMap.get(student.getId());
+
+                Row row = sheet.createRow(stt);
+                putCell(row, 0, stt, lockedStyle);
+                putCell(row, 1, student.getFirstName() + " " + student.getLastName(), lockedStyle);
+                putCell(row, 2, student.getEmail(), lockedStyle);
+
+                for (int i = 0; i < columns.size(); i++) {
+                    Double score = studentScores.get(columns.get(i).getId());
+                    if (score != null) putCell(row, SCORE_COL_START + i, score, scoreStyle);
+                    else row.createCell(SCORE_COL_START + i).setCellStyle(scoreStyle);
+                }
+
+                if (tm != null && tm.getFinalScore() != null) {
+                    putCell(row, finalScoreCol, tm.getFinalScore(), boldCenter);
+                    boolean passed = Boolean.TRUE.equals(tm.getIsPassed());
+                    putCell(row, passedCol, passed ? "PASS" : "FAIL", passed ? passStyle : failStyle);
+                } else {
+                    row.createCell(finalScoreCol).setCellStyle(scoreStyle);
+                    row.createCell(passedCol).setCellStyle(scoreStyle);
+                }
+                stt++;
+            }
+
+            // Column widths
+            sheet.setColumnWidth(0, 1500);
+            sheet.setColumnWidth(1, 7000);
+            sheet.setColumnWidth(2, 8000);
+            for (int i = 0; i < columns.size(); i++) {
+                sheet.setColumnWidth(SCORE_COL_START + i, 4500);
+            }
+            sheet.setColumnWidth(finalScoreCol, 4500);
+            sheet.setColumnWidth(passedCol, 3500);
+
+            sheet.createFreezePane(0, 1);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            wb.write(out);
+            String filename = "gradebook-" + courseClassId + ".xlsx";
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(out.toByteArray());
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error exporting gradebook: " + e.getMessage(), e);
+        }
+    }
+
     private void putCell(Row row, int col, Object value, CellStyle style) {
         Cell cell = row.createCell(col);
         if (value instanceof String s)       cell.setCellValue(s);
@@ -658,6 +763,51 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
     private CellStyle buildInputStyle(Workbook wb) {
         CellStyle s = wb.createCellStyle();
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        return s;
+    }
+
+    private CellStyle buildPassStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        Font f = wb.createFont();
+        f.setBold(true);
+        f.setColor(IndexedColors.DARK_GREEN.getIndex());
+        s.setFont(f);
+        s.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        s.setAlignment(HorizontalAlignment.CENTER);
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        return s;
+    }
+
+    private CellStyle buildFailStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        Font f = wb.createFont();
+        f.setBold(true);
+        f.setColor(IndexedColors.DARK_RED.getIndex());
+        s.setFont(f);
+        s.setFillForegroundColor(IndexedColors.ROSE.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        s.setAlignment(HorizontalAlignment.CENTER);
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        return s;
+    }
+
+    private CellStyle buildBoldCenterStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        Font f = wb.createFont();
+        f.setBold(true);
+        s.setFont(f);
+        s.setAlignment(HorizontalAlignment.CENTER);
         s.setBorderBottom(BorderStyle.THIN);
         s.setBorderTop(BorderStyle.THIN);
         s.setBorderLeft(BorderStyle.THIN);

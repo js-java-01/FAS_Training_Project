@@ -109,6 +109,19 @@ public class TopicMarkController {
         return ResponseEntity.ok(topicMarkService.updateScores(courseClassId, userId, request, editorId));
     }
 
+    @GetMapping("/api/course-classes/{courseClassId}/topic-marks/export")
+    @Operation(
+            summary = "Export full gradebook with scores",
+            description = "Returns an Excel (.xlsx) file with all entered scores, final scores, and PASS/FAIL status for every enrolled student.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Gradebook exported"),
+        @ApiResponse(responseCode = "404", description = "CourseClass not found", content = @Content)
+    })
+    public ResponseEntity<byte[]> exportGradebook(
+            @Parameter(description = "Course class ID", required = true) @PathVariable UUID courseClassId) {
+        return topicMarkService.exportGradebook(courseClassId);
+    }
+
     @GetMapping("/api/course-classes/{courseClassId}/topic-marks/export/template")
     @Operation(
             summary = "Download gradebook score-entry template",
