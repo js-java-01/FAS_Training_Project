@@ -1,14 +1,9 @@
 package com.example.starter_project_2025.config;
 
-import com.example.starter_project_2025.system.assessment.entity.*;
-import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
+import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
-import com.example.starter_project_2025.system.assessment.enums.SubmissionStatus;
-import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
-import com.example.starter_project_2025.system.assessment.repository.SubmissionRepository;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
-import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
@@ -16,13 +11,11 @@ import com.example.starter_project_2025.system.course.repository.CourseRepositor
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeightRepository;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
-import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
-import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.semester.entity.Semester;
-import com.example.starter_project_2025.system.topic_mark.entity.TopicMark;
-import com.example.starter_project_2025.system.topic_mark.repository.TopicMarkRepository;
+import com.example.starter_project_2025.system.topic_mark.entity.*;
+import com.example.starter_project_2025.system.topic_mark.repository.*;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +35,26 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.List;
 
+/**
+ * Seed demo data for the manual-entry Topic Mark system.
+ *
+ * Structure created:
+ *   Course  DEMO-COURSE-TM  (minGpaToPass = 6.0, scale 0-10)
+ *     CourseAssessmentTypeWeight  Entrance Quiz 30% HIGHEST
+ *                                 Midterm Test  50% LATEST
+ *                                 Final Exam    20% AVERAGE
+ *   TrainingClass  TC-DEMO-01
+ *   CourseClass    (Course x TrainingClass)
+ *   Students:      john, alice, bob, carol, david, eva
+ *   TopicMarkColumns  (4: Quiz Ch1, Quiz Ch2, Midterm, Final)
+ *   TopicMarkEntries  (all filled)
+ *   TopicMarkEntryHistory  (one audit record per entry - "Initial seed")
+ *   TopicMark  (finalScore computed, pass/fail set)
+ *
+ * Expected results:
+ *   John  7.90 PASS | Alice 8.15 PASS | Bob  4.80 FAIL
+ *   Carol 9.39 PASS | David 5.83 FAIL | Eva  8.12 PASS
+ */
 @Component
 @Order(2)
 @RequiredArgsConstructor
@@ -49,115 +62,207 @@ import java.util.List;
 public class TopicMarkDataInitializer implements CommandLineRunner {
 
     @PersistenceContext
-    private EntityManager entityManager;
+    private EntityManager em;
 
-    // Self-injection to call through Spring proxy (enables @Transactional)
     @Lazy
     @Autowired
     private TopicMarkDataInitializer self;
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final AssessmentTypeRepository assessmentTypeRepository;
-    private final CourseRepository courseRepository;
-    private final AssessmentRepository assessmentRepository;
-    private final SubmissionRepository submissionRepository;
-    private final CourseAssessmentTypeWeightRepository courseAssessmentTypeWeightRepository;
-    private final TrainingClassRepository trainingClassRepository;
-    private final CourseClassRepository courseClassRepository;
-    private final EnrollmentRepository enrollmentRepository;
-    private final TopicMarkRepository topicMarkRepository;
+    private final UserRepository                       userRepository;
+    private final PasswordEncoder                      passwordEncoder;
+    private final AssessmentTypeRepository             assessmentTypeRepository;
+    private final CourseRepository                     courseRepository;
+    private final CourseAssessmentTypeWeightRepository weightRepository;
+    private final TopicMarkColumnRepository            columnRepository;
+    private final TopicMarkEntryRepository             entryRepository;
+    private final TopicMarkEntryHistoryRepository      historyRepository;
+    private final TopicMarkRepository                  topicMarkRepository;
+
+    //  Entry point 
 
     @Override
     public void run(String... args) {
         try {
             self.initialize();
         } catch (Exception e) {
-            log.error("Failed to initialize topic mark data. Full error:", e);
+            log.error("Failed to initialize topic mark seed data", e);
         }
     }
 
     @Transactional
     public void initialize() {
-        log.info("Initializing topic mark sample data...");
+        log.info("=== TopicMarkDataInitializer: starting ===");
 
-        // 1. Create or get sample student user
-        User student = userRepository.findByEmail("student@test.com")
-                .orElseGet(() -> {
-                    User u = User.builder()
-                            .email("student@test.com")
-                            .firstName("John")
-                            .lastName("Doe")
-                            .passwordHash(passwordEncoder.encode("password123"))
-                            .isActive(true)
-                            .build();
-                    return userRepository.save(u);
-                });
-        log.info("✓ Created/found student user: {}", student.getEmail());
+        //  1. Shared infrastructure 
 
-        // 2. Create or get assessment types (reuse names with length >= 5 chars to pass @Size(min=5) validation)
-        AssessmentType quizType = createOrGetAssessmentType("Entrance Quiz", "Short quizzes to test understanding");
-        AssessmentType examType = createOrGetAssessmentType("Midterm Test", "Comprehensive midterm examinations");
-        AssessmentType labType = createOrGetAssessmentType("Final Exam", "Hands-on practical final exercises");
-        log.info("✓ Created/found 3 assessment types: Entrance Quiz, Midterm Test, Final Exam");
-
-        // 3. Create demo course
+        // Use admin@example.com as seed actor; fall back to first active user.
+        // If no user exists yet, skip gracefully (DB not seeded yet).
         User admin = userRepository.findByEmail("admin@example.com")
-                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+                .or(() -> userRepository.findAll().stream()
+                        .filter(u -> Boolean.TRUE.equals(u.getIsActive()))
+                        .findFirst())
+                .orElse(null);
 
-        Course demoCourse = entityManager
-                .createQuery("SELECT c FROM Course c WHERE c.courseCode = :code", Course.class)
-                .setParameter("code", "DEMO-COURSE-TM")
-                .getResultStream()
-                .findFirst()
+        if (admin == null) {
+            log.warn("No active user found - TopicMark seed skipped. Will seed on next restart after UserDataInitializer runs.");
+            return;
+        }
+
+        AssessmentType quizType    = findOrCreateAssessmentType("Entrance Quiz", "Short entry quizzes");
+        AssessmentType midtermType = findOrCreateAssessmentType("Midterm Test",  "Comprehensive midterm exam");
+        AssessmentType finalType   = findOrCreateAssessmentType("Final Exam",    "End-of-course final exam");
+
+        Course course = findOrCreateCourse(admin);
+
+        findOrCreateWeight(course, quizType,    0.30, GradingMethod.HIGHEST);
+        findOrCreateWeight(course, midtermType, 0.50, GradingMethod.LATEST);
+        findOrCreateWeight(course, finalType,   0.20, GradingMethod.AVERAGE);
+        log.info("Weights: Quiz 30% HIGHEST | Midterm 50% LATEST | Final 20% AVERAGE");
+
+        Semester      semester      = findOrCreateSemester();
+        TrainingClass trainingClass = findOrCreateTrainingClass(semester, admin);
+        CourseClass   courseClass   = findOrCreateCourseClass(course, trainingClass);
+
+        //  2. Students + enrollments 
+
+        User john  = findOrCreateStudent("student@test.com",      "John",  "Doe");
+        User alice = findOrCreateStudent("alice.johnson@test.com", "Alice", "Johnson");
+        User bob   = findOrCreateStudent("bob.wilson@test.com",    "Bob",   "Wilson");
+        User carol = findOrCreateStudent("carol.davis@test.com",   "Carol", "Davis");
+        User david = findOrCreateStudent("david.lee@test.com",     "David", "Lee");
+        User eva   = findOrCreateStudent("eva.chen@test.com",      "Eva",   "Chen");
+
+        for (User s : List.of(john, alice, bob, carol, david, eva)) {
+            findOrCreateEnrollment(s, trainingClass);
+        }
+        log.info("6 students enrolled");
+
+        //  3. Guard: skip if columns already exist 
+
+        if (!columnRepository.findActiveByCourseClassId(courseClass.getId()).isEmpty()) {
+            log.info("=== Columns already exist - skipping seed ===");
+            return;
+        }
+
+        //  4. Create gradebook columns 
+
+        TopicMarkColumn quizCol1   = createColumn(courseClass, quizType,    "Quiz Chapter 1", 1, admin);
+        TopicMarkColumn quizCol2   = createColumn(courseClass, quizType,    "Quiz Chapter 2", 2, admin);
+        TopicMarkColumn midtermCol = createColumn(courseClass, midtermType, "Midterm Exam",   1, admin);
+        TopicMarkColumn finalCol   = createColumn(courseClass, finalType,   "Final Exam",     1, admin);
+        log.info("4 columns created");
+
+        //  5. Enter scores (0-10 scale) 
+        //
+        // John:  Quiz[8.0,9.0] HIGHEST=9.0  *0.30=2.70 | Mid 7.0  *0.50=3.50 | Final 8.50 *0.20=1.70 => 7.90 PASS
+        // Alice: Quiz[8.0,8.5] HIGHEST=8.5  *0.30=2.55 | Mid 8.2  *0.50=4.10 | Final 7.50 *0.20=1.50 => 8.15 PASS
+        // Bob:   Quiz[5.5,4.8] HIGHEST=5.5  *0.30=1.65 | Mid 4.0  *0.50=2.00 | Final 5.75 *0.20=1.15 => 4.80 FAIL
+        // Carol: Quiz[9.5,9.8] HIGHEST=9.8  *0.30=2.94 | Mid 9.2  *0.50=4.60 | Final 9.25 *0.20=1.85 => 9.39 PASS
+        // David: Quiz[6.2,5.5] HIGHEST=6.2  *0.30=1.86 | Mid 5.5  *0.50=2.75 | Final 6.10 *0.20=1.22 => 5.83 FAIL
+        // Eva:   Quiz[8.5,8.8] HIGHEST=8.8  *0.30=2.64 | Mid 7.6  *0.50=3.80 | Final 8.40 *0.20=1.68 => 8.12 PASS
+
+        record SD(User user, double q1, double q2, double mid, double fin, double total) {}
+
+        double minGpa = course.getMinGpaToPass() != null ? course.getMinGpaToPass() : 6.0;
+
+        List.of(
+            new SD(john,  8.0, 9.0, 7.0,  8.50, 7.90),
+            new SD(alice, 8.0, 8.5, 8.2,  7.50, 8.15),
+            new SD(bob,   5.5, 4.8, 4.0,  5.75, 4.80),
+            new SD(carol, 9.5, 9.8, 9.2,  9.25, 9.39),
+            new SD(david, 6.2, 5.5, 5.5,  6.10, 5.83),
+            new SD(eva,   8.5, 8.8, 7.6,  8.40, 8.12)
+        ).forEach(sd -> {
+            saveEntry(quizCol1,   sd.user(), sd.q1(),  admin);
+            saveEntry(quizCol2,   sd.user(), sd.q2(),  admin);
+            saveEntry(midtermCol, sd.user(), sd.mid(), admin);
+            saveEntry(finalCol,   sd.user(), sd.fin(), admin);
+            upsertTopicMark(courseClass, sd.user(), sd.total(), minGpa);
+        });
+
+        log.info("=================================================");
+        log.info("Topic mark seed data initialized successfully!");
+        log.info("  John  Doe:      7.90  PASS");
+        log.info("  Alice Johnson:  8.15  PASS");
+        log.info("  Bob   Wilson:   4.80  FAIL");
+        log.info("  Carol Davis:    9.39  PASS");
+        log.info("  David Lee:      5.83  FAIL");
+        log.info("  Eva   Chen:     8.12  PASS");
+        log.info("=================================================");
+    }
+
+    //  Helpers 
+
+    private AssessmentType findOrCreateAssessmentType(String name, String description) {
+        return em.createQuery("SELECT a FROM AssessmentType a WHERE a.name = :n", AssessmentType.class)
+                .setParameter("n", name)
+                .getResultStream().findFirst()
                 .orElseGet(() -> {
-                    Course course = Course.builder()
-                            .courseName("Demo Course for Topic Marks")
-                            .courseCode("DEMO-COURSE-TM")
-                            .topicId(1L)
-                            .price(BigDecimal.valueOf(5_000_000))
-                            .discount(0.0)
-                            .level(CourseLevel.BEGINNER)
-                            .estimatedTime(30 * 24 * 60)
-                            .thumbnailUrl("https://example.com/demo-tm.jpg")
-                            .status(CourseStatus.ACTIVE)
-                            .description("Demo course for testing Topic Mark calculations")
-                            .note("Test data")
-                            .minGpaToPass(60.0)
-                            .minAttendancePercent(70.0)
-                            .allowFinalRetake(true)
-                            .creator(admin)
-                            .build();
-                    return courseRepository.save(course);
+                    AssessmentType t = new AssessmentType();
+                    t.setName(name);
+                    t.setDescription(description);
+                    return assessmentTypeRepository.save(t);
                 });
-        log.info("✓ Created/found demo course: {}", demoCourse.getCourseCode());
+    }
 
-        // 4. Create course assessment type weights (Quiz 30%, Exam 50%, Lab 20%)
-        createWeightIfNotExists(demoCourse, quizType, 0.3);
-        createWeightIfNotExists(demoCourse, examType, 0.5);
-        createWeightIfNotExists(demoCourse, labType, 0.2);
-        log.info("✓ Set assessment type weights: Quiz 30%, Exam 50%, Lab 20%");
+    private Course findOrCreateCourse(User admin) {
+        return em.createQuery("SELECT c FROM Course c WHERE c.courseCode = :code", Course.class)
+                .setParameter("code", "DEMO-COURSE-TM")
+                .getResultStream().findFirst()
+                .orElseGet(() -> courseRepository.save(Course.builder()
+                        .courseName("Demo Course for Topic Marks")
+                        .courseCode("DEMO-COURSE-TM")
+                        .topicId(1L)
+                        .price(BigDecimal.valueOf(5_000_000))
+                        .discount(0.0)
+                        .level(CourseLevel.BEGINNER)
+                        .estimatedTime(30 * 24 * 60)
+                        .thumbnailUrl("https://example.com/demo-tm.jpg")
+                        .status(CourseStatus.ACTIVE)
+                        .description("Demo course for testing manual Topic Mark entry")
+                        .note("Seed data")
+                        .minGpaToPass(6.0)
+                        .minAttendancePercent(70.0)
+                        .allowFinalRetake(true)
+                        .creator(admin)
+                        .build()));
+    }
 
-        // 5. Get or create semester
-        Semester semester = entityManager
-                .createQuery("SELECT s FROM Semester s WHERE s.name = :name", Semester.class)
-                .setParameter("name", "Demo Semester 2026")
-                .getResultStream()
-                .findFirst()
+    private void findOrCreateWeight(Course course, AssessmentType type, double weight, GradingMethod gm) {
+        Long count = em.createQuery(
+                "SELECT COUNT(w) FROM CourseAssessmentTypeWeight w WHERE w.course.id = :c AND w.assessmentType.id = :t",
+                Long.class)
+                .setParameter("c", course.getId())
+                .setParameter("t", type.getId())
+                .getSingleResult();
+        if (count == 0) {
+            CourseAssessmentTypeWeight w = new CourseAssessmentTypeWeight();
+            w.setCourse(course);
+            w.setAssessmentType(type);
+            w.setWeight(weight);
+            w.setGradingMethod(gm);
+            weightRepository.save(w);
+        }
+    }
+
+    private Semester findOrCreateSemester() {
+        return em.createQuery("SELECT s FROM Semester s WHERE s.name = :n", Semester.class)
+                .setParameter("n", "Demo Semester 2026")
+                .getResultStream().findFirst()
                 .orElseGet(() -> {
                     Semester s = new Semester();
                     s.setName("Demo Semester 2026");
                     s.setStartDate(Date.valueOf("2026-01-01").toLocalDate());
                     s.setEndDate(Date.valueOf("2026-12-31").toLocalDate());
-                    entityManager.persist(s);
+                    em.persist(s);
                     return s;
                 });
+    }
 
-        TrainingClass trainingClass = entityManager
-                .createQuery("SELECT tc FROM TrainingClass tc WHERE tc.classCode = :code", TrainingClass.class)
-                .setParameter("code", "TC-DEMO-01")
-                .getResultStream()
-                .findFirst()
+    private TrainingClass findOrCreateTrainingClass(Semester semester, User admin) {
+        return em.createQuery("SELECT tc FROM TrainingClass tc WHERE tc.classCode = :c", TrainingClass.class)
+                .setParameter("c", "TC-DEMO-01")
+                .getResultStream().findFirst()
                 .orElseGet(() -> {
                     TrainingClass tc = new TrainingClass();
                     tc.setClassCode("TC-DEMO-01");
@@ -167,274 +272,95 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                     tc.setIsActive(true);
                     tc.setStartDate(Date.valueOf("2026-01-01").toLocalDate());
                     tc.setEndDate(Date.valueOf("2026-06-30").toLocalDate());
-                    entityManager.persist(tc);
+                    em.persist(tc);
                     return tc;
                 });
-        log.info("✓ Created/found training class: {}", trainingClass.getClassCode());
+    }
 
-        // 6. Create CourseClass linking the course and training class
-        CourseClass courseClass = entityManager
-                .createQuery("SELECT cc FROM CourseClass cc WHERE cc.course.id = :courseId AND cc.classInfo.id = :classId", CourseClass.class)
-                .setParameter("courseId", demoCourse.getId())
-                .setParameter("classId", trainingClass.getId())
-                .getResultStream()
-                .findFirst()
+    private CourseClass findOrCreateCourseClass(Course course, TrainingClass tc) {
+        return em.createQuery(
+                "SELECT cc FROM CourseClass cc WHERE cc.course.id = :c AND cc.classInfo.id = :t", CourseClass.class)
+                .setParameter("c", course.getId())
+                .setParameter("t", tc.getId())
+                .getResultStream().findFirst()
                 .orElseGet(() -> {
                     CourseClass cc = new CourseClass();
-                    cc.setCourse(demoCourse);
-                    cc.setClassInfo(trainingClass);
-                    entityManager.persist(cc);
+                    cc.setCourse(course);
+                    cc.setClassInfo(tc);
+                    em.persist(cc);
                     return cc;
                 });
-        log.info("✓ Created/found course class");
-
-        // 7. Create Enrollment (student enrolled in training class)
-        entityManager
-                .createQuery("SELECT e FROM Enrollment e WHERE e.user.id = :userId AND e.trainingClass.id = :classId", Enrollment.class)
-                .setParameter("userId", student.getId())
-                .setParameter("classId", trainingClass.getId())
-                .getResultStream()
-                .findFirst()
-                .orElseGet(() -> {
-                    Enrollment enrollment = new Enrollment();
-                    enrollment.setUser(student);
-                    enrollment.setTrainingClass(trainingClass);
-                    enrollment.setStatus(EnrollmentStatus.ACTIVE);
-                    entityManager.persist(enrollment);
-                    return enrollment;
-                });
-        log.info("✓ Created/found enrollment for student");
-
-        // 8. Create assessments with multiple submissions
-        // Quiz 1 - HIGHEST grading: scores [80, 85, 90] → 90
-        createAssessmentWithSubmissions(courseClass, student, quizType,
-                "Quiz 1 - Chapter 1", GradingMethod.HIGHEST,
-                List.of(80.0, 85.0, 90.0));
-
-        // Quiz 2 - HIGHEST grading: scores [70, 75] → 75
-        createAssessmentWithSubmissions(courseClass, student, quizType,
-                "Quiz 2 - Chapter 2", GradingMethod.HIGHEST,
-                List.of(70.0, 75.0));
-
-        // Midterm Exam - LATEST grading: scores [65, 70] → 70 (most recent)
-        createAssessmentWithSubmissions(courseClass, student, examType,
-                "Midterm Exam", GradingMethod.LATEST,
-                List.of(65.0, 70.0));
-
-        // Lab Assignment - AVERAGE grading: scores [85, 90, 95] → 90
-        createAssessmentWithSubmissions(courseClass, student, labType,
-                "Lab Assignment", GradingMethod.AVERAGE,
-                List.of(85.0, 90.0, 95.0));
-
-        log.info("✓ Created 4 assessments with multiple submissions");
-
-        // 9. Upsert TopicMark for primary student (score=77.75, PASS)
-        // Quiz(30%)=(90+75)/2*0.3=24.75, Exam(50%)=70*0.5=35.0, Lab(20%)=90*0.2=18.0 → 77.75
-        upsertTopicMark(courseClass, student, 77.75, demoCourse.getMinGpaToPass());
-
-        // 10. Create 4 additional students with different scores in the same course class
-        // Alice: quiz HIGHEST=80, exam LATEST=82, lab AVERAGE=75 → 80*0.3+82*0.5+75*0.2=24+41+15=80.0 PASS
-        User alice = createOrGetUser("alice.johnson@test.com", "Alice", "Johnson");
-        createEnrollmentIfNotExists(alice, trainingClass);
-        createSubmissionsForStudent(courseClass, alice, quizType,  "Quiz 1 - Chapter 1", GradingMethod.HIGHEST, List.of(72.0, 80.0));
-        createSubmissionsForStudent(courseClass, alice, quizType,  "Quiz 2 - Chapter 2", GradingMethod.HIGHEST, List.of(78.0));
-        createSubmissionsForStudent(courseClass, alice, examType,  "Midterm Exam",        GradingMethod.LATEST,  List.of(79.0, 82.0));
-        createSubmissionsForStudent(courseClass, alice, labType,   "Lab Assignment",      GradingMethod.AVERAGE, List.of(70.0, 75.0, 80.0));
-        upsertTopicMark(courseClass, alice, 80.0, demoCourse.getMinGpaToPass());
-
-        // Bob: quiz HIGHEST=55, exam LATEST=40, lab AVERAGE=57.5 → 55*0.3+40*0.5+57.5*0.2=16.5+20+11.5=48.0 FAIL
-        User bob = createOrGetUser("bob.wilson@test.com", "Bob", "Wilson");
-        createEnrollmentIfNotExists(bob, trainingClass);
-        createSubmissionsForStudent(courseClass, bob, quizType,  "Quiz 1 - Chapter 1", GradingMethod.HIGHEST, List.of(50.0, 55.0));
-        createSubmissionsForStudent(courseClass, bob, quizType,  "Quiz 2 - Chapter 2", GradingMethod.HIGHEST, List.of(48.0));
-        createSubmissionsForStudent(courseClass, bob, examType,  "Midterm Exam",        GradingMethod.LATEST,  List.of(45.0, 40.0));
-        createSubmissionsForStudent(courseClass, bob, labType,   "Lab Assignment",      GradingMethod.AVERAGE, List.of(55.0, 60.0));
-        upsertTopicMark(courseClass, bob, 48.0, demoCourse.getMinGpaToPass());
-
-        // Carol: quiz HIGHEST=98, exam LATEST=92, lab AVERAGE=92.5 → 98*0.3+92*0.5+92.5*0.2=29.4+46+18.5=93.9 PASS
-        User carol = createOrGetUser("carol.davis@test.com", "Carol", "Davis");
-        createEnrollmentIfNotExists(carol, trainingClass);
-        createSubmissionsForStudent(courseClass, carol, quizType,  "Quiz 1 - Chapter 1", GradingMethod.HIGHEST, List.of(95.0, 98.0));
-        createSubmissionsForStudent(courseClass, carol, quizType,  "Quiz 2 - Chapter 2", GradingMethod.HIGHEST, List.of(96.0));
-        createSubmissionsForStudent(courseClass, carol, examType,  "Midterm Exam",        GradingMethod.LATEST,  List.of(88.0, 92.0));
-        createSubmissionsForStudent(courseClass, carol, labType,   "Lab Assignment",      GradingMethod.AVERAGE, List.of(90.0, 95.0));
-        upsertTopicMark(courseClass, carol, 93.9, demoCourse.getMinGpaToPass());
-
-        // David: quiz HIGHEST=62, exam LATEST=55, lab AVERAGE=61 → 62*0.3+55*0.5+61*0.2=18.6+27.5+12.2=58.3 FAIL
-        User david = createOrGetUser("david.lee@test.com", "David", "Lee");
-        createEnrollmentIfNotExists(david, trainingClass);
-        createSubmissionsForStudent(courseClass, david, quizType,  "Quiz 1 - Chapter 1", GradingMethod.HIGHEST, List.of(58.0, 62.0));
-        createSubmissionsForStudent(courseClass, david, quizType,  "Quiz 2 - Chapter 2", GradingMethod.HIGHEST, List.of(60.0));
-        createSubmissionsForStudent(courseClass, david, examType,  "Midterm Exam",        GradingMethod.LATEST,  List.of(60.0, 55.0));
-        createSubmissionsForStudent(courseClass, david, labType,   "Lab Assignment",      GradingMethod.AVERAGE, List.of(58.0, 64.0));
-        upsertTopicMark(courseClass, david, 58.3, demoCourse.getMinGpaToPass());
-
-        // Eva: quiz HIGHEST=88, exam LATEST=76, lab AVERAGE=84 → 88*0.3+76*0.5+84*0.2=26.4+38+16.8=81.2 PASS
-        User eva = createOrGetUser("eva.chen@test.com", "Eva", "Chen");
-        createEnrollmentIfNotExists(eva, trainingClass);
-        createSubmissionsForStudent(courseClass, eva, quizType,  "Quiz 1 - Chapter 1", GradingMethod.HIGHEST, List.of(85.0, 88.0));
-        createSubmissionsForStudent(courseClass, eva, quizType,  "Quiz 2 - Chapter 2", GradingMethod.HIGHEST, List.of(82.0));
-        createSubmissionsForStudent(courseClass, eva, examType,  "Midterm Exam",        GradingMethod.LATEST,  List.of(72.0, 76.0));
-        createSubmissionsForStudent(courseClass, eva, labType,   "Lab Assignment",      GradingMethod.AVERAGE, List.of(80.0, 84.0, 88.0));
-        upsertTopicMark(courseClass, eva, 81.2, demoCourse.getMinGpaToPass());
-
-        log.info("=====================================");
-        log.info("Topic mark sample data initialized successfully!");
-        log.info("5 students created with topic marks (3 PASS, 2 FAIL)");
-        log.info("  John Doe:      77.75 PASS");
-        log.info("  Alice Johnson: 80.0  PASS");
-        log.info("  Bob Wilson:    48.0  FAIL");
-        log.info("  Carol Davis:   93.9  PASS");
-        log.info("  David Lee:     58.3  FAIL");
-        log.info("  Eva Chen:      81.2  PASS");
-        log.info("=====================================");
     }
 
-    private User createOrGetUser(String email, String firstName, String lastName) {
+    private User findOrCreateStudent(String email, String firstName, String lastName) {
         return userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    User u = User.builder()
-                            .email(email)
-                            .firstName(firstName)
-                            .lastName(lastName)
-                            .passwordHash(passwordEncoder.encode("password123"))
-                            .isActive(true)
-                            .build();
-                    return userRepository.save(u);
-                });
+                .orElseGet(() -> userRepository.save(User.builder()
+                        .email(email)
+                        .firstName(firstName)
+                        .lastName(lastName)
+                        .passwordHash(passwordEncoder.encode("password123"))
+                        .isActive(true)
+                        .build()));
     }
 
-    private void createEnrollmentIfNotExists(User user, TrainingClass trainingClass) {
-        entityManager
-                .createQuery("SELECT e FROM Enrollment e WHERE e.user.id = :userId AND e.trainingClass.id = :classId", Enrollment.class)
-                .setParameter("userId", user.getId())
-                .setParameter("classId", trainingClass.getId())
-                .getResultStream()
-                .findFirst()
-                .orElseGet(() -> {
-                    Enrollment enrollment = new Enrollment();
-                    enrollment.setUser(user);
-                    enrollment.setTrainingClass(trainingClass);
-                    enrollment.setStatus(EnrollmentStatus.ACTIVE);
-                    entityManager.persist(enrollment);
-                    return enrollment;
-                });
-    }
-
-    private void upsertTopicMark(CourseClass courseClass, User user, double score, Double minGpa) {
-        boolean passed = minGpa != null && score >= minGpa;
-        topicMarkRepository.findByCourseClassIdAndUserId(courseClass.getId(), user.getId())
-                .ifPresentOrElse(
-                    tm -> {
-                        tm.setFinalScore(score);
-                        tm.setIsPassed(passed);
-                        tm.setUpdatedAt(java.time.LocalDateTime.now());
-                        topicMarkRepository.save(tm);
-                    },
-                    () -> {
-                        TopicMark tm = TopicMark.builder()
-                                .courseClass(courseClass)
-                                .user(user)
-                                .finalScore(score)
-                                .isPassed(passed)
-                                .updatedAt(java.time.LocalDateTime.now())
-                                .build();
-                        topicMarkRepository.save(tm);
-                    }
-                );
-        log.info("✓ TopicMark: {} {} → score={}, passed={}", user.getFirstName(), user.getLastName(), score, passed);
-    }
-
-    private void createSubmissionsForStudent(CourseClass courseClass, User student,
-            AssessmentType assessmentType, String title,
-            GradingMethod gradingMethod, List<Double> scores) {
-        createAssessmentWithSubmissions(courseClass, student, assessmentType, title, gradingMethod, scores);
-    }
-
-    private AssessmentType createOrGetAssessmentType(String name, String description) {
-        AssessmentType existing = entityManager
-                .createQuery("SELECT a FROM AssessmentType a WHERE a.name = :name", AssessmentType.class)
-                .setParameter("name", name)
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
-
-        if (existing != null) {
-            return existing;
-        }
-
-        AssessmentType newType = new AssessmentType();
-        newType.setName(name);
-        newType.setDescription(description);
-        return assessmentTypeRepository.save(newType);
-    }
-
-    private void createWeightIfNotExists(Course course, AssessmentType type, Double weight) {
-        Long count = entityManager
-                .createQuery("SELECT COUNT(w) FROM CourseAssessmentTypeWeight w WHERE w.course.id = :courseId AND w.assessmentType.id = :typeId", Long.class)
-                .setParameter("courseId", course.getId())
-                .setParameter("typeId", type.getId())
+    private void findOrCreateEnrollment(User user, TrainingClass tc) {
+        Long count = em.createQuery(
+                "SELECT COUNT(e) FROM Enrollment e WHERE e.user.id = :u AND e.trainingClass.id = :t", Long.class)
+                .setParameter("u", user.getId())
+                .setParameter("t", tc.getId())
                 .getSingleResult();
-
         if (count == 0) {
-            CourseAssessmentTypeWeight w = new CourseAssessmentTypeWeight();
-            w.setCourse(course);
-            w.setAssessmentType(type);
-            w.setWeight(weight);
-            courseAssessmentTypeWeightRepository.save(w);
+            Enrollment e = new Enrollment();
+            e.setUser(user);
+            e.setTrainingClass(tc);
+            e.setStatus(EnrollmentStatus.ACTIVE);
+            em.persist(e);
         }
     }
 
-    private void createAssessmentWithSubmissions(CourseClass courseClass, User student,
-            AssessmentType assessmentType, String title,
-            GradingMethod gradingMethod, List<Double> scores) {
+    private TopicMarkColumn createColumn(CourseClass courseClass, AssessmentType type,
+                                          String label, int index, User createdBy) {
+        return columnRepository.save(TopicMarkColumn.builder()
+                .courseClass(courseClass)
+                .assessmentType(type)
+                .columnLabel(label)
+                .columnIndex(index)
+                .isDeleted(false)
+                .createdBy(createdBy)
+                .build());
+    }
 
-        Assessment assessment = entityManager
-                .createQuery("SELECT a FROM Assessment a WHERE a.title = :title", Assessment.class)
-                .setParameter("title", title)
-                .getResultStream()
-                .findFirst()
-                .orElseGet(() -> {
-                    Assessment a = new Assessment();
-                    String cleanTitle = title.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-                    a.setCode("ASSESS-" + cleanTitle.substring(0, Math.min(8, cleanTitle.length())));
-                    a.setTitle(title);
-                    a.setDescription("Sample assessment: " + title);
-                    a.setTotalScore((int) 100.0);
-                    a.setPassScore((int) 60.0);
-                    a.setTimeLimitMinutes(60);
-                    a.setAttemptLimit(scores.size() + 1);
-                    a.setGradingMethod(gradingMethod);
-                    a.setAssessmentType(assessmentType);
-                    a.setStatus(AssessmentStatus.ACTIVE);
-                    return assessmentRepository.save(a);
-                });
+    private void saveEntry(TopicMarkColumn column, User student, double score, User seeder) {
+        TopicMarkEntry entry = entryRepository.save(TopicMarkEntry.builder()
+                .topicMarkColumn(column)
+                .user(student)
+                .courseClass(column.getCourseClass())
+                .score(score)
+                .build());
 
-        for (int i = 0; i < scores.size(); i++) {
-            final int attemptNum = i + 1;
-            final double score = scores.get(i);
+        historyRepository.save(TopicMarkEntryHistory.builder()
+                .topicMarkEntry(entry)
+                .oldScore(null)
+                .newScore(score)
+                .reason("Initial seed data")
+                .updatedBy(seeder)
+                .build());
+    }
 
-            Long subCount = entityManager
-                    .createQuery("SELECT COUNT(s) FROM Submission s WHERE s.assessment.id = :assessmentId AND s.user.id = :userId AND s.courseClass.id = :courseClassId AND s.attemptNumber = :attemptNumber", Long.class)
-                    .setParameter("assessmentId", assessment.getId())
-                    .setParameter("userId", student.getId())
-                    .setParameter("courseClassId", courseClass.getId())
-                    .setParameter("attemptNumber", attemptNum)
-                    .getSingleResult();
-
-            if (subCount == 0) {
-                Submission sub = new Submission();
-                sub.setAssessment(assessment);
-                sub.setCourseClass(courseClass);
-                sub.setUser(student);
-                sub.setStatus(SubmissionStatus.GRADED);
-                sub.setTotalScore(score);
-                sub.setIsPassed(score >= assessment.getPassScore());
-                sub.setAttemptNumber(attemptNum);
-                sub.setStartedAt(java.time.LocalDateTime.now().minusHours(1));
-                sub.setSubmittedAt(java.time.LocalDateTime.now());
-                submissionRepository.save(sub);
-            }
-        }
+    private void upsertTopicMark(CourseClass courseClass, User user, double finalScore, double minGpa) {
+        boolean passed = finalScore >= minGpa;
+        topicMarkRepository.findByCourseClassIdAndUserId(courseClass.getId(), user.getId())
+                .ifPresentOrElse(tm -> {
+                    tm.setFinalScore(finalScore);
+                    tm.setIsPassed(passed);
+                    topicMarkRepository.save(tm);
+                }, () -> topicMarkRepository.save(TopicMark.builder()
+                        .courseClass(courseClass)
+                        .user(user)
+                        .finalScore(finalScore)
+                        .isPassed(passed)
+                        .build()));
+        log.info("  {} {} -> {} {}", user.getFirstName(), user.getLastName(),
+                String.format("%.2f", finalScore), passed ? "PASS" : "FAIL");
     }
 }

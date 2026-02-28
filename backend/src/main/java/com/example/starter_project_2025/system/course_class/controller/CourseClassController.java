@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/course-classes")
 @RequiredArgsConstructor
-@Tag(name = "Course Classes", description = "APIs for managing course classes")
+@Tag(name = "Topic Marks (Gradebook)", description = "APIs for managing gradebook columns and student scores in course classes")
 @SecurityRequirement(name = "bearerAuth")
 public class CourseClassController {
 

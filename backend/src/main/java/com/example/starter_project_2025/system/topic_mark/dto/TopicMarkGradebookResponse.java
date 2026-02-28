@@ -11,56 +11,92 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Response DTO for gradebook view with dynamic columns.
+ * Gradebook view response with dynamic columns per CourseClass.
+ *
+ * Column keys in {@link Row#values}:
+ *  - UUID string  → score for a TopicMarkColumn
+ *  - "FINAL_SCORE" → computed final score (Double or null)
+ *  - "IS_PASSED"  → Boolean
+ *  - "COMMENT"    → String
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Gradebook response containing column definitions and student rows with their scores")
+@Schema(description = "Gradebook response containing dynamic column definitions and student rows with their scores")
 public class TopicMarkGradebookResponse {
 
-    @Schema(description = "Column definitions including assessment types and metadata columns", 
-            example = "[{\"key\":\"FINAL_SCORE\",\"label\":\"Final Score\",\"weight\":null}]")
+    @Schema(description = "Ordered column definitions – dynamic score columns first, then meta columns")
     private List<Column> columns;
-    
-    @Schema(description = "Student rows with their scores mapped to column keys")
+
+    @Schema(description = "One row per enrolled student")
     private List<Row> rows;
 
+    // ── Inner types ───────────────────────────────────────────────────────────
+
     @Data
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(description = "Column definition for gradebook")
+    @Schema(description = "Column definition for the gradebook table")
     public static class Column {
-        @Schema(description = "Column key (assessment type ID or metadata key like FINAL_SCORE)", 
-                example = "FINAL_SCORE")
+
+        @Schema(description = "Unique key: UUID of TopicMarkColumn or a reserved key (FINAL_SCORE, IS_PASSED, COMMENT)",
+                example = "123e4567-e89b-12d3-a456-426614174000")
         private String key;
-        
-        @Schema(description = "Display label for the column", 
-                example = "Final Score")
+
+        @Schema(description = "Display label", example = "Quiz 1")
         private String label;
-        
-        @Schema(description = "Weight of the assessment type (null for metadata columns)", 
-                example = "0.3", nullable = true)
+
+        @Schema(description = "AssessmentType ID this column belongs to, null for meta columns",
+                nullable = true, example = "QUIZ")
+        private String assessmentTypeId;
+
+        @Schema(description = "AssessmentType name, null for meta columns",
+                nullable = true, example = "Quiz")
+        private String assessmentTypeName;
+
+        @Schema(description = "Weight of the whole assessment type (same for all columns under the same type)",
+                nullable = true, example = "0.3")
         private Double weight;
+
+        @Schema(description = "Grading method used across this assessment type's columns",
+                nullable = true, example = "HIGHEST")
+        private String gradingMethod;
+
+        @Schema(description = "Column order index within its assessment type, null for meta columns",
+                nullable = true, example = "1")
+        private Integer columnIndex;
+
+        /** Convenience constructor for meta columns (FINAL_SCORE, IS_PASSED, COMMENT). */
+        public Column(String key, String label) {
+            this.key = key;
+            this.label = label;
+        }
     }
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(description = "Student row in gradebook with scores")
+    @Schema(description = "Student row in the gradebook")
     public static class Row {
-        @Schema(description = "Student user ID", 
-                example = "123e4567-e89b-12d3-a456-426614174000")
+
+        @Schema(description = "Student user ID")
         private UUID userId;
-        
-        @Schema(description = "Student full name", 
-                example = "John Doe")
+
+        @Schema(description = "Student full name", example = "John Doe")
         private String fullName;
-        
-        @Schema(description = "Map of column keys to values (scores, pass status, comment)", 
-                example = "{\"FINAL_SCORE\": 85.5, \"IS_PASSED\": true, \"COMMENT\": \"Good work\"}")
+
+        /**
+         * Map of column key → value.
+         * - UUID key      → Double score (nullable = not entered yet)
+         * - FINAL_SCORE   → Double (nullable)
+         * - IS_PASSED     → Boolean
+         * - COMMENT       → String (nullable)
+         */
+        @Schema(description = "Score / meta values keyed by column key")
         private Map<String, Object> values;
     }
 }
+
