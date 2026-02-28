@@ -38,10 +38,11 @@ public class FileController {
             @RequestHeader(value = HttpHeaders.RANGE, required = false) String rangeHeader) {
 
         try {
-            Path filePath = Paths.get(uploadDir).resolve(filename).normalize();
+            Path uploadRoot = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Path filePath = uploadRoot.resolve(filename).normalize();
 
             // Security: ensure path stays within upload dir
-            if (!filePath.startsWith(Paths.get(uploadDir).toAbsolutePath().normalize())) {
+            if (!filePath.startsWith(uploadRoot)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 

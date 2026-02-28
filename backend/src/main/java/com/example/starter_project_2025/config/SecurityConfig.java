@@ -1,11 +1,7 @@
 package com.example.starter_project_2025.config;
 
-import com.example.starter_project_2025.security.JwtAuthenticationFilter;
-import com.example.starter_project_2025.security.UserDetailsServiceImpl;
-import com.example.starter_project_2025.system.auth.service.oauth2.CustomOAuth2UserServiceImpl;
-import com.example.starter_project_2025.system.auth.service.oauth2.OAuth2AuthenticationSuccessHandler;
-import io.swagger.v3.oas.models.OpenAPI;
-import lombok.RequiredArgsConstructor;
+import java.util.Arrays;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,7 +24,13 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
+import com.example.starter_project_2025.security.JwtAuthenticationFilter;
+import com.example.starter_project_2025.security.UserDetailsServiceImpl;
+import com.example.starter_project_2025.system.auth.service.oauth2.CustomOAuth2UserServiceImpl;
+import com.example.starter_project_2025.system.auth.service.oauth2.OAuth2AuthenticationSuccessHandler;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
@@ -54,6 +56,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/auth/logout").authenticated()
                                                 .requestMatchers("/api/auth/**").permitAll()
                                                 .requestMatchers("/api/assessments/**").permitAll()
+                                                .requestMatchers("/api/files/**").permitAll()
                                                 .requestMatchers("/h2-console/**").permitAll()
                                                 .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html",
                                                                 "/v3/api-docs/**")
