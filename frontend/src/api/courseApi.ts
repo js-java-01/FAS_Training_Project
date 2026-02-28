@@ -83,12 +83,13 @@ export const courseApi = {
     return response.data;
   },
 
-  importCourses: async (file: File): Promise<void> => {
+  importCourses: async (file: File): Promise<import('@/components/modal/import-export/ImportTab').ImportResult> => {
     const formData = new FormData();
     formData.append('file', file);
-    await axiosInstance.post('/courses/import', formData, {
+    const response = await axiosInstance.post('/courses/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return response.data;
   },
 
   // =============================

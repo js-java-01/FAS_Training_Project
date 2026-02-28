@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.department.service.impl;
 
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.department.dto.DepartmentImportResult;
 import com.example.starter_project_2025.system.department.entity.Department;
 import com.example.starter_project_2025.system.department.repository.DepartmentRepository;
@@ -39,7 +40,7 @@ public class DepartmentImportExportServiceImpl implements DepartmentImportExport
         List<Department> departments = departmentRepository.findAll();
 
         try (Workbook workbook = new XSSFWorkbook();
-             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
             Sheet sheet = workbook.createSheet("Departments");
 
@@ -61,8 +62,7 @@ public class DepartmentImportExportServiceImpl implements DepartmentImportExport
                 row.createCell(3).setCellValue(
                         dept.getLocation() != null
                                 ? dept.getLocation().getName()
-                                : ""
-                );
+                                : "");
             }
 
             workbook.write(out);
@@ -73,10 +73,9 @@ public class DepartmentImportExportServiceImpl implements DepartmentImportExport
         }
     }
 
-
     private byte[] exportToCSV(List<Department> departments) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-             PrintWriter writer = new PrintWriter(out)) {
+                PrintWriter writer = new PrintWriter(out)) {
 
             writer.println("Name,Code,Description,LocationId");
 
@@ -98,7 +97,7 @@ public class DepartmentImportExportServiceImpl implements DepartmentImportExport
 
     private byte[] exportToExcel(List<Department> departments) {
         try (Workbook workbook = new XSSFWorkbook();
-             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
             Sheet sheet = workbook.createSheet("Departments");
 
@@ -115,8 +114,7 @@ public class DepartmentImportExportServiceImpl implements DepartmentImportExport
                 row.createCell(1).setCellValue(d.getCode());
                 row.createCell(2).setCellValue(d.getDescription());
                 row.createCell(3).setCellValue(
-                        d.getLocation() != null ? d.getLocation().getId().toString() : ""
-                );
+                        d.getLocation() != null ? d.getLocation().getId().toString() : "");
             }
 
             workbook.write(out);
@@ -131,83 +129,81 @@ public class DepartmentImportExportServiceImpl implements DepartmentImportExport
 
     @Override
     @Transactional
-    public DepartmentImportResult importDepartments(MultipartFile[] files) {
+    public ImportResultResponse importDepartments(MultipartFile file) {
 
-        DepartmentImportResult result = new DepartmentImportResult();
+        ImportResultResponse result = new ImportResultResponse();
 
-        if (files == null || files.length == 0) {
-            result.addError("No file uploaded");
+        if (file == null || file.isEmpty()) {
+            result.addError(0, "file", "No file uploaded");
+            result.buildMessage();
             return result;
         }
 
-        for (MultipartFile file : files) {
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
 
-            try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
 
-                Sheet sheet = workbook.getSheetAt(0);
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
 
-                for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null)
+                    continue;
 
-                    Row row = sheet.getRow(i);
-                    if (row == null) continue;
+                result.setTotalRows(result.getTotalRows() + 1);
+                int displayRow = i + 1;
 
-                    result.setTotal(result.getTotal() + 1);
+                try {
 
-                    try {
+                    String code = getCellValue(row.getCell(0));
+                    String name = getCellValue(row.getCell(1));
+                    String description = getCellValue(row.getCell(2));
+                    String locationName = getCellValue(row.getCell(3));
 
-                        String code = getCellValue(row.getCell(0));
-                        String name = getCellValue(row.getCell(1));
-                        String description = getCellValue(row.getCell(2));
-                        String locationName = getCellValue(row.getCell(3));
-
-                        // ===== VALIDATE =====
-                        if (code == null || code.isBlank()) {
-                            throw new RuntimeException("Code is required");
-                        }
-
-                        if (name == null || name.isBlank()) {
-                            throw new RuntimeException("Name is required");
-                        }
-
-                        // Check duplicate code
-                        if (departmentRepository.existsByCode(code)) {
-                            throw new RuntimeException("Duplicate code: " + code);
-                        }
-
-                        Department department = new Department();
-                        department.setCode(code.trim());
-                        department.setName(name.trim());
-                        department.setDescription(description);
-
-                        // ===== LOCATION =====
-                        if (locationName != null && !locationName.isBlank()) {
-
-                            Location location = locationRepository
-                                    .findByName(locationName.trim())
-                                    .orElseThrow(() ->
-                                            new RuntimeException("Location not found: " + locationName)
-                                    );
-
-                            department.setLocation(location);
-                        }
-
-                        departmentRepository.save(department);
-                        result.addSuccess();
-
-                    } catch (Exception e) {
-                        result.addError("Row " + (i + 1) + ": " + e.getMessage());
+                    // ===== VALIDATE =====
+                    if (code == null || code.isBlank()) {
+                        result.addError(displayRow, "code", "Code is required");
+                        continue;
                     }
-                }
 
-            } catch (Exception e) {
-                result.addError("File error: " + e.getMessage());
+                    if (name == null || name.isBlank()) {
+                        result.addError(displayRow, "name", "Name is required");
+                        continue;
+                    }
+
+                    // Check duplicate code
+                    if (departmentRepository.existsByCode(code.trim())) {
+                        result.addError(displayRow, "code", "Duplicate code: " + code.trim());
+                        continue;
+                    }
+
+                    Department department = new Department();
+                    department.setCode(code.trim());
+                    department.setName(name.trim());
+                    department.setDescription(description);
+
+                    // ===== LOCATION =====
+                    if (locationName != null && !locationName.isBlank()) {
+                        Location location = locationRepository
+                                .findByName(locationName.trim())
+                                .orElseThrow(() -> new RuntimeException("Location not found: " + locationName.trim()));
+                        department.setLocation(location);
+                    }
+
+                    departmentRepository.save(department);
+                    result.addSuccess();
+
+                } catch (Exception e) {
+                    result.addError(displayRow, "", e.getMessage());
+                }
             }
+
+        } catch (Exception e) {
+            result.addError(0, "file", "File error: " + e.getMessage());
         }
 
+        result.buildMessage();
         return result;
     }
-
-
 
     private void importCSV(MultipartFile file, DepartmentImportResult result) throws Exception {
 
@@ -280,7 +276,7 @@ public class DepartmentImportExportServiceImpl implements DepartmentImportExport
     public byte[] downloadImportTemplate() {
 
         try (Workbook workbook = new XSSFWorkbook();
-             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
             Sheet sheet = workbook.createSheet("Departments");
 
@@ -299,7 +295,8 @@ public class DepartmentImportExportServiceImpl implements DepartmentImportExport
     }
 
     private String getCellValue(Cell cell) {
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
 
         switch (cell.getCellType()) {
             case STRING:
@@ -312,6 +309,5 @@ public class DepartmentImportExportServiceImpl implements DepartmentImportExport
                 return null;
         }
     }
-
 
 }

@@ -14,4 +14,6 @@ public class RoleSummaryDTO {
     private UUID id;
     private String name;
     private Set<String> permissions;
+    private Boolean isActive;
+    private Integer hierarchyLevel;
 }

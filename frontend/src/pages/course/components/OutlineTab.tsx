@@ -15,8 +15,10 @@ import {
   ChevronRight,
   DatabaseBackup,
   Layers,
+  Sparkles,
   Trash2,
 } from "lucide-react";
+import { AiPreviewModal } from "./AiPreviewModal";
 import { Button } from "@/components/ui/button";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import ActionBtn from "@/components/data_table/ActionBtn";
@@ -803,7 +805,17 @@ function BatchOutlineModal({
 }
 
 // ─── Main OutlineTab ───────────────────────────────────────────
-export function OutlineTab({ courseId }: { courseId: string }) {
+interface OutlineTabProps {
+  courseId: string;
+  course?: {
+    id: string;
+    courseName: string;
+    courseCode: string;
+    description?: string;
+  };
+}
+
+export function OutlineTab({ courseId, course }: OutlineTabProps) {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -848,6 +860,9 @@ export function OutlineTab({ courseId }: { courseId: string }) {
 
   // Batch outline modal
   const [batchModalOpen, setBatchModalOpen] = useState(false);
+
+  // AI Preview modal
+  const [aiPreviewOpen, setAiPreviewOpen] = useState(false);
 
   // ── Data loading ───────────────────────────────────────────
   const loadData = async () => {
@@ -946,13 +961,9 @@ export function OutlineTab({ courseId }: { courseId: string }) {
 
   // ── Import/Export handlers ─────────────────────────────────
   const handleOutlineImport = async (file: File) => {
-    try {
-      await batchOutlineApi.importOutline(courseId, file);
-      toast.success("Outline imported successfully");
-      await loadData();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to import outline");
-    }
+    const result = await batchOutlineApi.importOutline(courseId, file);
+    void loadData();
+    return result;
   };
 
   const handleOutlineExport = async () => {
@@ -986,13 +997,9 @@ export function OutlineTab({ courseId }: { courseId: string }) {
 
   const handleSessionImport = async (file: File) => {
     if (!sessionLessonId) return;
-    try {
-      await sessionService.importSessions(sessionLessonId, file);
-      toast.success("Sessions imported successfully");
-      await loadSessions(sessionLessonId);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to import sessions");
-    }
+    const result = await sessionService.importSessions(sessionLessonId, file);
+    void loadSessions(sessionLessonId);
+    return result;
   };
 
   const handleSessionExport = async () => {
@@ -1047,6 +1054,14 @@ export function OutlineTab({ courseId }: { courseId: string }) {
           >
             <Layers className="h-4 w-4" />
             Batch Create
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setAiPreviewOpen(true)}
+            className="gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+          >
+            <Sparkles className="h-4 w-4" />
+            AI Preview
           </Button>
           <Button
             onClick={() => {
@@ -1181,6 +1196,16 @@ export function OutlineTab({ courseId }: { courseId: string }) {
         onClose={() => setBatchModalOpen(false)}
         onSuccess={loadData}
       />
+
+      {/* AI Preview Modal */}
+      {aiPreviewOpen && (
+        <AiPreviewModal
+          open={aiPreviewOpen}
+          onClose={() => setAiPreviewOpen(false)}
+          onApplied={loadData}
+          course={course ?? { id: courseId, courseName: "", courseCode: "" }}
+        />
+      )}
 
       {/* Outline Import/Export */}
       <ImportExportModal

@@ -68,7 +68,8 @@ export function RoleDetailDialog({
           </DetailRow>
 
           <DetailRow icon={Layers} label="Hierarchy Level">
-            {role.hierarchyLevel}
+            {role.hierarchyLevel ?? 0}
+            {role.hierarchyLevel === 0 ? " (unset)" : ""}
           </DetailRow>
 
           <div className="space-y-1.5">
@@ -91,14 +92,29 @@ export function RoleDetailDialog({
               <Shield className="w-4 h-4" /> Permissions (
               {role.permissionNames?.length ?? 0})
             </label>
-            <div className="px-4 py-2.5 bg-muted border border-border rounded-lg text-sm min-h-[42px]">
+            <div className="px-4 py-2.5 bg-muted border border-border rounded-lg text-sm min-h-[42px] max-h-40 overflow-y-auto">
               {role.permissionNames?.length ? (
                 <div className="flex flex-wrap gap-2">
-                  {role.permissionNames.map((p) => (
-                    <Badge key={p} variant="secondary" className="text-xs">
-                      {p}
-                    </Badge>
-                  ))}
+                  {role.permissionNames.map((p, idx) => {
+                    const colors = [
+                      "bg-blue-100 text-blue-700 border-blue-200",
+                      "bg-purple-100 text-purple-700 border-purple-200",
+                      "bg-green-100 text-green-700 border-green-200",
+                      "bg-orange-100 text-orange-700 border-orange-200",
+                      "bg-pink-100 text-pink-700 border-pink-200",
+                      "bg-teal-100 text-teal-700 border-teal-200",
+                    ];
+                    const desc = role.permissionDescriptions?.[p];
+                    return (
+                      <Badge
+                        key={p}
+                        title={desc || p}
+                        className={`text-xs border shadow-none cursor-default ${colors[idx % colors.length]}`}
+                      >
+                        {p}
+                      </Badge>
+                    );
+                  })}
                 </div>
               ) : (
                 <span className="text-muted-foreground italic">

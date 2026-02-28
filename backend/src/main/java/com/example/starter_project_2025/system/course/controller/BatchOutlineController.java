@@ -1,6 +1,9 @@
 package com.example.starter_project_2025.system.course.controller;
 
+import com.example.starter_project_2025.system.course.dto.AiPreviewLessonResponse;
+import com.example.starter_project_2025.system.course.dto.ApplyAiPreviewRequest;
 import com.example.starter_project_2025.system.course.dto.BatchCreateRequest;
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.course.service.BatchOutlineService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -41,10 +45,23 @@ public class BatchOutlineController {
 
     @PostMapping(value = "/import/{courseId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('COURSE_UPDATE')")
-    public ResponseEntity<Void> importOutline(
+    public ResponseEntity<ImportResultResponse> importOutline(
             @PathVariable UUID courseId,
             @RequestPart("file") MultipartFile file) {
-        batchOutlineService.importOutline(courseId, file);
-        return ResponseEntity.ok().build();
+        ImportResultResponse result = batchOutlineService.importOutline(courseId, file);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/{courseId}/outline/ai-preview")
+    public List<AiPreviewLessonResponse> preview(@PathVariable UUID courseId) {
+        return batchOutlineService.generatePreview(courseId);
+    }
+
+    @PostMapping("/{courseId}/outline/apply-ai-preview")
+    @PreAuthorize("hasAuthority('COURSE_OUTLINE_EDIT')")
+    public void apply(@PathVariable UUID courseId,
+            @RequestBody ApplyAiPreviewRequest request) {
+
+        batchOutlineService.applyPreview(courseId, request);
     }
 }

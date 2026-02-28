@@ -2,6 +2,7 @@ package com.example.starter_project_2025.system.course.service;
 
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.course.dto.SessionRequest;
 import com.example.starter_project_2025.system.course.dto.SessionResponse;
 import com.example.starter_project_2025.system.course.entity.CourseLesson;
@@ -179,7 +180,9 @@ public class SessionService {
     }
 
     @PreAuthorize("hasAuthority('SESSION_CREATE') or hasRole('ADMIN')")
-    public void importSessions(UUID lessonId, MultipartFile file) {
+    public ImportResultResponse importSessions(UUID lessonId, MultipartFile file) {
+        ImportResultResponse result = new ImportResultResponse();
+
         CourseLesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson", "id", lessonId));
 
@@ -188,8 +191,10 @@ public class SessionService {
 
             Sheet sheet = wb.getSheetAt(0);
             Iterator<Row> rows = sheet.iterator();
-            if (!rows.hasNext())
-                return;
+            if (!rows.hasNext()) {
+                result.buildMessage();
+                return result;
+            }
             rows.next(); // skip header
 
             while (rows.hasNext()) {
@@ -199,33 +204,47 @@ public class SessionService {
                 if (topicVal == null || topicVal.isBlank())
                     continue;
 
-                int sessionOrderVal = (int) getNumericCell(row, 0);
-                if (sessionRepository.existsByLessonIdAndSessionOrder(lessonId, sessionOrderVal)) {
-                    continue; // skip duplicates
-                }
+                result.setTotalRows(result.getTotalRows() + 1);
+                int displayRow = row.getRowNum() + 1;
 
-                String typeVal = getCellStr(row, 2);
-                String taskVal = getCellStr(row, 3);
-                int durationVal = (int) getNumericCell(row, 4);
-
-                Session session = new Session();
-                session.setLesson(lesson);
-                session.setSessionOrder(sessionOrderVal);
-                session.setTopic(topicVal);
-                session.setStudentTasks(taskVal);
-                session.setDuration(durationVal > 0 ? durationVal : null);
-                if (typeVal != null && !typeVal.isBlank()) {
-                    try {
-                        session.setType(SessionType.valueOf(typeVal.toUpperCase()));
-                    } catch (IllegalArgumentException ignored) {
+                try {
+                    int sessionOrderVal = (int) getNumericCell(row, 0);
+                    if (sessionRepository.existsByLessonIdAndSessionOrder(lessonId, sessionOrderVal)) {
+                        result.addError(displayRow, "sessionOrder", "Duplicate session order: " + sessionOrderVal);
+                        continue;
                     }
-                }
 
-                sessionRepository.save(session);
+                    String typeVal = getCellStr(row, 2);
+                    String taskVal = getCellStr(row, 3);
+                    int durationVal = (int) getNumericCell(row, 4);
+
+                    Session session = new Session();
+                    session.setLesson(lesson);
+                    session.setSessionOrder(sessionOrderVal);
+                    session.setTopic(topicVal);
+                    session.setStudentTasks(taskVal);
+                    session.setDuration(durationVal > 0 ? durationVal : null);
+                    if (typeVal != null && !typeVal.isBlank()) {
+                        try {
+                            session.setType(SessionType.valueOf(typeVal.toUpperCase()));
+                        } catch (IllegalArgumentException e) {
+                            result.addError(displayRow, "type", "Invalid session type: " + typeVal);
+                            continue;
+                        }
+                    }
+
+                    sessionRepository.save(session);
+                    result.addSuccess();
+                } catch (Exception e) {
+                    result.addError(displayRow, "", e.getMessage());
+                }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to import sessions: " + e.getMessage(), e);
+            result.addError(0, "file", "Failed to import sessions: " + e.getMessage());
         }
+
+        result.buildMessage();
+        return result;
     }
 
     private String getCellStr(Row row, int col) {

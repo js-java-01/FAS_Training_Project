@@ -5,7 +5,8 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { AxiosError } from "axios";
-import { DataTable } from "@/components/data_table/DataTable";
+import { ServerDataTable } from "@/components/data_table/ServerDataTable";
+import { FacetedFilter } from "@/components/FacedFilter";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
 import { roleApi } from "@/api/roleApi";
@@ -18,7 +19,12 @@ import { RoleFormModal } from "./components/RoleFormModal";
 import { RoleDetailDialog } from "./components/RoleDetailDialog";
 import { ROLE_QUERY_KEY, useGetAllRoles } from "./services/queries";
 import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
-import { useDownloadRoleTemplate, useExportRoles, useImportRoles } from "./services/mutations";
+import {
+  useDownloadRoleTemplate,
+  useExportRoles,
+  useImportRoles,
+} from "./services/mutations";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 
 /* ===================== MAIN ===================== */
 export default function RoleTable() {
@@ -44,9 +50,21 @@ export default function RoleTable() {
 
   const queryClient = useQueryClient();
 
-  /* ---------- search ---------- */
+  const { refreshRoles, activePermissions } = useRoleSwitch();
+  const activePerms = activePermissions || [];
+  const hasPermission = (p: string) => activePerms.includes(p);
+  const canCreate = hasPermission("ROLE_CREATE");
+  const canUpdate = hasPermission("ROLE_UPDATE");
+  const canDelete = hasPermission("ROLE_DELETE");
+  const canImport = hasPermission("ROLE_IMPORT");
+  const canExport = hasPermission("ROLE_EXPORT");
+
+  /* ---------- search + filter ---------- */
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const isActiveParam =
+    statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
 
   /* ---------- sort param ---------- */
   const sortParam = useMemo(() => {
@@ -66,6 +84,7 @@ export default function RoleTable() {
     pageSize,
     sort: sortParam,
     keyword: debouncedSearch,
+    isActive: isActiveParam,
   });
 
   const safeTableData = useMemo(
@@ -160,6 +179,8 @@ export default function RoleTable() {
       toast.success("Role status updated");
       await invalidateRoles();
       await reload();
+      // Refresh the header role switcher immediately
+      refreshRoles();
     } catch (error) {
       if (error instanceof AxiosError && error.response?.data?.message) {
         toast.error(error.response.data.message);
@@ -174,49 +195,66 @@ export default function RoleTable() {
     () =>
       getColumns({
         onView: setViewingRole,
-        onEdit: openEdit,
-        onDelete: setDeletingRole,
-        onToggleStatus: handleToggleStatus,
+        onEdit: canUpdate ? openEdit : undefined,
+        onDelete: canDelete ? setDeletingRole : undefined,
+        onToggleStatus: canUpdate ? handleToggleStatus : undefined,
       }),
-    [],
+    [canUpdate, canDelete],
   );
 
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
-      <DataTable<Role, unknown>
+      <ServerDataTable<Role, unknown>
         columns={columns as ColumnDef<Role, unknown>[]}
         data={safeTableData.items}
         isLoading={isLoading}
         isFetching={isFetching}
-        manualPagination
         pageIndex={safeTableData.page}
         pageSize={safeTableData.pageSize}
         totalPage={safeTableData.totalPages}
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        manualSearch
         searchPlaceholder="role name"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}
-        manualSorting
         headerActions={
-          <div className="flex gap-2">
-            <EntityImportExportButton
-              title="Roles"
-              useImportHook={useImportRoles}
-              useExportHook={useExportRoles}
-              useTemplateHook={useDownloadRoleTemplate}
+          (canCreate || canImport || canExport) && (
+            <div className="flex gap-2">
+              {(canImport || canExport) && (
+                <EntityImportExportButton
+                  title="Roles"
+                  useImportHook={useImportRoles}
+                  useExportHook={useExportRoles}
+                  useTemplateHook={useDownloadRoleTemplate}
+                />
+              )}
+              {canCreate && (
+                <Button
+                  onClick={openCreate}
+                  className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New Role
+                </Button>
+              )}
+            </div>
+          )
+        }
+        facetedFilters={
+          <div>
+            <FacetedFilter
+              title="Status"
+              options={[
+                { value: "ACTIVE", label: "Active" },
+                { value: "INACTIVE", label: "Inactive" },
+              ]}
+              value={statusFilter}
+              setValue={setStatusFilter}
+              multiple={false}
             />
-            <Button
-              onClick={openCreate}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add New Role
-            </Button>
           </div>
         }
       />
@@ -255,7 +293,6 @@ export default function RoleTable() {
         onCancel={() => setDeletingRole(null)}
         onConfirm={() => void handleDelete()}
       />
-
     </div>
   );
 }

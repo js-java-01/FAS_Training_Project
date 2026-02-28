@@ -18,4 +18,5 @@ export interface Department {
     description?: string;
     locationId?: string;
     locationName?: string;
+    status?: string;
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import dayjs from 'dayjs';
 import { assessmentTypeApi } from '../api/assessmentTypeApi';
 import type {
     AssessmentType,
@@ -165,7 +166,7 @@ export const useAssessment = () => {
 export const downloadTemplate = async (toast: any) => {
     try {
         const blob = await assessmentTypeApi.downloadTemplate();
-        downloadBlob(blob, 'assessment.ts-types-template.xlsx');
+        downloadBlob(blob, `assessment-types-template_${dayjs().format('DD-MM-YYYY_HH-mm-ss')}.xlsx`);
         toast({
             variant: "success",
             title: "Success",

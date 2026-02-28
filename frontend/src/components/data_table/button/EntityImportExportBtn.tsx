@@ -42,7 +42,9 @@ export default function EntityImportExportButton({
   const handleImport = async (file: File) => {
     try {
       const res = await importMutate(file);
-      toast.success(`${title} imported successfully`);
+      if (!res || res.failedCount === 0) {
+        toast.success(`${title} imported successfully`);
+      }
       return res;
     } catch (err: any) {
       const errorData = err?.response?.data;
@@ -61,7 +63,7 @@ export default function EntityImportExportButton({
       const blob = await exportMutate(undefined as any);
       downloadBlob(
         blob,
-        `${title.toLowerCase()}_${dayjs().format("DD-MM-YYYY_HH-mm-ss")}.xlsx`
+        `${title.toLowerCase()}_${dayjs().format("DD-MM-YYYY_HH-mm-ss")}.xlsx`,
       );
       toast.success(`${title} exported successfully`);
     } catch {
@@ -75,8 +77,8 @@ export default function EntityImportExportButton({
       downloadBlob(
         blob,
         `${title.toLowerCase()}_template_${dayjs().format(
-          "DD-MM-YYYY_HH-mm-ss"
-        )}.xlsx`
+          "DD-MM-YYYY_HH-mm-ss",
+        )}.xlsx`,
       );
       toast.success(`Template downloaded successfully`);
     } catch {

@@ -1,4 +1,5 @@
 import axiosInstance from "./axiosInstance";
+import type { ImportResult } from '@/components/modal/import-export/ImportTab';
 
 export interface SessionBatchItem {
   type?: string;
@@ -17,6 +18,24 @@ export interface LessonBatchItem {
 export interface BatchCreateRequest {
   courseId: string;
   lessons: LessonBatchItem[];
+}
+
+export interface AiPreviewSessionResponse {
+  order?: number;
+  type?: string;
+  topic?: string;
+  studentTask?: string;
+  duration?: number;
+}
+
+export interface AiPreviewLessonResponse {
+  name: string;
+  description?: string;
+  sessions?: AiPreviewSessionResponse[];
+}
+
+export interface ApplyAiPreviewRequest {
+  lessons: AiPreviewLessonResponse[];
 }
 
 export const batchOutlineApi = {
@@ -38,11 +57,21 @@ export const batchOutlineApi = {
     return response.data;
   },
 
-  importOutline: async (courseId: string, file: File): Promise<void> => {
+  importOutline: async (courseId: string, file: File): Promise<ImportResult> => {
     const formData = new FormData();
     formData.append("file", file);
-    await axiosInstance.post(`/batch-outline/import/${courseId}`, formData, {
+    const response = await axiosInstance.post<ImportResult>(`/batch-outline/import/${courseId}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+    return response.data;
+  },
+
+  generateAiPreview: async (courseId: string): Promise<AiPreviewLessonResponse[]> => {
+    const response = await axiosInstance.post(`/batch-outline/${courseId}/outline/ai-preview`);
+    return response.data;
+  },
+
+  applyAiPreview: async (courseId: string, request: ApplyAiPreviewRequest): Promise<void> => {
+    await axiosInstance.post(`/batch-outline/${courseId}/outline/apply-ai-preview`, request);
   },
 };

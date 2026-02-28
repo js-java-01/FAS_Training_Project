@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.department.service.impl;
 
+import com.example.starter_project_2025.system.common.enums.DepartmentStatus;
 import com.example.starter_project_2025.system.department.entity.Department;
 import com.example.starter_project_2025.system.department.dto.DepartmentDTO;
 import com.example.starter_project_2025.system.department.repository.DepartmentRepository;
@@ -39,30 +40,30 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
-    public List<DepartmentDTO> getAll() {
-        return departmentRepository.findAll().stream().map(dept -> {
-            DepartmentDTO dto = new DepartmentDTO();
-            dto.setId(dept.getId());
-            dto.setName(dept.getName());
-            dto.setCode(dept.getCode());
-            dto.setDescription(dept.getDescription());
-
-            if (dept.getLocation() != null) {
-                dto.setLocationId(dept.getLocation().getId().toString());
-                dto.setLocationName(dept.getLocation().getName());
-            }
-            return dto;
-        }).collect(Collectors.toList());
+    public List<DepartmentDTO> getAll(String status) {
+        return departmentRepository.findAll().stream()
+                .filter(dept -> status == null || status.isBlank() ||
+                        dept.getStatus() != null && dept.getStatus().name().equalsIgnoreCase(status))
+                .map(dept -> {
+                    DepartmentDTO dto = new DepartmentDTO();
+                    dto.setId(dept.getId());
+                    dto.setName(dept.getName());
+                    dto.setCode(dept.getCode());
+                    dto.setDescription(dept.getDescription());
+                    dto.setStatus(dept.getStatus() != null ? dept.getStatus().name() : null);
+                    if (dept.getLocation() != null) {
+                        dto.setLocationId(dept.getLocation().getId().toString());
+                        dto.setLocationName(dept.getLocation().getName());
+                    }
+                    return dto;
+                }).collect(Collectors.toList());
     }
-
-
 
     @Override
     public DepartmentDTO getById(UUID id) {
 
         Department department = departmentRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Department not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("Department not found with id: " + id));
 
         DepartmentDTO dto = new DepartmentDTO();
 
@@ -70,6 +71,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         dto.setName(department.getName());
         dto.setCode(department.getCode());
         dto.setDescription(department.getDescription());
+        dto.setStatus(department.getStatus() != null ? department.getStatus().name() : null);
 
         if (department.getLocation() != null) {
             dto.setLocationId(department.getLocation().getId().toString());
@@ -78,8 +80,6 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         return dto;
     }
-
-
 
     @Override
     @Transactional
@@ -95,8 +95,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     public Department update(UUID id, DepartmentDTO dto) {
 
         Department department = departmentRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Department not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("Department not found with id: " + id));
 
         department.setName(dto.getName());
         department.setCode(dto.getCode());
@@ -105,9 +104,8 @@ public class DepartmentServiceImpl implements DepartmentService {
         if (dto.getLocationId() != null && !dto.getLocationId().isBlank()) {
 
             Location location = locationRepository.findById(
-                            UUID.fromString(dto.getLocationId()))
-                    .orElseThrow(() ->
-                            new RuntimeException("Location does not exist!"));
+                    UUID.fromString(dto.getLocationId()))
+                    .orElseThrow(() -> new RuntimeException("Location does not exist!"));
 
             department.setLocation(location);
         } else {
@@ -116,6 +114,5 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         return departmentRepository.save(department);
     }
-
 
 }

@@ -1,8 +1,7 @@
 package com.example.starter_project_2025.system.course.service;
 
-import com.example.starter_project_2025.system.course.dto.BatchCreateRequest;
-import com.example.starter_project_2025.system.course.dto.LessonBatchItem;
-import com.example.starter_project_2025.system.course.dto.SessionBatchItem;
+import com.example.starter_project_2025.system.course.dto.*;
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.entity.CourseLesson;
 import com.example.starter_project_2025.system.course.entity.Session;
@@ -35,6 +34,7 @@ public class BatchOutlineServiceImpl implements BatchOutlineService {
     private final CourseLessonRepository lessonRepository;
     private final SessionRepository sessionRepository;
     private final BatchOutlineMapper mapper;
+    private final AiService aiService;
 
     private static final String[] TEMPLATE_HEADERS = {
             "lessonName", "lessonDescription", "lessonDuration",
@@ -176,12 +176,16 @@ public class BatchOutlineServiceImpl implements BatchOutlineService {
     }
 
     @Override
-    public void importOutline(UUID courseId, MultipartFile file) {
+    public ImportResultResponse importOutline(UUID courseId, MultipartFile file) {
+        ImportResultResponse result = new ImportResultResponse();
+
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
         if (course.getStatus() == CourseStatus.ACTIVE) {
-            throw new RuntimeException("Course is not editable");
+            result.addError(0, "course", "Course is not editable");
+            result.buildMessage();
+            return result;
         }
 
         try (InputStream is = file.getInputStream();
@@ -190,69 +194,165 @@ public class BatchOutlineServiceImpl implements BatchOutlineService {
             Sheet sheet = workbook.getSheetAt(0);
             Iterator<Row> rows = sheet.iterator();
 
-            if (!rows.hasNext())
-                return;
+            if (!rows.hasNext()) {
+                result.buildMessage();
+                return result;
+            }
             rows.next(); // skip header
 
             // Group rows by lesson name
             Map<String, LessonBatchItem> lessonMap = new LinkedHashMap<>();
+            // Cache of checked lesson names to avoid repeated DB calls per lesson
+            Map<String, Boolean> lessonExistsCache = new HashMap<>();
 
             while (rows.hasNext()) {
                 Row row = rows.next();
+                result.setTotalRows(result.getTotalRows() + 1);
+                int displayRow = row.getRowNum() + 1;
 
-                String lessonName = getString(row, 0);
-                if (lessonName == null || lessonName.isBlank())
-                    continue;
-
-                String lessonDesc = getString(row, 1);
-                Integer lessonDuration = getInteger(row, 2);
-                String sessionTopic = getString(row, 3);
-                String sessionType = getString(row, 4);
-                String studentTasks = getString(row, 5);
-                Integer sessionOrder = getInteger(row, 6);
-
-                LessonBatchItem lessonItem = lessonMap.computeIfAbsent(lessonName, k -> {
-                    LessonBatchItem item = new LessonBatchItem();
-                    item.setLessonName(k);
-                    item.setDescription(lessonDesc);
-                    item.setDuration(lessonDuration);
-                    item.setSessions(new ArrayList<>());
-                    return item;
-                });
-
-                if (sessionTopic != null && !sessionTopic.isBlank()) {
-                    SessionBatchItem sessionItem = new SessionBatchItem();
-                    sessionItem.setTopic(sessionTopic);
-                    sessionItem.setStudentTasks(studentTasks);
-                    sessionItem
-                            .setSessionOrder(sessionOrder != null ? sessionOrder : lessonItem.getSessions().size() + 1);
-
-                    if (sessionType != null && !sessionType.isBlank()) {
-                        try {
-                            sessionItem.setType(SessionType.valueOf(sessionType.toUpperCase().trim()));
-                        } catch (IllegalArgumentException e) {
-                            throw new RuntimeException("Invalid session type '" + sessionType
-                                    + "' at row " + (row.getRowNum() + 1)
-                                    + ". Valid values: VIDEO_LECTURE, LIVE_SESSION, QUIZ, ASSIGNMENT, PROJECT");
-                        }
+                try {
+                    String lessonName = getString(row, 0);
+                    if (lessonName == null || lessonName.isBlank()) {
+                        result.setTotalRows(result.getTotalRows() - 1);
+                        continue;
                     }
 
-                    lessonItem.getSessions().add(sessionItem);
+                    // Check duplicate lesson name against DB (cached per lesson name)
+                    boolean alreadyExists = lessonExistsCache.computeIfAbsent(lessonName,
+                            name -> lessonRepository.existsByCourseIdAndLessonName(courseId, name));
+                    if (alreadyExists) {
+                        result.addError(displayRow, "lessonName",
+                                "Lesson already exists in this course: " + lessonName);
+                        continue;
+                    }
+
+                    String lessonDesc = getString(row, 1);
+                    Integer lessonDuration = getInteger(row, 2);
+                    String sessionTopic = getString(row, 3);
+                    String sessionType = getString(row, 4);
+                    String studentTasks = getString(row, 5);
+                    Integer sessionOrder = getInteger(row, 6);
+
+                    LessonBatchItem lessonItem = lessonMap.computeIfAbsent(lessonName, k -> {
+                        LessonBatchItem item = new LessonBatchItem();
+                        item.setLessonName(k);
+                        item.setDescription(lessonDesc);
+                        item.setDuration(lessonDuration);
+                        item.setSessions(new ArrayList<>());
+                        return item;
+                    });
+
+                    if (sessionTopic != null && !sessionTopic.isBlank()) {
+                        SessionBatchItem sessionItem = new SessionBatchItem();
+                        sessionItem.setTopic(sessionTopic);
+                        sessionItem.setStudentTasks(studentTasks);
+                        sessionItem.setSessionOrder(
+                                sessionOrder != null ? sessionOrder : lessonItem.getSessions().size() + 1);
+
+                        if (sessionType != null && !sessionType.isBlank()) {
+                            try {
+                                sessionItem.setType(SessionType.valueOf(sessionType.toUpperCase().trim()));
+                            } catch (IllegalArgumentException e) {
+                                result.addError(displayRow, "type",
+                                        "Invalid session type '" + sessionType
+                                                + "'. Valid: VIDEO_LECTURE, LIVE_SESSION, QUIZ, ASSIGNMENT, PROJECT");
+                                continue;
+                            }
+                        }
+
+                        lessonItem.getSessions().add(sessionItem);
+                    }
+
+                    result.addSuccess();
+                } catch (Exception e) {
+                    result.addError(displayRow, "", e.getMessage());
                 }
             }
 
-            // Create lessons and sessions
-            BatchCreateRequest request = new BatchCreateRequest();
-            request.setCourseId(courseId);
-            request.setLessons(new ArrayList<>(lessonMap.values()));
+            if (!lessonMap.isEmpty()) {
+                BatchCreateRequest request = new BatchCreateRequest();
+                request.setCourseId(courseId);
+                request.setLessons(new ArrayList<>(lessonMap.values()));
+                createBatch(request);
+            }
 
-            createBatch(request);
-
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to import outline", e);
+            result.addError(0, "file", "Failed to import outline: " + e.getMessage());
         }
+
+        result.buildMessage();
+        return result;
+    }
+
+    @Override
+    public List<AiPreviewLessonResponse> generatePreview(UUID courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow();
+
+        return aiService.generatePreview(course);
+    }
+
+    @Override
+    public void applyPreview(UUID courseId, ApplyAiPreviewRequest request) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        if (course.getStatus() == CourseStatus.ACTIVE) {
+            throw new RuntimeException("Course is not editable");
+        }
+
+        // Remove existing lessons and sessions
+        List<CourseLesson> existingLessons = lessonRepository.findByCourseIdOrderBySortOrderAsc(courseId);
+        for (CourseLesson lesson : existingLessons) {
+            List<Session> sessions = sessionRepository.findByLessonIdOrderBySessionOrderAsc(lesson.getId());
+            sessionRepository.deleteAll(sessions);
+        }
+        lessonRepository.deleteAll(existingLessons);
+
+        if (request.getLessons() == null)
+            return;
+
+        int lessonOrder = 1;
+        int totalDuration = 0;
+        for (AiPreviewLessonResponse lessonDto : request.getLessons()) {
+            CourseLesson lesson = CourseLesson.builder()
+                    .lessonName(lessonDto.getName())
+                    .description(lessonDto.getDescription())
+                    .course(course)
+                    .sortOrder(lessonOrder++)
+                    .build();
+            lessonRepository.save(lesson);
+
+            if (lessonDto.getSessions() == null)
+                continue;
+
+            int sessionOrder = 1;
+            for (AiPreviewSessionResponse sessionDto : lessonDto.getSessions()) {
+                Session session = Session.builder()
+                        .type(sessionDto.getType())
+                        .topic(sessionDto.getTopic())
+                        .studentTasks(sessionDto.getStudentTask())
+                        .duration(sessionDto.getDuration())
+                        .lesson(lesson)
+                        .sessionOrder(sessionDto.getOrder() != null ? sessionDto.getOrder() : sessionOrder)
+                        .build();
+                sessionRepository.save(session);
+                sessionOrder++;
+                if (sessionDto.getDuration() != null) {
+                    totalDuration += sessionDto.getDuration();
+                }
+            }
+        }
+
+        if (totalDuration > 0) {
+            course.setEstimatedTime(totalDuration);
+            courseRepository.save(course);
+        }
+    }
+
+    @Override
+    public void validate(ApplyAiPreviewRequest request) {
+
     }
 
     private String getString(Row row, int index) {

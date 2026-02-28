@@ -8,6 +8,7 @@ export const useGetAllRoles = (params: {
   pageSize: number;
   sort?: string;
   keyword?: string;
+  isActive?: boolean;
 }) => {
   return useQuery({
     queryKey: [ROLE_QUERY_KEY, params],
@@ -17,6 +18,7 @@ export const useGetAllRoles = (params: {
         size: params.pageSize,
         sort: params.sort ?? "name,asc",
         ...(params.keyword?.trim() ? { keyword: params.keyword.trim() } : {}),
+        ...(params.isActive !== undefined ? { isActive: params.isActive } : {}),
       }),
     placeholderData: (prev) => prev,
     staleTime: 5 * 60 * 1000,

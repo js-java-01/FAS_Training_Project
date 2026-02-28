@@ -420,7 +420,9 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
       {activeTab === "Cohort" && <CohortTab courseId={course.id} />}
 
-      {activeTab === "Outline" && <OutlineTab courseId={course.id} />}
+      {activeTab === "Outline" && (
+        <OutlineTab courseId={course.id} course={course} />
+      )}
 
       {activeTab === "Objectives" && (
         <CourseObjectivesTab courseId={course.id} />

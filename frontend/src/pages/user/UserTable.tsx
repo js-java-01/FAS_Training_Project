@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
-import { Download, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { AxiosError } from "axios";
 
-import { DataTable } from "@/components/data_table/DataTable";
+import { ServerDataTable } from "@/components/data_table/ServerDataTable";
+import { FacetedFilter } from "@/components/FacedFilter";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
 
@@ -19,10 +20,27 @@ import { getColumns } from "./column";
 import { UserForm } from "./UserForm";
 import { UserDetailDialog } from "./UserDetailDialog";
 import { USER_QUERY_KEY, useGetAllUsers } from "./services/queries";
-import { useExportUsers } from "./services/mutations";
+import {
+  useExportUsers,
+  useImportUsers,
+  useDownloadUserTemplate,
+} from "./services/mutations";
+import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 
 /* ===================== MAIN ===================== */
 export default function UserTable() {
+  /* ---------- permissions ---------- */
+  const { activePermissions } = useRoleSwitch();
+  const permissions = activePermissions || [];
+  const hasPermission = (p: string) => permissions.includes(p);
+  const canCreate = hasPermission("USER_CREATE");
+  const canUpdate = hasPermission("USER_UPDATE");
+  const canDelete = hasPermission("USER_DELETE");
+  const canActivate = hasPermission("USER_ACTIVATE");
+  const canImport = hasPermission("USER_IMPORT");
+  const canExport = hasPermission("USER_EXPORT");
+
   /* ---------- modal & view ---------- */
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -37,9 +55,12 @@ export default function UserTable() {
 
   const queryClient = useQueryClient();
 
-  /* ---------- search ---------- */
+  /* ---------- search + filter ---------- */
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const isActiveParam =
+    statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
 
   /* ---------- sort param ---------- */
   const sortParam = useMemo(() => {
@@ -49,7 +70,6 @@ export default function UserTable() {
   }, [sorting]);
 
   /* ---------- mutations ---------- */
-  const { mutateAsync: exportUsers } = useExportUsers();
 
   /* ---------- query ---------- */
   const {
@@ -62,6 +82,7 @@ export default function UserTable() {
     pageSize,
     sort: sortParam,
     searchContent: debouncedSearch,
+    isActive: isActiveParam,
   });
 
   const safeTableData = useMemo(
@@ -77,17 +98,6 @@ export default function UserTable() {
   /* ---------- helpers ---------- */
   const invalidateUsers = async () => {
     await queryClient.invalidateQueries({ queryKey: [USER_QUERY_KEY] });
-  };
-
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
   };
 
   /* ---------- load roles for form ---------- */
@@ -184,63 +194,71 @@ export default function UserTable() {
     }
   };
 
-  /* ---------- export ---------- */
-  const handleExport = async () => {
-    try {
-      const blob = await exportUsers("EXCEL");
-      downloadBlob(blob, `users_${new Date().toISOString().slice(0, 10)}.xlsx`);
-      toast.success("Export users successfully");
-    } catch {
-      toast.error("Failed to export users");
-    }
-  };
-
   /* ---------- columns ---------- */
   const columns = useMemo(
     () =>
       getColumns({
         onView: setViewingUser,
-        onEdit: openEdit,
-        onDelete: setDeletingUser,
-        onToggleStatus: handleToggleStatus,
+        onEdit: canUpdate ? openEdit : undefined,
+        onDelete: canDelete ? setDeletingUser : undefined,
+        onToggleStatus: canActivate ? handleToggleStatus : undefined,
       }),
-    [],
+    [canUpdate, canDelete, canActivate],
   );
 
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
-      <DataTable<User, unknown>
+      <ServerDataTable<User, unknown>
         columns={columns as ColumnDef<User, unknown>[]}
         data={safeTableData.items}
         isLoading={isLoading}
         isFetching={isFetching}
-        manualPagination
         pageIndex={safeTableData.page}
         pageSize={safeTableData.pageSize}
         totalPage={safeTableData.totalPages}
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        manualSearch
         searchPlaceholder="name, email"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}
-        manualSorting
         headerActions={
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={handleExport}>
-              <Download className="h-4 w-4" />
-              Export
-            </Button>
-            <Button
-              onClick={openCreate}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add New User
-            </Button>
+          (canCreate || canImport || canExport) && (
+            <div className="flex gap-2">
+              {(canImport || canExport) && (
+                <EntityImportExportButton
+                  title="Users"
+                  useImportHook={useImportUsers}
+                  useExportHook={useExportUsers}
+                  useTemplateHook={useDownloadUserTemplate}
+                />
+              )}
+              {canCreate && (
+                <Button
+                  onClick={openCreate}
+                  className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New User
+                </Button>
+              )}
+            </div>
+          )
+        }
+        facetedFilters={
+          <div>
+            <FacetedFilter
+              title="Status"
+              options={[
+                { value: "ACTIVE", label: "Active" },
+                { value: "INACTIVE", label: "Inactive" },
+              ]}
+              value={statusFilter}
+              setValue={setStatusFilter}
+              multiple={false}
+            />
           </div>
         }
       />

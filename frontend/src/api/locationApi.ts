@@ -1,6 +1,6 @@
-import type { Location, CreateLocationRequest, LocationImportResult, LocationStatus, UpdateLocationRequest } from '@/types/location';
+import type { Location, CreateLocationRequest, LocationStatus, UpdateLocationRequest } from '@/types/location';
+import type { ImportResult } from '@/components/modal/import-export/ImportTab';
 import axiosInstance from './axiosInstance';
-// import { Location, CreateLocationRequest, UpdateLocationRequest, LocationStatus,LocationImportResult } from '../types/location';
 
 export const locationApi = {
   searchLocations: async (
@@ -64,11 +64,11 @@ exportLocations: async (format: 'csv' | 'xlsx' = 'xlsx'): Promise<Blob> => {
 
   importLocations: async (
     file: File
-  ): Promise<LocationImportResult> => {
+  ): Promise<ImportResult> => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await axiosInstance.post<LocationImportResult>(
+    const response = await axiosInstance.post<ImportResult>(
       '/locations/import',
       formData,
       {
