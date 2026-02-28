@@ -206,6 +206,14 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 } else if ("email".equalsIgnoreCase(prop)) {
                     c = Comparator.comparing(TopicMarkGradebookResponse.Row::getEmail,
                             Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+                } else if ("IS_PASSED".equalsIgnoreCase(prop)) {
+                    // false(0) < true(1) when asc → failed first; desc → passed first
+                    c = Comparator.comparing(
+                            row -> {
+                                Object val = row.getValues().get("IS_PASSED");
+                                return (val instanceof Boolean b) ? (b ? 1 : 0) : -1;
+                            },
+                            Comparator.nullsLast(Comparator.naturalOrder()));
                 } else {
                     // Sort by column score value (UUID key or FINAL_SCORE)
                     c = Comparator.comparing(
