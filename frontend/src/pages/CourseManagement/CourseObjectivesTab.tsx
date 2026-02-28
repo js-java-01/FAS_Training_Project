@@ -195,7 +195,14 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
                     return await courseApi.downloadObjectiveTemplate(courseId);
                 }}
                 onImport={async (file) => {
-                    await courseApi.importObjectives(courseId, file);
+                    try {
+                        await courseApi.importObjectives(courseId, file);
+                        message.success("Import successful");
+                    } catch (error: any) {
+                        const errorMessage =
+                            error?.response?.data?.message || "Import failed";
+                        message.error(errorMessage);
+                    }
                 }}
             />
         </>
