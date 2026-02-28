@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { semesterApi } from "@/api/semesterApi";
-import { trainingClassKeys } from "../../keys";
+import { trainingClassKeys } from "../../../training-classes/keys";
 import type { GetSemestersParams } from "../../dto/GetSemesterParams";
 
 export const useGetAllSemesters = (params: GetSemestersParams, role: string) => {

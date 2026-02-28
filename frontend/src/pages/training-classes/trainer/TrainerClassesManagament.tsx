@@ -1,5 +1,5 @@
 import { MainLayout } from "@/components/layout/MainLayout";
-import SemestersGrid from "./SemestersGrid";
+import SemestersGrid from "../../semesters/SemestersGrid";
 
 export default function TrainerClassesManagement() {
   return (

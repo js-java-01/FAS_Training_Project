@@ -1,9 +1,9 @@
-import type { SemesterResponse } from "@/pages/training-classes/dto/SemesterResponse";
+import type { SemesterResponse } from "@/pages/semesters/dto/SemesterResponse";
 import axiosInstance from "./axiosInstance";
-import type { GetSemestersParams } from "@/pages/training-classes/dto/GetSemesterParams";
+import type { GetSemestersParams } from "@/pages/semesters/dto/GetSemesterParams";
 import type { ApiResponse, PagedData } from "@/types/response";
-import type { UpdateSemesterRequest } from "@/pages/training-classes/dto/UpdateSemesterRequest";
-import type { CreateSemesterRequest } from "@/pages/training-classes/dto/CreateSemesterRequest";
+import type { UpdateSemesterRequest } from "@/pages/semesters/dto/UpdateSemesterRequest";
+import type { CreateSemesterRequest } from "@/pages/semesters/dto/CreateSemesterRequest";
 
 export const semesterApi = {
   getAllSemesters: async (params: GetSemestersParams) => {

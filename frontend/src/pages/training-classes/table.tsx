@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { Button } from "@/components/ui/button";
 import type { TrainingClass } from "@/types/trainingClass";
-import { useGetAllTrainingClasses } from "./services/queries";
+import { useGetAllTrainingClasses } from "../semesters/services/queries";
 import { getColumns } from "./column";
 import { TrainingClassForm } from "./form";
 import { TrainingClassDetailDialog } from "./DetailDialog";
