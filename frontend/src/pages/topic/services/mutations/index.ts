@@ -1,42 +1,22 @@
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { topicApi } from "@/api/topicApi";
-
-// Hàm helper để tải file (Dùng chung logic với Course)
-const downloadBlob = (blob: Blob, filename: string) => {
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.URL.revokeObjectURL(url);
-};
+import { TOPIC_QUERY_KEY } from "../queries";
 
 export const useExportTopics = () =>
   useMutation({
     mutationFn: () => topicApi.exportTopics(),
-    onSuccess: (blob) => {
-      downloadBlob(blob, `topics_${new Date().toISOString().slice(0, 10)}.xlsx`);
-      toast.success("Exported topics successfully!");
-    },
-    onError: () => toast.error("Failed to export topics"),
   });
 
-export const useImportTopics = () =>
-  useMutation({
+export const useImportTopics = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: (file: File) => topicApi.importTopics(file),
-    onSuccess: () => toast.success("Topics imported successfully!"),
-    onError: () => toast.error("Failed to import topics"),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [TOPIC_QUERY_KEY] }),
   });
+};
 
 export const useDownloadTopicTemplate = () =>
   useMutation({
     mutationFn: () => topicApi.downloadTemplate(),
-    onSuccess: (blob) => {
-      downloadBlob(blob, "topics_import_template.xlsx");
-      toast.success("Template downloaded!");
-    },
-    onError: () => toast.error("Failed to download template"),
   });

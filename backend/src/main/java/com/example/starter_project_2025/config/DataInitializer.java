@@ -154,6 +154,7 @@ public class DataInitializer implements CommandLineRunner {
                 }
                 ensureOutlinePermissions();
                 ensurePermissionManagementPermissions();
+                ensureTopicsModule();
                 if (userRoleRepository.count() == 0)
 
                 {
@@ -301,7 +302,6 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("PERMISSION_DELETE", "Delete permissions", "PERMISSION", "DELETE"),
                                 createPermission("PERMISSION_IMPORT", "Import permissions", "PERMISSION", "IMPORT"),
                                 createPermission("PERMISSION_EXPORT", "Export permissions", "PERMISSION", "EXPORT"),
-                                createPermission("COURSE_OUTLINE_EDIT", "Edit course outline", "COURSE", "EDIT"),
                                 createPermission("TOPIC_CREATE", "Create new topics", "TOPIC", "CREATE"),
                                 createPermission("TOPIC_READ", "View topics", "TOPIC", "READ"),
                                 createPermission("TOPIC_UPDATE", "Update existing topics", "TOPIC", "UPDATE"),
@@ -771,11 +771,11 @@ public class DataInitializer implements CommandLineRunner {
 
                                 createModule(trainingGroup, "Classes", "/classes", "people", 5,
                                                 "CLASS_READ",
-                                                "Manage Classes and Open Class Requests")));
+                                                "Manage Classes and Open Class Requests"),
 
-                                createModule(trainingGroup, "Topics", "/topics", "book-open", 2, 
-                                                "TOPIC_READ", 
-                                                "Manage training topics");
+                                createModule(trainingGroup, "Topics", "/topics", "book-open", 6,
+                                                "TOPIC_READ",
+                                                "Manage training topics")));
 
                 /*
                  * =======================================================
@@ -801,7 +801,6 @@ public class DataInitializer implements CommandLineRunner {
 
                 log.info("Initialized module groups and modules successfully.");
 
-                        
         }
 
         private Module createModule(ModuleGroups group, String title, String url, String icon,
@@ -938,6 +937,18 @@ public class DataInitializer implements CommandLineRunner {
                                                         "PERMISSION_READ", "Manage system permissions"));
                                         log.info("Added Permissions module to System Management group");
                                 }
+                        });
+                }
+        }
+
+        private void ensureTopicsModule() {
+                boolean moduleExists = moduleRepository.existsByUrl("/topics");
+                if (!moduleExists) {
+                        moduleGroupsRepository.findByName("Training").ifPresent(trainingGroup -> {
+                                moduleRepository.save(createModule(
+                                                trainingGroup, "Topics", "/topics", "book-open", 6,
+                                                "TOPIC_READ", "Manage training topics"));
+                                log.info("Added Topics module to Training group");
                         });
                 }
         }

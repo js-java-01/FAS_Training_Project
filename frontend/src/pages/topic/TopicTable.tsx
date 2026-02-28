@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
-import { DatabaseBackup, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/data_table/DataTable";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-import ImportExportModal from "@/components/modal/ImportExportModal";
+import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
 
 import { topicApi, type Topic } from "@/api/topicApi";
 import { getColumns } from "./components/columns";
@@ -24,7 +24,6 @@ import {
 
 export default function TopicTable() {
   /* ---------- modal state ---------- */
-  const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editTopic, setEditTopic] = useState<Topic | null>(null);
   const [deletingTopic, setDeletingTopic] = useState<Topic | null>(null);
@@ -44,22 +43,17 @@ export default function TopicTable() {
   /* ---------- sort param ---------- */
   const sortParam = useMemo(() => {
     if (sorting && sorting.length > 0) {
-      const { id, desc } = sorting; 
+      const { id, desc } = sorting[0];
       return `${id},${desc ? "desc" : "asc"}`;
     }
-    return "createdDate,desc"; 
+    return "createdDate,desc";
   }, [sorting]);
-
-  const { mutateAsync: exportTopics } = useExportTopics();
-  const { mutateAsync: importTopics } = useImportTopics();
-  const { mutateAsync: downloadTemplate } = useDownloadTopicTemplate();
 
   /* ---------- query (Sử dụng hook useGetAllTopics) ---------- */
   const {
     data: tableData,
     isLoading,
     isFetching,
-    refetch: reload,
   } = useGetAllTopics({
     page: pageIndex,
     pageSize,
@@ -135,13 +129,12 @@ export default function TopicTable() {
         manualSorting
         headerActions={
           <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setIsImportExportOpen(true)}
-            >
-              <DatabaseBackup className="h-4 w-4" />
-              Import / Export
-            </Button>
+            <EntityImportExportButton
+              title="Topics"
+              useImportHook={useImportTopics}
+              useExportHook={useExportTopics}
+              useTemplateHook={useDownloadTopicTemplate}
+            />
             <Button
               onClick={() => {
                 setEditTopic(null);
@@ -154,23 +147,6 @@ export default function TopicTable() {
             </Button>
           </div>
         }
-      />
-
-      {/* ===== Import / Export ===== */}
-      <ImportExportModal
-        title="Topics"
-        open={isImportExportOpen}
-        setOpen={setIsImportExportOpen}
-        onImport={async (file) => {
-          await importTopics(file);
-          await invalidateTopics();
-        }}
-        onExport={async () => {
-          await exportTopics();
-        }}
-        onDownloadTemplate={async () => {
-          await downloadTemplate();
-        }}
       />
 
       {/* ===== Create/Edit Modal ===== */}

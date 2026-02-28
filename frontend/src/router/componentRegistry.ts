@@ -8,6 +8,7 @@ import { RoleManagement } from "@/pages/role/RoleManagement";
 import LocationsManagement from "@/pages/locations/LocationsManagement";
 import ClassesComponent from "@/pages/classes/ClassesManagement";
 import PermissionsManagement from "@/pages/permissions/PermissionsManagement";
+import { TopicManagement } from "@/pages/topic/TopicManagement";
 
 
 export const componentRegistry: Record<string, ComponentType> = {
@@ -20,4 +21,5 @@ export const componentRegistry: Record<string, ComponentType> = {
     "/classes": ClassesComponent,
     "/locations": LocationsManagement,
     "/permissions": PermissionsManagement,
+    "/topics": TopicManagement,
 };
