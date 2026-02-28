@@ -32,6 +32,9 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
        """)
     List<TagCountResponse> findTagsByCategoryWithCount(UUID categoryId);
 
+    Tag findByName(String name);
+
+
 
 }
 

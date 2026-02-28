@@ -1,5 +1,13 @@
 package com.example.starter_project_2025.system.assessment.entity;
 
+import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportField;
+import com.example.starter_project_2025.system.dataio.core.importer.annotation.ImportField;
+import com.example.starter_project_2025.system.dataio.mapping.question.QuestionCategoryLookupResolver;
+import com.example.starter_project_2025.system.dataio.mapping.question.QuestionCategoryNameExtractor;
+import com.example.starter_project_2025.system.dataio.mapping.questionOption.QuestionOptionExtractor;
+import com.example.starter_project_2025.system.dataio.mapping.questionOption.QuestionOptionResolver;
+import com.example.starter_project_2025.system.dataio.mapping.tag.TagLookupResolver;
+import com.example.starter_project_2025.system.dataio.mapping.tag.TagNamesExtractor;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -40,11 +48,26 @@ public class Question {
     @ManyToOne
     @JoinColumn(name = "question_category_id")
     @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
+    @ImportField(
+            name = "Category",
+            resolver = QuestionCategoryLookupResolver.class
+    )
+    @ExportField(
+            name = "Category",
+            extractor = QuestionCategoryNameExtractor.class
+    )
     QuestionCategory category;
 
-    // Quan trọng: Cái này để lưu luôn Option khi tạo câu hỏi
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonIgnoreProperties({ "question" })
+    @ImportField(
+            name = "Options",
+            resolver = QuestionOptionResolver.class
+    )
+    @ExportField(
+            name = "Options",
+            extractor = QuestionOptionExtractor.class
+    )
     List<QuestionOption> options;
 
     @ManyToMany
@@ -52,6 +75,14 @@ public class Question {
             name = "question_tag",
             joinColumns = @JoinColumn(name = "question_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    @ImportField(
+            name = "Tags",
+            resolver = TagLookupResolver.class
+    )
+    @ExportField(
+            name = "Tags",
+            extractor = TagNamesExtractor.class
     )
     Set<Tag> tags = new HashSet<>();
 

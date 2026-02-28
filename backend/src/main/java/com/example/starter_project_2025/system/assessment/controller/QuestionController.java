@@ -4,16 +4,24 @@ import com.example.starter_project_2025.system.assessment.dto.question.request.Q
 import com.example.starter_project_2025.system.assessment.dto.question.request.UpdateQuestionRequestDTO;
 import com.example.starter_project_2025.system.assessment.dto.question.response.QuestionResponseDTO;
 import com.example.starter_project_2025.system.assessment.entity.Question;
+import com.example.starter_project_2025.system.assessment.repository.QuestionRepository;
 import com.example.starter_project_2025.system.assessment.service.question.QuestionService;
+import com.example.starter_project_2025.system.dataio.core.common.FileFormat;
+import com.example.starter_project_2025.system.dataio.core.exporter.service.ExportService;
+import com.example.starter_project_2025.system.dataio.core.importer.result.ImportResult;
+import com.example.starter_project_2025.system.dataio.core.importer.service.ImportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +32,9 @@ import java.util.UUID;
 public class QuestionController {
 
     private final QuestionService questionService;
+    private final ExportService exportService;
+    private final ImportService importService;
+    private final QuestionRepository questionRepository;
 
     @PostMapping
     public ResponseEntity<QuestionResponseDTO> createQuestion(
@@ -64,6 +75,30 @@ public class QuestionController {
     public ResponseEntity<Void> deleteQuestion(@PathVariable UUID id) {
         questionService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/export")
+    public void exportQuestions(
+            @RequestParam(defaultValue = "EXCEL") FileFormat format,
+            HttpServletResponse response
+    ) throws IOException {
+        exportService.export(
+                format,
+                questionRepository.findAll(),
+                Question.class,
+                response
+        );
+    }
+
+    @PostMapping("/import")
+    public ImportResult importQuestions(
+            @RequestParam("file") MultipartFile file
+    ) {
+        return importService.importFile(
+                file,
+                Question.class,
+                questionRepository
+        );
     }
 
 
