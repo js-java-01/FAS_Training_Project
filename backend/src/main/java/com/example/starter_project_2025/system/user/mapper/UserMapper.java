@@ -1,7 +1,8 @@
 package com.example.starter_project_2025.system.user.mapper;
 
-import com.example.starter_project_2025.system.user.dto.CreateUserRequest;
-import com.example.starter_project_2025.system.user.dto.UserDTO;
+import com.example.starter_project_2025.system.user.dto.UserCreateRequest;
+import com.example.starter_project_2025.system.user.dto.UserResponse;
+import com.example.starter_project_2025.system.user.dto.UserUpdateRequest;
 import com.example.starter_project_2025.system.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,9 +16,10 @@ public interface UserMapper {
     @Mapping(target = "isActive", constant = "true")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    User toEntity(CreateUserRequest request);
+    User toEntity(UserCreateRequest request);
 
-    UserDTO toResponse(User user);
+    UserResponse toResponse(User user);
 
-    void update(@MappingTarget User user, UserDTO dto);
+    @Mapping(target = "passwordHash", ignore = true)
+    void update(@MappingTarget User user, UserUpdateRequest dto);
 }

@@ -5,7 +5,7 @@ import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
-import com.example.starter_project_2025.system.user_role.entity.UserRole;
+import com.example.starter_project_2025.system.user.entity.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;

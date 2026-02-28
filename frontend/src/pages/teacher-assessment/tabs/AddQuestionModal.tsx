@@ -4,11 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { questionApi } from '@/api/service/assessment/questionApi';
-import { questionCategoryApi } from '@/api/service/assessment/questionCategoryApi';
 import { Loader2, Search, Plus, CheckCircle2 } from 'lucide-react';
-import type { Question } from '@/types/feature/assessment/question';
-import type { QuestionCategory } from '@/types/feature/assessment/question-category';
+import type { Question } from '@/types';
+import { questionApi, questionCategoryApi } from '@/api';
 
 interface AddQuestionModalProps {
     isOpen: boolean;

@@ -6,13 +6,11 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { PermissionGate } from '@/components/PermissionGate';
 
-import { questionApi } from '@/api/service/assessment/questionApi';
-import { questionCategoryApi } from '@/api/service/assessment/questionCategoryApi';
-import type { Question } from '@/types/feature/assessment/question';
-import type { QuestionCategory } from '@/types/feature/assessment/question-category';
 import { Badge } from '@/components/ui/badge';
 import ActionBtn from '@/components/data_table/ActionBtn';
 import { useToast } from '@/hooks/useToast';
+import { questionApi, questionCategoryApi } from '@/api';
+import type { QuestionCategory } from '@/types';
 
 export default function QuestionManagementPage() {
     const { toast } = useToast();

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { assessmentTypeApi } from '@/api/service/assessment/assessmentTypeApi';
-import type { AssessmentCreateRequest, AssessmentUpdateRequest } from '@/types/feature/assessment/assessment';
+import { assessmentTypeApi } from '@/api';
+import type { AssessmentCreateRequest, AssessmentUpdateRequest } from '@/types';
 
 interface AssessmentFormFieldsProps {
     data: AssessmentCreateRequest | AssessmentUpdateRequest;

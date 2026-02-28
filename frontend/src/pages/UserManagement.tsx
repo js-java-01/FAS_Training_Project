@@ -28,7 +28,7 @@ export const UserManagement: React.FC = () => {
   const loadData = async () => {
     try {
       const [usersData, rolesData] = await Promise.all([
-        userApi.getAllUsers(),
+        userApi.search(),
         roleApi.getAllRoles(),
       ]);
       setUsers(usersData.content);

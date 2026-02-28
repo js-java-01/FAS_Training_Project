@@ -28,6 +28,7 @@ import StudentCourseContent from "@/pages/learning/StudentCourseContent";
 import { QuizPage, ResultPage, AttemptHistoryPage } from "@/pages/exam";
 import { AssessmentFormPage } from "@/pages/teacher-assessment";
 import { CreateQuestionPage, EditQuestionPage } from "@/pages/question";
+import UserManagementTest from "@/pages/UserManagementTest";
 
 // ── Route Configuration Types ─────────────────────────────────────────────────
 export interface RouteConfig {
@@ -41,7 +42,7 @@ export interface RouteConfig {
 export const routes: RouteConfig[] = [
     // Module-driven routes (rendered from Module table, but need component mapping)
     { path: "/dashboard", component: Dashboard, isModuleDriven: true },
-    { path: "/users", component: UserManagement, isModuleDriven: true },
+    { path: "/users", component: UserManagementTest, isModuleDriven: true },
     { path: "/modules", component: ModulesManagement, isModuleDriven: true },
     { path: "/moduleGroups", component: ModuleGroupsManagement, isModuleDriven: true },
     { path: "/notFoundPage", component: NotFoundPage, isModuleDriven: true },

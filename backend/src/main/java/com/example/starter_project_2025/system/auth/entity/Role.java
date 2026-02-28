@@ -1,8 +1,6 @@
 package com.example.starter_project_2025.system.auth.entity;
 
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user_role.entity.UserRole;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.example.starter_project_2025.system.user.entity.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

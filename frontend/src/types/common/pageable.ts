@@ -1,10 +1,3 @@
-export type SortDirection = "asc" | "desc";
-
-export interface SortRequest {
-  field: string;
-  direction?: SortDirection;
-}
-
 export interface PageResponse<T> {
   items: T[];
   page: number;
@@ -15,8 +8,14 @@ export interface PageResponse<T> {
   hasPrevious: boolean;
 }
 
-export interface PaginationRequest {
+export interface Pagination {
   page?: number;
   size?: number;
-  sort?: SortRequest[];
+  sort?: string;
 }
+
+export const DefaultPagination: Pagination = {
+  page: 0,
+  size: 10,
+  sort: "id,asc",
+};

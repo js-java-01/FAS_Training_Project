@@ -1,9 +1,6 @@
+import { assessmentTypeApi } from '@/api';
+import type { AssessmentType, AssessmentTypeRequest } from '@/types';
 import { useEffect, useState } from 'react';
-import { assessmentTypeApi } from '../api/service/assessment/assessmentTypeApi';
-import type {
-    AssessmentType,
-    AssessmentTypeRequest,
-} from '../types/feature/assessment/assessment-type';
 
 export const useAssessment = () => {
     const [assessments, setAssessments] = useState<AssessmentType[]>([]);

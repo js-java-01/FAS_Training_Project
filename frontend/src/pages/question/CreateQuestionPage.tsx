@@ -2,14 +2,14 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import MainHeader from '@/components/layout/MainHeader';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { questionApi } from '@/api/service/assessment/questionApi';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Save, X, Plus, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
-import type { QuestionCreateRequest } from '@/types/feature/assessment/question';
 import { QuestionFormFields, QuestionOptionsManager } from './components';
 import { useToast } from '@/hooks/useToast';
+import type { QuestionCreateRequest } from '@/types';
+import { questionApi } from '@/api';
 
 export default function CreateQuestionPage() {
     const navigate = useNavigate();

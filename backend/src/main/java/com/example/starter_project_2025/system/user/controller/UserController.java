@@ -4,8 +4,9 @@ import com.example.starter_project_2025.system.dataio.core.common.FileFormat;
 import com.example.starter_project_2025.system.dataio.core.exporter.service.ExportService;
 import com.example.starter_project_2025.system.dataio.core.importer.result.ImportResult;
 import com.example.starter_project_2025.system.dataio.core.importer.service.ImportService;
-import com.example.starter_project_2025.system.user.dto.CreateUserRequest;
-import com.example.starter_project_2025.system.user.dto.UserDTO;
+import com.example.starter_project_2025.system.user.dto.UserCreateRequest;
+import com.example.starter_project_2025.system.user.dto.UserResponse;
+import com.example.starter_project_2025.system.user.dto.UserUpdateRequest;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import com.example.starter_project_2025.system.user.service.UserService;
@@ -67,42 +68,42 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "Get all users", description = "Retrieve all users with pagination")
-    public ResponseEntity<Page<UserDTO>> getAllUsers(
-            @RequestParam(required = false) String searchContent,
+    public ResponseEntity<Page<UserResponse>> getUsersPage(
+            @PageableDefault Pageable pageable,
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID roleId,
             @RequestParam(required = false) LocalDateTime createFrom,
             @RequestParam(required = false) LocalDateTime createTo,
-            @RequestParam(required = false) Boolean isActive,
-            @PageableDefault(size = 10) Pageable pageable
+            @RequestParam(required = false) Boolean isActive
     ) {
-        return ResponseEntity.ok(userService.getAllUsers(
-                searchContent,
+        return ResponseEntity.ok(userService.getUsersPage(
+                pageable,
+                search,
                 roleId,
                 createFrom,
                 createTo,
-                isActive,
-                pageable
+                isActive
         ));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get user by ID", description = "Retrieve a specific user by ID")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable UUID id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @PostMapping
     @Operation(summary = "Create user", description = "Create a new user")
-    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody CreateUserRequest request) {
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(userService.createUser(request));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update user", description = "Update an existing user")
-    public ResponseEntity<UserDTO> updateUser(
+    public ResponseEntity<UserResponse> updateUser(
             @PathVariable UUID id,
-            @Valid @RequestBody UserDTO request
+            @Valid @RequestBody UserUpdateRequest request
     ) {
         return ResponseEntity.ok(userService.updateUser(id, request));
     }
@@ -117,20 +118,20 @@ public class UserController {
 
     @PostMapping("/{id}/toggle-status")
     @Operation(summary = "Toggle user status", description = "Activate or deactivate a user")
-    public ResponseEntity<UserDTO> toggleUserStatus(@PathVariable UUID id)
+    public ResponseEntity<UserResponse> toggleUserStatus(@PathVariable UUID id)
     {
-        UserDTO user = userService.toggleUserStatus(id);
+        UserResponse user = userService.toggleUserStatus(id);
         return ResponseEntity.ok(user);
     }
 
     @PostMapping("/{userId}/assign-role")
     @Operation(summary = "Assign role to user", description = "Assign a role to a specific user")
-    public ResponseEntity<UserDTO> assignRole(
+    public ResponseEntity<UserResponse> assignRole(
             @PathVariable UUID userId,
             @RequestBody Map<String, UUID> request
     ) {
         UUID roleId = request.get("roleId");
-        UserDTO user = userService.assignRole(userId, roleId);
+        UserResponse user = userService.assignRole(userId, roleId);
         return ResponseEntity.ok(user);
     }
 }

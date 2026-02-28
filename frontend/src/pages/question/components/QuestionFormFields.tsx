@@ -1,9 +1,9 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { questionCategoryApi } from '@/api/service/assessment/questionCategoryApi';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { QuestionCreateRequest } from '@/types/feature/assessment/question';
 import { AlertCircle, FileText, Layers, Settings } from 'lucide-react';
+import type { QuestionCreateRequest } from '@/types';
+import { questionCategoryApi } from '@/api';
 
 interface QuestionFormFieldsProps {
     data: QuestionCreateRequest;

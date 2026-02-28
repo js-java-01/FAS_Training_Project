@@ -2,7 +2,7 @@ package com.example.starter_project_2025.util;
 
 import com.example.starter_project_2025.system.auth.dto.permission.PermissionDTO;
 import com.example.starter_project_2025.system.auth.dto.role.RoleDTO;
-import com.example.starter_project_2025.system.user.dto.UserDTO;
+import com.example.starter_project_2025.system.user.dto.UserResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -40,16 +40,15 @@ public class CsvUtil {
         return csv.toString();
     }
 
-    public String exportUsersToCsv(List<UserDTO> users) {
+    public String exportUsersToCsv(List<UserResponse> users) {
         StringBuilder csv = new StringBuilder();
         csv.append("ID,Email,First Name,Last Name,Role,Is Active,Created At,Updated At\n");
 
-        for (UserDTO user : users) {
+        for (UserResponse user : users) {
             csv.append(escapeSpecialCharacters(user.getId().toString())).append(CSV_SEPARATOR);
             csv.append(escapeSpecialCharacters(user.getEmail())).append(CSV_SEPARATOR);
             csv.append(escapeSpecialCharacters(user.getFirstName())).append(CSV_SEPARATOR);
             csv.append(escapeSpecialCharacters(user.getLastName())).append(CSV_SEPARATOR);
-            csv.append(escapeSpecialCharacters(user.getRoleName())).append(CSV_SEPARATOR);
             csv.append(user.isActive()).append(CSV_SEPARATOR);
             csv.append(user.getCreatedAt() != null ? user.getCreatedAt().format(DATE_FORMATTER) : "").append(CSV_SEPARATOR);
             csv.append(user.getUpdatedAt() != null ? user.getUpdatedAt().format(DATE_FORMATTER) : "");
