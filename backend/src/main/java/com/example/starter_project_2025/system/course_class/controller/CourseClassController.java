@@ -29,6 +29,23 @@ public class CourseClassController {
     private final CourseClassService courseClassService;
 
     /**
+     * POST /api/course-classes
+     * Link a Course to a TrainingClass (create a CourseClass).
+     */
+    @PostMapping
+    @Operation(
+            summary = "Create a course class",
+            description = "Links a Course to a TrainingClass. Optionally assigns a trainer. Each Course can only be linked once per TrainingClass."
+    )
+    @ApiResponse(responseCode = "201", description = "Course class created successfully",
+            content = @Content(schema = @Schema(implementation = CourseClassResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Course already assigned to this class")
+    @ApiResponse(responseCode = "404", description = "Course, TrainingClass or Trainer not found")
+    public ResponseEntity<CourseClassResponse> create(@Valid @RequestBody CourseClassRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(courseClassService.create(request));
+    }
+
+    /**
      * GET /api/course-classes
      * Get all course classes.
      */
