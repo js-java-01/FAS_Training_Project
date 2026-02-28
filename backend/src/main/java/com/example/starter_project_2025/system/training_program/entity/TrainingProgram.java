@@ -1,0 +1,46 @@
+package com.example.starter_project_2025.system.training_program.entity;
+
+import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import com.example.starter_project_2025.system.program_courses.entity.ProgramCourse;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "training_programs")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class TrainingProgram {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+    private String name;
+    private String description;
+    private String version;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    @OneToMany(mappedBy = "trainingProgram")
+    @JsonManagedReference
+    private Set<ProgramCourse> programCourses;
+
+}

@@ -2,24 +2,24 @@ package com.example.starter_project_2025.system.auth.controller;
 
 import com.example.starter_project_2025.system.auth.dto.role.RoleDTO;
 import com.example.starter_project_2025.system.auth.service.RoleService;
-
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import io.jsonwebtoken.io.IOException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 
 import java.io.ByteArrayInputStream;
 import java.util.Map;
@@ -40,11 +40,11 @@ public class RoleController {
     public ResponseEntity<Page<RoleDTO>> getAllRoles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "name,asc") String[] sort) {
-
+            @RequestParam(defaultValue = "name,asc") String[] sort,
+            @RequestParam(required = false) String keyword) {
         Sort.Direction direction = Sort.Direction.fromString(sort[1]);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
-        Page<RoleDTO> roles = roleService.getAllRoles(pageable);
+        Page<RoleDTO> roles = roleService.getAllRoles(pageable, keyword);
         return ResponseEntity.ok(roles);
     }
 
@@ -104,25 +104,28 @@ public class RoleController {
         RoleDTO role = roleService.removePermissionsFromRole(roleId, permissionIds);
         return ResponseEntity.ok(role);
     }
+
     @GetMapping("/template")
     public ResponseEntity<InputStreamResource> downloadTemplate() throws IOException, java.io.IOException {
         ByteArrayInputStream in = roleService.downloadTemplate();
-        
+
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Disposition", "attachment; filename=roles_import_template.xlsx");
 
         return ResponseEntity.ok()
                 .headers(headers)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(new InputStreamResource(in));
     }
 
     // API Upload file Import
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> importRoles(@RequestParam("file") MultipartFile file) throws IOException, java.io.IOException {
-        roleService.importRoles(file);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ImportResultResponse> importRoles(@RequestParam("file") MultipartFile file) {
+        ImportResultResponse result = roleService.importRoles(file);
+        return ResponseEntity.ok(result);
     }
+
     @GetMapping("/export")
     @Operation(summary = "Export roles", description = "Export all roles to Excel file")
     public ResponseEntity<InputStreamResource> exportRoles() throws IOException, java.io.IOException {
@@ -133,7 +136,8 @@ public class RoleController {
 
         return ResponseEntity.ok()
                 .headers(headers)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(new InputStreamResource(in));
     }
 }

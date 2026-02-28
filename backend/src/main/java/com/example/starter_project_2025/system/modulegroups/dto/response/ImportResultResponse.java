@@ -11,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImportResultResponse {
+    private String message;
     private int totalRows;
     private int successCount;
     private int failedCount;

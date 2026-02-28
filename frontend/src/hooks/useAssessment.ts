@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import dayjs from 'dayjs';
 import { assessmentTypeApi } from '../api/assessmentTypeApi';
 import type {
     AssessmentType,
@@ -56,7 +57,7 @@ export const useAssessment = () => {
             loadData();
         } catch (error) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            alert((error as any).response?.data?.message || 'Error creating assessment');
+            alert((error as any).response?.data?.message || 'Error creating assessment.ts');
         }
     };
 
@@ -71,7 +72,7 @@ export const useAssessment = () => {
             loadData();
         } catch (error) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            alert((error as any).response?.data?.message || 'Error updating assessment');
+            alert((error as any).response?.data?.message || 'Error updating assessment.ts');
         }
     };
 
@@ -93,7 +94,7 @@ export const useAssessment = () => {
     };
 
     const deleteAssessment = async (id: string) => {
-        if (!window.confirm('Are you sure you want to delete this assessment?'))
+        if (!window.confirm('Are you sure you want to delete this assessment.ts?'))
             return;
 
         try {
@@ -108,7 +109,7 @@ export const useAssessment = () => {
     const handleImport = async (file: File) => {
         try {
             setIsLoading(true);
-            await assessmentTypeApi.importAssessments(file);
+            await assessmentTypeApi.importAssessment(file);
             await loadData();
             alert('Import successful');
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,7 +125,7 @@ export const useAssessment = () => {
             return;
 
         try {
-            await assessmentTypeApi.exportAssessments();
+            await assessmentTypeApi.exportAssessment();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             alert(error.response?.data?.message || 'Export failed');
@@ -165,7 +166,7 @@ export const useAssessment = () => {
 export const downloadTemplate = async (toast: any) => {
     try {
         const blob = await assessmentTypeApi.downloadTemplate();
-        downloadBlob(blob, 'assessment-types-template.xlsx');
+        downloadBlob(blob, `assessment-types-template_${dayjs().format('DD-MM-YYYY_HH-mm-ss')}.xlsx`);
         toast({
             variant: "success",
             title: "Success",

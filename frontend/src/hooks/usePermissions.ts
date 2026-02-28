@@ -1,22 +1,21 @@
 import type { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 
 export const usePermissions = () => {
-  const { permissions, role, email, firstName, lastName } = useSelector((state: RootState) => state.auth);
+  const { email, role, firstName, lastName } = useSelector((state: RootState) => state.auth);
+  const { activePermissions } = useRoleSwitch();
 
-  const user = { email, role, firstName, lastName, permissions };
+  const user = { email, role, firstName, lastName };
 
-  const hasPermission = (permission: string): boolean => {
-    return permissions.includes(permission);
-  };
+  const hasPermission = (permission: string): boolean =>
+    activePermissions.includes(permission);
 
-  const hasAnyPermission = (requiredPermissions: string[]): boolean => {
-    return requiredPermissions.some((p) => permissions.includes(p));
-  };
+  const hasAnyPermission = (requiredPermissions: string[]): boolean =>
+    requiredPermissions.some((p) => activePermissions.includes(p));
 
-  const hasAllPermissions = (requiredPermissions: string[]): boolean => {
-    return requiredPermissions.every((p) => permissions.includes(p));
-  };
+  const hasAllPermissions = (requiredPermissions: string[]): boolean =>
+    requiredPermissions.every((p) => activePermissions.includes(p));
 
   const canAccessResource = (resource: string, action: string): boolean => {
     const permissionName = `${resource.toUpperCase()}_${action.toUpperCase()}`;
@@ -31,3 +30,4 @@ export const usePermissions = () => {
     canAccessResource,
   };
 };
+

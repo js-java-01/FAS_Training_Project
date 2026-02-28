@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { programmingLanguageApi } from '../api/programmingLanguageApi';
-import { useToast } from './use-toast';
+import { useToast } from './useToast.ts';
+import dayjs from 'dayjs';
 import type { SearchParams } from '../types/programmingLanguage';
 
 // Query keys for cache management
@@ -129,7 +130,7 @@ export const downloadExport = async (toast: any) => {
 export const downloadTemplate = async (toast: any) => {
     try {
         const blob = await programmingLanguageApi.downloadTemplate();
-        downloadBlob(blob, 'programming-languages-template.xlsx');
+        downloadBlob(blob, `programming-languages-template_${dayjs().format('DD-MM-YYYY_HH-mm-ss')}.xlsx`);
         toast({
             variant: "success",
             title: "Success",

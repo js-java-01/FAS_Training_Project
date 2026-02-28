@@ -16,7 +16,7 @@ public class PageResponse<T> {
         return new PageResponse<>(
                 page.getContent(),
                 new Pagination(
-                        page.getNumber(),
+                        page.getNumber() , // use base index 0
                         page.getSize(),
                         page.getTotalElements(),
                         page.getTotalPages()

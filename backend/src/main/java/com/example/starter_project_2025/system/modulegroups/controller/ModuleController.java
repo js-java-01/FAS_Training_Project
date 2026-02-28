@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.modulegroups.controller;
 
 import com.example.starter_project_2025.system.modulegroups.dto.request.CreateModuleRequest;
+import com.example.starter_project_2025.system.modulegroups.dto.request.SearchModuleRequest;
 import com.example.starter_project_2025.system.modulegroups.dto.request.UpdateModuleRequest;
 import com.example.starter_project_2025.system.modulegroups.dto.response.*;
 import com.example.starter_project_2025.system.modulegroups.service.ModuleService;
@@ -10,9 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,19 +28,24 @@ public class ModuleController {
 
     private final ModuleService moduleService;
 
-    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
+    /* =========================================================
+       VIEW MODULE DETAIL
+    ========================================================= */
+    @PreAuthorize("hasAuthority('MODULE_READ')")
     @GetMapping("/{id}")
     @Operation(summary = "View module details")
-    public ResponseEntity<ModuleDetail> viewModule(
-            @PathVariable UUID id) {
+    public ResponseEntity<ModuleDetail> viewModule(@PathVariable UUID id) {
 
         return ResponseEntity.ok(
                 moduleService.getModuleDetail(id)
         );
     }
 
+    /* =========================================================
+       CREATE MODULE
+    ========================================================= */
     @PostMapping
-    @PreAuthorize("hasAuthority('MENU_ITEM_CREATE')")
+    @PreAuthorize("hasAuthority('MODULE_CREATE')")
     @Operation(summary = "Create module")
     public ResponseEntity<CreateModuleResponse> createModule(
             @Valid @RequestBody CreateModuleRequest request) {
@@ -51,8 +55,12 @@ public class ModuleController {
                 .body(moduleService.createModule(request));
     }
 
+    /* =========================================================
+       UPDATE MODULE
+    ========================================================= */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('MENU_ITEM_UPDATE')")
+    @PreAuthorize("hasAuthority('MODULE_UPDATE')")
+    @Operation(summary = "Update module")
     public ResponseEntity<UpdateModuleResponse> updateModule(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateModuleRequest request
@@ -61,46 +69,50 @@ public class ModuleController {
         return ResponseEntity.ok(response);
     }
 
+    /* =========================================================
+       GET MODULES BY GROUP
+    ========================================================= */
     @GetMapping("/module-group/{id}")
-    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
+    @PreAuthorize("hasAuthority('MODULE_READ')")
     @Operation(summary = "Get all modules by Module Group ID")
-    public ResponseEntity<List<ModuleDetail>> getModulesByGroup(@PathVariable UUID id) {
-        return ResponseEntity.ok(moduleService.getModulesByGroupId(id));
+    public ResponseEntity<List<ModuleDetail>> getModulesByGroup(
+            @PathVariable UUID id
+    ) {
+        return ResponseEntity.ok(
+                moduleService.getModulesByGroupId(id)
+        );
     }
 
+    /* =========================================================
+       DELETE MODULE (SOFT DELETE)
+    ========================================================= */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('MODULE_DELETE')")
     @Operation(summary = "Delete module (soft delete)")
     public ResponseEntity<Void> deleteModule(@PathVariable UUID id) {
+
         moduleService.deleteModule(id);
         return ResponseEntity.noContent().build();
     }
 
+    /* =========================================================
+       SEARCH MODULES
+    ========================================================= */
     @GetMapping
+    @PreAuthorize("hasAuthority('MODULE_READ')")
     @Operation(summary = "Search modules with pagination")
-    @PreAuthorize("hasAuthority('MENU_ITEM_READ')")
     public ResponseEntity<ApiResponse<PageResponse<ModuleDetail>>> searchModules(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) UUID moduleGroupId,
-            @RequestParam(required = false) Boolean isActive,
-            @RequestParam int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "displayOrder,asc") String[] sort
+            @ModelAttribute SearchModuleRequest request,
+            Pageable pageable
     ) {
-        String sortField = sort[0];
-        Sort.Direction direction =
-                sort.length > 1
-                        ? Sort.Direction.fromString(sort[1])
-                        : Sort.Direction.ASC;
-
-        Pageable pageable = PageRequest.of(
-                page,
-                size,
-                Sort.by(direction, sortField)
-        );
 
         Page<ModuleDetail> pageResult =
-                moduleService.searchModules(keyword, moduleGroupId, isActive, pageable);
+                moduleService.searchModules(
+                        request.getKeyword(),
+                        request.getModuleGroupId(),
+                        request.getIsActive(),
+                        pageable
+                );
 
         return ResponseEntity.ok(
                 ApiResponse.success(

@@ -24,11 +24,13 @@ export const ConfirmDialog: React.FC<{
   return (
     <Modal open={open} onClose={onCancel} title={title} size="sm">
       <div className="space-y-4">
-        {description && <p className="text-sm text-gray-600">{description}</p>}
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancel}
-            className="px-4 py-2 border rounded hover:bg-gray-50 transition"
+            className="px-4 py-2 border border-border rounded hover:bg-muted transition"
             disabled={loading}
           >
             {cancelLabel}

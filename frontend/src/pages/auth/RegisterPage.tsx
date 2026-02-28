@@ -30,7 +30,9 @@ export default function RegisterPage() {
     const onVerify = async (data: VerifyRequest) => {
         setLoading(true);
         try {
-            await authApi.verify({ ...data, email: tempEmail });
+            const response = await authApi.verify({ ...data, email: tempEmail });
+            console.log(response);
+            if (response === false) throw new Error("Verification failed");
             toast.success("Email verified successfully!");
             navigate('/login');
         } catch (error) {
