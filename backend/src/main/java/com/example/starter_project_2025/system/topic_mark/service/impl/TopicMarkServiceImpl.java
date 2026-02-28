@@ -172,6 +172,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             return TopicMarkGradebookResponse.Row.builder()
                     .userId(user.getId())
                     .fullName(user.getFirstName() + " " + user.getLastName())
+                    .email(user.getEmail())
                     .values(values)
                     .build();
         }).collect(Collectors.toList());
@@ -198,11 +199,22 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             Comparator<TopicMarkGradebookResponse.Row> comparator = null;
             for (org.springframework.data.domain.Sort.Order order : pageable.getSort()) {
                 Comparator<TopicMarkGradebookResponse.Row> c;
-                if ("fullName".equalsIgnoreCase(order.getProperty())) {
+                String prop = order.getProperty();
+                if ("fullName".equalsIgnoreCase(prop)) {
                     c = Comparator.comparing(TopicMarkGradebookResponse.Row::getFullName,
                             Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+                } else if ("email".equalsIgnoreCase(prop)) {
+                    c = Comparator.comparing(TopicMarkGradebookResponse.Row::getEmail,
+                            Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
                 } else {
-                    continue;
+                    // Sort by column score value (UUID key or FINAL_SCORE)
+                    c = Comparator.comparing(
+                            row -> {
+                                Object val = row.getValues().get(prop);
+                                if (val instanceof Number) return ((Number) val).doubleValue();
+                                return null;
+                            },
+                            Comparator.nullsLast(Comparator.naturalOrder()));
                 }
                 if (order.isDescending()) c = c.reversed();
                 comparator = comparator == null ? c : comparator.thenComparing(c);
