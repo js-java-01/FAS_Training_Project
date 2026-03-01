@@ -41,6 +41,7 @@ export interface GradebookColumnMeta {
 
 export interface GradebookRow {
   userId: string
+  courseClassId: string
   fullName: string
   email: string
   values: Record<string, number | boolean | null>
@@ -52,3 +53,33 @@ export interface GradebookDataTable {
 }
 
 export type GradebookTableResponse = ApiResponse<GradebookDataTable>
+
+export interface GradeHistoryItem {
+  id: string
+  student: {
+    id: string
+    name: string
+  }
+  column: {
+    id: string
+    name: string
+  }
+  oldScore: number
+  newScore: number
+  changeType: "INCREASE" | "DECREASE"
+  reason: string
+  updatedBy: {
+    id: string
+    name: string
+  }
+  updatedAt: string
+}
+
+export interface GradeHistoryPageResponse<T> {
+  content: T[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  sort?: string
+}
