@@ -181,7 +181,7 @@ export default function GradebookTable({ classId }: Props) {
 
             {isEditing && (
               <p className="text-xs text-muted-foreground mt-3 font-semibold">
-                 <Badge variant={"outline"} className='text-xs'>Editing Mode</Badge> Enter: Save • Esc: Cancel • Click outside: Auto save
+                <Badge variant={"outline"} className='text-xs text-center'>Editing Mode</Badge> Enter: Save • Esc: Cancel
               </p>
             )}
           </div>

@@ -130,13 +130,16 @@ export const buildGradebookColumns = (
                 courseClassId={rowData.courseClassId}
                 userId={rowData.userId}
                 columnId={col.key}
+                isTableEditing={isEditing}
               />
             )
           }
 
           return (
             <span className="text-center block">
-              {value}
+              {typeof value === "number"
+                ? Number(value).toFixed(2)
+                : value}
             </span>
           )
         },
