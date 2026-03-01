@@ -5,10 +5,10 @@ import {
 import React, { useState, useMemo, useCallback } from 'react';
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
-import { questionTagApi } from '../../api/questionTagApi';
+import { questionTagApi } from '../../api/service/assessment/questionTagApi';
 import { PermissionGate } from '../../components/PermissionGate';
 
-import type { QuestionTagRequest, QuestionTag } from '../../types/questionTag';
+import type { QuestionTagRequest, QuestionTag } from '../../types/feature/assessment/question-tag';
 
 import { CreateQuestionTagModal } from './CreateQuestionTagModal';
 import { DeleteQuestionTagDialog } from './DeleteQuestionTagDialog';

@@ -2,7 +2,6 @@ import axios from "axios";
 import type { LoginResponse } from "@/types/auth";
 import { store } from "@/store/store";
 import { setLogout } from "@/store/slices/auth/authSlice";
-import type { ExportFormat } from "@/types/export";
 
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/api",

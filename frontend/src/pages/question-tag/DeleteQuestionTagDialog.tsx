@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertCircle, Hash } from 'lucide-react';
-import type { QuestionTag } from '../../types/questionTag';
+import type { QuestionTag } from '../../types/feature/assessment/question-tag';
 import { Modal } from '@/components/modal/Modal';
 import { Badge } from '@/components/ui/badge';
 

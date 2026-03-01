@@ -1,5 +1,5 @@
 import React from 'react';
-import type { QuestionTagRequest } from '../../types/questionTag';
+import type { QuestionTagRequest } from '../../types/feature/assessment/question-tag';
 
 interface QuestionTagFormFieldsProps {
     data: QuestionTagRequest;

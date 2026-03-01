@@ -1,15 +1,11 @@
 import type { ComponentType } from "react";
-import { UserManagement } from "@/pages/UserManagement";
 import { Dashboard } from "@/pages/Dashboard";
 import ModulesManagement from "@/pages/modules/module/ModulesManagement.tsx";
 import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsManagement.tsx";
 import NotFoundPage from "@/pages/NotFoundPage.tsx";
-import { RoleManagement } from "@/pages/RoleManagement.tsx";
-import ProgrammingLanguageManagement from "@/pages/ProgrammingLanguageManagement";
 import AssessmentManagement from "@/pages/AssessmentManagement";
 import { LocationManagement } from "@/pages/LocationManagement";
 import CourseManagement from "@/pages/course/CourseManagement";
-import { SelectAssessmentPage } from "@/pages/exam";
 import { TeacherAssessmentPage } from "@/pages/teacher-assessment";
 import { QuestionCategoryManagement } from "@/pages/question-category";
 import { QuestionManagementPage } from "@/pages/question";
@@ -25,9 +21,12 @@ import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 // Parameterized route components
 import CourseDetailPage from "@/pages/course/CourseDetailPage";
 import StudentCourseContent from "@/pages/learning/StudentCourseContent";
-import { QuizPage, ResultPage, AttemptHistoryPage } from "@/pages/exam";
 import { AssessmentFormPage } from "@/pages/teacher-assessment";
 import { CreateQuestionPage, EditQuestionPage } from "@/pages/question";
+import UserManagement from "@/pages/user/management";
+import { AttemptHistoryPage, QuizPage, ResultPage, SelectAssessmentPage } from "@/pages/assessment";
+import { RoleManagementPage } from "@/pages/role";
+import ProgrammingLanguageManagement from "@/pages/programming-language/ProgrammingLanguageManagement";
 
 // ── Route Configuration Types ─────────────────────────────────────────────────
 export interface RouteConfig {
@@ -45,7 +44,7 @@ export const routes: RouteConfig[] = [
     { path: "/modules", component: ModulesManagement, isModuleDriven: true },
     { path: "/moduleGroups", component: ModuleGroupsManagement, isModuleDriven: true },
     { path: "/notFoundPage", component: NotFoundPage, isModuleDriven: true },
-    { path: "/roles", component: RoleManagement, isModuleDriven: true },
+    { path: "/roles", component: RoleManagementPage, isModuleDriven: true },
     { path: "/locations", component: LocationManagement, isModuleDriven: true },
     { path: "/programming-languages", component: ProgrammingLanguageManagement, isModuleDriven: true },
     { path: "/assessment-type", component: AssessmentManagement, isModuleDriven: true },

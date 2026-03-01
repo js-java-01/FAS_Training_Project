@@ -3,7 +3,7 @@ package com.example.starter_project_2025.system.dataio.mapping.user;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.dataio.core.importer.resolver.LookupResolver;
-import com.example.starter_project_2025.system.user_role.entity.UserRole;
+import com.example.starter_project_2025.system.user.entity.UserRole;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 

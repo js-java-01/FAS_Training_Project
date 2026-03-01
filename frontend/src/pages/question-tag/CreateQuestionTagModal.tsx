@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '@/components/modal/Modal';
 import { QuestionTagFormFields } from './QuestionTagFormFields';
-import type { QuestionTagRequest } from '../../types/questionTag';
+import type { QuestionTagRequest } from '../../types/feature/assessment/question-tag';
 
 interface CreateQuestionTagModalProps {
     isOpen: boolean;
