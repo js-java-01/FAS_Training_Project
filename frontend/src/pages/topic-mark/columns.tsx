@@ -9,9 +9,11 @@ import type {
   GradebookColumnMeta,
   GradebookRow,
 } from "@/types/topicMark"
+import { EditableGradeCell } from "./EditableGradeCell"
 
 export const buildGradebookColumns = (
-  metaColumns: GradebookColumnMeta[]
+  metaColumns: GradebookColumnMeta[],
+  isEditing: boolean
 ): ColumnDef<GradebookRow, any>[] => {
   const columnHelper = createColumnHelper<GradebookRow>()
 
@@ -95,7 +97,7 @@ export const buildGradebookColumns = (
 
           if (value == null)
             return (
-              <span className="text-muted-foreground">
+              <span className="text-muted-foreground flex items-center justify-center">
                 -
               </span>
             )
@@ -111,6 +113,24 @@ export const buildGradebookColumns = (
               >
                 {value ? "Pass" : "Fail"}
               </Badge>
+            )
+          }
+
+          // NUMBER → editable
+          if (
+            typeof value === "number" &&
+            col.weight != null &&
+            isEditing
+          ) {
+            const rowData = info.row.original
+
+            return (
+              <EditableGradeCell
+                value={value}
+                courseClassId={rowData.courseClassId}
+                userId={rowData.userId}
+                columnId={col.key}
+              />
             )
           }
 

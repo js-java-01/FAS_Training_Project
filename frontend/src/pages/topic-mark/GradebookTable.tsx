@@ -14,9 +14,10 @@ import { useSortParam } from "@/hooks/useSortParam"
 
 interface Props {
   classId: string
+   isEditing: boolean
 }
 
-export default function GradebookTable({ classId }: Props) {
+export default function GradebookTable({ classId, isEditing }: Props) {
   /* ================= STATE ================= */
 
   const [sorting, setSorting] = useState<SortingState>([])
@@ -73,20 +74,30 @@ export default function GradebookTable({ classId }: Props) {
   const safeTableData = useMemo(() => {
     const rows = tableData?.data?.rows
 
+    const mappedItems =
+      rows?.items?.map((r) => ({
+        ...r,
+        courseClassId: selectedCourseClassId,
+      })) ?? []
+
     return {
-      items: (rows?.items ?? []) as GradebookRow[],
+      items: mappedItems as GradebookRow[],
       page: rows?.pagination?.page ?? pageIndex,
       pageSize: rows?.pagination?.pageSize ?? pageSize,
       totalPages: rows?.pagination?.totalPages ?? 0,
       columns: tableData?.data?.columns ?? [],
     }
-  }, [tableData, pageIndex, pageSize])
+  }, [tableData, pageIndex, pageSize, selectedCourseClassId])
 
   /* ================= COLUMNS ================= */
 
   const columns = useMemo(
-    () => buildGradebookColumns(safeTableData.columns),
-    [safeTableData.columns]
+    () =>
+      buildGradebookColumns(
+        safeTableData.columns,
+        isEditing
+      ),
+    [safeTableData.columns, isEditing]
   )
 
   /* ================= RENDER ================= */
@@ -100,7 +111,7 @@ export default function GradebookTable({ classId }: Props) {
     <div className="relative space-y-4 h-[calc(100%-90px)] flex-1">
       {/* Dropdown */}
       <SearchableSelect
-        label="Course Code"
+        label="Topic Code"
         value={selectedCourseClassId}
         onChange={(val) => setSelectedCourseClassId(val)}
         options={courseOptions}

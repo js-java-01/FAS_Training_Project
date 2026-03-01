@@ -19,4 +19,30 @@ export const topicMarkApi = {
 
     return response.data
   },
+
+  updateGrade: async ({
+    courseClassId,
+    userId,
+    columnId,
+    score,
+    reason,
+  }: {
+    courseClassId: string
+    userId: string
+    columnId: string
+    score: number
+    reason: string
+  }) =>
+    axiosInstance.put(
+      `/course-classes/${courseClassId}/topic-marks/${userId}`,
+      {
+        entries: [
+          {
+            columnId,
+            score,
+          },
+        ],
+        reason,
+      }
+    ),
 };
