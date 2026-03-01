@@ -54,16 +54,23 @@ export const questionApi = {
         id: string,
         data: QuestionCreateRequest
     ): Promise<Question> => {
+        // Remove IDs from options - backend will recreate them
+        const options = data.options.map(opt => ({
+            content: opt.content,
+            correct: opt.correct,
+            orderIndex: opt.orderIndex
+        }));
+
         const payload = {
             questionCategoryId: data.categoryId,
             questionType: data.questionType,
             content: data.content,
             isActive: data.isActive,
-            options: data.options,
-            ...(data.tagIds && { tagIds: data.tagIds })
+            options,
+            tagIds: data.tagIds || []
         };
 
-        const response = await axiosInstance.put<Question>(
+        const response = await axiosInstance.patch<Question>(
             `/v1/questions/${id}`,
             payload
         );

@@ -58,6 +58,7 @@ export interface QuestionCreateRequest {
 }
 
 export interface QuestionOptionRequest {
+  id?: string;
   content: string;
   correct: boolean;
   orderIndex: number;

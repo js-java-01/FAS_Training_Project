@@ -1,9 +1,10 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { questionCategoryApi } from '@/api/questionCategoryApi';
+import { questionTagApi } from '@/api/questionTagApi';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { QuestionCreateRequest } from '@/types/question';
-import { AlertCircle, FileText, Layers, Settings } from 'lucide-react';
+import { AlertCircle, FileText, Layers, Settings, Tag, X } from 'lucide-react';
 
 interface QuestionFormFieldsProps {
     data: QuestionCreateRequest;
@@ -20,6 +21,13 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
         queryKey: ['question-categories'],
         queryFn: () => questionCategoryApi.getAll()
     });
+
+    const { data: tagsResponse, isLoading: tagsLoading } = useQuery({
+        queryKey: ['question-tags'],
+        queryFn: () => questionTagApi.getAll({ size: 1000 })
+    });
+
+    const availableTags = tagsResponse?.content ?? [];
 
     const handleTypeChange = (newType: 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE') => {
         const newOptions = [...data.options];
@@ -83,8 +91,8 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
                         onChange={(e) => handleTypeChange(e.target.value as 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE')}
                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 font-medium"
                     >
-                        <option value="SINGLE_CHOICE">📌 Single Choice (One Correct Answer)</option>
-                        <option value="MULTIPLE_CHOICE">📋 Multiple Choice (Multiple Answers)</option>
+                        <option value="SINGLE_CHOICE"> Single Choice (One Correct Answer)</option>
+                        <option value="MULTIPLE_CHOICE"> Multiple Choice (Multiple Answers)</option>
                     </select>
                     <p className="mt-2 text-xs text-gray-500">
                         {data.questionType === 'SINGLE_CHOICE'
@@ -128,6 +136,63 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
                         <p className="mt-2 text-xs text-gray-500">Loading categories...</p>
                     )}
                 </div>
+            </div>
+
+            {/* Tags Selection */}
+            <div className="bg-white rounded-lg border-2 border-gray-200 p-5 hover:border-orange-300 transition-all">
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="h-8 w-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <Tag className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <label className="text-base font-bold text-gray-900">
+                        Tags (Optional)
+                    </label>
+                </div>
+
+                {tagsLoading ? (
+                    <p className="text-sm text-gray-500">Loading tags...</p>
+                ) : availableTags.length === 0 ? (
+                    <p className="text-sm text-gray-500">No tags available</p>
+                ) : (
+                    <div className="space-y-3">
+                        <div className="flex flex-wrap gap-2">
+                            {availableTags.map(tag => {
+                                const isSelected = data.tagIds?.includes(tag.id) ?? false;
+                                return (
+                                    <button
+                                        key={tag.id}
+                                        type="button"
+                                        onClick={() => {
+                                            const currentTagIds = data.tagIds ?? [];
+                                            const newTagIds = isSelected
+                                                ? currentTagIds.filter(id => id !== tag.id)
+                                                : [...currentTagIds, tag.id];
+                                            onChange({ ...data, tagIds: newTagIds });
+                                        }}
+                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${isSelected
+                                                ? 'bg-orange-600 text-white hover:bg-orange-700'
+                                                : 'bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200'
+                                            }`}
+                                    >
+                                        #{tag.name}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        {data.tagIds && data.tagIds.length > 0 && (
+                            <div className="flex items-center gap-2 text-xs text-gray-600">
+                                <span className="font-medium">{data.tagIds.length} tag(s) selected</span>
+                                <button
+                                    type="button"
+                                    onClick={() => onChange({ ...data, tagIds: [] })}
+                                    className="text-red-600 hover:text-red-700 hover:underline"
+                                >
+                                    Clear all
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Active Toggle */}

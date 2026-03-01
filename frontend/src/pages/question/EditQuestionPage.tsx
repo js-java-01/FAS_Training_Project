@@ -26,6 +26,7 @@ export default function EditQuestionPage() {
             { content: '', correct: false, orderIndex: 0 },
             { content: '', correct: false, orderIndex: 1 },
         ],
+        tagIds: []
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -45,10 +46,12 @@ export default function EditQuestionPage() {
                 isActive: question.isActive,
                 categoryId: question.category.id,
                 options: question.options.map(opt => ({
+                    id: opt.id,
                     content: opt.content,
                     correct: opt.correct,
                     orderIndex: opt.orderIndex,
-                }))
+                })),
+                tagIds: question.tags?.map(tag => tag.id) || []
             });
         }
     }, [question]);
@@ -125,7 +128,7 @@ export default function EditQuestionPage() {
     if (isLoading) {
         return (
             <MainLayout pathName={{ questions: "Question Bank", edit: "Edit Question" }}>
-                <div className="h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-50">
+                <div className="h-full flex items-center justify-center bg-gray-50">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
                         <p className="text-gray-600 font-medium text-lg">Loading question...</p>
@@ -139,7 +142,7 @@ export default function EditQuestionPage() {
     if (!question) {
         return (
             <MainLayout pathName={{ questions: "Question Bank", edit: "Edit Question" }}>
-                <div className="h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-gray-50">
+                <div className="h-full flex items-center justify-center bg-gray-50">
                     <div className="text-center bg-white p-8 rounded-xl shadow-lg border-2 border-red-200">
                         <div className="h-20 w-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <AlertCircle className="h-10 w-10 text-red-600" />
@@ -163,7 +166,7 @@ export default function EditQuestionPage() {
         <MainLayout pathName={{ questions: "Question Bank", edit: "Edit Question" }}>
             <div className="h-full flex-1 flex flex-col gap-6 p-6">
                 {/* Header Section */}
-                <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl p-6 shadow-lg text-white">
+                <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
                     <div className="flex items-center justify-between">
                         <div>
                             {/* <MainHeader
@@ -171,7 +174,7 @@ export default function EditQuestionPage() {
                                 description="Update question details and options"
                             /> */}
                             <div className="mt-3 flex items-center gap-4">
-                                <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+                                <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg">
                                     {Object.keys(errors).length === 0 ? (
                                         <>
                                             <CheckCircle2 className="h-4 w-4" />
@@ -186,7 +189,7 @@ export default function EditQuestionPage() {
                                         </>
                                     )}
                                 </div>
-                                <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+                                <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg">
                                     <span className="text-sm font-medium">
                                         ID: {id}
                                     </span>
@@ -198,7 +201,6 @@ export default function EditQuestionPage() {
                                 variant="outline"
                                 onClick={handleCancel}
                                 disabled={updateMutation.isPending}
-                                className="bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm"
                             >
                                 <X className="mr-2 h-4 w-4" />
                                 Cancel
@@ -206,7 +208,6 @@ export default function EditQuestionPage() {
                             <Button
                                 onClick={handleSubmit}
                                 disabled={updateMutation.isPending}
-                                className="bg-white text-orange-700 hover:bg-gray-100 font-semibold shadow-lg"
                             >
                                 {updateMutation.isPending ? (
                                     <>
@@ -226,10 +227,10 @@ export default function EditQuestionPage() {
 
                 {/* Main Content */}
                 <div className="flex-1 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
-                    <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-5 border-b-2 border-orange-200">
+                    <div className="bg-gray-50 p-5 border-b border-gray-200">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="font-bold text-xl text-orange-900">📝 Question Details</h3>
+                                <h3 className="font-bold text-xl text-gray-900">Question Details</h3>
                                 {Object.keys(errors).length > 0 ? (
                                     <p className="text-sm text-red-600 mt-1 flex items-center gap-1 font-medium">
                                         <AlertCircle className="h-4 w-4" />
@@ -246,7 +247,6 @@ export default function EditQuestionPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => navigate('/questions')}
-                                className="hover:bg-orange-50"
                             >
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 Back to List
@@ -254,7 +254,7 @@ export default function EditQuestionPage() {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-auto p-6 bg-gradient-to-b from-gray-50 to-white">
+                    <div className="flex-1 overflow-auto p-6 bg-white">
                         <div className="max-w-5xl mx-auto space-y-8">
                             <QuestionFormFields
                                 data={formData}

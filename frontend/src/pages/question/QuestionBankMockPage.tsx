@@ -1,6 +1,6 @@
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Eye, SquarePen, Trash2, Search, LayoutGrid, List, Filter, X } from 'lucide-react';
+import { Plus, Eye, SquarePen, Trash2, Search, LayoutGrid, List, X, Filter } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -8,13 +8,478 @@ import { PermissionGate } from '@/components/PermissionGate';
 
 import { questionApi } from '@/api/questionApi';
 import { questionCategoryApi } from '@/api/questionCategoryApi';
-import type { QuestionListItem } from '@/types/question';
+import type { Question } from '@/types/question';
 import type { QuestionCategory } from '@/types/questionCategory';
 import { Badge } from '@/components/ui/badge';
 import ActionBtn from '@/components/data_table/ActionBtn';
 import { useToast } from '@/hooks/useToast';
 
-export default function QuestionManagementPage() {
+// Mock data: Add tags to questions
+interface QuestionWithTags extends Question {
+    tags?: string[];
+    difficulty?: 'Easy' | 'Medium' | 'Hard';
+}
+
+// Mock tag generator based on question content and category
+const generateMockTags = (question: Question): string[] => {
+    const categoryName = question.category?.name?.toLowerCase() || '';
+    const content = question.content.toLowerCase();
+    const tags: string[] = [];
+
+    // Category-based tags
+    if (categoryName.includes('java')) {
+        if (content.includes('stream') || content.includes('lambda')) tags.push('Streams', 'Functional');
+        if (content.includes('collection') || content.includes('map') || content.includes('list')) tags.push('Collections');
+        if (content.includes('class') || content.includes('interface') || content.includes('inherit')) tags.push('OOP');
+        if (content.includes('thread') || content.includes('concurrent')) tags.push('Concurrency');
+        if (content.includes('jvm') || content.includes('memory')) tags.push('JVM');
+        if (content.includes('exception') || content.includes('error')) tags.push('Exception Handling');
+    } else if (categoryName.includes('c++')) {
+        if (content.includes('pointer') || content.includes('reference')) tags.push('Memory');
+        if (content.includes('class') || content.includes('polymorphism') || content.includes('inherit')) tags.push('OOP');
+        if (content.includes('template')) tags.push('Templates');
+        if (content.includes('stl')) tags.push('STL');
+        if (content.includes('smart pointer')) tags.push('Modern C++');
+    } else if (categoryName.includes('python')) {
+        if (content.includes('decorator') || content.includes('generator')) tags.push('Advanced');
+        if (content.includes('list') || content.includes('dict') || content.includes('tuple')) tags.push('Data Structures');
+        if (content.includes('class') || content.includes('inherit')) tags.push('OOP');
+        if (content.includes('async') || content.includes('await')) tags.push('Async');
+        if (content.includes('pandas') || content.includes('numpy')) tags.push('Data Science');
+    } else if (categoryName.includes('soft') || categoryName.includes('skill')) {
+        if (content.includes('team') || content.includes('collaborate')) tags.push('Teamwork');
+        if (content.includes('communicate') || content.includes('present')) tags.push('Communication');
+        if (content.includes('problem') || content.includes('solve')) tags.push('Problem Solving');
+        if (content.includes('lead') || content.includes('manage')) tags.push('Leadership');
+        if (content.includes('time') || content.includes('priority')) tags.push('Time Management');
+    } else if (categoryName.includes('database') || categoryName.includes('sql')) {
+        if (content.includes('join') || content.includes('query')) tags.push('SQL');
+        if (content.includes('index') || content.includes('optimize')) tags.push('Performance');
+        if (content.includes('transaction') || content.includes('acid')) tags.push('Transactions');
+        if (content.includes('nosql') || content.includes('mongodb')) tags.push('NoSQL');
+    } else if (categoryName.includes('javascript') || categoryName.includes('frontend')) {
+        if (content.includes('promise') || content.includes('async')) tags.push('Async');
+        if (content.includes('react') || content.includes('component')) tags.push('React');
+        if (content.includes('closure') || content.includes('scope')) tags.push('Core JS');
+        if (content.includes('dom')) tags.push('DOM');
+        if (content.includes('event')) tags.push('Events');
+    }
+
+    // General programming concepts
+    if (content.includes('algorithm') || content.includes('complexity')) tags.push('Algorithms');
+    if (content.includes('design pattern')) tags.push('Design Patterns');
+    if (content.includes('test') || content.includes('unit')) tags.push('Testing');
+    if (content.includes('api') || content.includes('rest')) tags.push('API');
+    if (content.includes('security') || content.includes('encrypt')) tags.push('Security');
+
+    // If no tags matched, add generic ones
+    if (tags.length === 0) {
+        if (question.questionType === 'ESSAY') tags.push('Conceptual');
+        else tags.push('Fundamentals');
+    }
+
+    return [...new Set(tags)]; // Remove duplicates
+};
+
+// Mock difficulty generator
+const generateMockDifficulty = (question: Question): 'Easy' | 'Medium' | 'Hard' => {
+    const content = question.content.toLowerCase();
+    const optionsCount = question.options.length;
+
+    // More complex questions tend to have more options or specific keywords
+    if (
+        content.includes('advanced') ||
+        content.includes('optimize') ||
+        content.includes('implement') ||
+        content.includes('design') ||
+        optionsCount >= 5
+    ) {
+        return 'Hard';
+    } else if (
+        content.includes('explain') ||
+        content.includes('difference') ||
+        content.includes('compare') ||
+        optionsCount >= 3
+    ) {
+        return 'Medium';
+    } else {
+        return 'Easy';
+    }
+};
+
+// Mock questions data for testing
+const createMockQuestions = (): QuestionWithTags[] => {
+    const timestamp = new Date().toISOString();
+    const categories: QuestionCategory[] = [
+        { id: 'cat-java', name: 'Java', description: 'Java programming questions', createdAt: timestamp, updatedAt: timestamp },
+        { id: 'cat-python', name: 'Python', description: 'Python programming questions', createdAt: timestamp, updatedAt: timestamp },
+        { id: 'cat-cpp', name: 'C++', description: 'C++ programming questions', createdAt: timestamp, updatedAt: timestamp },
+        { id: 'cat-js', name: 'JavaScript', description: 'JavaScript programming questions', createdAt: timestamp, updatedAt: timestamp },
+        { id: 'cat-sql', name: 'Database & SQL', description: 'Database and SQL questions', createdAt: timestamp, updatedAt: timestamp },
+        { id: 'cat-soft', name: 'Soft Skills', description: 'Soft skills and behavioral questions', createdAt: timestamp, updatedAt: timestamp }
+    ];
+
+    const mockQuestions: Array<Omit<QuestionWithTags, 'createdAt' | 'updatedAt'>> = [
+        // Java Questions
+        {
+            id: 'mock-1',
+            content: 'What is the difference between HashMap and Hashtable in Java?',
+            questionType: 'SINGLE_CHOICE',
+            isActive: true,
+            category: categories[0],
+            options: [
+                { id: 'opt-1', content: 'HashMap is synchronized, Hashtable is not', correct: false, orderIndex: 0 },
+                { id: 'opt-2', content: 'Hashtable is synchronized, HashMap is not', correct: true, orderIndex: 1 },
+                { id: 'opt-3', content: 'Both are synchronized', correct: false, orderIndex: 2 },
+                { id: 'opt-4', content: 'Neither is synchronized', correct: false, orderIndex: 3 }
+            ],
+            tags: ['Collections', 'OOP', 'Concurrency'],
+            difficulty: 'Medium'
+        },
+        {
+            id: 'mock-2',
+            content: 'Explain the Java Stream API and its benefits',
+            questionType: 'ESSAY',
+            isActive: true,
+            category: categories[0],
+            options: [],
+            tags: ['Streams', 'Functional'],
+            difficulty: 'Medium'
+        },
+        {
+            id: 'mock-3',
+            content: 'What is the purpose of the volatile keyword in Java?',
+            questionType: 'SINGLE_CHOICE',
+            isActive: true,
+            category: categories[0],
+            options: [
+                { id: 'opt-5', content: 'Makes variable immutable', correct: false, orderIndex: 0 },
+                { id: 'opt-6', content: 'Ensures visibility of changes across threads', correct: true, orderIndex: 1 },
+                { id: 'opt-7', content: 'Makes variable static', correct: false, orderIndex: 2 }
+            ],
+            tags: ['Concurrency', 'JVM'],
+            difficulty: 'Hard'
+        },
+        {
+            id: 'mock-4',
+            content: 'Which of the following are valid ways to create a thread in Java?',
+            questionType: 'MULTIPLE_CHOICE',
+            isActive: true,
+            category: categories[0],
+            options: [
+                { id: 'opt-8', content: 'Extend Thread class', correct: true, orderIndex: 0 },
+                { id: 'opt-9', content: 'Implement Runnable interface', correct: true, orderIndex: 1 },
+                { id: 'opt-10', content: 'Implement Callable interface', correct: true, orderIndex: 2 },
+                { id: 'opt-11', content: 'Extend Object class', correct: false, orderIndex: 3 }
+            ],
+            tags: ['Concurrency', 'OOP'],
+            difficulty: 'Medium'
+        },
+        {
+            id: 'mock-5',
+            content: 'What is the time complexity of ArrayList.get(index)?',
+            questionType: 'SINGLE_CHOICE',
+            isActive: true,
+            category: categories[0],
+            options: [
+                { id: 'opt-12', content: 'O(1)', correct: true, orderIndex: 0 },
+                { id: 'opt-13', content: 'O(n)', correct: false, orderIndex: 1 },
+                { id: 'opt-14', content: 'O(log n)', correct: false, orderIndex: 2 }
+            ],
+            tags: ['Collections', 'Algorithms'],
+            difficulty: 'Easy'
+        },
+        {
+            id: 'mock-6',
+            content: 'Explain exception handling in Java with try-catch-finally',
+            questionType: 'ESSAY',
+            isActive: true,
+            category: categories[0],
+            options: [],
+            tags: ['Exception Handling', 'Fundamentals'],
+            difficulty: 'Easy'
+        },
+
+        // Python Questions
+        {
+            id: 'mock-7',
+            content: 'What are Python decorators and how do they work?',
+            questionType: 'ESSAY',
+            isActive: true,
+            category: categories[1],
+            options: [],
+            tags: ['Advanced', 'Functional'],
+            difficulty: 'Hard'
+        },
+        {
+            id: 'mock-8',
+            content: 'Which data structure would you use for fast lookups in Python?',
+            questionType: 'SINGLE_CHOICE',
+            isActive: true,
+            category: categories[1],
+            options: [
+                { id: 'opt-15', content: 'List', correct: false, orderIndex: 0 },
+                { id: 'opt-16', content: 'Dictionary', correct: true, orderIndex: 1 },
+                { id: 'opt-17', content: 'Tuple', correct: false, orderIndex: 2 },
+                { id: 'opt-18', content: 'Set', correct: false, orderIndex: 3 }
+            ],
+            tags: ['Data Structures', 'Algorithms'],
+            difficulty: 'Easy'
+        },
+        {
+            id: 'mock-9',
+            content: 'Explain the difference between list and tuple in Python',
+            questionType: 'SINGLE_CHOICE',
+            isActive: true,
+            category: categories[1],
+            options: [
+                { id: 'opt-19', content: 'Lists are mutable, tuples are immutable', correct: true, orderIndex: 0 },
+                { id: 'opt-20', content: 'Lists are immutable, tuples are mutable', correct: false, orderIndex: 1 },
+                { id: 'opt-21', content: 'No difference', correct: false, orderIndex: 2 }
+            ],
+            tags: ['Data Structures', 'Fundamentals'],
+            difficulty: 'Easy'
+        },
+        {
+            id: 'mock-10',
+            content: 'How do you implement async/await in Python?',
+            questionType: 'ESSAY',
+            isActive: true,
+            category: categories[1],
+            options: [],
+            tags: ['Async', 'Advanced'],
+            difficulty: 'Hard'
+        },
+        {
+            id: 'mock-11',
+            content: 'What is pandas used for in Python?',
+            questionType: 'SINGLE_CHOICE',
+            isActive: true,
+            category: categories[1],
+            options: [
+                { id: 'opt-22', content: 'Web development', correct: false, orderIndex: 0 },
+                { id: 'opt-23', content: 'Data analysis and manipulation', correct: true, orderIndex: 1 },
+                { id: 'opt-24', content: 'GUI development', correct: false, orderIndex: 2 },
+                { id: 'opt-25', content: 'Game development', correct: false, orderIndex: 3 }
+            ],
+            tags: ['Data Science', 'Libraries'],
+            difficulty: 'Easy'
+        },
+
+        // C++ Questions
+        {
+            id: 'mock-12',
+            content: 'Explain polymorphism in C++ with examples',
+            questionType: 'ESSAY',
+            isActive: true,
+            category: categories[2],
+            options: [],
+            tags: ['OOP', 'Fundamentals'],
+            difficulty: 'Medium'
+        },
+        {
+            id: 'mock-13',
+            content: 'What is the difference between pointers and references in C++?',
+            questionType: 'MULTIPLE_CHOICE',
+            isActive: true,
+            category: categories[2],
+            options: [
+                { id: 'opt-26', content: 'Pointers can be null, references cannot', correct: true, orderIndex: 0 },
+                { id: 'opt-27', content: 'Pointers can be reassigned, references cannot', correct: true, orderIndex: 1 },
+                { id: 'opt-28', content: 'Pointers use & operator', correct: false, orderIndex: 2 },
+                { id: 'opt-29', content: 'References use * operator', correct: false, orderIndex: 3 }
+            ],
+            tags: ['Memory', 'Fundamentals'],
+            difficulty: 'Medium'
+        },
+        {
+            id: 'mock-14',
+            content: 'What are smart pointers in modern C++?',
+            questionType: 'SINGLE_CHOICE',
+            isActive: true,
+            category: categories[2],
+            options: [
+                { id: 'opt-30', content: 'Pointers with automatic memory management', correct: true, orderIndex: 0 },
+                { id: 'opt-31', content: 'Faster regular pointers', correct: false, orderIndex: 1 },
+                { id: 'opt-32', content: 'AI-powered pointers', correct: false, orderIndex: 2 }
+            ],
+            tags: ['Modern C++', 'Memory'],
+            difficulty: 'Hard'
+        },
+        {
+            id: 'mock-15',
+            content: 'Explain template metaprogramming in C++',
+            questionType: 'ESSAY',
+            isActive: true,
+            category: categories[2],
+            options: [],
+            tags: ['Templates', 'Advanced'],
+            difficulty: 'Hard'
+        },
+
+        // JavaScript Questions
+        {
+            id: 'mock-16',
+            content: 'What is a closure in JavaScript?',
+            questionType: 'SINGLE_CHOICE',
+            isActive: true,
+            category: categories[3],
+            options: [
+                { id: 'opt-33', content: 'A function with access to outer scope', correct: true, orderIndex: 0 },
+                { id: 'opt-34', content: 'A closed loop', correct: false, orderIndex: 1 },
+                { id: 'opt-35', content: 'A private class', correct: false, orderIndex: 2 }
+            ],
+            tags: ['Core JS', 'Fundamentals'],
+            difficulty: 'Medium'
+        },
+        {
+            id: 'mock-17',
+            content: 'How do Promises work in JavaScript?',
+            questionType: 'ESSAY',
+            isActive: true,
+            category: categories[3],
+            options: [],
+            tags: ['Async', 'Core JS'],
+            difficulty: 'Medium'
+        },
+        {
+            id: 'mock-18',
+            content: 'What is the Virtual DOM in React?',
+            questionType: 'SINGLE_CHOICE',
+            isActive: true,
+            category: categories[3],
+            options: [
+                { id: 'opt-36', content: 'A lightweight copy of the actual DOM', correct: true, orderIndex: 0 },
+                { id: 'opt-37', content: 'A virtual reality interface', correct: false, orderIndex: 1 },
+                { id: 'opt-38', content: 'A DOM for virtual machines', correct: false, orderIndex: 2 }
+            ],
+            tags: ['React', 'DOM'],
+            difficulty: 'Medium'
+        },
+        {
+            id: 'mock-19',
+            content: 'Explain event bubbling and event capturing',
+            questionType: 'ESSAY',
+            isActive: true,
+            category: categories[3],
+            options: [],
+            tags: ['Events', 'DOM'],
+            difficulty: 'Hard'
+        },
+
+        // Database & SQL Questions
+        {
+            id: 'mock-20',
+            content: 'What is the difference between INNER JOIN and LEFT JOIN?',
+            questionType: 'SINGLE_CHOICE',
+            isActive: true,
+            category: categories[4],
+            options: [
+                { id: 'opt-39', content: 'LEFT JOIN returns all rows from left table', correct: true, orderIndex: 0 },
+                { id: 'opt-40', content: 'INNER JOIN returns all rows from left table', correct: false, orderIndex: 1 },
+                { id: 'opt-41', content: 'No difference', correct: false, orderIndex: 2 }
+            ],
+            tags: ['SQL', 'Fundamentals'],
+            difficulty: 'Easy'
+        },
+        {
+            id: 'mock-21',
+            content: 'Explain database indexing and its impact on performance',
+            questionType: 'ESSAY',
+            isActive: true,
+            category: categories[4],
+            options: [],
+            tags: ['Performance', 'SQL'],
+            difficulty: 'Hard'
+        },
+        {
+            id: 'mock-22',
+            content: 'What does ACID stand for in database transactions?',
+            questionType: 'MULTIPLE_CHOICE',
+            isActive: true,
+            category: categories[4],
+            options: [
+                { id: 'opt-42', content: 'Atomicity', correct: true, orderIndex: 0 },
+                { id: 'opt-43', content: 'Consistency', correct: true, orderIndex: 1 },
+                { id: 'opt-44', content: 'Isolation', correct: true, orderIndex: 2 },
+                { id: 'opt-45', content: 'Durability', correct: true, orderIndex: 3 },
+                { id: 'opt-46', content: 'Availability', correct: false, orderIndex: 4 }
+            ],
+            tags: ['Transactions', 'Fundamentals'],
+            difficulty: 'Medium'
+        },
+        {
+            id: 'mock-23',
+            content: 'Compare SQL and NoSQL databases',
+            questionType: 'ESSAY',
+            isActive: true,
+            category: categories[4],
+            options: [],
+            tags: ['NoSQL', 'SQL'],
+            difficulty: 'Medium'
+        },
+
+        // Soft Skills Questions
+        {
+            id: 'mock-24',
+            content: 'How do you handle conflicts within a team?',
+            questionType: 'ESSAY',
+            isActive: true,
+            category: categories[5],
+            options: [],
+            tags: ['Teamwork', 'Communication'],
+            difficulty: 'Medium'
+        },
+        {
+            id: 'mock-25',
+            content: 'What makes effective communication in a software project?',
+            questionType: 'MULTIPLE_CHOICE',
+            isActive: true,
+            category: categories[5],
+            options: [
+                { id: 'opt-47', content: 'Clear and concise messages', correct: true, orderIndex: 0 },
+                { id: 'opt-48', content: 'Active listening', correct: true, orderIndex: 1 },
+                { id: 'opt-49', content: 'Regular updates', correct: true, orderIndex: 2 },
+                { id: 'opt-50', content: 'Using technical jargon always', correct: false, orderIndex: 3 }
+            ],
+            tags: ['Communication', 'Teamwork'],
+            difficulty: 'Easy'
+        },
+        {
+            id: 'mock-26',
+            content: 'Describe your problem-solving approach for complex technical issues',
+            questionType: 'ESSAY',
+            isActive: true,
+            category: categories[5],
+            options: [],
+            tags: ['Problem Solving', 'Technical'],
+            difficulty: 'Medium'
+        },
+        {
+            id: 'mock-27',
+            content: 'How do you prioritize tasks when managing multiple deadlines?',
+            questionType: 'SINGLE_CHOICE',
+            isActive: true,
+            category: categories[5],
+            options: [
+                { id: 'opt-51', content: 'By urgency and importance matrix', correct: true, orderIndex: 0 },
+                { id: 'opt-52', content: 'First come, first served', correct: false, orderIndex: 1 },
+                { id: 'opt-53', content: 'Easiest tasks first', correct: false, orderIndex: 2 }
+            ],
+            tags: ['Time Management', 'Leadership'],
+            difficulty: 'Medium'
+        }
+    ];
+
+    // Add timestamp fields to all mock questions
+    return mockQuestions.map(q => ({
+        ...q,
+        createdAt: timestamp,
+        updatedAt: timestamp
+    }));
+};
+
+export default function QuestionBankMockPage() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
@@ -30,24 +495,56 @@ export default function QuestionManagementPage() {
 
     // NEW: Tag filtering state
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
     const [showFilters, setShowFilters] = useState(false);
 
     // Fetch categories
-    const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    const { data: apiCategories = [], isLoading: categoriesLoading } = useQuery({
         queryKey: ['question-categories'],
         queryFn: () => questionCategoryApi.getAll()
     });
 
-    // Fetch questions with tags - using new getAllContent API
-    const { data: allQuestions = [], isLoading: questionsLoading } = useQuery({
+    // Merge API categories with mock categories
+    const categories = useMemo(() => {
+        const mockCategories: QuestionCategory[] = [
+            { id: 'cat-java', name: 'Java', description: 'Java programming questions', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { id: 'cat-python', name: 'Python', description: 'Python programming questions', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { id: 'cat-cpp', name: 'C++', description: 'C++ programming questions', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { id: 'cat-js', name: 'JavaScript', description: 'JavaScript programming questions', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { id: 'cat-sql', name: 'Database & SQL', description: 'Database and SQL questions', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { id: 'cat-soft', name: 'Soft Skills', description: 'Soft skills and behavioral questions', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+        ];
+
+        // Combine mock categories with API categories (mock first for testing visibility)
+        return [...mockCategories, ...apiCategories];
+    }, [apiCategories]);
+
+    // Fetch questions and add mock tags
+    const { data: rawQuestions = [], isLoading: questionsLoading } = useQuery({
         queryKey: ['questions'],
-        queryFn: () => questionApi.getAllContent()
+        queryFn: () => questionApi.getAll()
     });
+
+    // Enhance questions with mock tags and difficulty + Add mock questions
+    const allQuestions: QuestionWithTags[] = useMemo(() => {
+        // Enhance real API questions with tags and difficulty
+        const enhancedRealQuestions = rawQuestions.map((q: Question) => ({
+            ...q,
+            tags: generateMockTags(q),
+            difficulty: generateMockDifficulty(q)
+        }));
+
+        // Get mock questions
+        const mockQuestions = createMockQuestions();
+
+        // Combine both (mock questions first for easy testing)
+        return [...mockQuestions, ...enhancedRealQuestions];
+    }, [rawQuestions]);
 
     // Filter categories by search
     const filteredCategories = useMemo(() => {
         if (!categorySearch) return categories;
-        return categories.filter((c: QuestionCategory) =>
+        return categories.filter((c) =>
             c.name.toLowerCase().includes(categorySearch.toLowerCase())
         );
     }, [categories, categorySearch]);
@@ -63,7 +560,7 @@ export default function QuestionManagementPage() {
         const tagCounts = new Map<string, number>();
         questionsInCategory.forEach(q => {
             q.tags?.forEach(tag => {
-                tagCounts.set(tag.name, (tagCounts.get(tag.name) || 0) + 1);
+                tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
             });
         });
 
@@ -82,7 +579,7 @@ export default function QuestionManagementPage() {
         return filteredCategories.slice(startIndex, endIndex);
     }, [filteredCategories, safeCategoryPage, categoryPageSize]);
 
-    // Filter questions by selected category, tags, and search
+    // Filter questions by category, tags, difficulty, and search
     const filteredQuestions = useMemo(() => {
         let filtered = allQuestions;
 
@@ -94,7 +591,14 @@ export default function QuestionManagementPage() {
         // Filter by tags (OR logic: question must have at least one selected tag)
         if (selectedTags.length > 0) {
             filtered = filtered.filter(q =>
-                q.tags?.some(tag => selectedTags.includes(tag.name))
+                q.tags?.some(tag => selectedTags.includes(tag))
+            );
+        }
+
+        // Filter by difficulty
+        if (selectedDifficulties.length > 0) {
+            filtered = filtered.filter(q =>
+                q.difficulty && selectedDifficulties.includes(q.difficulty)
             );
         }
 
@@ -103,17 +607,15 @@ export default function QuestionManagementPage() {
             filtered = filtered.filter(q =>
                 q.content.toLowerCase().includes(questionSearch.toLowerCase()) ||
                 q.category?.name.toLowerCase().includes(questionSearch.toLowerCase()) ||
-                q.tags?.some(tag => tag.name.toLowerCase().includes(questionSearch.toLowerCase()))
+                q.tags?.some(tag => tag.toLowerCase().includes(questionSearch.toLowerCase()))
             );
         }
 
         return filtered;
-    }, [allQuestions, selectedCategoryId, selectedTags, questionSearch]);
+    }, [allQuestions, selectedCategoryId, selectedTags, selectedDifficulties, questionSearch]);
 
     // Pagination
     const totalPages = Math.ceil(filteredQuestions.length / pageSize);
-
-    // Ensure current page is within bounds
     const safePage = Math.min(currentPage, Math.max(1, totalPages));
 
     const paginatedQuestions = useMemo(() => {
@@ -126,6 +628,7 @@ export default function QuestionManagementPage() {
     const handleCategoryChange = (categoryId: string) => {
         setSelectedCategoryId(categoryId);
         setSelectedTags([]);
+        setSelectedDifficulties([]);
         setCurrentPage(1);
     };
 
@@ -138,13 +641,21 @@ export default function QuestionManagementPage() {
         setCurrentPage(1);
     };
 
-    const clearAllFilters = () => {
-        setSelectedTags([]);
-        setQuestionSearch('');
+    const handleDifficultyToggle = (difficulty: string) => {
+        setSelectedDifficulties(prev =>
+            prev.includes(difficulty)
+                ? prev.filter(d => d !== difficulty)
+                : [...prev, difficulty]
+        );
         setCurrentPage(1);
     };
 
-    const hasActiveFilters = selectedTags.length > 0 || questionSearch !== '';
+    const clearAllFilters = () => {
+        setSelectedTags([]);
+        setSelectedDifficulties([]);
+        setQuestionSearch('');
+        setCurrentPage(1);
+    };
 
     // Delete mutation
     const deleteMutation = useMutation({
@@ -186,15 +697,31 @@ export default function QuestionManagementPage() {
         );
     };
 
+    const getDifficultyBadge = (difficulty: 'Easy' | 'Medium' | 'Hard') => {
+        const badgeClasses = {
+            Easy: 'bg-green-50 text-green-700 border-green-200',
+            Medium: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+            Hard: 'bg-red-50 text-red-700 border-red-200'
+        };
+
+        return (
+            <Badge variant="outline" className={badgeClasses[difficulty]}>
+                {difficulty}
+            </Badge>
+        );
+    };
+
+    const hasActiveFilters = selectedTags.length > 0 || selectedDifficulties.length > 0 || questionSearch !== '';
+
     return (
-        <MainLayout pathName={{ questions: "Question Bank" }}>
+        <MainLayout pathName={{ questions: "Question Bank (Mock)" }}>
             <div className="h-full flex flex-col overflow-hidden gap-6 p-6">
                 {/* Header Section */}
                 <div className="flex items-center justify-between">
-                    {/* <MainHeader
-                        title="Question Bank"
-                        description="Manage your assessment questions"
-                    /> */}
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Question Bank</h1>
+                        <p className="text-sm text-gray-600 mt-1">Browse and filter questions by category and tags</p>
+                    </div>
                     <PermissionGate permission="QUESTION_CREATE">
                         <Button onClick={() => navigate('/questions/create')}>
                             <Plus className="mr-2 h-4 w-4" />
@@ -203,24 +730,22 @@ export default function QuestionManagementPage() {
                     </PermissionGate>
                 </div>
 
-                {/* Stats Cards */}
-                {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Stats Cards
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-white rounded-lg p-4 border">
                         <p className="text-sm text-gray-600">Total Questions</p>
                         <p className="text-2xl font-bold text-gray-900 mt-1">{allQuestions.length}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 border">
-                        <p className="text-sm text-gray-600">Active</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">
-                            {allQuestions.filter(q => q.isActive).length}
-                        </p>
                     </div>
                     <div className="bg-white rounded-lg p-4 border">
                         <p className="text-sm text-gray-600">Categories</p>
                         <p className="text-2xl font-bold text-gray-900 mt-1">{categories.length}</p>
                     </div>
                     <div className="bg-white rounded-lg p-4 border">
-                        <p className="text-sm text-gray-600">Filtered</p>
+                        <p className="text-sm text-gray-600">Available Tags</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">{availableTags.length}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border">
+                        <p className="text-sm text-gray-600">Filtered Results</p>
                         <p className="text-2xl font-bold text-gray-900 mt-1">{filteredQuestions.length}</p>
                     </div>
                 </div> */}
@@ -233,7 +758,6 @@ export default function QuestionManagementPage() {
                             <p className="text-xs text-gray-600 mt-1">
                                 {filteredCategories.length} categor{filteredCategories.length !== 1 ? 'ies' : 'y'}
                             </p>
-                            {/* Category Search */}
                             <div className="pt-3">
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -247,8 +771,6 @@ export default function QuestionManagementPage() {
                                 </div>
                             </div>
                         </div>
-
-
 
                         <div className="flex-1 overflow-auto p-4">
                             {categoriesLoading ? (
@@ -269,7 +791,7 @@ export default function QuestionManagementPage() {
                                             </span>
                                         </div>
                                     </button>
-                                    {paginatedCategories.map((category: QuestionCategory) => {
+                                    {paginatedCategories.map((category) => {
                                         const count = allQuestions.filter(q => q.category?.id === category.id).length;
                                         const isSelected = selectedCategoryId === category.id;
                                         return (
@@ -299,7 +821,7 @@ export default function QuestionManagementPage() {
                             <div className="p-4 border-t bg-gray-50">
                                 <div className="flex items-center justify-between">
                                     <div className="text-xs text-gray-600">
-                                        Showing {((safeCategoryPage - 1) * categoryPageSize) + 1}-{Math.min(safeCategoryPage * categoryPageSize, filteredCategories.length)} of {filteredCategories.length}
+                                        {((safeCategoryPage - 1) * categoryPageSize) + 1}-{Math.min(safeCategoryPage * categoryPageSize, filteredCategories.length)} of {filteredCategories.length}
                                     </div>
                                     <div className="flex gap-1">
                                         <Button
@@ -324,14 +846,14 @@ export default function QuestionManagementPage() {
                         )}
                     </div>
 
-                    {/* Right Side - Questions */}
+                    {/* Right Side - Questions with Tags */}
                     <div className="flex-1 bg-white rounded-lg border overflow-hidden flex flex-col">
                         <div className="p-4 border-b bg-gray-50 space-y-3">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="font-semibold text-gray-900">
                                         {selectedCategoryId
-                                            ? categories.find((c: QuestionCategory) => c.id === selectedCategoryId)?.name
+                                            ? categories.find((c) => c.id === selectedCategoryId)?.name
                                             : 'All Questions'}
                                     </h3>
                                     <p className="text-xs text-gray-600 mt-1">
@@ -378,9 +900,9 @@ export default function QuestionManagementPage() {
                                 >
                                     <Filter className="h-4 w-4" />
                                     Filters
-                                    {selectedTags.length > 0 && (
+                                    {hasActiveFilters && (
                                         <span className="bg-white text-blue-600 px-1.5 py-0.5 rounded-full text-xs font-bold">
-                                            {selectedTags.length}
+                                            {selectedTags.length + selectedDifficulties.length}
                                         </span>
                                     )}
                                 </Button>
@@ -397,7 +919,7 @@ export default function QuestionManagementPage() {
                             </div>
 
                             {/* Active Filters Display */}
-                            {selectedTags.length > 0 && (
+                            {hasActiveFilters && (
                                 <div className="flex flex-wrap gap-2">
                                     {selectedTags.map(tag => (
                                         <button
@@ -409,29 +931,72 @@ export default function QuestionManagementPage() {
                                             <X className="h-3 w-3" />
                                         </button>
                                     ))}
+                                    {selectedDifficulties.map(difficulty => (
+                                        <button
+                                            key={difficulty}
+                                            onClick={() => handleDifficultyToggle(difficulty)}
+                                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-white hover:opacity-90 transition-opacity ${difficulty === 'Easy' ? 'bg-green-600'
+                                                    : difficulty === 'Medium' ? 'bg-yellow-600'
+                                                        : 'bg-red-600'
+                                                }`}
+                                        >
+                                            {difficulty}
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    ))}
                                 </div>
                             )}
 
                             {/* Collapsible Filter Panel */}
-                            {showFilters && availableTags.length > 0 && (
-                                <div className="border rounded-lg p-3 bg-white">
-                                    <span className="text-xs font-semibold text-gray-700 mb-2 block">
-                                        Tags ({availableTags.length})
-                                    </span>
-                                    <div className="max-h-32 overflow-y-auto flex flex-wrap gap-1.5">
-                                        {availableTags.map(({ tag, count }) => (
-                                            <button
-                                                key={tag}
-                                                onClick={() => handleTagToggle(tag)}
-                                                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${selectedTags.includes(tag)
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                    }`}
-                                            >
-                                                {tag} ({count})
-                                            </button>
-                                        ))}
+                            {showFilters && (
+                                <div className="border rounded-lg p-3 bg-white space-y-3">
+                                    {/* Difficulty Filter */}
+                                    <div>
+                                        <span className="text-xs font-semibold text-gray-700 mb-2 block">Difficulty</span>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(['Easy', 'Medium', 'Hard'] as const).map(difficulty => {
+                                                const count = (selectedCategoryId ? allQuestions.filter(q => q.category?.id === selectedCategoryId) : allQuestions)
+                                                    .filter(q => q.difficulty === difficulty).length;
+                                                return (
+                                                    <button
+                                                        key={difficulty}
+                                                        onClick={() => handleDifficultyToggle(difficulty)}
+                                                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${selectedDifficulties.includes(difficulty)
+                                                                ? difficulty === 'Easy' ? 'bg-green-600 text-white'
+                                                                    : difficulty === 'Medium' ? 'bg-yellow-600 text-white'
+                                                                        : 'bg-red-600 text-white'
+                                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                            }`}
+                                                    >
+                                                        {difficulty} ({count})
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
+
+                                    {/* Tags Filter */}
+                                    {availableTags.length > 0 && (
+                                        <div>
+                                            <span className="text-xs font-semibold text-gray-700 mb-2 block">
+                                                Tags ({availableTags.length})
+                                            </span>
+                                            <div className="max-h-32 overflow-y-auto flex flex-wrap gap-1.5">
+                                                {availableTags.map(({ tag, count }) => (
+                                                    <button
+                                                        key={tag}
+                                                        onClick={() => handleTagToggle(tag)}
+                                                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${selectedTags.includes(tag)
+                                                                ? 'bg-blue-600 text-white'
+                                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                            }`}
+                                                    >
+                                                        {tag} ({count})
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -467,7 +1032,7 @@ export default function QuestionManagementPage() {
                                     ? "grid grid-cols-1 lg:grid-cols-2 gap-4"
                                     : "space-y-4"
                                 }>
-                                    {paginatedQuestions.map((question: QuestionListItem) => (
+                                    {paginatedQuestions.map((question: QuestionWithTags) => (
                                         <div
                                             key={question.id}
                                             className="border rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all"
@@ -476,6 +1041,7 @@ export default function QuestionManagementPage() {
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                                                         {getQuestionTypeBadge(question.questionType)}
+                                                        {question.difficulty && getDifficultyBadge(question.difficulty)}
                                                         <Badge
                                                             variant="outline"
                                                             className={question.isActive
@@ -489,19 +1055,19 @@ export default function QuestionManagementPage() {
                                                         {question.content}
                                                     </p>
 
-                                                    {/* Question Tags */}
+                                                    {/* NEW: Question Tags */}
                                                     {question.tags && question.tags.length > 0 && (
                                                         <div className="flex flex-wrap gap-1.5 mb-2">
                                                             {question.tags.map(tag => (
                                                                 <button
-                                                                    key={tag.id}
-                                                                    onClick={() => handleTagToggle(tag.name)}
-                                                                    className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${selectedTags.includes(tag.name)
+                                                                    key={tag}
+                                                                    onClick={() => handleTagToggle(tag)}
+                                                                    className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${selectedTags.includes(tag)
                                                                         ? 'bg-blue-600 text-white'
                                                                         : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
                                                                         }`}
                                                                 >
-                                                                    #{tag.name}
+                                                                    #{tag}
                                                                 </button>
                                                             ))}
                                                         </div>
@@ -551,7 +1117,7 @@ export default function QuestionManagementPage() {
                                                         .sort((a, b) => a.orderIndex - b.orderIndex)
                                                         .map((option, idx) => (
                                                             <div
-                                                                key={idx}
+                                                                key={option.id}
                                                                 className={`text-sm px-3 py-2 rounded-md border ${option.correct
                                                                     ? 'bg-green-50 text-green-900 border-green-300 font-medium'
                                                                     : 'bg-gray-50 text-gray-700 border-gray-200'
