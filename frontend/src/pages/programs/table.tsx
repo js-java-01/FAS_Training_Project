@@ -1,22 +1,11 @@
 import { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
-import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import ConfirmDialog from "@/components/ui/confirmdialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import type { TrainingProgram } from "@/types/trainingProgram";
-import { trainingProgramApi } from "@/api/trainingProgramApi";
 import { useGetAllTrainingPrograms } from "./services/queries";
 import { getColumns } from "./column";
 
@@ -28,10 +17,6 @@ export default function ProgramsTable() {
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
 
-  const [deletingProgram, setDeletingProgram] = useState<TrainingProgram | null>(null);
-  const [viewingProgram, setViewingProgram] = useState<TrainingProgram | null>(null);
-
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const sortParam = useMemo(() => {
@@ -65,29 +50,10 @@ export default function ProgramsTable() {
   const columns = useMemo(
     () =>
       getColumns({
-        onView: setViewingProgram,
-        onDelete: setDeletingProgram,
+        onView: (program) => navigate(`/programs/${program.id}`),
       }),
-    [],
+    [navigate],
   );
-
-  const invalidateAll = async () => {
-    await queryClient.invalidateQueries({ queryKey: ["training-programs"] });
-  };
-
-  const handleDelete = async () => {
-    if (!deletingProgram) return;
-
-    try {
-      await trainingProgramApi.deleteTrainingProgram(deletingProgram.id);
-      toast.success("Deleted successfully");
-      await invalidateAll();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Delete failed");
-    } finally {
-      setDeletingProgram(null);
-    }
-  };
 
   return (
     <div className="relative space-y-4 h-full flex-1">
@@ -118,37 +84,6 @@ export default function ProgramsTable() {
           </div>
         }
       />
-
-      <ConfirmDialog
-        open={!!deletingProgram}
-        title="Delete Program"
-        description={`Are you sure you want to delete "${deletingProgram?.name}"?`}
-        onCancel={() => setDeletingProgram(null)}
-        onConfirm={() => void handleDelete()}
-      />
-
-      <Dialog open={!!viewingProgram} onOpenChange={() => setViewingProgram(null)}>
-        <DialogContent className="sm:max-w-140">
-          <DialogHeader>
-            <DialogTitle>Training Program Details</DialogTitle>
-            <DialogDescription>{viewingProgram?.name}</DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 gap-3 text-sm">
-            <div>
-              <p className="font-semibold">Name</p>
-              <p className="text-muted-foreground">{viewingProgram?.name || "-"}</p>
-            </div>
-            <div>
-              <p className="font-semibold">Version</p>
-              <p className="text-muted-foreground">{viewingProgram?.version || "-"}</p>
-            </div>
-            <div>
-              <p className="font-semibold">Description</p>
-              <p className="text-muted-foreground">{viewingProgram?.description || "-"}</p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

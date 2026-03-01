@@ -23,3 +23,12 @@ export const useGetAllTrainingPrograms = (params: {
     staleTime: 5 * 60 * 1000,
   });
 };
+
+export const useGetTrainingProgramById = (id?: string) => {
+  return useQuery<TrainingProgram>({
+    queryKey: trainingProgramKeys.detail(id || ""),
+    queryFn: () => trainingProgramApi.getTrainingProgramById(id || ""),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+};

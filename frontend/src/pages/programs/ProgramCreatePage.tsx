@@ -1,203 +1,152 @@
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
-import { useMemo, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { trainingProgramApi } from "@/api/trainingProgramApi";
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
-const TOPIC_OPTIONS = [
-  "[CONTENT-CREATOR] - Content Creation for Digital Platforms - version: v1.0",
-  "[UX-RESEARCH] - User Experience Research - version: v1.0",
-  "[PRODUCT-MGMT] - Product Management for Tech Products - version: v1.0",
-  "[DATA-GOVERN] - Data Governance & Compliance - version: v1.0",
-  "[CLOUD-SEC] - Cloud Security Best Practices - version: v1.0",
-  "[NETWORK-BASICS] - Computer Network - version: v1.0",
-  "[SHELL-SCRIPT] - Shell Scripting for Automation - version: v1.0",
-  "[LINUX-INTRO] - Linux Command Line - version: v1.0",
-];
+type FormState = {
+  name: string;
+  version: string;
+  description: string;
+};
 
 export default function ProgramCreatePage() {
   const navigate = useNavigate();
-  const [topicKeyword, setTopicKeyword] = useState("");
-  const [selectedKeyword, setSelectedKeyword] = useState("");
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Partial<FormState>>({});
+  const [form, setForm] = useState<FormState>({
+    name: "",
+    version: "1.0.0",
+    description: "",
+  });
 
-  const filteredTopics = useMemo(
-    () =>
-      TOPIC_OPTIONS.filter((topic) =>
-        topic.toLowerCase().includes(topicKeyword.toLowerCase()),
-      ),
-    [topicKeyword],
-  );
+  const validate = () => {
+    const nextErrors: Partial<FormState> = {};
 
-  const filteredSelectedTopics = useMemo(
-    () =>
-      selectedTopics.filter((topic) =>
-        topic.toLowerCase().includes(selectedKeyword.toLowerCase()),
-      ),
-    [selectedTopics, selectedKeyword],
-  );
+    if (!form.name.trim()) nextErrors.name = "Program name is required";
+    if (!form.version.trim()) nextErrors.version = "Version is required";
 
-  const addTopic = (topic: string) => {
-    if (selectedTopics.includes(topic)) return;
-    setSelectedTopics((prev) => [...prev, topic]);
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   };
 
-  const removeTopic = (topic: string) => {
-    setSelectedTopics((prev) => prev.filter((item) => item !== topic));
+  const handleChange = (field: keyof FormState, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+
+    setIsSubmitting(true);
+    try {
+      await trainingProgramApi.createTrainingProgram({
+        name: form.name.trim(),
+        version: form.version.trim(),
+        description: form.description.trim() || undefined,
+      });
+
+      await queryClient.invalidateQueries({ queryKey: ["training-programs"] });
+      toast.success("Training program created successfully");
+      navigate("/programs");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to create training program");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <MainLayout pathName={{ programs: "Programs", new: "New" }}>
-      <div className="h-full flex-1 flex flex-col gap-4">
+      <div className="mx-auto w-full max-w-4xl py-6 space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Create New Training Program</h1>
-          <p className="text-muted-foreground">Fill in the details to create a new training program</p>
+          <p className="text-muted-foreground">
+            Create program with basic information first. Program courses will be configured later.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 flex-1 min-h-0">
-          <div className="xl:col-span-1 border rounded-lg p-4 space-y-3 overflow-y-auto">
-            <FormField label="Code" required maxText="0/50" placeholder="Enter code" />
-            <FormField label="Version" required maxText="5/10" defaultValue="1.0.0" />
-            <SelectField label="Location" required value="Select location" />
-            <FormField label="Name" required maxText="0/50" placeholder="Enter name" />
-            <SelectField label="Technical Group" required value="Common" />
-            <FormField label="Content Link" maxText="0/300" placeholder="https://..." />
-            <FormField label="Logo" maxText="0/300" placeholder="Logo URL" />
-            <TextAreaField label="Description" maxText="0/300" placeholder="Enter description" />
-          </div>
+        <div className="grid grid-cols-1 gap-5">
+          <Card>
+            <CardHeader>
+              <CardTitle>Program Information</CardTitle>
+              <CardDescription>
+                These fields map directly to backend create API.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold">
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <span className="text-xs text-muted-foreground">{form.name.length}/100</span>
+                </div>
+                <Input
+                  value={form.name}
+                  onChange={(event) => handleChange("name", event.target.value)}
+                  placeholder="Enter training program name"
+                  maxLength={100}
+                />
+                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+              </div>
 
-          <div className="xl:col-span-1 border rounded-lg p-4 flex flex-col min-h-0">
-            <label className="text-sm font-semibold mb-2">Topic *</label>
-            <input
-              value={topicKeyword}
-              onChange={(e) => setTopicKeyword(e.target.value)}
-              placeholder="Choose or Search a Topic"
-              className="h-10 px-3 border rounded-md text-sm mb-2"
-            />
-            <div className="border rounded-md overflow-y-auto flex-1">
-              {filteredTopics.map((topic) => (
-                <button
-                  key={topic}
-                  onClick={() => addTopic(topic)}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-accent border-b last:border-b-0"
-                  type="button"
-                >
-                  {topic}
-                </button>
-              ))}
-            </div>
-          </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold">
+                    Version <span className="text-red-500">*</span>
+                  </label>
+                  <span className="text-xs text-muted-foreground">{form.version.length}/20</span>
+                </div>
+                <Input
+                  value={form.version}
+                  onChange={(event) => handleChange("version", event.target.value)}
+                  placeholder="e.g. 1.0.0"
+                  maxLength={20}
+                />
+                {errors.version && <p className="text-sm text-red-500">{errors.version}</p>}
+              </div>
 
-          <div className="xl:col-span-1 border rounded-lg p-4 flex flex-col min-h-0">
-            <label className="text-sm font-semibold mb-2">Selected Topic *</label>
-            <input
-              value={selectedKeyword}
-              onChange={(e) => setSelectedKeyword(e.target.value)}
-              placeholder="Search selected topics"
-              className="h-10 px-3 border rounded-md text-sm mb-2"
-            />
-
-            <div className="border rounded-md overflow-y-auto flex-1 p-2 space-y-2">
-              {filteredSelectedTopics.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center pt-4">No topics selected</p>
-              ) : (
-                filteredSelectedTopics.map((topic) => (
-                  <div key={topic} className="flex items-center justify-between gap-2 border rounded px-2 py-1.5">
-                    <p className="text-sm line-clamp-2">{topic}</p>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => removeTopic(topic)}>
-                      Remove
-                    </Button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold">Description</label>
+                  <span className="text-xs text-muted-foreground">{form.description.length}/500</span>
+                </div>
+                <Textarea
+                  value={form.description}
+                  onChange={(event) => handleChange("description", event.target.value)}
+                  placeholder="Enter training program description"
+                  rows={8}
+                  maxLength={500}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={() => navigate("/programs")}>Cancel</Button>
+          <Button variant="outline" onClick={() => navigate("/programs")} disabled={isSubmitting}>
+            Cancel
+          </Button>
           <Button
-            onClick={() => navigate("/programs")}
+            onClick={() => void handleSubmit()}
+            disabled={isSubmitting}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create
           </Button>
         </div>
       </div>
     </MainLayout>
-  );
-}
-
-function FormField({
-  label,
-  required,
-  maxText,
-  defaultValue,
-  placeholder,
-}: {
-  label: string;
-  required?: boolean;
-  maxText?: string;
-  defaultValue?: string;
-  placeholder?: string;
-}) {
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-semibold">
-          {label} {required && <span className="text-red-500">*</span>}
-        </label>
-        {maxText && <span className="text-xs text-muted-foreground">{maxText}</span>}
-      </div>
-      <input
-        defaultValue={defaultValue}
-        placeholder={placeholder}
-        className="h-10 w-full px-3 border rounded-md text-sm"
-      />
-    </div>
-  );
-}
-
-function TextAreaField({
-  label,
-  maxText,
-  placeholder,
-}: {
-  label: string;
-  maxText?: string;
-  placeholder?: string;
-}) {
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-semibold">{label}</label>
-        {maxText && <span className="text-xs text-muted-foreground">{maxText}</span>}
-      </div>
-      <textarea
-        placeholder={placeholder}
-        className="w-full px-3 py-2 border rounded-md text-sm resize-none"
-        rows={4}
-      />
-    </div>
-  );
-}
-
-function SelectField({
-  label,
-  required,
-  value,
-}: {
-  label: string;
-  required?: boolean;
-  value: string;
-}) {
-  return (
-    <div className="space-y-1">
-      <label className="text-sm font-semibold">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <select className="h-10 w-full px-3 border rounded-md text-sm bg-background">
-        <option>{value}</option>
-      </select>
-    </div>
   );
 }
