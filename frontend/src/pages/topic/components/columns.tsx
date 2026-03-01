@@ -5,13 +5,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import SortHeader from "@/components/data_table/SortHeader";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export const getColumns = (
-  handlers: {
-    onView?: (t: Topic) => void;
-    onEdit?: (t: Topic) => void;
-    onDelete?: (t: Topic) => void;
-  }
-) => {
+export const getColumns = (handlers: {
+  onView?: (t: Topic) => void;
+  onEdit?: (t: Topic) => void;
+  onDelete?: (t: Topic) => void;
+}) => {
   const columns: ColumnDef<Topic, any>[] = [
     {
       id: "select",
@@ -53,9 +51,11 @@ export const getColumns = (
     },
     {
       accessorKey: "topicCode",
-      header: (info) => <SortHeader title="Code" info={info} />,
-      cell: (info) => <div className="font-mono text-xs">{info.getValue()}</div>,
-      meta: { title: "Code" },
+      header: (info) => <SortHeader title="Topic Code" info={info} />,
+      cell: (info) => (
+        <div className="font-mono text-xs">{info.getValue()}</div>
+      ),
+      meta: { title: "Topic Code" },
     },
     {
       accessorKey: "createdByName",
@@ -80,12 +80,57 @@ export const getColumns = (
     {
       accessorKey: "status",
       header: "Status",
+      cell: (info) => {
+        const status = info.getValue() as string;
+        const statusStyles: Record<string, string> = {
+          DRAFT: "bg-gray-100 text-gray-600",
+          UNDER_REVIEW: "bg-blue-100 text-blue-700",
+          ACTIVE: "bg-green-100 text-green-700",
+          REJECTED: "bg-red-100 text-red-700",
+        };
+        const statusLabels: Record<string, string> = {
+          DRAFT: "Draft",
+          UNDER_REVIEW: "Under Review",
+          ACTIVE: "Active",
+          REJECTED: "Rejected",
+        };
+        return (
+          <div
+            className={`px-2 py-1 rounded text-xs w-fit ${statusStyles[status] ?? "bg-gray-100 text-gray-600"}`}
+          >
+            {statusLabels[status] ?? status}
+          </div>
+        );
+      },
+      meta: { title: "Status" },
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
       cell: (info) => (
-        <div className={`px-2 py-1 rounded text-xs w-fit ${info.getValue() === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-          {info.getValue()}
+        <div
+          className="text-sm text-gray-500 max-w-xs truncate"
+          title={info.getValue() ?? ""}
+        >
+          {info.getValue() || "—"}
         </div>
       ),
-      meta: { title: "Status" },
+      meta: { title: "Description" },
+      enableSorting: false,
+    },
+    {
+      accessorKey: "note",
+      header: "Note",
+      cell: (info) => (
+        <div
+          className="text-sm text-gray-500 max-w-[160px] truncate"
+          title={info.getValue() ?? ""}
+        >
+          {info.getValue() || "—"}
+        </div>
+      ),
+      meta: { title: "Note" },
+      enableSorting: false,
     },
     {
       id: "actions",

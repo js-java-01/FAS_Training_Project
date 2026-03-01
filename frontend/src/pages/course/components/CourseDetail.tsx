@@ -453,66 +453,118 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
 /* ─── Read-only Overview ─────────────────────────────────── */
 function OverviewTab({ course }: any) {
-  return (
-    <div className="space-y-6">
-      <Block title="Basic Information">
-        <Grid>
-          <Info
-            icon={<FiBookOpen />}
-            label="Course Name"
-            value={course.courseName}
-          />
-          <Info
-            icon={<FiHash />}
-            label="Course Code"
-            value={course.courseCode}
-          />
-          <Info icon={<FiTag />} label="Topic" value={course.topic} />
-          <Info
-            icon={<FiDollarSign />}
-            label="Price"
-            value={course.price != null ? `${course.price} VND` : undefined}
-          />
-          <Info
-            icon={<FiPercent />}
-            label="Discount"
-            value={`${course.discount ?? 0}%`}
-          />
-        </Grid>
-      </Block>
+  const statusColor: Record<string, string> = {
+    ACTIVE: "text-emerald-700 border-emerald-300",
+    DRAFT: "text-amber-700 border-amber-300",
+    UNDER_REVIEW: "text-blue-700 border-blue-300",
+    INACTIVE: "text-gray-500 border-gray-300",
+  };
+  const badgeClass =
+    statusColor[course.status] ?? "text-gray-500 border-gray-300";
 
-      <div className="grid grid-cols-2 gap-6">
+  return (
+    <div className="space-y-5">
+      {/* Identity card */}
+      <div className="rounded-xl border border-gray-200 p-6">
+        <div className="flex items-start justify-between gap-6">
+          <div className="flex items-start gap-4 flex-1 min-w-0">
+            {course.thumbnailUrl ? (
+              <img
+                src={course.thumbnailUrl}
+                alt="thumbnail"
+                className="w-16 h-16 object-cover rounded-xl border border-gray-200 shrink-0"
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-xl border border-gray-200 flex items-center justify-center shrink-0">
+                <FiBookOpen size={22} className="text-gray-400" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
+                  {course.courseCode}
+                </span>
+                {course.topic && (
+                  <>
+                    <span className="text-gray-200">|</span>
+                    <span className="text-xs text-gray-500">
+                      {course.topic}
+                    </span>
+                  </>
+                )}
+                {course.level && (
+                  <span className="text-xs text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full">
+                    {course.level}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 leading-tight">
+                {course.courseName}
+              </h2>
+              {course.description && (
+                <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                  {course.description}
+                </p>
+              )}
+            </div>
+          </div>
+          <span
+            className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${badgeClass}`}
+          >
+            {course.status}
+          </span>
+        </div>
+
+        {/* Stats row */}
+        <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-3 divide-x divide-gray-100">
+          <div className="text-center pr-4">
+            <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
+              Price
+            </p>
+            <p className="font-semibold text-gray-900 mt-1">
+              {course.price != null
+                ? `${Number(course.price).toLocaleString()} VND`
+                : "—"}
+            </p>
+          </div>
+          <div className="text-center px-4">
+            <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
+              Discount
+            </p>
+            <p className="font-semibold text-gray-900 mt-1">
+              {course.discount != null ? `${course.discount}%` : "0%"}
+            </p>
+          </div>
+          <div className="text-center pl-4">
+            <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
+              Duration
+            </p>
+            <p className="font-semibold text-gray-900 mt-1">
+              {course.estimatedTime != null
+                ? `${course.estimatedTime} min`
+                : "—"}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-5">
         <Block title="Course Details">
-          <Grid>
+          <div className="space-y-4">
             <Info icon={<FiBarChart2 />} label="Level" value={course.level} />
             <Info
-              icon={<FiClock />}
-              label="Estimated Time"
-              value={
-                course.estimatedTime != null
-                  ? `${course.estimatedTime} minutes`
-                  : undefined
-              }
+              icon={<FiUser />}
+              label="Trainer"
+              value={course.trainerName ?? course.trainerId ?? undefined}
             />
-            {course.thumbnailUrl ? (
-              <div className="col-span-2">
-                <p className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                  <FiImage size={13} /> Thumbnail
-                </p>
-                <img
-                  src={course.thumbnailUrl}
-                  alt="thumbnail"
-                  className="w-full max-h-40 object-cover rounded-md border"
-                />
-              </div>
-            ) : (
-              <Info icon={<FiImage />} label="Thumbnail" value={undefined} />
+            {course.note && (
+              <Info icon={<FiFileText />} label="Note" value={course.note} />
             )}
-          </Grid>
+          </div>
         </Block>
 
         <Block title="Metadata">
-          <Grid>
+          <div className="space-y-4">
             <Info
               icon={<FiCalendar />}
               label="Date Created"
@@ -533,7 +585,7 @@ function OverviewTab({ course }: any) {
               label="Updater"
               value={course.updatedByName ?? course.updatedBy}
             />
-          </Grid>
+          </div>
         </Block>
       </div>
     </div>
@@ -566,8 +618,10 @@ function InfoRO({ icon, label, value }: any) {
 
 function Block({ title, children }: any) {
   return (
-    <div className="border rounded-lg p-4">
-      <h2 className="font-semibold text-gray-700 mb-4">{title}</h2>
+    <div className="rounded-xl border border-gray-200 p-5">
+      <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400 mb-4">
+        {title}
+      </p>
       {children}
     </div>
   );
@@ -579,11 +633,15 @@ function Grid({ children }: any) {
 
 function Info({ icon, label, value }: any) {
   return (
-    <div className="flex gap-2">
-      <div className="text-gray-400 mt-1 shrink-0">{icon}</div>
+    <div className="flex gap-3">
+      <span className="text-gray-400 mt-0.5 shrink-0">{icon}</span>
       <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="font-medium">{value || "-"}</p>
+        <p className="text-[11px] uppercase tracking-wider text-gray-400 font-bold">
+          {label}
+        </p>
+        <p className="text-sm font-medium text-gray-900 mt-0.5">
+          {value || "—"}
+        </p>
       </div>
     </div>
   );

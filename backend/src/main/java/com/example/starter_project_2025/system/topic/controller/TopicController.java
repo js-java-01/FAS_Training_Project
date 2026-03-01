@@ -4,6 +4,7 @@ import com.example.starter_project_2025.system.topic.dto.TopicCreateRequest;
 import com.example.starter_project_2025.system.topic.dto.TopicResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicUpdateRequest;
 import com.example.starter_project_2025.system.topic.service.TopicService;
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,7 +50,7 @@ public class TopicController {
     @PreAuthorize("hasAuthority('TOPIC_UPDATE')")
     @Operation(summary = "Update topic")
     public ResponseEntity<TopicResponse> update(@PathVariable UUID id,
-                                                @RequestBody TopicUpdateRequest request) {
+            @RequestBody TopicUpdateRequest request) {
         return ResponseEntity.ok(topicService.update(id, request));
     }
 
@@ -67,8 +68,8 @@ public class TopicController {
     @Operation(summary = "Get all topics with search and filters")
     public ResponseEntity<Page<TopicResponse>> getAll(
             @RequestParam(required = false) String keyword, // Search topics input
-            @RequestParam(required = false) String level,   // Level filter (Beginner, etc.)
-            @RequestParam(required = false) String status,  // Status filter (Active, Draft, etc.)
+            @RequestParam(required = false) String level, // Level filter (Beginner, etc.)
+            @RequestParam(required = false) String status, // Status filter (Active, Draft, etc.)
             @PageableDefault(page = 0, size = 10) Pageable pageable) {
         return ResponseEntity.ok(topicService.getAll(keyword, level, status, pageable));
     }
@@ -92,7 +93,8 @@ public class TopicController {
         headers.add("Content-Disposition", "attachment; filename=topics_export.xlsx");
         return ResponseEntity.ok()
                 .headers(headers)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(new InputStreamResource(in));
     }
 
@@ -105,7 +107,8 @@ public class TopicController {
         headers.add("Content-Disposition", "attachment; filename=topic_import_template.xlsx");
         return ResponseEntity.ok()
                 .headers(headers)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(new InputStreamResource(in));
     }
 
@@ -113,8 +116,8 @@ public class TopicController {
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('TOPIC_IMPORT')")
     @Operation(summary = "Import topics from Excel")
-    public ResponseEntity<Void> importTopics(@RequestParam("file") MultipartFile file) throws IOException {
-        topicService.importTopics(file);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ImportResultResponse> importTopics(@RequestParam("file") MultipartFile file)
+            throws IOException {
+        return ResponseEntity.ok(topicService.importTopics(file));
     }
 }

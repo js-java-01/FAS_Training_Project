@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class TopicUpdateRequest {
     private String topicName;
+    private String topicCode;
     private TopicLevel level;
     private TopicStatus status;
     private String description;

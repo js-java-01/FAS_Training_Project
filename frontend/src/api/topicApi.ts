@@ -30,6 +30,18 @@ export interface UpdateTopicSkillRequest {
   skills: { skillId: string; required: boolean }[];
 }
 
+/* ─── Delivery Principle types ───────────────────────────── */
+export interface TopicDeliveryPrinciple {
+  id?: string;
+  maxTraineesPerClass?: number | null;
+  minTrainerLevel?: number | null;
+  minMentorLevel?: number | null;
+  trainingGuidelines?: string | null;
+  markingPolicy?: string | null;
+  waiverNotes?: string | null;
+  otherNotes?: string | null;
+}
+
 /* ─── Topic types ─────────────────────────────────────────── */
 export interface Topic {
   note: string;
@@ -123,12 +135,13 @@ export const topicApi = {
     return response.data;
   },
 
-  importTopics: async (file: File): Promise<void> => {
+  importTopics: async (file: File): Promise<any> => {
     const formData = new FormData();
     formData.append('file', file);
-    await axiosInstance.post('/topics/import', formData, {
+    const response = await axiosInstance.post('/topics/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return response.data;
   },
 
   /* ─── Skills ─── */
@@ -157,6 +170,17 @@ export const topicApi = {
 
   getSkillGroups: async (): Promise<SkillGroup[]> => {
     const res = await axiosInstance.get('/skills/groups');
+    return res.data;
+  },
+
+  /* ─── Delivery Principle ─── */
+  getDeliveryPrinciple: async (topicId: string): Promise<TopicDeliveryPrinciple> => {
+    const res = await axiosInstance.get(`/topics/${topicId}/delivery-principle`);
+    return res.data;
+  },
+
+  saveDeliveryPrinciple: async (topicId: string, payload: TopicDeliveryPrinciple): Promise<TopicDeliveryPrinciple> => {
+    const res = await axiosInstance.put(`/topics/${topicId}/delivery-principle`, payload);
     return res.data;
   },
 };

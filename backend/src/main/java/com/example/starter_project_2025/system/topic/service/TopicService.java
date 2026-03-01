@@ -3,6 +3,7 @@ package com.example.starter_project_2025.system.topic.service;
 import com.example.starter_project_2025.system.topic.dto.TopicCreateRequest;
 import com.example.starter_project_2025.system.topic.dto.TopicResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicUpdateRequest;
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,5 +28,5 @@ public interface TopicService {
 
     ByteArrayInputStream downloadTemplate() throws IOException;
 
-    void importTopics(MultipartFile file) throws IOException;
+    ImportResultResponse importTopics(MultipartFile file);
 }

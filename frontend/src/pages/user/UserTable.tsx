@@ -27,6 +27,7 @@ import {
 } from "./services/mutations";
 import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
+import { useSortParam } from "@/hooks/useSortParam";
 
 /* ===================== MAIN ===================== */
 export default function UserTable() {
@@ -63,11 +64,7 @@ export default function UserTable() {
     statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
 
   /* ---------- sort param ---------- */
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return "createdAt,desc";
-    const { id, desc } = sorting[0];
-    return `${id},${desc ? "desc" : "asc"}`;
-  }, [sorting]);
+  const sortParam = useSortParam(sorting, "createdAt,desc");
 
   /* ---------- mutations ---------- */
 

@@ -1268,8 +1268,8 @@ public class DataInitializer implements CommandLineRunner {
                 User admin = userRepository.findByEmail("admin@example.com").orElseThrow();
 
                 Topic javaTopic = Topic.builder()
-                                .topicCode("Java Spring Boot Master")
-                                .topicName("TOPIC-JAVA-01")
+                                .topicName("Java Spring Boot Master")
+                                .topicCode("TOPIC-JAVA-01")
                                 .level(TopicLevel.ADVANCED)
                                 .status(TopicStatus.ACTIVE)
                                 .version("v2.1")
@@ -1279,8 +1279,8 @@ public class DataInitializer implements CommandLineRunner {
                                 .build();
 
                 Topic frontendTopic = Topic.builder()
-                                .topicCode("Frontend React Pro")
-                                .topicName("TOPIC-FE-01")
+                                .topicName("Frontend React Pro")
+                                .topicCode("TOPIC-FE-01")
                                 .level(TopicLevel.INTERMEDIATE)
                                 .status(TopicStatus.ACTIVE)
                                 .version("v1.5")
@@ -1288,8 +1288,8 @@ public class DataInitializer implements CommandLineRunner {
                                 .build();
 
                 Topic databaseTopic = Topic.builder()
-                                .topicCode("Database Design & SQL")
-                                .topicName("TOPIC-DB-01")
+                                .topicName("Database Design & SQL")
+                                .topicCode("TOPIC-DB-01")
                                 .level(TopicLevel.BEGINNER)
                                 .status(TopicStatus.ACTIVE)
                                 .version("v1.0")
