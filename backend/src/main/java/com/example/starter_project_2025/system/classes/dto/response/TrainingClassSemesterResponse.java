@@ -13,5 +13,5 @@ import java.util.UUID;
 public class TrainingClassSemesterResponse {
     private UUID SemesterID;
     private String SemesterName;
-    private List<TrainingClassResponse> classes;
+    private List<ClassResponse> classes;
 }

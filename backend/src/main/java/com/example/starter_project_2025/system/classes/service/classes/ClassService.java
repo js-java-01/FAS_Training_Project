@@ -25,8 +25,6 @@ public interface ClassService {
 
     ClassResponse openClassRequest(CreateClassRequest request, String email);
 
-    Page<ClassResponse> searchTrainingClasses(SearchClassRequest request);
-
     ClassResponse updateClass(
             UUID id,
             UpdateClassRequest request,
@@ -36,7 +34,7 @@ public interface ClassService {
 
     ClassResponse rejectClass(UUID id, String approverEmail, ReviewClassRequest request);
 
-    Page<TrainingClassResponse> searchTrainingClasses(SearchClassRequest request, Pageable pageable);
+    Page<ClassResponse> searchTrainingClasses(SearchClassRequest request, Pageable pageable);
 
     List<TrainingClassSemesterResponse> getMyClasses(UUID id);
 

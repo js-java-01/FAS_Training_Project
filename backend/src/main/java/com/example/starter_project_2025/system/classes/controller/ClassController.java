@@ -12,7 +12,6 @@ import com.example.starter_project_2025.system.classes.dto.response.ClassRespons
 import com.example.starter_project_2025.system.classes.service.classes.ClassService;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ApiResponse;
 import com.example.starter_project_2025.system.modulegroups.dto.response.PageResponse;
-import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -39,11 +38,11 @@ public class ClassController {
 
         @GetMapping("")
         @PreAuthorize("hasAuthority('CLASS_READ') or hasAuthority('CLASS_USER_READ')")
-        public ResponseEntity<ApiResponse<PageResponse<TrainingClassResponse>>> searchTrainingClasses(
+        public ResponseEntity<ApiResponse<PageResponse<ClassResponse>>> searchTrainingClasses(
                         @Valid @ParameterObject @ModelAttribute SearchClassRequest request,
                         Pageable pageable) {
 
-                Page<TrainingClassResponse> pageResult = classService.searchTrainingClasses(request,
+                Page<ClassResponse> pageResult = classService.searchTrainingClasses(request,
                                 pageable);
                 return ResponseEntity.ok(
                                 ApiResponse.success(

@@ -1,11 +1,7 @@
 package com.example.starter_project_2025.system.classes.mapper;
 
-<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/classes/mapper/TrainingClassMapper.java
-import com.example.starter_project_2025.system.classes.dto.response.TrainingClassResponse;
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
-=======
 import com.example.starter_project_2025.system.classes.dto.response.ClassResponse;
->>>>>>> 7c81ff20d2666c5039534aa5560eaa2e8f46f871:backend/src/main/java/com/example/starter_project_2025/system/classes/mapper/ClassMapper.java
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.semester.entity.Semester;
 
@@ -18,8 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ClassMapper {
 
-<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/classes/mapper/TrainingClassMapper.java
-        public TrainingClassResponse toResponse(TrainingClass entity) {
+        public ClassResponse toResponse(TrainingClass entity) {
                 List<String> trainers = entity.getCourseClasses() != null
                                 ? entity.getCourseClasses().stream()
                                                 .map(cc -> cc.getTrainer().getFirstName() + " "
@@ -27,7 +22,7 @@ public class ClassMapper {
                                                 .toList()
                                 : List.of();
 
-                return TrainingClassResponse.builder()
+                return ClassResponse.builder()
                                 .id(entity.getId())
                                 .className(entity.getClassName())
                                 .classCode(entity.getClassCode())
@@ -57,19 +52,6 @@ public class ClassMapper {
                 if (classes == null || classes.isEmpty()) {
                         return List.of();
                 }
-=======
-    public ClassResponse toResponse(TrainingClass entity) {
-
-        return ClassResponse.builder()
-                .id(entity.getId())
-                .className(entity.getClassName())
-                .classCode(entity.getClassCode())
-                .isActive(entity.getIsActive())
-                .status(entity.getClassStatus() != null ? entity.getClassStatus().name() : null)
-                .creatorName(entity.getCreator() != null
-                        ? entity.getCreator().getFirstName() + " " + entity.getCreator().getLastName()
-                        : null)
->>>>>>> 7c81ff20d2666c5039534aa5560eaa2e8f46f871:backend/src/main/java/com/example/starter_project_2025/system/classes/mapper/ClassMapper.java
 
                 return classes.stream()
                                 .collect(Collectors.groupingBy(
@@ -81,7 +63,7 @@ public class ClassMapper {
                                         Semester semester = entry.getKey();
                                         List<TrainingClass> classList = entry.getValue();
 
-                                        List<TrainingClassResponse> classResponses = classList.stream()
+                                        List<ClassResponse> classResponses = classList.stream()
                                                         .map(this::toResponse)
                                                         .collect(Collectors.toList());
 
