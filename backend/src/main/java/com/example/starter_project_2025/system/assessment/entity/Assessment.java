@@ -60,6 +60,7 @@ public class Assessment {
     @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     Set<Submission> submissions;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "programming_language_id")
     @ImportField(

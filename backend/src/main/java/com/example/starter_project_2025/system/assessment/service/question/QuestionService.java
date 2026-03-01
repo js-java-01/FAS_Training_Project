@@ -2,7 +2,7 @@ package com.example.starter_project_2025.system.assessment.service.question;
 
 import com.example.starter_project_2025.system.assessment.dto.question.request.QuestionRequestDTO;
 import com.example.starter_project_2025.system.assessment.dto.question.request.UpdateQuestionRequestDTO;
-import com.example.starter_project_2025.system.assessment.dto.question.response.QuestionResponseDTO;
+import com.example.starter_project_2025.system.assessment.dto.question.response.QuestionResponse;
 import com.example.starter_project_2025.system.assessment.entity.Question;
 import com.example.starter_project_2025.system.assessment.entity.QuestionCategory;
 import com.example.starter_project_2025.system.assessment.entity.QuestionOption;
@@ -13,7 +13,6 @@ import com.example.starter_project_2025.system.assessment.repository.QuestionRep
 import com.example.starter_project_2025.system.assessment.repository.TagRepository;
 import com.example.starter_project_2025.system.assessment.spec.QuestionSpecification;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -30,7 +29,7 @@ public class QuestionService {
     private final TagRepository tagRepo;
     private final QuestionMapper questionMapper;
 
-    public QuestionResponseDTO createQuestion(QuestionRequestDTO dto) {
+    public QuestionResponse createQuestion(QuestionRequestDTO dto) {
         Question question = new Question();
         question.setContent(dto.getContent());
         question.setQuestionType(dto.getQuestionType());
@@ -84,7 +83,7 @@ public class QuestionService {
         questionRepo.deleteById(id);
     }
 
-    public QuestionResponseDTO updateQuestion(UUID id, UpdateQuestionRequestDTO dto) {
+    public QuestionResponse updateQuestion(UUID id, UpdateQuestionRequestDTO dto) {
 
         Question question = questionRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Question not found"));
@@ -152,14 +151,14 @@ public class QuestionService {
         return questionMapper.toResponse(questionRepo.save(question));
     }
 
-    public QuestionResponseDTO getQuestionById(UUID id) {
+    public QuestionResponse getQuestionById(UUID id) {
         Question question = questionRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
         return questionMapper.toResponse(question);
     }
 
-    public Page<QuestionResponseDTO> search(
+    public Page<QuestionResponse> search(
             String keyword,
             UUID categoryId,
             String questionType,

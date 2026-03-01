@@ -1,8 +1,7 @@
 package com.example.starter_project_2025.system.assessment.controller;
 
-import com.example.starter_project_2025.system.assessment.dto.assessmentType.response.AssessmentTypeDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessmentType.response.AssessmentTypeResponse;
 import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.CreateAssessmentTypeRequest;
-import com.example.starter_project_2025.system.assessment.dto.ImportResultDTO;
 import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.UpdateAssessmentTypeRequest;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
@@ -14,19 +13,14 @@ import com.example.starter_project_2025.system.dataio.core.importer.service.Impo
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 
@@ -42,7 +36,7 @@ public class AssessmentTypeController {
     private final ImportService importService;
 
     @PostMapping
-    public ResponseEntity<AssessmentTypeDTO> create(
+    public ResponseEntity<AssessmentTypeResponse> create(
             @Valid @RequestBody CreateAssessmentTypeRequest request) {
 
         return ResponseEntity.ok(assessService.create(request));
@@ -50,7 +44,7 @@ public class AssessmentTypeController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<AssessmentTypeDTO> update(
+    public ResponseEntity<AssessmentTypeResponse> update(
             @PathVariable String id,
             @Valid @RequestBody UpdateAssessmentTypeRequest request) {
 
@@ -64,12 +58,12 @@ public class AssessmentTypeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AssessmentTypeDTO> getById(@PathVariable String id) {
+    public ResponseEntity<AssessmentTypeResponse> getById(@PathVariable String id) {
         return ResponseEntity.ok(assessService.findById(id));
     }
 
     @GetMapping
-    public ResponseEntity<Page<AssessmentTypeDTO>> search(
+    public ResponseEntity<Page<AssessmentTypeResponse>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String name,
 

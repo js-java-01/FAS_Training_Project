@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.assessment.mapper;
 
-import com.example.starter_project_2025.system.assessment.dto.assessmentType.response.AssessmentTypeDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessmentType.response.AssessmentTypeResponse;
 import com.example.starter_project_2025.system.assessment.dto.AssessmentImportRequest;
 import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.CreateAssessmentTypeRequest;
 import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.UpdateAssessmentTypeRequest;
@@ -14,9 +14,9 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface AssessmentTypeMapper {
 
-    AssessmentTypeDTO toDto(AssessmentType assessmentType);
+    AssessmentTypeResponse toDto(AssessmentType assessmentType);
 
-    List<AssessmentTypeDTO> toDto(List<AssessmentType> assessmentTypes);
+    List<AssessmentTypeResponse> toDto(List<AssessmentType> assessmentTypes);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

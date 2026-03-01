@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Builder
-public record QuestionResponseDTO(
+public record QuestionResponse(
 
         UUID id,
 

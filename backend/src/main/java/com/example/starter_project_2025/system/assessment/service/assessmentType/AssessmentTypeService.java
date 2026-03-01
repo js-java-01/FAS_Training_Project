@@ -4,7 +4,7 @@ import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.assessment.dto.*;
 import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.CreateAssessmentTypeRequest;
 import com.example.starter_project_2025.system.assessment.dto.assessmentType.request.UpdateAssessmentTypeRequest;
-import com.example.starter_project_2025.system.assessment.dto.assessmentType.response.AssessmentTypeDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessmentType.response.AssessmentTypeResponse;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.mapper.AssessmentTypeMapper;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
@@ -35,7 +35,7 @@ public class AssessmentTypeService {
     private final AssessmentTypeRepository assessRepo;
 
     @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
-    public AssessmentTypeDTO findById(String id) {
+    public AssessmentTypeResponse findById(String id) {
         AssessmentType assessmentType = assessRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
 
@@ -43,7 +43,7 @@ public class AssessmentTypeService {
     }
 
     @PreAuthorize("hasAuthority('ASSESSMENT_CREATE')")
-    public AssessmentTypeDTO create(CreateAssessmentTypeRequest request) {
+    public AssessmentTypeResponse create(CreateAssessmentTypeRequest request) {
 
         if (assessRepo.existsByName(request.name())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Assessment name already exists");
@@ -54,7 +54,7 @@ public class AssessmentTypeService {
     }
 
     @PreAuthorize("hasAuthority('ASSESSMENT_UPDATE')")
-    public AssessmentTypeDTO update(String id, UpdateAssessmentTypeRequest request) {
+    public AssessmentTypeResponse update(String id, UpdateAssessmentTypeRequest request) {
 
         AssessmentType assessmentType = assessRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
@@ -73,7 +73,7 @@ public class AssessmentTypeService {
     }
 
     @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
-    public Page<AssessmentTypeDTO> search(
+    public Page<AssessmentTypeResponse> search(
             String searchContent,
             Pageable pageable,
             String name,

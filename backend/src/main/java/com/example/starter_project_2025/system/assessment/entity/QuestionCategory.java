@@ -1,7 +1,9 @@
 package com.example.starter_project_2025.system.assessment.entity;
 
+import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportEntity;
 import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportField;
 import com.example.starter_project_2025.system.dataio.core.importer.annotation.ImportField;
+import com.example.starter_project_2025.system.dataio.core.template.annotation.ImportEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -20,6 +22,8 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
 @Table(name = "question_categories")
+@ImportEntity("question_category")
+@ExportEntity(fileName = "question_category", sheetName = "category")
 public class QuestionCategory {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

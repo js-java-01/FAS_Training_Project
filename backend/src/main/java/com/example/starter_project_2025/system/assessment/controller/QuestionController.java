@@ -2,7 +2,7 @@ package com.example.starter_project_2025.system.assessment.controller;
 
 import com.example.starter_project_2025.system.assessment.dto.question.request.QuestionRequestDTO;
 import com.example.starter_project_2025.system.assessment.dto.question.request.UpdateQuestionRequestDTO;
-import com.example.starter_project_2025.system.assessment.dto.question.response.QuestionResponseDTO;
+import com.example.starter_project_2025.system.assessment.dto.question.response.QuestionResponse;
 import com.example.starter_project_2025.system.assessment.entity.Question;
 import com.example.starter_project_2025.system.assessment.repository.QuestionRepository;
 import com.example.starter_project_2025.system.assessment.service.question.QuestionService;
@@ -10,7 +10,6 @@ import com.example.starter_project_2025.system.dataio.core.common.FileFormat;
 import com.example.starter_project_2025.system.dataio.core.exporter.service.ExportService;
 import com.example.starter_project_2025.system.dataio.core.importer.result.ImportResult;
 import com.example.starter_project_2025.system.dataio.core.importer.service.ImportService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -37,21 +36,21 @@ public class QuestionController {
     private final QuestionRepository questionRepository;
 
     @PostMapping
-    public ResponseEntity<QuestionResponseDTO> createQuestion(
+    public ResponseEntity<QuestionResponse> createQuestion(
             @Valid @RequestBody QuestionRequestDTO dto
     ) {
         return ResponseEntity.ok(questionService.createQuestion(dto));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<QuestionResponseDTO> getQuestionById(
+    public ResponseEntity<QuestionResponse> getQuestionById(
             @PathVariable UUID id
     ) {
         return ResponseEntity.ok(questionService.getQuestionById(id));
     }
 
     @GetMapping
-    public Page<QuestionResponseDTO> search(
+    public Page<QuestionResponse> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) String questionType,
@@ -64,7 +63,7 @@ public class QuestionController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<QuestionResponseDTO> updateQuestion(
+    public ResponseEntity<QuestionResponse> updateQuestion(
             @PathVariable UUID id,
             @RequestBody UpdateQuestionRequestDTO dto
     ) {

@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.assessment.service.assessment;
 
-import com.example.starter_project_2025.system.assessment.dto.assessment.response.AssessmentDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessment.response.AssessmentResponse;
 import com.example.starter_project_2025.system.assessment.dto.assessment.request.CreateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.dto.assessment.request.UpdateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.entity.Assessment;
@@ -31,7 +31,7 @@ public class AssessmentService {
 
     @PreAuthorize("hasAuthority('ASSESSMENT_CREATE')")
 
-    public AssessmentDTO create(CreateAssessmentRequest request) {
+    public AssessmentResponse create(CreateAssessmentRequest request) {
 
         if (assessmentRepository.existsByCode(request.code())) {
             throw new IllegalArgumentException("Assessment code already exists");
@@ -50,7 +50,7 @@ public class AssessmentService {
 
     @PreAuthorize("hasAuthority('ASSESSMENT_UPDATE')")
 
-    public AssessmentDTO update(Long id, UpdateAssessmentRequest request) {
+    public AssessmentResponse update(Long id, UpdateAssessmentRequest request) {
 
         Assessment assessment = assessmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Assessment not found"));
@@ -69,14 +69,14 @@ public class AssessmentService {
     }
 
     @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
-    public AssessmentDTO getById(Long id) {
+    public AssessmentResponse getById(Long id) {
         return assessmentRepository.findById(id)
                 .map(assessmentMapper::toDto)
                 .orElseThrow(() -> new EntityNotFoundException("Assessment not found"));
     }
 
     @PreAuthorize("hasAuthority('ASSESSMENT_READ')")
-    public Page<AssessmentDTO> search(
+    public Page<AssessmentResponse> search(
             String keyword,
             AssessmentStatus status,
             Long assessmentTypeId,
@@ -103,7 +103,7 @@ public class AssessmentService {
         assessmentRepository.delete(assessment);
     }
 
-    public AssessmentDTO findByStatus(AssessmentStatus status) {
+    public AssessmentResponse findByStatus(AssessmentStatus status) {
         Assessment assessment = assessmentRepository
                 .findAssessmentByStatus(status)
                 .orElseThrow(() -> new RuntimeException("Assessment not found with status: " + status));
@@ -111,7 +111,7 @@ public class AssessmentService {
         return assessmentMapper.toDto(assessment);
     }
 
-    public AssessmentDTO updateStatus(Long id, AssessmentStatus status) {
+    public AssessmentResponse updateStatus(Long id, AssessmentStatus status) {
         Assessment assessment = assessmentRepository
                 .findById(id)
                 .orElseThrow(() -> new RuntimeException("Assessment not found with id: " + id));
@@ -124,7 +124,7 @@ public class AssessmentService {
     }
 
 
-    public Page<AssessmentDTO> findByDifficulty(AssessmentDifficulty difficulty, Pageable pageable) {
+    public Page<AssessmentResponse> findByDifficulty(AssessmentDifficulty difficulty, Pageable pageable) {
         return assessmentRepository
                 .findByDifficulty(difficulty, pageable)
                 .map(assessmentMapper::toDto);

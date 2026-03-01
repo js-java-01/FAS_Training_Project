@@ -7,10 +7,12 @@ import lombok.Data;
 
 @Builder
 public record CreateAssessmentTypeRequest(
-    @NotBlank(message = "name is required")
-    @Size(min = 5, max = 255)
-    String name,
-    @Size(min = 10, max = 250)
-    String description
-    ){
+
+        @NotBlank(message = "name is required")
+        @Size(min = 5, max = 255)
+        String name,
+
+        @Size(min = 10, max = 250)
+        String description
+) {
 }

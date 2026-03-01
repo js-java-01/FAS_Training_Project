@@ -1,13 +1,12 @@
 package com.example.starter_project_2025.system.assessment.controller;
 
-import com.example.starter_project_2025.system.assessment.dto.assessment.response.AssessmentDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessment.response.AssessmentResponse;
 import com.example.starter_project_2025.system.assessment.dto.assessment.request.CreateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.dto.assessment.request.UpdateAssessmentRequest;
 import com.example.starter_project_2025.system.assessment.entity.Assessment;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentDifficulty;
 import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
-import com.example.starter_project_2025.system.assessment.service.SubmissionService;
 import com.example.starter_project_2025.system.assessment.service.assessment.AssessmentService;
 import com.example.starter_project_2025.system.assessment.service.impl.SubmissionServiceImpl;
 import com.example.starter_project_2025.system.dataio.core.common.FileFormat;
@@ -24,13 +23,11 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/assessment")
@@ -45,24 +42,24 @@ public class ExamController {
     private final ExportService exportService;
 
     @PostMapping
-    public ResponseEntity<AssessmentDTO> create(@Valid @RequestBody CreateAssessmentRequest request) {
+    public ResponseEntity<AssessmentResponse> create(@Valid @RequestBody CreateAssessmentRequest request) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(assessmentService.create(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AssessmentDTO> update(@PathVariable Long id, @Valid @RequestBody UpdateAssessmentRequest request) {
+    public ResponseEntity<AssessmentResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateAssessmentRequest request) {
         return ResponseEntity.ok(assessmentService.update(id, request));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AssessmentDTO> getById(@PathVariable Long id) {
+    public ResponseEntity<AssessmentResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(assessmentService.getById(id));
     }
 
     @GetMapping
-    public ResponseEntity<Page<AssessmentDTO>> search(
+    public ResponseEntity<Page<AssessmentResponse>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) AssessmentStatus status,
             @RequestParam(required = false) Long assessmentTypeId,
@@ -82,7 +79,7 @@ public class ExamController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<AssessmentDTO> getByStatus(
+    public ResponseEntity<AssessmentResponse> getByStatus(
             @RequestParam AssessmentStatus status) {
 
         return ResponseEntity.ok(
@@ -91,7 +88,7 @@ public class ExamController {
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<AssessmentDTO> updateStatus(
+    public ResponseEntity<AssessmentResponse> updateStatus(
             @PathVariable Long id,
             @RequestParam AssessmentStatus status) {
 
@@ -101,7 +98,7 @@ public class ExamController {
     }
 
     @GetMapping("/difficulty")
-    public ResponseEntity<Page<AssessmentDTO>> getByDifficulty(
+    public ResponseEntity<Page<AssessmentResponse>> getByDifficulty(
             @RequestParam AssessmentDifficulty difficulty,
             Pageable pageable
     ) {
@@ -124,9 +121,7 @@ public class ExamController {
         );
     }
 
-    // ===============================
-    // IMPORT
-    // ===============================
+
     @PostMapping(value = "/import", consumes = "multipart/form-data")
     public ImportResult importAssessments(
             @RequestParam("file") MultipartFile file

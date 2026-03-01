@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.assessment.controller;
 
-import com.example.starter_project_2025.system.assessment.dto.category.QuestionCategoryDTO;
+import com.example.starter_project_2025.system.assessment.dto.category.QuestionCategoryResponse;
 import com.example.starter_project_2025.system.assessment.dto.questionTag.response.TagCountResponse;
 import com.example.starter_project_2025.system.assessment.entity.QuestionCategory;
 import com.example.starter_project_2025.system.assessment.service.category.QuestionCategoryService;
@@ -28,7 +28,7 @@ public class QuestionCategoryController {
 
     // 2. Tạo danh mục mới
     @PostMapping
-    public ResponseEntity<QuestionCategory> create(@RequestBody QuestionCategoryDTO dto) {
+    public ResponseEntity<QuestionCategory> create(@RequestBody QuestionCategoryResponse dto) {
         return ResponseEntity.ok(categoryService.create(dto));
     }
 
