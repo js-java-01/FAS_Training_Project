@@ -38,7 +38,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import com.example.starter_project_2025.system.modulegroups.dto.response.PageResponse;
 
 @Service
@@ -396,6 +398,66 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         tryComputeAndSaveFinalScore(courseClass, userId, mark);
 
         return getStudentDetail(courseClassId, userId);
+    }
+
+    @Override
+    public ScoreHistoryResponse getScoreHistory(UUID courseClassId, Pageable pageable) {
+        if (!courseClassRepository.existsById(courseClassId)) {
+            throw new ResourceNotFoundException("CourseClass not found: " + courseClassId);
+        }
+
+        // Default sort: updatedAt desc
+        Pageable effectivePageable = pageable.getSort().isSorted()
+                ? pageable
+                : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                        Sort.by(Sort.Direction.DESC, "updatedAt"));
+
+        Page<TopicMarkEntryHistory> page =
+                topicMarkEntryHistoryRepository.findPageByCourseClassId(courseClassId, effectivePageable);
+
+        String sortStr = page.getSort().isSorted()
+                ? page.getSort().stream()
+                        .map(o -> o.getProperty() + "," + o.getDirection().name().toLowerCase())
+                        .collect(Collectors.joining(";"))
+                : "unsorted";
+
+        List<ScoreHistoryResponse.HistoryItem> items = page.getContent().stream()
+                .map(h -> {
+                    TopicMarkEntry entry = h.getTopicMarkEntry();
+                    User student = entry.getUser();
+                    User editor = h.getUpdatedBy();
+                    return ScoreHistoryResponse.HistoryItem.builder()
+                            .id(h.getId())
+                            .courseClassId(entry.getCourseClass().getId())
+                            .student(ScoreHistoryResponse.UserRef.builder()
+                                    .id(student.getId())
+                                    .name(student.getFirstName() + " " + student.getLastName())
+                                    .build())
+                            .column(ScoreHistoryResponse.ColumnRef.builder()
+                                    .id(entry.getTopicMarkColumn().getId())
+                                    .name(entry.getTopicMarkColumn().getColumnLabel())
+                                    .build())
+                            .oldScore(h.getOldScore())
+                            .newScore(h.getNewScore())
+                            .changeType(h.getChangeType() != null ? h.getChangeType().name() : null)
+                            .reason(h.getReason())
+                            .updatedBy(ScoreHistoryResponse.UserRef.builder()
+                                    .id(editor.getId())
+                                    .name(editor.getFirstName() + " " + editor.getLastName())
+                                    .build())
+                            .updatedAt(h.getUpdatedAt())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return ScoreHistoryResponse.builder()
+                .content(items)
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .sort(sortStr)
+                .build();
     }
 
     @Override
