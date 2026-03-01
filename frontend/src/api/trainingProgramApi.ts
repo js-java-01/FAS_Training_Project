@@ -16,7 +16,7 @@ export const trainingProgramApi = {
   getAllTrainingPrograms: async (params: {
     page: number;
     size: number;
-    sort: string[];
+    sort: string;
     keyword?: string;
   }): Promise<PagedData<TrainingProgram>> => {
     const response = await axiosInstance.get<ApiResponse<PagedData<TrainingProgram>>>(

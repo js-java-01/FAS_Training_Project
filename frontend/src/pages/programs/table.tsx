@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import type { TrainingProgram } from "@/types/trainingProgram";
+import { useSortParam } from "@/hooks/useSortParam";
 import { useGetAllTrainingPrograms } from "./services/queries";
 import { getColumns } from "./column";
 
@@ -19,11 +20,7 @@ export default function ProgramsTable() {
 
   const navigate = useNavigate();
 
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return ["createdAt", "desc"];
-    const { id, desc } = sorting[0];
-    return [id, desc ? "desc" : "asc"];
-  }, [sorting]);
+  const sortParam = useSortParam(sorting, "createdAt,desc");
 
   const {
     data: tableData,
