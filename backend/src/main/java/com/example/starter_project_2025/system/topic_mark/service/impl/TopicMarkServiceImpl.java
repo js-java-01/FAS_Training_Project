@@ -13,6 +13,7 @@ import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.topic_mark.dto.*;
 import com.example.starter_project_2025.system.topic_mark.entity.*;
+import com.example.starter_project_2025.system.topic_mark.enums.ChangeType;
 import com.example.starter_project_2025.system.topic_mark.repository.*;
 import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
 import com.example.starter_project_2025.system.user.entity.User;
@@ -37,7 +38,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import com.example.starter_project_2025.system.modulegroups.dto.response.PageResponse;
 
 @Service
@@ -318,6 +321,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                         .columnLabel(h.getTopicMarkEntry().getTopicMarkColumn().getColumnLabel())
                         .oldScore(h.getOldScore())
                         .newScore(h.getNewScore())
+                        .changeType(h.getChangeType() != null ? h.getChangeType().name() : null)
                         .reason(h.getReason())
                         .updatedBy(h.getUpdatedBy().getFirstName() + " " + h.getUpdatedBy().getLastName())
                         .updatedAt(h.getUpdatedAt())
@@ -376,22 +380,84 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             Double newScore = update.getScore();
 
             if (!Objects.equals(oldScore, newScore)) {
+                ChangeType changeType = determineChangeType(oldScore, newScore);
                 topicMarkEntryHistoryRepository.save(TopicMarkEntryHistory.builder()
                         .topicMarkEntry(entry)
                         .oldScore(oldScore)
                         .newScore(newScore)
+                        .changeType(changeType)
                         .reason(request.getReason())
                         .updatedBy(editor)
                         .build());
                 entry.setScore(newScore);
                 topicMarkEntryRepository.save(entry);
-                log.debug("Updated entry id={} col=[{}] {} -> {}", entry.getId(),
-                        column.getColumnLabel(), oldScore, newScore);
+                log.debug("Updated entry id={} col=[{}] {} -> {} ({})", entry.getId(),
+                        column.getColumnLabel(), oldScore, newScore, changeType);
             }
         }
         tryComputeAndSaveFinalScore(courseClass, userId, mark);
 
         return getStudentDetail(courseClassId, userId);
+    }
+
+    @Override
+    public ScoreHistoryResponse getScoreHistory(UUID courseClassId, Pageable pageable) {
+        if (!courseClassRepository.existsById(courseClassId)) {
+            throw new ResourceNotFoundException("CourseClass not found: " + courseClassId);
+        }
+
+        // Default sort: updatedAt desc
+        Pageable effectivePageable = pageable.getSort().isSorted()
+                ? pageable
+                : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                        Sort.by(Sort.Direction.DESC, "updatedAt"));
+
+        Page<TopicMarkEntryHistory> page =
+                topicMarkEntryHistoryRepository.findPageByCourseClassId(courseClassId, effectivePageable);
+
+        String sortStr = page.getSort().isSorted()
+                ? page.getSort().stream()
+                        .map(o -> o.getProperty() + "," + o.getDirection().name().toLowerCase())
+                        .collect(Collectors.joining(";"))
+                : "unsorted";
+
+        List<ScoreHistoryResponse.HistoryItem> items = page.getContent().stream()
+                .map(h -> {
+                    TopicMarkEntry entry = h.getTopicMarkEntry();
+                    User student = entry.getUser();
+                    User editor = h.getUpdatedBy();
+                    return ScoreHistoryResponse.HistoryItem.builder()
+                            .id(h.getId())
+                            .courseClassId(entry.getCourseClass().getId())
+                            .student(ScoreHistoryResponse.UserRef.builder()
+                                    .id(student.getId())
+                                    .name(student.getFirstName() + " " + student.getLastName())
+                                    .build())
+                            .column(ScoreHistoryResponse.ColumnRef.builder()
+                                    .id(entry.getTopicMarkColumn().getId())
+                                    .name(entry.getTopicMarkColumn().getColumnLabel())
+                                    .build())
+                            .oldScore(h.getOldScore())
+                            .newScore(h.getNewScore())
+                            .changeType(h.getChangeType() != null ? h.getChangeType().name() : null)
+                            .reason(h.getReason())
+                            .updatedBy(ScoreHistoryResponse.UserRef.builder()
+                                    .id(editor.getId())
+                                    .name(editor.getFirstName() + " " + editor.getLastName())
+                                    .build())
+                            .updatedAt(h.getUpdatedAt())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return ScoreHistoryResponse.builder()
+                .content(items)
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .sort(sortStr)
+                .build();
     }
 
     @Override
@@ -644,10 +710,12 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
                     Double oldScore = entry.getScore();
                     if (!Objects.equals(oldScore, score)) {
+                        ChangeType changeType = determineChangeType(oldScore, score);
                         topicMarkEntryHistoryRepository.save(TopicMarkEntryHistory.builder()
                                 .topicMarkEntry(entry)
                                 .oldScore(oldScore)
                                 .newScore(score)
+                                .changeType(changeType)
                                 .reason("Excel import")
                                 .updatedBy(editor)
                                 .build());
@@ -688,6 +756,13 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         } catch (IOException e) {
             throw new RuntimeException("Error reading Excel file: " + e.getMessage(), e);
         }
+    }
+
+    private ChangeType determineChangeType(Double oldScore, Double newScore) {
+        if (oldScore == null && newScore == null) return null;
+        if (oldScore == null) return ChangeType.INCREASE;
+        if (newScore == null) return ChangeType.DECREASE;
+        return newScore >= oldScore ? ChangeType.INCREASE : ChangeType.DECREASE;
     }
 
     private String getCellString(Cell cell) {
