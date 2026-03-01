@@ -11,14 +11,19 @@ import {
 import type { GradebookRow } from "@/types/topicMark"
 import { SearchableSelect } from "@/components/SearchableSelect"
 import { useSortParam } from "@/hooks/useSortParam"
+import { Button } from "@/components/ui/button"
+import { DatabaseBackup, Edit, HistoryIcon } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import GradeHistorySheet from "./GradeHistorySheet"
 
 interface Props {
   classId: string
-   isEditing: boolean
 }
 
-export default function GradebookTable({ classId, isEditing }: Props) {
+export default function GradebookTable({ classId }: Props) {
   /* ================= STATE ================= */
+  const [isEditing, setIsEditing] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   const [sorting, setSorting] = useState<SortingState>([])
   const [pageIndex, setPageIndex] = useState(0)
@@ -145,6 +150,42 @@ export default function GradebookTable({ classId, isEditing }: Props) {
         sorting={sorting}
         onSortingChange={setSorting}
         manualSorting
+        headerActions={
+          <div>
+            <div className="flex items-end justify-between">
+              <div className="flex gap-2">
+                <Button
+                  variant={isEditing ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsEditing((prev) => !prev)}
+                >
+                  <Edit className="mr-1 h-4 w-4" />
+                  {isEditing ? "Done" : "Edit"}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setHistoryOpen(true)}
+                >
+                  <HistoryIcon className="mr-2 h-4 w-4" />
+                  View History
+                </Button>
+
+                <Button variant="outline" size="sm">
+                  <DatabaseBackup className="mr-1 h-4 w-4" />
+                  Import / Export
+                </Button>
+              </div>
+            </div>
+
+            {isEditing && (
+              <p className="text-xs text-muted-foreground mt-3 font-semibold">
+                 <Badge variant={"outline"} className='text-xs'>Editing Mode</Badge> Enter: Save • Esc: Cancel • Click outside: Auto save
+              </p>
+            )}
+          </div>
+        }
         facetedFilters={
           <FacetedFilter
             title="Status"
@@ -157,6 +198,11 @@ export default function GradebookTable({ classId, isEditing }: Props) {
             multiple={false}
           />
         }
+      />
+      <GradeHistorySheet
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        courseClassId={selectedCourseClassId}
       />
     </div>
   )
