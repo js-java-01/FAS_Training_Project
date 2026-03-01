@@ -22,6 +22,7 @@ import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import { useSortParam } from "@/hooks/useSortParam";
 
 /* ======================================================= */
 
@@ -60,11 +61,7 @@ export default function ModuleGroupsTable() {
 
   const queryClient = useQueryClient();
 
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return "displayOrder,asc";
-    const { id, desc } = sorting[0];
-    return `${id},${desc ? "desc" : "asc"}`;
-  }, [sorting]);
+  const sortParam = useSortParam(sorting)
 
   const {
     data: tableData,

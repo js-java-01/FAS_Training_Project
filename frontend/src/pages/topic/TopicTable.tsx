@@ -21,6 +21,7 @@ import {
   useImportTopics,
   useDownloadTopicTemplate,
 } from "./services/mutations";
+import { useSortParam } from "@/hooks/useSortParam";
 
 export default function TopicTable() {
   /* ---------- modal state ---------- */
@@ -41,13 +42,7 @@ export default function TopicTable() {
   const debouncedSearch = useDebounce(searchValue, 300);
 
   /* ---------- sort param ---------- */
-  const sortParam = useMemo(() => {
-    if (sorting && sorting.length > 0) {
-      const { id, desc } = sorting[0];
-      return `${id},${desc ? "desc" : "asc"}`;
-    }
-    return "createdDate,desc";
-  }, [sorting]);
+  const sortParam = useSortParam(sorting, "createdDate,desc");
 
   /* ---------- query (Sử dụng hook useGetAllTopics) ---------- */
   const {

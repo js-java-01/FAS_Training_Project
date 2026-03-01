@@ -8,17 +8,9 @@ import {
   useGetCourseByClassId,
   useGetGradebookTable,
 } from "./services/queries"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import type { GradebookRow } from "@/types/topicMark"
 import { SearchableSelect } from "@/components/SearchableSelect"
+import { useSortParam } from "@/hooks/useSortParam"
 
 interface Props {
   classId: string
@@ -54,11 +46,7 @@ export default function GradebookTable({ classId }: Props) {
   const statusParam =
     statusFilter.length === 1 ? statusFilter[0] === "PASSED" : undefined;
 
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return "fullName,asc"
-    const { id, desc } = sorting[0]
-    return `${id},${desc ? "desc" : "asc"}`
-  }, [sorting])
+  const sortParam = useSortParam(sorting)
 
   /* ================= GRADEBOOK QUERY ================= */
 

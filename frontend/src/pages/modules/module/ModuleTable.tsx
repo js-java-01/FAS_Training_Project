@@ -23,6 +23,7 @@ import { FacetedFilter } from "@/components/FacedFilter";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import { ROLES } from "@/types/role";
 import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import { useSortParam } from "@/hooks/useSortParam";
 
 /* ===================== MAIN ===================== */
 export default function ModulesTable() {
@@ -72,11 +73,7 @@ export default function ModulesTable() {
 
   /* ---------- sort param (server side) ---------- */
   /* ===================== SORT ===================== */
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return "displayOrder,asc";
-    const { id, desc } = sorting[0];
-    return `${id},${desc ? "desc" : "asc"}`;
-  }, [sorting]);
+  const sortParam = useSortParam(sorting)
 
   /* ---------- query ---------- */
   const {

@@ -26,6 +26,7 @@ import {
   useImportRoles,
 } from "./services/mutations";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
+import { useSortParam } from "@/hooks/useSortParam";
 
 /* ===================== MAIN ===================== */
 export default function RoleTable() {
@@ -68,11 +69,7 @@ export default function RoleTable() {
     statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
 
   /* ---------- sort param ---------- */
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return "name,asc";
-    const { id, desc } = sorting[0];
-    return `${id},${desc ? "desc" : "asc"}`;
-  }, [sorting]);
+  const sortParam = useSortParam(sorting, "name,asc")
 
   /* ---------- query ---------- */
   const {

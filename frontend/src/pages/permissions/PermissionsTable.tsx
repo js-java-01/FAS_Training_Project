@@ -23,6 +23,7 @@ import { FacetedFilter } from "@/components/FacedFilter";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import { ROLES } from "@/types/role";
 import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import { useSortParam } from "@/hooks/useSortParam";
 
 export default function PermissionsTable() {
   /* ---------- permissions ---------- */
@@ -65,11 +66,7 @@ export default function PermissionsTable() {
   const [actionFilter, setActionFilter] = useState<string[]>([]);
 
   /* ---------- sort param ---------- */
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return "name,asc";
-    const { id, desc } = sorting[0];
-    return `${id},${desc ? "desc" : "asc"}`;
-  }, [sorting]);
+  const sortParam = useSortParam(sorting, "name,asc")
 
   /* ---------- query ---------- */
   const {

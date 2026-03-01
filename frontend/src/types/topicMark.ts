@@ -42,6 +42,7 @@ export interface GradebookColumnMeta {
 export interface GradebookRow {
   userId: string
   fullName: string
+  email: string
   values: Record<string, number | boolean | null>
 }
 
