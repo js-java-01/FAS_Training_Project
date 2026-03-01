@@ -36,11 +36,11 @@ import MfaSettings from "./pages/MfaSettings";
 import { MfaGateProvider } from "./components/MfaGateProvider";
 import ClassesDetailComponent from "./pages/classes/ClassesDetailManagement";
 import Unauthorized from "./pages/Unauthorized";
-import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import { TopicManagement } from "./pages/topic/TopicManagement";
 import TopicDetailPage from "./pages/topic/TopicDetailPage";
 import ProgramManagement from "./pages/programs/ProgramManagement";
 import ProgramCreatePage from "./pages/programs/ProgramCreatePage";
+import ProgramDetailPage from "./pages/programs/ProgramDetailPage";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -131,6 +131,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ProgramCreatePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programs/:id"
+              element={
+                <ProtectedRoute>
+                  <ProgramDetailPage />
                 </ProtectedRoute>
               }
             />

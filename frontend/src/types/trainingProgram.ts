@@ -12,5 +12,4 @@ export interface TrainingProgramRequest {
   name: string;
   version: string;
   description?: string;
-  programCourseIds?: string[];
 }

@@ -6,6 +6,13 @@ import type {
 } from "@/types/trainingProgram";
 
 export const trainingProgramApi = {
+  getTrainingProgramById: async (id: string): Promise<TrainingProgram> => {
+    const response = await axiosInstance.get<TrainingProgram>(
+      `/training-programs/${id}`,
+    );
+    return response.data;
+  },
+
   getAllTrainingPrograms: async (params: {
     page: number;
     size: number;
