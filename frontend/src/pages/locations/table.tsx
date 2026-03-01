@@ -37,6 +37,7 @@ import {
 } from "./services/mutations";
 import { MapPin, Home, Hash, ToggleLeft, Calendar } from "lucide-react";
 import type { ComponentType, SVGProps, ReactNode } from "react";
+import { useSortParam } from "@/hooks/useSortParam";
 
 /* ===================== DETAIL ROW ===================== */
 const DetailRow = ({
@@ -107,11 +108,7 @@ export default function LocationsTable() {
 
   const queryClient = useQueryClient();
 
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return "createdAt,desc";
-    const { id, desc } = sorting[0];
-    return `${id},${desc ? "desc" : "asc"}`;
-  }, [sorting]);
+  const sortParam = useSortParam(sorting, "createdAt,desc")
 
   /* ---------- query ---------- */
   const {

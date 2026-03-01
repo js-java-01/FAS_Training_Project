@@ -16,7 +16,6 @@ import com.example.starter_project_2025.system.assessment.service.SubmissionServ
 import com.example.starter_project_2025.system.assessment.spec.SubmissionSpecification;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
-import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +37,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final UserRepository userRepository;
     private final CourseClassRepository courseClassRepository;
-    private final TopicMarkService topicMarkService;
-    
+
     @Autowired
     private AssessmentRepository assessmentRepository;
     @Autowired
@@ -142,20 +140,6 @@ public class SubmissionServiceImpl implements SubmissionService {
         submission.setSubmittedAt(LocalDateTime.now());
 
         gradingService.finalizeSubmission(submission);
-
-        // Auto-recalculate topic mark after submission
-        if (submission.getCourseClass() != null && submission.getUser() != null) {
-            try {
-                topicMarkService.recalculateForUser(
-                    submission.getCourseClass().getId(),
-                    submission.getUser().getId()
-                );
-            } catch (Exception e) {
-                // Log but don't fail submission if topic mark calculation fails
-                // This could happen if course has no weights configured
-                // The submission is still valid
-            }
-        }
 
         return submission;
     }

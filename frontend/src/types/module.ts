@@ -109,8 +109,8 @@ export interface ModuleGroup {
 
 export interface Module {
     id: string;
-  moduleGroupId: string;
-  moduleGroupName: string;
+    moduleGroupId: string;
+    moduleGroupName: string;
     parentId?: string;
 
     title: string;

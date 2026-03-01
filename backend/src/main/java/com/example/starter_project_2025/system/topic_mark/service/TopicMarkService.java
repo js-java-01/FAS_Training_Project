@@ -1,34 +1,88 @@
 package com.example.starter_project_2025.system.topic_mark.service;
 
-import com.example.starter_project_2025.system.topic_mark.dto.TopicMarkGradebookResponse;
+import com.example.starter_project_2025.system.topic_mark.dto.*;
 
 import java.util.UUID;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ImportResultResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface TopicMarkService {
 
     /**
-     * Recalculate and update topic mark for a specific user in a course class.
-     * This computes the final score based on assessment type weights and submission scores.
-     *
-     * @param courseClassId The course class ID
-     * @param userId The user ID
+     * Add a new gradebook column to a course class.
+     * Auto-assigns columnIndex within the AssessmentType group.
+     * Creates null-score entries for all currently enrolled students.
      */
-    void recalculateForUser(UUID courseClassId, UUID userId);
+    TopicMarkColumnResponse addColumn(UUID courseClassId, TopicMarkColumnRequest request, UUID editorId);
 
     /**
-     * Get gradebook for a course class with all students and their scores.
-     *
-     * @param courseClassId The course class ID
-     * @return Gradebook response with columns and rows
+     * Update the label of an existing column.
+     * Always allowed regardless of whether entries exist.
+     */
+    TopicMarkColumnResponse updateColumnLabel(UUID courseClassId, UUID columnId, String newLabel, UUID editorId);
+
+    /**
+     * Delete a column from a course class.
+     * Only allowed if NO student has a non-null score on this column.
+     */
+    void deleteColumn(UUID courseClassId, UUID columnId);
+
+    /**
+     * Get the full gradebook for a course class.
+     * Returns dynamic columns (one per TopicMarkColumn) + meta columns
+     * (FINAL_SCORE, IS_PASSED, COMMENT), plus one row per enrolled student.
      */
     TopicMarkGradebookResponse getGradebook(UUID courseClassId);
 
     /**
-     * Update comment for a topic mark.
-     *
-     * @param courseClassId The course class ID
-     * @param userId The user ID
-     * @param comment The comment to set
+     * Paginated gradebook search.
+     * Filters enrolled students by full name (case-insensitive, partial match).
+     * Returns column definitions once + paginated student rows.
      */
-    void updateComment(UUID courseClassId, UUID userId, String comment);
+    TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword,
+                                                     Boolean passed,
+                                                     org.springframework.data.domain.Pageable pageable);
+    /**
+     * Get the detailed score breakdown for a single student in a course class.
+     * Includes per-section computed scores, full column list, and audit history.
+     */
+    TopicMarkDetailResponse getStudentDetail(UUID courseClassId, UUID userId);
+
+    /**
+     * Save / update scores for a student.
+     * For every changed score, an audit history record is written.
+     * If ALL column scores are now non-null, the final score is computed and stored.
+     */
+    TopicMarkDetailResponse updateScores(UUID courseClassId, UUID userId,
+                                         UpdateTopicMarkRequest request, UUID editorId);
+
+    /**
+     * Generate an Excel template for score entry.
+     * Row 0 (hidden meta): column IDs for machine matching on import.
+     * Row 1 (bold header): visible labels (STT | Họ và tên | Email | col labels…).
+     * Row 2+ : one row per enrolled student, score cells empty (ready to fill).
+     */
+    ResponseEntity<byte[]> exportGradebookTemplate(UUID courseClassId);
+
+    /**
+     * Export the full gradebook with actual scores.
+     * Row 0 (bold header): STT | Họ và tên | Email | <col labels…> | Final Score | Passed.
+     * Row 1+: one row per enrolled student with all entered scores, final score, and pass/fail.
+     * Pass cells are green, Fail cells are red.
+     */
+    ResponseEntity<byte[]> exportGradebook(UUID courseClassId);
+
+    /**
+     * Import scores from a filled Excel template.
+     * Reads column UUIDs from hidden Row 0 and student IDs from hidden column 1.
+     * Blank cells are skipped (existing score kept). Returns ImportResultResponse.
+     */
+    ImportResultResponse importGradebook(UUID courseClassId, MultipartFile file, UUID editorId);
+
+    /**
+     * Initialize TopicMark + null entries for a newly enrolled student.
+     * Called by EnrollmentService when a student joins a training class.
+     */
+    void initializeForNewStudent(UUID courseClassId, UUID userId);
 }

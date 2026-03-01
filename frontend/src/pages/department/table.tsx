@@ -26,6 +26,7 @@ import {
 import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import { FacetedFilter } from "@/components/FacedFilter";
+import { useSortParam } from "@/hooks/useSortParam";
 
 /* ===================== MAIN ===================== */
 export default function DepartmentsTable() {
@@ -61,11 +62,7 @@ export default function DepartmentsTable() {
   const statusParam = statusFilter.length === 1 ? statusFilter[0] : undefined;
 
   /* ---------- sort param ---------- */
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return "name,asc";
-    const { id, desc } = sorting[0];
-    return `${id},${desc ? "desc" : "asc"}`;
-  }, [sorting]);
+  const sortParam = useSortParam(sorting, "name,asc")
 
   /* ---------- query ---------- */
   const {
