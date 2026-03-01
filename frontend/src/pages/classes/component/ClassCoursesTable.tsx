@@ -26,7 +26,7 @@ const columns = [
   columnHelper.accessor("courseName", {
     header: "Tên môn học",
     size: 250,
-    cell: (info) => <span className="font-semibold text-blue-700">{info.getValue()}</span>,
+    cell: (info) => <span className="font-semibold ">{info.getValue()}</span>,
   }),
 
   columnHelper.accessor("courseCode", {
@@ -66,8 +66,16 @@ const columns = [
     header: "Thi lại",
     size: 100,
     cell: (info) => (
-      <div className="flex justify-center items-center">
-        {info.getValue() ? <Check className="w-5 h-5 text-green-600" /> : <X className="w-5 h-5 text-red-500" />}
+      <div className="flex ">
+        {info.getValue() ? (
+          <Badge className="bg-green-100 text-green-700 border-green-200" variant="default">
+            <Check />
+          </Badge>
+        ) : (
+          <Badge className="bg-red-100 text-red-700 border-red-200" variant="default">
+            <X />
+          </Badge>
+        )}
       </div>
     ),
   }),
