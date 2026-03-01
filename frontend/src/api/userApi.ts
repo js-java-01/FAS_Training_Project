@@ -1,5 +1,6 @@
 import axiosInstance from './axiosInstance';
 import type { User, CreateUserRequest } from '../types/auth';
+import type { ImportResult } from '@/components/modal/import-export/ImportTab';
 
 export interface UserPageResponse {
   items: User[];
@@ -17,8 +18,9 @@ export const userApi = {
     size?: number;
     sort?: string;
     searchContent?: string;
+    isActive?: boolean;
   } = {}): Promise<UserPageResponse> => {
-    const { page = 0, size = 10, sort = 'createdAt,desc', searchContent } = params;
+    const { page = 0, size = 10, sort = 'createdAt,desc', searchContent, isActive } = params;
     const response = await axiosInstance.get<{
       content: User[];
       number: number;
@@ -29,6 +31,7 @@ export const userApi = {
       params: {
         page, size, sort,
         ...(searchContent?.trim() ? { searchContent: searchContent.trim() } : {}),
+        ...(isActive !== undefined ? { isActive } : {}),
       },
     });
     const d = response.data;
@@ -75,6 +78,22 @@ export const userApi = {
   exportUsers: async (format: 'EXCEL' | 'CSV' | 'PDF' = 'EXCEL'): Promise<Blob> => {
     const response = await axiosInstance.get('/users/export', {
       params: { format },
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  importUsers: async (file: File): Promise<ImportResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await axiosInstance.post<ImportResult>('/users/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  downloadUserTemplate: async (): Promise<Blob> => {
+    const response = await axiosInstance.get('/users/import/template', {
       responseType: 'blob',
     });
     return response.data;

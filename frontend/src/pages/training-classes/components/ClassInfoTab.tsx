@@ -2,6 +2,7 @@ import type { TrainingClass } from "@/types/trainingClass";
 import type { Semester } from "@/types/trainingClass";
 import { Badge } from "@/components/ui/badge";
 import dayjs from "dayjs";
+import { getTrainingClassStatusPresentation } from "../utils/statusPresentation";
 
 /* ── editable form data ── */
 export interface ClassInfoFormData {
@@ -75,6 +76,7 @@ const DateField = ({
     onChange,
     name,
     error,
+    min,
 }: {
     label: string;
     value?: string | null;
@@ -83,6 +85,7 @@ const DateField = ({
     onChange?: (name: string, value: string) => void;
     name?: string;
     error?: string;
+    min?: string;
 }) => (
     <div className="space-y-1.5">
         <label className="text-sm font-medium text-muted-foreground">
@@ -94,6 +97,7 @@ const DateField = ({
                 <input
                     type="date"
                     value={value ?? ""}
+                    min={min}
                     onChange={(e) => onChange(name, e.target.value)}
                     className={`w-full px-3 py-2.5 border rounded-lg text-sm text-foreground bg-background outline-none transition
                         ${error ? "border-red-500 focus:ring-red-200" : "border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
@@ -175,13 +179,10 @@ const SelectField = ({
 
 /* ── status pill ── */
 const STATUS_OPTIONS = [
-    { value: "PLANNING", label: "Planning", color: "bg-blue-100 text-blue-700 border-blue-300" },
-    { value: "ASSIGNED", label: "Assigned", color: "bg-gray-200 text-gray-600 border-gray-300" },
-    { value: "REVIEWING", label: "Reviewing", color: "bg-gray-200 text-gray-600 border-gray-300" },
-    { value: "CANCELLED", label: "Cancelled", color: "bg-gray-200 text-yellow-600 border-gray-300" },
-    { value: "DECLINED", label: "Declined", color: "bg-gray-200 text-yellow-600 border-gray-300" },
-    { value: "IN_PROGRESS", label: "In Progress", color: "bg-gray-200 text-gray-600 border-gray-300" },
-    { value: "PENDING_CLOSE", label: "Pending Close", color: "bg-gray-200 text-gray-600 border-gray-300" },
+    { value: "PENDING_APPROVAL", label: "Pending" },
+    { value: "APPROVED_ACTIVE", label: "Active" },
+    { value: "APPROVED", label: "Approved (Inactive)" },
+    { value: "REJECTED", label: "Rejected" },
 ];
 
 const StatusSelector = ({ current }: { current: string }) => (
@@ -191,10 +192,7 @@ const StatusSelector = ({ current }: { current: string }) => (
         </label>
         <div className="flex flex-wrap gap-2">
             {STATUS_OPTIONS.map((s) => {
-                const isActive =
-                    s.value === current ||
-                    (current === "ACTIVE" && s.value === "PLANNING") ||
-                    (!current && s.value === "PLANNING");
+                const isActive = s.value === current;
                 return (
                     <div
                         key={s.value}
@@ -215,10 +213,8 @@ const StatusSelector = ({ current }: { current: string }) => (
             Selected:{" "}
             <Badge variant="outline" className="text-blue-600 border-blue-300 bg-blue-50">
                 {STATUS_OPTIONS.find(
-                    (s) =>
-                        s.value === current ||
-                        (current === "ACTIVE" && s.value === "PLANNING"),
-                )?.label ?? "Planning"}
+                    (s) => s.value === current,
+                )?.label ?? current}
             </Badge>
         </div>
     </div>
@@ -245,6 +241,13 @@ export default function ClassInfoTab({
     semesters = [],
     loadingSemesters = false,
 }: ClassInfoTabProps) {
+    const statusPresentation = getTrainingClassStatusPresentation(trainingClass);
+    const todayString = dayjs().format("YYYY-MM-DD");
+    const minEndDate = formData?.startDate
+        ? dayjs(formData.startDate).add(1, "day").isBefore(dayjs(todayString))
+            ? todayString
+            : dayjs(formData.startDate).add(1, "day").format("YYYY-MM-DD")
+        : todayString;
     const displayName = isEditing ? formData?.className : trainingClass.className;
     const displayCode = isEditing ? formData?.classCode : trainingClass.classCode;
     const nameLen = (displayName ?? "").length;
@@ -253,7 +256,7 @@ export default function ClassInfoTab({
     const semesterOptions = semesters.map((s) => ({ id: s.id, label: s.name }));
 
     return (
-        <div className="space-y-8 max-w-6xl">
+        <div className="space-y-8 w-full">
             {/* ── Basic Information ── */}
             <section className="space-y-5">
                 <h2 className="text-lg font-semibold">Basic Information</h2>
@@ -308,7 +311,7 @@ export default function ClassInfoTab({
                 </div>
 
                 {/* Status */}
-                <StatusSelector current={trainingClass.isActive ? "PLANNING" : "PLANNING"} />
+                <StatusSelector current={statusPresentation.value} />
             </section>
 
             {/* ── Additional Details ── */}
@@ -326,6 +329,20 @@ export default function ClassInfoTab({
                         selectedValue={formData?.semesterId}
                         loading={loadingSemesters}
                     />
+                    <Field
+                        label="Description"
+                        value={
+                            isEditing
+                                ? formData?.description
+                                : trainingClass.description
+                        }
+                        isEditing={isEditing}
+                        onChange={onFieldChange}
+                        name="description"
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <DateField
                         label="Start Date"
                         value={
@@ -337,10 +354,8 @@ export default function ClassInfoTab({
                         onChange={onFieldChange}
                         name="startDate"
                         error={errors.startDate}
+                        min={todayString}
                     />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <DateField
                         label="End Date"
                         value={
@@ -352,13 +367,7 @@ export default function ClassInfoTab({
                         onChange={onFieldChange}
                         name="endDate"
                         error={errors.endDate}
-                    />
-                    <Field
-                        label="Description"
-                        value={isEditing ? formData?.description : trainingClass.description}
-                        isEditing={isEditing}
-                        onChange={onFieldChange}
-                        name="description"
+                        min={minEndDate}
                     />
                 </div>
             </section>

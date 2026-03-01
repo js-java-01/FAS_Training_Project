@@ -7,8 +7,9 @@ import java.util.UUID;
 
 public interface DepartmentService {
     Department create(DepartmentDTO dto);
-    List<DepartmentDTO> getAll();
-    //void delete(Long id);
+
+    List<DepartmentDTO> getAll(String status);
+    // void delete(Long id);
 
     DepartmentDTO getById(UUID id);
 

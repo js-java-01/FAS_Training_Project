@@ -5,6 +5,7 @@ import com.example.starter_project_2025.system.user.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
@@ -41,20 +42,19 @@ public class TopicMark {
     @Schema(description = "Student user")
     private User user;
 
-    @Column(name = "final_score", nullable = false)
-    @Builder.Default
-    @Schema(description = "Final computed score (0-100)", example = "85.5", minimum = "0", maximum = "100")
-    private Double finalScore = 0.0;
+    @Column(name = "final_score")
+    @Schema(description = "Final computed score (0-100), null if not yet calculated", example = "85.5", nullable = true)
+    private Double finalScore;
 
     @Column(name = "is_passed", nullable = false)
     @Builder.Default
     @Schema(description = "Whether the student passed based on course.minGpaToPass", example = "true")
     private Boolean isPassed = false;
 
-    @Column(columnDefinition = "TEXT")
-    @Schema(description = "Instructor's comment on student performance", 
-            example = "Excellent work, shows strong grasp of concepts", nullable = true)
-    private String comment;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Schema(description = "Timestamp of creation")
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)

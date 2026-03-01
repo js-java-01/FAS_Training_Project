@@ -1,30 +1,32 @@
 import React, { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
-import { DatabaseBackup, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { AxiosError } from "axios";
-
-import { DataTable } from "@/components/data_table/DataTable";
+import { ServerDataTable } from "@/components/data_table/ServerDataTable";
+import { FacetedFilter } from "@/components/FacedFilter";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
-
 import { roleApi } from "@/api/roleApi";
 import { permissionApi } from "@/api/permissionApi";
 import type { Role, CreateRoleRequest } from "@/types/role";
+import { ROLES } from "@/types/role";
 import type { Permission } from "@/types/permission";
 
 import { getColumns } from "./columns";
 import { RoleFormModal } from "./components/RoleFormModal";
 import { RoleDetailDialog } from "./components/RoleDetailDialog";
 import { ROLE_QUERY_KEY, useGetAllRoles } from "./services/queries";
+import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
 import {
+  useDownloadRoleTemplate,
   useExportRoles,
   useImportRoles,
-  useDownloadRoleTemplate,
 } from "./services/mutations";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
+import { useSortParam } from "@/hooks/useSortParam";
 
 /* ===================== MAIN ===================== */
 export default function RoleTable() {
@@ -34,7 +36,6 @@ export default function RoleTable() {
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [viewingRole, setViewingRole] = useState<Role | null>(null);
   const [deletingRole, setDeletingRole] = useState<Role | null>(null);
-  const [openBackupModal, setOpenBackupModal] = useState(false);
   const [permissions, setPermissions] = useState<Permission[]>([]);
 
   const [roleForm, setRoleForm] = useState<CreateRoleRequest>({
@@ -51,21 +52,24 @@ export default function RoleTable() {
 
   const queryClient = useQueryClient();
 
-  /* ---------- search ---------- */
+  const { refreshRoles, activePermissions, activeRole } = useRoleSwitch();
+  const activePerms = activePermissions || [];
+  const hasPermission = (p: string) => activePerms.includes(p);
+  const isSuperAdmin = activeRole?.name === ROLES.SUPER_ADMIN;
+  const canCreate = hasPermission("ROLE_CREATE") && isSuperAdmin;
+  const canUpdate = hasPermission("ROLE_UPDATE") && isSuperAdmin;
+  const canImport = hasPermission("ROLE_IMPORT") && isSuperAdmin;
+  const canExport = hasPermission("ROLE_EXPORT") && isSuperAdmin;
+
+  /* ---------- search + filter ---------- */
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const isActiveParam =
+    statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
 
   /* ---------- sort param ---------- */
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return "name,asc";
-    const { id, desc } = sorting[0];
-    return `${id},${desc ? "desc" : "asc"}`;
-  }, [sorting]);
-
-  /* ---------- mutations ---------- */
-  const { mutateAsync: importRoles } = useImportRoles();
-  const { mutateAsync: exportRoles } = useExportRoles();
-  const { mutateAsync: downloadTemplate } = useDownloadRoleTemplate();
+  const sortParam = useSortParam(sorting, "name,asc")
 
   /* ---------- query ---------- */
   const {
@@ -78,6 +82,7 @@ export default function RoleTable() {
     pageSize,
     sort: sortParam,
     keyword: debouncedSearch,
+    isActive: isActiveParam,
   });
 
   const safeTableData = useMemo(
@@ -94,17 +99,6 @@ export default function RoleTable() {
   /* ---------- helpers ---------- */
   const invalidateRoles = async () => {
     await queryClient.invalidateQueries({ queryKey: [ROLE_QUERY_KEY] });
-  };
-
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
   };
 
   /* ---------- open create ---------- */
@@ -183,6 +177,8 @@ export default function RoleTable() {
       toast.success("Role status updated");
       await invalidateRoles();
       await reload();
+      // Refresh the header role switcher immediately
+      refreshRoles();
     } catch (error) {
       if (error instanceof AxiosError && error.response?.data?.message) {
         toast.error(error.response.data.message);
@@ -192,89 +188,70 @@ export default function RoleTable() {
     }
   };
 
-  /* ---------- import / export ---------- */
-  const handleImport = async (file: File) => {
-    try {
-      await importRoles(file);
-      toast.success("Import roles successfully");
-      setOpenBackupModal(false);
-      await invalidateRoles();
-      await reload();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Failed to import roles");
-      throw err;
-    }
-  };
-
-  const handleExport = async () => {
-    try {
-      const blob = await exportRoles();
-      downloadBlob(blob, `roles_${new Date().toISOString().slice(0, 10)}.xlsx`);
-      toast.success("Export roles successfully");
-    } catch {
-      toast.error("Failed to export roles");
-    }
-  };
-
-  const handleDownloadTemplate = async () => {
-    try {
-      const blob = await downloadTemplate();
-      downloadBlob(blob, "roles_template.xlsx");
-      toast.success("Download template successfully");
-    } catch {
-      toast.error("Failed to download template");
-    }
-  };
-
   /* ---------- columns ---------- */
   const columns = useMemo(
     () =>
       getColumns({
         onView: setViewingRole,
-        onEdit: openEdit,
-        onDelete: setDeletingRole,
-        onToggleStatus: handleToggleStatus,
+        onEdit: canUpdate ? openEdit : undefined,
+        onToggleStatus: canUpdate ? handleToggleStatus : undefined,
       }),
-    [],
+    [canUpdate],
   );
 
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
-      <DataTable<Role, unknown>
+      <ServerDataTable<Role, unknown>
         columns={columns as ColumnDef<Role, unknown>[]}
         data={safeTableData.items}
         isLoading={isLoading}
         isFetching={isFetching}
-        manualPagination
         pageIndex={safeTableData.page}
         pageSize={safeTableData.pageSize}
         totalPage={safeTableData.totalPages}
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        manualSearch
         searchPlaceholder="role name"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}
-        manualSorting
         headerActions={
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setOpenBackupModal(true)}
-            >
-              <DatabaseBackup className="h-4 w-4" />
-              Import / Export
-            </Button>
-            <Button
-              onClick={openCreate}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add New Role
-            </Button>
+          (canCreate || canImport || canExport) && (
+            <div className="flex gap-2">
+              {(canImport || canExport) && (
+                <EntityImportExportButton
+                  title="Roles"
+                  useImportHook={useImportRoles}
+                  useExportHook={useExportRoles}
+                  useTemplateHook={useDownloadRoleTemplate}
+                />
+              )}
+              {canCreate && (
+                <Button
+                  onClick={openCreate}
+                  className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New Role
+                </Button>
+              )}
+            </div>
+       )
+        }
+        facetedFilters={
+          <div>
+            <FacetedFilter
+              title="Status"
+              options={[
+                { value: "ACTIVE", label: "Active" },
+                { value: "INACTIVE", label: "Inactive" },
+              ]}
+              value={statusFilter}
+              setValue={setStatusFilter}
+              multiple={false}
+            />
           </div>
         }
       />
@@ -312,16 +289,6 @@ export default function RoleTable() {
         description={`Are you sure you want to delete "${deletingRole?.name}"?`}
         onCancel={() => setDeletingRole(null)}
         onConfirm={() => void handleDelete()}
-      />
-
-      {/* ===== Import / Export modal ===== */}
-      <ImportExportModal
-        title="Roles"
-        open={openBackupModal}
-        setOpen={setOpenBackupModal}
-        onImport={handleImport}
-        onExport={handleExport}
-        onDownloadTemplate={handleDownloadTemplate}
       />
     </div>
   );

@@ -1,5 +1,6 @@
 import axiosInstance from './axiosInstance';
 import type { Department, CreateDepartmentRequest } from '@/types/department';
+import type { ImportResult } from '@/components/modal/import-export/ImportTab';
 
 export interface DepartmentPageResponse {
     items: Department[];
@@ -18,10 +19,11 @@ export const departmentApi = {
         size?: number;
         sort?: string;
         keyword?: string;
+        status?: string;
     } = {}): Promise<DepartmentPageResponse> => {
-        const { page = 0, size = 10, sort = 'name,asc', keyword } = params;
+        const { page = 0, size = 10, sort = 'name,asc', keyword, status } = params;
         const response = await axiosInstance.get<Department[]>('/departments', {
-            params: { page, size, sort, ...(keyword?.trim() ? { q: keyword.trim() } : {}) },
+            params: { page, size, sort, ...(keyword?.trim() ? { q: keyword.trim() } : {}), ...(status ? { status } : {}) },
         });
         const data = response.data;
         // Backend returns plain list — wrap into page-like structure
@@ -78,11 +80,12 @@ export const departmentApi = {
     },
 
     // ================= IMPORT =================
-    import: async (file: File): Promise<void> => {
+    import: async (file: File): Promise<ImportResult> => {
         const formData = new FormData();
         formData.append('file', file);
-        await axiosInstance.post('/departments/import', formData, {
+        const response = await axiosInstance.post<ImportResult>('/departments/import', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
+        return response.data;
     },
 };

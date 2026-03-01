@@ -3,11 +3,13 @@ import { UserManagement } from "@/pages/UserManagement";
 import { Dashboard } from "@/pages/Dashboard";
 import ModulesManagement from "@/pages/modules/module/ModulesManagement.tsx";
 import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsManagement.tsx";
-import TrainingClassesManagement from "@/pages/training-classes/TrainingClassesManagement.tsx";
 import NotFoundPage from "@/pages/NotFoundPage.tsx";
 import { RoleManagement } from "@/pages/role/RoleManagement";
-import { StudentClassManagement } from "@/pages/classes/StudentClassManagement";
 import LocationsManagement from "@/pages/locations/LocationsManagement";
+import ClassesComponent from "@/pages/classes/ClassesManagement";
+import PermissionsManagement from "@/pages/permissions/PermissionsManagement";
+import { TopicManagement } from "@/pages/topic/TopicManagement";
+import ProgramManagement from "@/pages/programs/ProgramManagement";
 
 
 export const componentRegistry: Record<string, ComponentType> = {
@@ -15,9 +17,11 @@ export const componentRegistry: Record<string, ComponentType> = {
     "/users": UserManagement,
     "/modules": ModulesManagement,
     "/moduleGroups": ModuleGroupsManagement,
-    "/training-classes": TrainingClassesManagement,
     "/notFoundPage": NotFoundPage,
     "/roles": RoleManagement,
-    "/classes": StudentClassManagement,
-    "/locations": LocationsManagement
+    "/classes": ClassesComponent,
+    "/locations": LocationsManagement,
+    "/permissions": PermissionsManagement,
+    "/topics": TopicManagement,
+    "/programs": ProgramManagement,
 };

@@ -132,6 +132,16 @@ public class ClassServiceImpl implements ClassService {
         }
 
         // ===== DATE CHECK =====
+        LocalDate today = LocalDate.now();
+
+        if (request.getStartDate() != null && request.getStartDate().isBefore(today)) {
+            throw new RuntimeException("Start date must be today or in the future");
+        }
+
+        if (request.getEndDate() != null && request.getEndDate().isBefore(today)) {
+            throw new RuntimeException("End date must be today or in the future");
+        }
+
         LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : existing.getStartDate();
         LocalDate endDate = request.getEndDate() != null ? request.getEndDate() : existing.getEndDate();
 
@@ -144,7 +154,7 @@ public class ClassServiceImpl implements ClassService {
             semester = semesterRepository.findById(request.getSemesterId())
                     .orElseThrow(() -> new RuntimeException("Semester not found"));
 
-            if (semester.getEndDate().isBefore(LocalDate.now())) {
+            if (semester.getEndDate().isBefore(today)) {
                 throw new RuntimeException("Cannot assign class to past semester");
             }
         }

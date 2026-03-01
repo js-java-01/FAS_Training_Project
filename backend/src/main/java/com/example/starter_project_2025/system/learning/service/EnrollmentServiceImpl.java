@@ -9,9 +9,14 @@ import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentResponse;
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
+import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
+import com.example.starter_project_2025.system.topic.dto.TopicResponse;
+import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
+
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,6 +34,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final CourseMapper courseMapper;
+    private final CourseClassRepository courseClassRepository;
+    private final TopicMarkService topicMarkService;
+    
 
     @Override
     @Transactional
@@ -53,6 +61,10 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 .build();
 
         enrollmentRepository.save(enrollment);
+
+        // Initialize TopicMark entries for all existing CourseClasses of this course
+        courseClassRepository.findByCourse_Id(course.getId()).forEach(courseClass ->
+                topicMarkService.initializeForNewStudent(courseClass.getId(), user.getId()));
 
         return new EnrollmentResponse(
                 enrollment.getId(),

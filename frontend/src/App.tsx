@@ -6,7 +6,6 @@ import NotFoundPage from "./pages/NotFoundPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
 import { Login } from "./pages/auth/Login";
-import { Unauthorized } from "./pages/Unauthorized";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -32,8 +31,16 @@ import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import { RoleManagement } from "./pages/role/RoleManagement";
-import TrainingClassesManagement from "./pages/training-classes/TrainingClassesManagement";
-import ClassDetailPage from "./pages/training-classes/ClassDetailPage";
+import PermissionsManagement from "./pages/permissions/PermissionsManagement";
+import MfaSettings from "./pages/MfaSettings";
+import { MfaGateProvider } from "./components/MfaGateProvider";
+import ClassesDetailComponent from "./pages/classes/ClassesDetailManagement";
+import Unauthorized from "./pages/Unauthorized";
+import { TopicManagement } from "./pages/topic/TopicManagement";
+import TopicDetailPage from "./pages/topic/TopicDetailPage";
+import ProgramManagement from "./pages/programs/ProgramManagement";
+import ProgramCreatePage from "./pages/programs/ProgramCreatePage";
+import ProgramDetailPage from "./pages/programs/ProgramDetailPage";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -50,6 +57,7 @@ function App() {
       />
       <AuthProvider>
         <RoleSwitchProvider>
+          <MfaGateProvider />
           <Routes>
             <Route
               path="/notFoundPage"
@@ -86,18 +94,10 @@ function App() {
             )}
             <Route path="*" element={<NotFoundRedirect />} />
             <Route
-              path="/training-classes"
+              path="/classes/:id"
               element={
-                <ProtectedRoute requiredPermission="CLASS_CREATE">
-                  <TrainingClassesManagement />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/training-classes/:id"
-              element={
-                <ProtectedRoute requiredPermission="CLASS_CREATE">
-                  <ClassDetailPage />
+                <ProtectedRoute requiredPermission="CLASS_READ">
+                  <ClassesDetailComponent />
                 </ProtectedRoute>
               }
             />
@@ -119,6 +119,30 @@ function App() {
               }
             />
             <Route
+              path="/programs"
+              element={
+                <ProtectedRoute>
+                  <ProgramManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programs/new"
+              element={
+                <ProtectedRoute>
+                  <ProgramCreatePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programs/:id"
+              element={
+                <ProtectedRoute>
+                  <ProgramDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/courses"
               element={
                 <ProtectedRoute requiredPermission="COURSE_READ">
@@ -128,6 +152,7 @@ function App() {
             />
             <Route path="/courses/:id" element={<CourseDetailPage />} />
             {/* /my-courses redirects to /courses for backward compat */}
+            <Route path="/courses/:id" element={<CourseDetailPage />} />
             <Route
               path="/my-courses"
               element={<Navigate to="/courses" replace />}
@@ -146,6 +171,35 @@ function App() {
             />
 
             <Route
+              path="/topics"
+              element={
+                <ProtectedRoute requiredPermission="TOPIC_READ">
+                  <TopicManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/courses/:id" element={<CourseDetailPage />} />
+            {/* /my-courses redirects to /courses for backward compat */}
+            <Route
+              path="/topics"
+              element={
+                <ProtectedRoute requiredPermission="TOPIC_READ">
+                  <TopicManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/topics/:id" element={<TopicDetailPage />} />
+            <Route
+              path="/my-topics"
+              element={<Navigate to="/topics" replace />}
+            />
+            <Route
+              path="/my-topics/:id"
+              element={<Navigate to="/topics" replace />}
+            />
+
+
+            <Route
               path="/teacher-assessment"
               element={
                 <ProtectedRoute requiredPermission="ASSESSMENT_READ">
@@ -159,6 +213,15 @@ function App() {
               element={
                 <ProtectedRoute requiredPermission="ROLE_READ">
                   <RoleManagement />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/permissions"
+              element={
+                <ProtectedRoute requiredPermission="PERMISSION_READ">
+                  <PermissionsManagement />
                 </ProtectedRoute>
               }
             />
@@ -238,6 +301,15 @@ function App() {
               element={
                 <ProtectedRoute requiredPermission="QUESTION_UPDATE">
                   <EditQuestionPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/mfa-setting"
+              element={
+                <ProtectedRoute>
+                  <MfaSettings />
                 </ProtectedRoute>
               }
             />

@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { EditIcon, EyeIcon, Trash } from "lucide-react";
 import SortHeader from "@/components/data_table/SortHeader";
+import { Badge } from "@/components/ui/badge";
 
 export type DepartmentTableActions = {
   onView?: (row: Department) => void;
@@ -78,6 +79,26 @@ export const getColumns = (actions?: DepartmentTableActions) => {
           {info.getValue() || <span className="text-gray-400">N/A</span>}
         </span>
       ),
+    }),
+
+    /* ================= STATUS ================= */
+    columnHelper.accessor("status", {
+      id: "status",
+      header: "Status",
+      size: 120,
+      cell: (info) => (
+        <Badge
+          className={
+            info.getValue() === "ACTIVE"
+              ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none"
+              : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none"
+          }
+        >
+          {info.getValue() === "ACTIVE" ? "Active" : "Inactive"}
+        </Badge>
+      ),
+      meta: { title: "Status" },
+      enableSorting: false,
     }),
 
     /* ================= DESCRIPTION ================= */

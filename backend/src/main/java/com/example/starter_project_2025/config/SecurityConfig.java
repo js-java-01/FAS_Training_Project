@@ -1,11 +1,7 @@
 package com.example.starter_project_2025.config;
 
-import com.example.starter_project_2025.security.JwtAuthenticationFilter;
-import com.example.starter_project_2025.security.UserDetailsServiceImpl;
-import com.example.starter_project_2025.system.auth.service.oauth2.CustomOAuth2UserServiceImpl;
-import com.example.starter_project_2025.system.auth.service.oauth2.OAuth2AuthenticationSuccessHandler;
-import io.swagger.v3.oas.models.OpenAPI;
-import lombok.RequiredArgsConstructor;
+import java.util.Arrays;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,7 +24,13 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
+import com.example.starter_project_2025.security.JwtAuthenticationFilter;
+import com.example.starter_project_2025.security.UserDetailsServiceImpl;
+import com.example.starter_project_2025.system.auth.service.oauth2.CustomOAuth2UserServiceImpl;
+import com.example.starter_project_2025.system.auth.service.oauth2.OAuth2AuthenticationSuccessHandler;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
@@ -56,6 +58,7 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.GET, "/api/auth/my-roles").authenticated()
                                                 .requestMatchers("/api/auth/**").permitAll()
                                                 .requestMatchers("/api/assessments/**").permitAll()
+                                                .requestMatchers("/api/files/**").permitAll()
                                                 .requestMatchers("/h2-console/**").permitAll()
                                                 .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html",
                                                                 "/v3/api-docs/**")
@@ -117,6 +120,22 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/course-classes/**").hasAuthority("COURSE_DELETE")
 
 //                        .anyRequest().authenticated()
+
+                                                .requestMatchers(HttpMethod.GET, "/api/topics/**")
+                                                .hasAuthority("TOPIC_READ")
+                                                .requestMatchers(HttpMethod.POST, "/api/topics")
+                                                .hasAuthority("TOPIC_CREATE")
+                                                .requestMatchers(HttpMethod.PUT, "/api/topics/**")
+                                                .hasAuthority("TOPIC_UPDATE")
+                                                .requestMatchers(HttpMethod.DELETE, "/api/topics/**")
+                                                .hasAuthority("TOPIC_DELETE")
+                                                .requestMatchers(HttpMethod.GET, "/api/topics/export")
+                                                .hasAuthority("TOPIC_EXPORT")
+                                                .requestMatchers(HttpMethod.GET, "/api/topics/import/template")
+                                                .hasAuthority("TOPIC_READ")
+                                                .requestMatchers(HttpMethod.POST, "/api/topics/import")
+                                                .hasAuthority("TOPIC_IMPORT")
+
 
                                                 // Batch outline endpoints
                                                 .requestMatchers(HttpMethod.POST, "/api/batch-outline")

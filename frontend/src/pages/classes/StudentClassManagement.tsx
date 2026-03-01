@@ -22,7 +22,7 @@ import { Search, Users, CalendarDays, Clock, BookOpen } from "lucide-react"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { ClassCard } from "./component/ClassCard"
 
-export const StudentClassManagement = () => {
+const StudentClassManagement = () => {
     return (
         <MainLayout pathName={{ studentClasses: "Student Classes" }}>
             <div className="container mx-auto py-6 space-y-8">
@@ -103,3 +103,5 @@ export const StudentClassManagement = () => {
         </MainLayout>
     )
 }
+
+export default StudentClassManagement;

@@ -8,6 +8,7 @@ export const useGetAllDepartments = (params: {
   pageSize: number;
   sort?: string;
   keyword?: string;
+  status?: string;
 }) => {
   return useQuery({
     queryKey: [DEPARTMENT_QUERY_KEY, params],
@@ -17,6 +18,7 @@ export const useGetAllDepartments = (params: {
         size: params.pageSize,
         sort: params.sort ?? "name,asc",
         ...(params.keyword?.trim() ? { keyword: params.keyword.trim() } : {}),
+        ...(params.status ? { status: params.status } : {}),
       }),
     placeholderData: (prev) => prev,
     staleTime: 5 * 60 * 1000,

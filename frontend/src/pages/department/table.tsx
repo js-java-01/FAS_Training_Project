@@ -1,15 +1,14 @@
 import { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
-import { DatabaseBackup, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { AxiosError } from "axios";
 
-import { DataTable } from "@/components/data_table/DataTable";
+import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 
 import type { Department } from "@/types/department";
 import type { CreateDepartmentRequest } from "@/types/department";
@@ -24,15 +23,28 @@ import {
   useImportDepartments,
   useDownloadDepartmentTemplate,
 } from "./services/mutations";
+import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
+import { FacetedFilter } from "@/components/FacedFilter";
+import { useSortParam } from "@/hooks/useSortParam";
 
 /* ===================== MAIN ===================== */
 export default function DepartmentsTable() {
+  /* ---------- permissions ---------- */
+  const { activePermissions } = useRoleSwitch();
+  const permissions = activePermissions || [];
+  const hasPermission = (p: string) => permissions.includes(p);
+  const canCreate = hasPermission("DEPARTMENT_CREATE");
+  const canUpdate = hasPermission("DEPARTMENT_UPDATE");
+  const canDelete = hasPermission("DEPARTMENT_DELETE");
+  const canImport = hasPermission("DEPARTMENT_IMPORT");
+  const canExport = hasPermission("DEPARTMENT_EXPORT");
+
   /* ---------- modal & view ---------- */
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [viewingDept, setViewingDept] = useState<Department | null>(null);
   const [deletingDept, setDeletingDept] = useState<Department | null>(null);
-  const [openBackupModal, setOpenBackupModal] = useState(false);
 
   /* ---------- table state ---------- */
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -45,17 +57,12 @@ export default function DepartmentsTable() {
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
 
-  /* ---------- sort param ---------- */
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return "name,asc";
-    const { id, desc } = sorting[0];
-    return `${id},${desc ? "desc" : "asc"}`;
-  }, [sorting]);
+  /* ---------- status filter ---------- */
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const statusParam = statusFilter.length === 1 ? statusFilter[0] : undefined;
 
-  /* ---------- mutations ---------- */
-  const { mutateAsync: importDepartments } = useImportDepartments();
-  const { mutateAsync: exportDepartments } = useExportDepartments();
-  const { mutateAsync: downloadTemplate } = useDownloadDepartmentTemplate();
+  /* ---------- sort param ---------- */
+  const sortParam = useSortParam(sorting, "name,asc")
 
   /* ---------- query ---------- */
   const {
@@ -68,6 +75,7 @@ export default function DepartmentsTable() {
     pageSize,
     sort: sortParam,
     keyword: debouncedSearch,
+    status: statusParam,
   });
 
   const safeTableData = useMemo(
@@ -84,17 +92,6 @@ export default function DepartmentsTable() {
   /* ---------- helpers ---------- */
   const invalidateDepartments = async () => {
     await queryClient.invalidateQueries({ queryKey: [DEPARTMENT_QUERY_KEY] });
-  };
-
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
   };
 
   /* ---------- CRUD ---------- */
@@ -147,97 +144,79 @@ export default function DepartmentsTable() {
     }
   };
 
-  /* ---------- import / export ---------- */
-  const handleImport = async (file: File) => {
-    try {
-      await importDepartments(file);
-      toast.success("Import departments successfully");
-      setOpenBackupModal(false);
-      await invalidateDepartments();
-      await reload();
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ?? "Failed to import departments",
-      );
-      throw err;
-    }
-  };
-
-  const handleExport = async () => {
-    try {
-      const blob = await exportDepartments();
-      downloadBlob(blob, "departments.xlsx");
-      toast.success("Export departments successfully");
-    } catch {
-      toast.error("Failed to export departments");
-    }
-  };
-
-  const handleDownloadTemplate = async () => {
-    try {
-      const blob = await downloadTemplate();
-      downloadBlob(blob, "department_import_template.xlsx");
-      toast.success("Download template successfully");
-    } catch {
-      toast.error("Failed to download template");
-    }
-  };
-
   /* ---------- columns ---------- */
   const columns = useMemo(
     () =>
       getColumns({
         onView: setViewingDept,
-        onEdit: (dept) => {
-          setEditingDept(dept);
-          setIsFormOpen(true);
-        },
-        onDelete: setDeletingDept,
+        onEdit: canUpdate
+          ? (dept) => {
+              setEditingDept(dept);
+              setIsFormOpen(true);
+            }
+          : undefined,
+        onDelete: canDelete ? setDeletingDept : undefined,
       }),
-    [],
+    [canUpdate, canDelete],
   );
 
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
-      <DataTable<Department, unknown>
+      <ServerDataTable<Department, unknown>
         columns={columns as ColumnDef<Department, unknown>[]}
         data={safeTableData.items}
         isLoading={isLoading}
         isFetching={isFetching}
-        manualPagination
         pageIndex={safeTableData.page}
         pageSize={safeTableData.pageSize}
         totalPage={safeTableData.totalPages}
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        manualSearch
         searchPlaceholder="name, code, location"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}
-        manualSorting
-        headerActions={
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setOpenBackupModal(true)}
-            >
-              <DatabaseBackup className="h-4 w-4" />
-              Import / Export
-            </Button>
-            <Button
-              onClick={() => {
-                setEditingDept(null);
-                setIsFormOpen(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add Department
-            </Button>
+        facetedFilters={
+          <div>
+            <FacetedFilter
+              title="Status"
+              options={[
+                { value: "ACTIVE", label: "Active" },
+                { value: "INACTIVE", label: "Inactive" },
+              ]}
+              value={statusFilter}
+              setValue={setStatusFilter}
+              multiple={false}
+            />
           </div>
+        }
+        headerActions={
+          (canCreate || canImport || canExport) && (
+            <div className="flex gap-2">
+              {(canImport || canExport) && (
+                <EntityImportExportButton
+                  title="Departments"
+                  useImportHook={useImportDepartments}
+                  useExportHook={useExportDepartments}
+                  useTemplateHook={useDownloadDepartmentTemplate}
+                />
+              )}
+              {canCreate && (
+                <Button
+                  onClick={() => {
+                    setEditingDept(null);
+                    setIsFormOpen(true);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Department
+                </Button>
+              )}
+            </div>
+          )
         }
       />
 
@@ -266,16 +245,6 @@ export default function DepartmentsTable() {
         description={`Are you sure you want to delete "${deletingDept?.name}"?`}
         onCancel={() => setDeletingDept(null)}
         onConfirm={() => void handleDelete()}
-      />
-
-      {/* ===== Import / Export modal ===== */}
-      <ImportExportModal
-        title="Departments"
-        open={openBackupModal}
-        setOpen={setOpenBackupModal}
-        onImport={handleImport}
-        onExport={handleExport}
-        onDownloadTemplate={handleDownloadTemplate}
       />
     </div>
   );

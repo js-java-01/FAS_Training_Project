@@ -14,6 +14,9 @@ import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { ReviewActionModal } from "@/components/ReviewActionModal";
 import { trainingClassApi } from "@/api/trainingClassApi";
+import { useSortParam } from "@/hooks/useSortParam";
+import { trainingClassKeys } from "./keys";
+import { encodeRouteId } from "@/utils/routeIdCodec";
 
 /* ======================================================= */
 
@@ -44,11 +47,7 @@ export default function TrainingClassesTable() {
     const queryClient = useQueryClient();
 
     /* ===================== SORT ===================== */
-    const sortParam = useMemo(() => {
-        if (!sorting.length) return "className,asc";
-        const { id, desc } = sorting[0];
-        return `${id},${desc ? "desc" : "asc"}`;
-    }, [sorting]);
+    const sortParam = useSortParam(sorting, "className,asc");
 
     /* ===================== DATA ===================== */
     const {
@@ -78,7 +77,7 @@ export default function TrainingClassesTable() {
     const columns = useMemo(
         () =>
             getColumns({
-                onNavigate: (row) => navigate(`/training-classes/${row.id}`, { state: { trainingClass: row } }),
+                onNavigate: (row) => navigate(`/classes/${encodeRouteId("classes", row.id)}`, { state: { trainingClass: row } }),
                 onApprove: (row) => setApproveTarget(row),
                 onReject: (row) => setRejectTarget(row),
             }),
@@ -103,6 +102,7 @@ export default function TrainingClassesTable() {
             await trainingClassApi.approveClass(approveTarget.id, reason);
             toast.success(`Class "${approveTarget.className}" approved successfully`);
             await invalidateAll();
+            await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(approveTarget.id) });
             setApproveTarget(null); // Move hide after success to prevent flicker before refresh in optimistic scenarios
         } catch (err: unknown) {
             const msg =
@@ -125,6 +125,7 @@ export default function TrainingClassesTable() {
             await trainingClassApi.rejectClass(rejectTarget.id, reason);
             toast.success(`Class "${rejectTarget.className}" rejected`);
             await invalidateAll();
+            await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(rejectTarget.id) });
             setRejectTarget(null); // Hide on success
         } catch (err: unknown) {
             const msg =

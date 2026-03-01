@@ -10,36 +10,13 @@ import { trainingClassKeys } from "./keys";
 import type { TrainingClass } from "@/types/trainingClass";
 import type { ClassInfoFormData } from "./components/ClassInfoTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-    Breadcrumb,
-    BreadcrumbList,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Pencil, Save, X } from "lucide-react";
+import { ArrowLeft, FileBarChartIcon, Pencil, Save, X } from "lucide-react";
 import ClassInfoTab from "./components/ClassInfoTab";
-
-function ClassBreadcrumb() {
-    return (
-        <Breadcrumb>
-            <BreadcrumbList>
-                <BreadcrumbItem>
-                    <BreadcrumbLink asChild>
-                        <Link to="/training-classes">Classes</Link>
-                    </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator>&gt;</BreadcrumbSeparator>
-                <BreadcrumbItem>
-                    <BreadcrumbPage>Detail</BreadcrumbPage>
-                </BreadcrumbItem>
-            </BreadcrumbList>
-        </Breadcrumb>
-    );
-}
+import { getTrainingClassStatusPresentation } from "./utils/statusPresentation";
+import { decodeRouteId } from "@/utils/routeIdCodec";
+import TopicMarkModal from "../topic-mark/TopicMarkManagement";
 
 const TABS = [
     { value: "class-info", label: "Class Info" },
@@ -62,11 +39,26 @@ const buildFormData = (tc: TrainingClass): ClassInfoFormData => ({
 
 const validateForm = (data: ClassInfoFormData): Record<string, string> => {
     const errs: Record<string, string> = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startDateValue = data.startDate ? new Date(data.startDate) : null;
+    const endDateValue = data.endDate ? new Date(data.endDate) : null;
+
+    if (startDateValue) startDateValue.setHours(0, 0, 0, 0);
+    if (endDateValue) endDateValue.setHours(0, 0, 0, 0);
+
     if (!data.className.trim()) errs.className = "Class name is required";
     if (!data.classCode.trim()) errs.classCode = "Class code is required";
     if (!data.startDate) errs.startDate = "Start date is required";
     if (!data.endDate) errs.endDate = "End date is required";
-    if (data.startDate && data.endDate && new Date(data.startDate) >= new Date(data.endDate)) {
+    if (startDateValue && startDateValue < today) {
+        errs.startDate = "Start date cannot be in the past";
+    }
+    if (endDateValue && endDateValue < today) {
+        errs.endDate = "End date cannot be in the past";
+    }
+    if (startDateValue && endDateValue && startDateValue >= endDateValue) {
         errs.endDate = "End date must be after start date";
     }
     return errs;
@@ -74,18 +66,23 @@ const validateForm = (data: ClassInfoFormData): Record<string, string> => {
 
 export default function ClassDetailPage() {
     const { id } = useParams<{ id: string }>();
+    const decodedClassId = id ? decodeRouteId("classes", id) : null;
     const navigate = useNavigate();
     const location = useLocation();
     const queryClient = useQueryClient();
+    const [openTopicMark, setOpenTopicMark] = useState(false);
 
     /* Data passed from the table via navigate state */
     const stateClass = (location.state as { trainingClass?: TrainingClass })?.trainingClass ?? null;
 
     /* Fetch from API (will also work for direct URL navigation) */
-    const { data: fetchedClass, isLoading } = useGetTrainingClassById(id);
+    const { data: fetchedClass, isLoading } = useGetTrainingClassById(decodedClassId ?? undefined);
 
     /* Prefer fetched data, fall back to route state */
     const trainingClass = fetchedClass ?? stateClass;
+    const statusPresentation = trainingClass
+        ? getTrainingClassStatusPresentation(trainingClass)
+        : null;
 
     /* ── Edit mode state ── */
     const [isEditing, setIsEditing] = useState(false);
@@ -130,10 +127,10 @@ export default function ClassDetailPage() {
             return;
         }
 
-        if (!id) return;
+        if (!decodedClassId) return;
         setSaving(true);
         try {
-            await trainingClassApi.updateTrainingClass(id, {
+            await trainingClassApi.updateTrainingClass(decodedClassId, {
                 className: formData.className,
                 classCode: formData.classCode,
                 description: formData.description || undefined,
@@ -142,7 +139,7 @@ export default function ClassDetailPage() {
                 semesterId: formData.semesterId || undefined,
             });
             toast.success("Class updated successfully");
-            await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(id) });
+            await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(decodedClassId) });
             await queryClient.invalidateQueries({ queryKey: ["training-classes"] });
             setIsEditing(false);
         } catch (err: unknown) {
@@ -154,10 +151,19 @@ export default function ClassDetailPage() {
         } finally {
             setSaving(false);
         }
-    }, [formData, id, queryClient]);
+    }, [decodedClassId, formData, queryClient]);
 
     return (
-        <MainLayout customBreadcrumb={<ClassBreadcrumb />}>
+      <MainLayout
+        pathName={
+          decodedClassId && trainingClass
+            ? {
+                classes: "Classes",
+                [id as string]: trainingClass.className ?? "Detail",
+              }
+            : undefined
+        }
+      >
             {isLoading && !trainingClass ? (
                 <div className="flex items-center justify-center py-20 text-muted-foreground">
                     Loading…
@@ -165,7 +171,7 @@ export default function ClassDetailPage() {
             ) : !trainingClass ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
                     <p className="text-muted-foreground">Training class not found.</p>
-                    <Button variant="outline" onClick={() => navigate("/training-classes")}>
+                    <Button variant="outline" onClick={() => navigate("/classes")}>
                         Back to list
                     </Button>
                 </div>
@@ -208,7 +214,7 @@ export default function ClassDetailPage() {
                                         variant="ghost"
                                         size="sm"
                                         className="gap-1.5"
-                                        onClick={() => navigate("/training-classes")}
+                                        onClick={() => navigate("/classes")}
                                     >
                                         <ArrowLeft className="h-4 w-4" />
                                         Back to list
@@ -235,13 +241,9 @@ export default function ClassDetailPage() {
                             {trainingClass.classCode}
                         </span>
                         <Badge
-                            className={
-                                trainingClass.isActive
-                                    ? "bg-blue-100 text-blue-700 border-blue-200 shadow-none"
-                                    : "bg-yellow-100 text-yellow-700 border-yellow-200 shadow-none"
-                            }
+                            className={statusPresentation?.badgeClassName}
                         >
-                            {trainingClass.isActive ? "Planning" : "Pending"}
+                            {statusPresentation?.label}
                         </Badge>
                     </div>
 
@@ -269,8 +271,10 @@ export default function ClassDetailPage() {
                         </TabsContent>
 
                         {/* Placeholder tabs */}
-                        <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1">
-                            <PlaceholderTab label="Trainee List" />
+                  <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1">
+                     <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button>
+                    <PlaceholderTab label="Trainee List" />
+
                         </TabsContent>
                         <TabsContent value="calendar" className="pt-6 overflow-y-auto flex-1">
                             <PlaceholderTab label="Calendar" />
@@ -286,7 +290,9 @@ export default function ClassDetailPage() {
                         </TabsContent>
                     </Tabs>
                 </div>
-            )}
+        )}
+
+        <TopicMarkModal open={openTopicMark} onOpenChange={setOpenTopicMark} trainingClass={trainingClass}/>
         </MainLayout>
     );
 }

@@ -8,6 +8,7 @@ export const useGetAllUsers = (params: {
   pageSize: number;
   sort?: string;
   searchContent?: string;
+  isActive?: boolean;
 }) => {
   return useQuery({
     queryKey: [USER_QUERY_KEY, params],
@@ -19,6 +20,7 @@ export const useGetAllUsers = (params: {
         ...(params.searchContent?.trim()
           ? { searchContent: params.searchContent.trim() }
           : {}),
+        ...(params.isActive !== undefined ? { isActive: params.isActive } : {}),
       }),
     placeholderData: (prev) => prev,
     staleTime: 5 * 60 * 1000,

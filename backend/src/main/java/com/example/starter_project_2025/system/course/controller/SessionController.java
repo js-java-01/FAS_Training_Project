@@ -2,6 +2,7 @@ package com.example.starter_project_2025.system.course.controller;
 
 import com.example.starter_project_2025.system.course.dto.SessionRequest;
 import com.example.starter_project_2025.system.course.dto.SessionResponse;
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.course.service.SessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -73,10 +74,10 @@ public class SessionController {
 
     @PostMapping(value = "/import/lesson/{lessonId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Import Session từ file Excel theo Lesson")
-    public ResponseEntity<Void> importSessions(
+    public ResponseEntity<ImportResultResponse> importSessions(
             @PathVariable UUID lessonId,
             @RequestPart("file") MultipartFile file) {
-        sessionService.importSessions(lessonId, file);
-        return ResponseEntity.ok().build();
+        ImportResultResponse result = sessionService.importSessions(lessonId, file);
+        return ResponseEntity.ok(result);
     }
 }

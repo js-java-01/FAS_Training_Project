@@ -36,7 +36,7 @@ public class ClassController {
         }
 
         @GetMapping(params = "page")
-        @PreAuthorize("hasAuthority('CLASS_CREATE')")
+        @PreAuthorize("hasAuthority('CLASS_READ')")
         public ResponseEntity<ApiResponse<PageResponse<ClassResponse>>> searchTrainingClasses(
                         @Valid @ModelAttribute SearchClassRequest request,
                         Pageable pageable) {

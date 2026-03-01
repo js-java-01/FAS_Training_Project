@@ -10,6 +10,7 @@ export const useGetTrainingClassById = (id?: string) => {
         enabled: !!id,
         staleTime: 5 * 60 * 1000,
         retry: false,
+        refetchOnMount: "always",
         refetchOnWindowFocus: false,
     });
 };

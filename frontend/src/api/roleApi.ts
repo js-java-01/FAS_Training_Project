@@ -1,5 +1,6 @@
 import axiosInstance from './axiosInstance';
 import type { Role, CreateRoleRequest, UpdateRoleRequest } from '../types/role';
+import type { ImportResult } from '@/components/modal/import-export/ImportTab';
 
 // Spring Page response shape
 interface SpringPage<T> {
@@ -26,10 +27,11 @@ export const roleApi = {
     size?: number;
     sort?: string;
     keyword?: string;
+    isActive?: boolean;
   } = {}): Promise<RolePageResponse> => {
-    const { page = 0, size = 10, sort = 'name,asc', keyword } = params;
+    const { page = 0, size = 10, sort = 'name,asc', keyword, isActive } = params;
     const response = await axiosInstance.get<SpringPage<Role>>('/roles', {
-      params: { page, size, sort, ...(keyword?.trim() ? { keyword: keyword.trim() } : {}) },
+      params: { page, size, sort, ...(keyword?.trim() ? { keyword: keyword.trim() } : {}), ...(isActive !== undefined ? { isActive } : {}) },
     });
     const data = response.data;
     return {
@@ -83,15 +85,15 @@ export const roleApi = {
     return response.data;
   },
 
-  importRoles: async (file: File): Promise<void> => {
+  importRoles: async (file: File): Promise<ImportResult> => {
     const formData = new FormData();
     formData.append('file', file);
-
-    await axiosInstance.post('/roles/import', formData, {
+    const response = await axiosInstance.post<ImportResult>('/roles/import', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
   },
   exportRoles: async (): Promise<Blob> => {
     const response = await axiosInstance.get('/roles/export', {
