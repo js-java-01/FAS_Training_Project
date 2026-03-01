@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.course_class.controller;
 
+import com.example.starter_project_2025.system.course_class.dto.CourseClassRequest;
 import com.example.starter_project_2025.system.course_class.dto.CourseClassResponse;
 import com.example.starter_project_2025.system.course_class.service.CourseClassService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,12 +9,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -27,6 +27,23 @@ import java.util.List;
 public class CourseClassController {
 
     private final CourseClassService courseClassService;
+
+    /**
+     * POST /api/course-classes
+     * Link a Course to a TrainingClass (create a CourseClass).
+     */
+    @PostMapping
+    @Operation(
+            summary = "Create a course class",
+            description = "Links a Course to a TrainingClass. Optionally assigns a trainer. Each Course can only be linked once per TrainingClass."
+    )
+    @ApiResponse(responseCode = "201", description = "Course class created successfully",
+            content = @Content(schema = @Schema(implementation = CourseClassResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Course already assigned to this class")
+    @ApiResponse(responseCode = "404", description = "Course, TrainingClass or Trainer not found")
+    public ResponseEntity<CourseClassResponse> create(@Valid @RequestBody CourseClassRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(courseClassService.create(request));
+    }
 
     /**
      * GET /api/course-classes
@@ -64,4 +81,5 @@ public class CourseClassController {
             @PathVariable UUID classId) {
         return ResponseEntity.ok(courseClassService.getByClassId(classId));
     }
+
 }

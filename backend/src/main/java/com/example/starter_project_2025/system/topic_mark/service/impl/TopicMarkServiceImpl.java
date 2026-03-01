@@ -1,10 +1,9 @@
-package com.example.starter_project_2025.system.topic_mark.service.impl;
+﻿package com.example.starter_project_2025.system.topic_mark.service.impl;
 
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
-import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeightRepository;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
@@ -18,11 +17,21 @@ import com.example.starter_project_2025.system.topic_mark.repository.*;
 import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ImportResultResponse;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ImportErrorDetail;
+import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,15 +56,12 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     private final CourseAssessmentTypeWeightRepository courseAssessmentTypeWeightRepository;
     private final UserRepository userRepository;
 
-    // â”€â”€ Column management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     @Override
     public TopicMarkColumnResponse addColumn(UUID courseClassId, TopicMarkColumnRequest request, UUID editorId) {
         CourseClass courseClass = loadCourseClass(courseClassId);
         assessmentTypeRepository.findById(request.getAssessmentTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException("AssessmentType not found: " + request.getAssessmentTypeId()));
 
-        // Validate that a weight config exists for this AssessmentType in the course
         CourseAssessmentTypeWeight weight = courseAssessmentTypeWeightRepository
                 .findByCourseIdAndAssessmentTypeId(courseClass.getCourse().getId(), request.getAssessmentTypeId())
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -77,7 +83,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 .build();
         column = topicMarkColumnRepository.save(column);
 
-        // Create null entries for all currently enrolled students
         createNullEntriesForColumn(column, courseClass);
 
         return mapToColumnResponse(column, weight);
@@ -113,8 +118,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         log.info("Soft-deleted TopicMarkColumn id={} label={}", columnId, column.getColumnLabel());
     }
 
-    // â”€â”€ Gradebook â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     @Override
     @Transactional(readOnly = true)
     public TopicMarkGradebookResponse getGradebook(UUID courseClassId) {
@@ -123,7 +126,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
         Map<String, CourseAssessmentTypeWeight> weightMap = buildWeightMap(courseClass);
 
-        // Build column definitions
+
         List<TopicMarkGradebookResponse.Column> columnDefs = new ArrayList<>();
         for (TopicMarkColumn col : columns) {
             CourseAssessmentTypeWeight w = weightMap.get(col.getAssessmentType().getId());
@@ -140,11 +143,9 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         columnDefs.add(new TopicMarkGradebookResponse.Column("FINAL_SCORE", "Final Score"));
         columnDefs.add(new TopicMarkGradebookResponse.Column("IS_PASSED", "Passed"));
 
-        // Enrolled students
         List<Enrollment> enrollments = enrollmentRepository
                 .findByCourseIdAndStatus(courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
 
-        // All entries for this courseClass: userId â†’ (columnId â†’ score)
         List<TopicMarkEntry> allEntries = topicMarkEntryRepository.findByCourseClassId(courseClassId);
         Map<UUID, Map<UUID, Double>> scoresByUser = new HashMap<>();
         for (TopicMarkEntry entry : allEntries) {
@@ -188,7 +189,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     public TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword, Boolean passed, Pageable pageable) {
         TopicMarkGradebookResponse full = getGradebook(courseClassId);
 
-        // Filter rows by student full name and passed status
         List<TopicMarkGradebookResponse.Row> filtered = full.getRows().stream()
                 .filter(row -> keyword == null || keyword.isBlank() ||
                         row.getFullName().toLowerCase().contains(keyword.toLowerCase().trim()))
@@ -199,7 +199,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 })
                 .collect(Collectors.toList());
 
-        // Manual sort by pageable sort orders
         if (pageable.getSort().isSorted()) {
             Comparator<TopicMarkGradebookResponse.Row> comparator = null;
             for (org.springframework.data.domain.Sort.Order order : pageable.getSort()) {
@@ -212,7 +211,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                     c = Comparator.comparing(TopicMarkGradebookResponse.Row::getEmail,
                             Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
                 } else if ("IS_PASSED".equalsIgnoreCase(prop)) {
-                    // false(0) < true(1) when asc → failed first; desc → passed first
+
                     c = Comparator.comparing(
                             row -> {
                                 Object val = row.getValues().get("IS_PASSED");
@@ -220,7 +219,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                             },
                             Comparator.nullsLast(Comparator.naturalOrder()));
                 } else {
-                    // Sort by column score value (UUID key or FINAL_SCORE)
                     c = Comparator.comparing(
                             row -> {
                                 Object val = row.getValues().get(prop);
@@ -235,7 +233,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             if (comparator != null) filtered.sort(comparator);
         }
 
-        // Manual pagination
         int total = filtered.size();
         int start = (int) pageable.getOffset();
         int end   = Math.min(start + pageable.getPageSize(), total);
@@ -268,7 +265,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                         TopicMarkEntry::getScore,
                         (a, b) -> a));
 
-        // Group columns by assessmentType preserving order
+
         Map<String, List<TopicMarkColumn>> columnsByType = columns.stream()
                 .collect(Collectors.groupingBy(
                         c -> c.getAssessmentType().getId(),
@@ -337,8 +334,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 .build();
     }
 
-    // â”€â”€ Score entry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     @Override
     public TopicMarkDetailResponse updateScores(UUID courseClassId, UUID userId,
                                                 UpdateTopicMarkRequest request, UUID editorId) {
@@ -390,19 +385,14 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                         .build());
                 entry.setScore(newScore);
                 topicMarkEntryRepository.save(entry);
-                log.debug("Updated entry id={} col=[{}] {} â†’ {}", entry.getId(),
+                log.debug("Updated entry id={} col=[{}] {} -> {}", entry.getId(),
                         column.getColumnLabel(), oldScore, newScore);
             }
         }
-
-        // Recompute (or clear) final score
         tryComputeAndSaveFinalScore(courseClass, userId, mark);
 
         return getStudentDetail(courseClassId, userId);
     }
-
-
-    // â”€â”€ Initialization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Override
     public void initializeForNewStudent(UUID courseClassId, UUID userId) {
@@ -429,8 +419,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         }
         log.info("Initialized TopicMark + {} entries for user={} in courseClass={}", columns.size(), userId, courseClassId);
     }
-
-    // â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private CourseClass loadCourseClass(UUID id) {
         return courseClassRepository.findById(id)
@@ -472,10 +460,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         }
     }
 
-    /**
-     * Tries to compute finalScore if all active column entries are filled.
-     * Sets finalScore = null and isPassed = false if any entry is still null.
-     */
     private void tryComputeAndSaveFinalScore(CourseClass courseClass, UUID userId, TopicMark mark) {
         long nullCount = topicMarkEntryRepository.countNullEntriesForUser(courseClass.getId(), userId);
         if (nullCount > 0) {
@@ -519,7 +503,6 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         log.info("Computed finalScore={} isPassed={} for user={} courseClass={}", finalScore, isPassed, userId, courseClass.getId());
     }
 
-    /** Apply grading method to a list of scores (order matters for LATEST = last by columnIndex). */
     private double computeSectionScore(List<Double> scores, GradingMethod gradingMethod) {
         if (scores == null || scores.isEmpty()) return 0.0;
         return switch (gradingMethod) {
@@ -539,5 +522,484 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 .columnLabel(col.getColumnLabel())
                 .columnIndex(col.getColumnIndex())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public ImportResultResponse importGradebook(UUID courseClassId, MultipartFile file, UUID editorId) {
+        CourseClass courseClass = loadCourseClass(courseClassId);
+        User editor = userRepository.findById(editorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Editor not found: " + editorId));
+
+        ImportResultResponse result = new ImportResultResponse();
+        List<ImportErrorDetail> errors = new ArrayList<>();
+
+        try (Workbook wb = new XSSFWorkbook(file.getInputStream())) {
+            Sheet sheet = wb.getSheetAt(0);
+            if (sheet == null) {
+                result.setMessage("Empty workbook");
+                return result;
+            }
+
+            // 1. Parse meta row (row 0) to build colIndex -> columnUUID mapping
+            Row metaRow = sheet.getRow(0);
+            if (metaRow == null || !"#META".equals(getCellString(metaRow.getCell(0)))) {
+                result.setMessage("Invalid template: missing #META row");
+                return result;
+            }
+
+            final int SCORE_COL_START = 4;
+            Map<Integer, UUID> colIndexToColumnId = new LinkedHashMap<>();
+            for (int c = SCORE_COL_START; c <= metaRow.getLastCellNum(); c++) {
+                String uuid = getCellString(metaRow.getCell(c));
+                if (uuid != null && !uuid.isBlank()) {
+                    try {
+                        colIndexToColumnId.put(c, UUID.fromString(uuid.trim()));
+                    } catch (IllegalArgumentException ignored) {
+                        // skip non-UUID cells
+                    }
+                }
+            }
+
+            if (colIndexToColumnId.isEmpty()) {
+                result.setMessage("No column UUIDs found in meta row");
+                return result;
+            }
+
+            // Pre-load valid columns for this courseClass
+            Set<UUID> validColumnIds = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId)
+                    .stream().map(TopicMarkColumn::getId).collect(Collectors.toSet());
+
+            // 2. Parse data rows (row 2+), skip header (row 1)
+            int totalRows = 0;
+            int successCount = 0;
+            Set<UUID> updatedUserIds = new HashSet<>();
+
+            for (int r = 2; r <= sheet.getLastRowNum(); r++) {
+                Row row = sheet.getRow(r);
+                if (row == null) continue;
+
+                totalRows++;
+                int excelRowNum = r + 1; // 1-based for user display
+
+                // Get user ID from hidden column 1
+                String userIdStr = getCellString(row.getCell(1));
+                if (userIdStr == null || userIdStr.isBlank()) {
+                    errors.add(new ImportErrorDetail(excelRowNum, "User ID", "Missing user ID"));
+                    continue;
+                }
+
+                UUID userId;
+                try {
+                    userId = UUID.fromString(userIdStr.trim());
+                } catch (IllegalArgumentException e) {
+                    errors.add(new ImportErrorDetail(excelRowNum, "User ID", "Invalid user UUID: " + userIdStr));
+                    continue;
+                }
+
+                User student = userRepository.findById(userId).orElse(null);
+                if (student == null) {
+                    errors.add(new ImportErrorDetail(excelRowNum, "User ID", "User not found: " + userId));
+                    continue;
+                }
+
+                boolean rowHasError = false;
+                int updatedCells = 0;
+
+                for (Map.Entry<Integer, UUID> mapping : colIndexToColumnId.entrySet()) {
+                    int colIdx = mapping.getKey();
+                    UUID columnId = mapping.getValue();
+
+                    if (!validColumnIds.contains(columnId)) {
+                        errors.add(new ImportErrorDetail(excelRowNum, "Column " + columnId, "Column not found or deleted"));
+                        rowHasError = true;
+                        continue;
+                    }
+
+                    Cell cell = row.getCell(colIdx);
+                    Double score = getCellNumeric(cell);
+
+                    // Blank = skip (keep existing)
+                    if (score == null) continue;
+
+                    // Validate score range
+                    if (score < 0 || score > 10) {
+                        errors.add(new ImportErrorDetail(excelRowNum, "Column " + columnId, "Score out of range [0-10]: " + score));
+                        rowHasError = true;
+                        continue;
+                    }
+
+                    // Upsert entry
+                    TopicMarkColumn column = topicMarkColumnRepository.findById(columnId).orElse(null);
+                    if (column == null) continue;
+
+                    TopicMarkEntry entry = topicMarkEntryRepository
+                            .findByTopicMarkColumnIdAndUserId(columnId, userId)
+                            .orElseGet(() -> topicMarkEntryRepository.save(TopicMarkEntry.builder()
+                                    .topicMarkColumn(column)
+                                    .user(student)
+                                    .courseClass(courseClass)
+                                    .score(null)
+                                    .build()));
+
+                    Double oldScore = entry.getScore();
+                    if (!Objects.equals(oldScore, score)) {
+                        topicMarkEntryHistoryRepository.save(TopicMarkEntryHistory.builder()
+                                .topicMarkEntry(entry)
+                                .oldScore(oldScore)
+                                .newScore(score)
+                                .reason("Excel import")
+                                .updatedBy(editor)
+                                .build());
+                        entry.setScore(score);
+                        topicMarkEntryRepository.save(entry);
+                    }
+                    updatedCells++;
+                }
+
+                if (!rowHasError && updatedCells > 0) {
+                    updatedUserIds.add(userId);
+                    successCount++;
+                } else if (!rowHasError && updatedCells == 0) {
+                    successCount++; // all blank = still a valid row, just nothing to update
+                }
+            }
+
+            // 3. Recompute final scores for all affected students
+            for (UUID userId : updatedUserIds) {
+                TopicMark mark = topicMarkRepository.findByCourseClassIdAndUserId(courseClassId, userId)
+                        .orElseGet(() -> {
+                            User u = userRepository.findById(userId).orElseThrow();
+                            return topicMarkRepository.save(TopicMark.builder()
+                                    .courseClass(courseClass)
+                                    .user(u)
+                                    .isPassed(false)
+                                    .build());
+                        });
+                tryComputeAndSaveFinalScore(courseClass, userId, mark);
+            }
+
+            result.setTotalRows(totalRows);
+            result.setSuccessCount(successCount);
+            result.setFailedCount(errors.size());
+            result.setErrors(errors);
+            return result;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading Excel file: " + e.getMessage(), e);
+        }
+    }
+
+    private String getCellString(Cell cell) {
+        if (cell == null) return null;
+        return switch (cell.getCellType()) {
+            case STRING  -> cell.getStringCellValue();
+            case NUMERIC -> String.valueOf(cell.getNumericCellValue());
+            case BLANK   -> null;
+            default      -> cell.toString();
+        };
+    }
+
+    private Double getCellNumeric(Cell cell) {
+        if (cell == null) return null;
+        return switch (cell.getCellType()) {
+            case NUMERIC -> cell.getNumericCellValue();
+            case STRING  -> {
+                String s = cell.getStringCellValue().trim();
+                if (s.isEmpty()) yield null;
+                try { yield Double.parseDouble(s); }
+                catch (NumberFormatException e) { yield null; }
+            }
+            case BLANK   -> null;
+            default      -> null;
+        };
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportGradebookTemplate(UUID courseClassId) {
+        CourseClass courseClass = loadCourseClass(courseClassId);
+        List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
+        List<Enrollment> enrollments = enrollmentRepository
+                .findByCourseIdAndStatus(courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
+
+        try (Workbook wb = new XSSFWorkbook()) {
+            String rawName = courseClass.getCourse().getCourseCode()
+                    + " - " + courseClass.getClassInfo().getClassCode();
+            Sheet sheet = wb.createSheet(rawName.length() > 31 ? rawName.substring(0, 31) : rawName);
+
+            
+            CellStyle metaStyle  = buildMetaStyle(wb);
+            CellStyle headerStyle = buildHeaderStyle(wb);
+            CellStyle lockedStyle = buildLockedStyle(wb);
+            CellStyle inputStyle  = buildInputStyle(wb);
+
+
+            final int SCORE_COL_START = 4;
+
+
+            Row metaRow = sheet.createRow(0);
+            metaRow.setHeight((short) 300);   
+            putCell(metaRow, 0, "#META",   metaStyle);
+            putCell(metaRow, 1, "USER_ID", metaStyle);
+            putCell(metaRow, 2, "",        metaStyle);
+            putCell(metaRow, 3, "",        metaStyle);
+            for (int i = 0; i < columns.size(); i++) {
+                putCell(metaRow, SCORE_COL_START + i, columns.get(i).getId().toString(), metaStyle);
+            }
+
+
+            Row headerRow = sheet.createRow(1);
+            putCell(headerRow, 0, "STT",       headerStyle);
+            putCell(headerRow, 1, "User ID",   headerStyle);
+            putCell(headerRow, 2, "Họ và tên", headerStyle);
+            putCell(headerRow, 3, "Email",     headerStyle);
+            for (int i = 0; i < columns.size(); i++) {
+                putCell(headerRow, SCORE_COL_START + i, columns.get(i).getColumnLabel(), headerStyle);
+            }
+
+
+            int stt = 1;
+            for (Enrollment enrollment : enrollments) {
+                User student = enrollment.getUser();
+                Row row = sheet.createRow(1 + stt);
+                putCell(row, 0, stt,                                                        lockedStyle);
+                putCell(row, 1, student.getId().toString(),                                 lockedStyle);
+                putCell(row, 2, student.getFirstName() + " " + student.getLastName(),       lockedStyle);
+                putCell(row, 3, student.getEmail(),                                         lockedStyle);
+                for (int i = 0; i < columns.size(); i++) {
+                    row.createCell(SCORE_COL_START + i).setCellStyle(inputStyle); // blank – teacher fills in
+                }
+                stt++;
+            }
+
+
+            sheet.setColumnWidth(0, 1500);   // STT
+            sheet.setColumnHidden(1, true);  // USER_ID hidden
+            sheet.setColumnWidth(2, 7000);   // Họ và tên
+            sheet.setColumnWidth(3, 8000);   // Email
+            for (int i = 0; i < columns.size(); i++) {
+                sheet.setColumnWidth(SCORE_COL_START + i, 4500);
+            }
+
+
+            sheet.createFreezePane(0, 2);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            wb.write(out);
+            String filename = "gradebook-template-" + courseClassId + ".xlsx";
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(out.toByteArray());
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating gradebook template: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportGradebook(UUID courseClassId) {
+        CourseClass courseClass = loadCourseClass(courseClassId);
+        List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
+        List<Enrollment> enrollments = enrollmentRepository
+                .findByCourseIdAndStatus(courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
+
+        // Build score lookup: userId -> columnId -> score
+        Map<UUID, Map<UUID, Double>> scoreMap = new HashMap<>();
+        topicMarkEntryRepository.findByCourseClassId(courseClassId).forEach(entry -> {
+            if (entry.getScore() != null) {
+                scoreMap
+                    .computeIfAbsent(entry.getUser().getId(), k -> new HashMap<>())
+                    .put(entry.getTopicMarkColumn().getId(), entry.getScore());
+            }
+        });
+
+        // Build final-mark lookup: userId -> TopicMark
+        Map<UUID, TopicMark> markMap = new HashMap<>();
+        topicMarkRepository.findAllByCourseClassId(courseClassId)
+                .forEach(tm -> markMap.put(tm.getUser().getId(), tm));
+
+        try (Workbook wb = new XSSFWorkbook()) {
+            String rawName = courseClass.getCourse().getCourseCode()
+                    + " - " + courseClass.getClassInfo().getClassCode();
+            Sheet sheet = wb.createSheet(rawName.length() > 31 ? rawName.substring(0, 31) : rawName);
+
+            CellStyle headerStyle  = buildHeaderStyle(wb);
+            CellStyle lockedStyle  = buildLockedStyle(wb);
+            CellStyle scoreStyle   = buildInputStyle(wb);
+            CellStyle passStyle    = buildPassStyle(wb);
+            CellStyle failStyle    = buildFailStyle(wb);
+            CellStyle boldCenter   = buildBoldCenterStyle(wb);
+
+            final int SCORE_COL_START = 3;
+            int finalScoreCol = SCORE_COL_START + columns.size();
+            int passedCol     = finalScoreCol + 1;
+
+            // Header row
+            Row headerRow = sheet.createRow(0);
+            putCell(headerRow, 0, "STT",         headerStyle);
+            putCell(headerRow, 1, "Họ và tên",   headerStyle);
+            putCell(headerRow, 2, "Email",        headerStyle);
+            for (int i = 0; i < columns.size(); i++) {
+                putCell(headerRow, SCORE_COL_START + i, columns.get(i).getColumnLabel(), headerStyle);
+            }
+            putCell(headerRow, finalScoreCol, "Final Score", headerStyle);
+            putCell(headerRow, passedCol,     "Passed",      headerStyle);
+
+            // Student rows
+            int stt = 1;
+            for (Enrollment enrollment : enrollments) {
+                User student = enrollment.getUser();
+                Map<UUID, Double> studentScores = scoreMap.getOrDefault(student.getId(), Collections.emptyMap());
+                TopicMark tm = markMap.get(student.getId());
+
+                Row row = sheet.createRow(stt);
+                putCell(row, 0, stt, lockedStyle);
+                putCell(row, 1, student.getFirstName() + " " + student.getLastName(), lockedStyle);
+                putCell(row, 2, student.getEmail(), lockedStyle);
+
+                for (int i = 0; i < columns.size(); i++) {
+                    Double score = studentScores.get(columns.get(i).getId());
+                    if (score != null) putCell(row, SCORE_COL_START + i, score, scoreStyle);
+                    else row.createCell(SCORE_COL_START + i).setCellStyle(scoreStyle);
+                }
+
+                if (tm != null && tm.getFinalScore() != null) {
+                    putCell(row, finalScoreCol, tm.getFinalScore(), boldCenter);
+                    boolean passed = Boolean.TRUE.equals(tm.getIsPassed());
+                    putCell(row, passedCol, passed ? "PASS" : "FAIL", passed ? passStyle : failStyle);
+                } else {
+                    row.createCell(finalScoreCol).setCellStyle(scoreStyle);
+                    row.createCell(passedCol).setCellStyle(scoreStyle);
+                }
+                stt++;
+            }
+
+            // Column widths
+            sheet.setColumnWidth(0, 1500);
+            sheet.setColumnWidth(1, 7000);
+            sheet.setColumnWidth(2, 8000);
+            for (int i = 0; i < columns.size(); i++) {
+                sheet.setColumnWidth(SCORE_COL_START + i, 4500);
+            }
+            sheet.setColumnWidth(finalScoreCol, 4500);
+            sheet.setColumnWidth(passedCol, 3500);
+
+            sheet.createFreezePane(0, 1);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            wb.write(out);
+            String filename = "gradebook-" + courseClassId + ".xlsx";
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(out.toByteArray());
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error exporting gradebook: " + e.getMessage(), e);
+        }
+    }
+
+    private void putCell(Row row, int col, Object value, CellStyle style) {
+        Cell cell = row.createCell(col);
+        if (value instanceof String s)       cell.setCellValue(s);
+        else if (value instanceof Number n)  cell.setCellValue(n.doubleValue());
+        else if (value instanceof Boolean b) cell.setCellValue(b);
+        if (style != null) cell.setCellStyle(style);
+    }
+
+    private CellStyle buildMetaStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        Font f = wb.createFont();
+        f.setFontHeightInPoints((short) 8);
+        f.setColor(IndexedColors.GREY_50_PERCENT.getIndex());
+        s.setFont(f);
+        s.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        return s;
+    }
+
+    private CellStyle buildHeaderStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        Font f = wb.createFont();
+        f.setBold(true);
+        s.setFont(f);
+        s.setFillForegroundColor(IndexedColors.LIGHT_CORNFLOWER_BLUE.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        s.setAlignment(HorizontalAlignment.CENTER);
+        return s;
+    }
+
+    private CellStyle buildLockedStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        s.setFillForegroundColor(IndexedColors.LEMON_CHIFFON.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        return s;
+    }
+
+    private CellStyle buildInputStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        return s;
+    }
+
+    private CellStyle buildPassStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        Font f = wb.createFont();
+        f.setBold(true);
+        f.setColor(IndexedColors.DARK_GREEN.getIndex());
+        s.setFont(f);
+        s.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        s.setAlignment(HorizontalAlignment.CENTER);
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        return s;
+    }
+
+    private CellStyle buildFailStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        Font f = wb.createFont();
+        f.setBold(true);
+        f.setColor(IndexedColors.DARK_RED.getIndex());
+        s.setFont(f);
+        s.setFillForegroundColor(IndexedColors.ROSE.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        s.setAlignment(HorizontalAlignment.CENTER);
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        return s;
+    }
+
+    private CellStyle buildBoldCenterStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        Font f = wb.createFont();
+        f.setBold(true);
+        s.setFont(f);
+        s.setAlignment(HorizontalAlignment.CENTER);
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        return s;
     }
 }

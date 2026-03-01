@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.topic_mark.controller;
 
+import com.example.starter_project_2025.system.modulegroups.dto.response.ImportResultResponse;
 import com.example.starter_project_2025.system.topic_mark.dto.*;
 import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
@@ -19,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -27,9 +29,15 @@ import java.util.UUID;
  *
  * <pre>
  * Gradebook:
- *   GET    /api/course-classes/{courseClassId}/topic-marks              → full gradebook
- *   GET    /api/course-classes/{courseClassId}/topic-marks/{userId}     → student detail
- *   PUT    /api/course-classes/{courseClassId}/topic-marks/{userId}     → update scores
+ *   GET    /api/course-classes/{courseClassId}/topic-marks                → full gradebook
+ *   GET    /api/course-classes/{courseClassId}/topic-marks/search         → paginated search
+ *   GET    /api/course-classes/{courseClassId}/topic-marks/{userId}       → student detail
+ *   PUT    /api/course-classes/{courseClassId}/topic-marks/{userId}       → update scores
+ *
+ * Import / Export:
+ *   GET    /api/course-classes/{courseClassId}/topic-marks/export          → export gradebook (scores)
+ *   GET    /api/course-classes/{courseClassId}/topic-marks/export/template → download template
+ *   POST   /api/course-classes/{courseClassId}/topic-marks/import          → import scores
  *
  * Column management:
  *   POST   /api/course-classes/{courseClassId}/topic-mark-columns             → add column
@@ -45,8 +53,6 @@ public class TopicMarkController {
 
     private final TopicMarkService topicMarkService;
     private final UserRepository userRepository;
-
-    // ── Gradebook ────────────────────────────────────────────────────────────
 
     @GetMapping("/api/course-classes/{courseClassId}/topic-marks")
     @Operation(summary = "Get full gradebook for a course class",
@@ -111,7 +117,62 @@ public class TopicMarkController {
         return ResponseEntity.ok(topicMarkService.updateScores(courseClassId, userId, request, editorId));
     }
 
-    // ── Column management ────────────────────────────────────────────────────
+    @GetMapping("/api/course-classes/{courseClassId}/topic-marks/export")
+    @Operation(
+            summary = "Export full gradebook with scores",
+            description = "Returns an Excel (.xlsx) file with all entered scores, final scores, and PASS/FAIL status for every enrolled student.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Gradebook exported"),
+        @ApiResponse(responseCode = "404", description = "CourseClass not found", content = @Content)
+    })
+    public ResponseEntity<byte[]> exportGradebook(
+            @Parameter(description = "Course class ID", required = true) @PathVariable UUID courseClassId) {
+        return topicMarkService.exportGradebook(courseClassId);
+    }
+
+    @GetMapping("/api/course-classes/{courseClassId}/topic-marks/export/template")
+    @Operation(
+            summary = "Download gradebook score-entry template",
+            description = "Returns an Excel (.xlsx) file with:\n" +
+                          "- Row 0 (hidden): machine-readable column UUIDs for import matching\n" +
+                          "- Row 1: visible header (STT | Họ và tên | Email | <column labels…>)\n" +
+                          "- Row 2+: one row per enrolled student, score cells empty (ready to fill)\n\n" +
+                          "Teacher downloads → fills scores offline → uploads via POST /import.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Template file generated"),
+        @ApiResponse(responseCode = "404", description = "CourseClass not found", content = @Content)
+    })
+    public ResponseEntity<byte[]> exportGradebookTemplate(
+            @Parameter(description = "Course class ID", required = true) @PathVariable UUID courseClassId) {
+        return topicMarkService.exportGradebookTemplate(courseClassId);
+    }
+
+    @PostMapping(value = "/api/course-classes/{courseClassId}/topic-marks/import", consumes = "multipart/form-data")
+    @Operation(
+            summary = "Import gradebook scores from Excel",
+            description = "Accepts a filled Excel template (.xlsx).\n" +
+                          "- Row 0 (meta): column UUIDs for matching\n" +
+                          "- Column 1 (hidden): user UUID for matching\n" +
+                          "- Blank cells = keep existing score, filled cells = update\n" +
+                          "- Final scores are auto-recomputed after import")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Import completed (all rows succeeded)"),
+        @ApiResponse(responseCode = "400", description = "Import completed with some failures"),
+        @ApiResponse(responseCode = "404", description = "CourseClass not found", content = @Content)
+    })
+    public ResponseEntity<ImportResultResponse> importGradebook(
+            @Parameter(description = "Course class ID", required = true) @PathVariable UUID courseClassId,
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) {
+        UUID editorId = resolveCurrentUserId(authentication);
+        ImportResultResponse response = topicMarkService.importGradebook(courseClassId, file, editorId);
+        if (response.getFailedCount() > 0) {
+            response.setMessage("Import completed. Some rows failed.");
+            return ResponseEntity.badRequest().body(response);
+        }
+        response.setMessage("Import gradebook scores successfully");
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/api/course-classes/{courseClassId}/topic-mark-columns")
     @Operation(summary = "Add a new gradebook column",
@@ -162,8 +223,6 @@ public class TopicMarkController {
         topicMarkService.deleteColumn(courseClassId, columnId);
         return ResponseEntity.noContent().build();
     }
-
-    // ── Helper ───────────────────────────────────────────────────────────────
 
     /** Resolve the currently authenticated user's UUID from the security context. */
     private UUID resolveCurrentUserId(Authentication authentication) {
