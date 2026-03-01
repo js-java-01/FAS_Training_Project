@@ -5,10 +5,8 @@ import {
 import React, { useState, useMemo, useCallback } from 'react';
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
-import { questionTagApi } from '../../api/service/assessment/questionTagApi';
 import { PermissionGate } from '../../components/PermissionGate';
 
-import type { QuestionTagRequest, QuestionTag } from '../../types/feature/assessment/question-tag';
 
 import { CreateQuestionTagModal } from './CreateQuestionTagModal';
 import { DeleteQuestionTagDialog } from './DeleteQuestionTagDialog';
@@ -19,6 +17,8 @@ import { DataTable } from '@/components/data_table/DataTable';
 import { getColumns } from './columns';
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/useToast';
+import { questionTagApi } from '@/api';
+import type { QuestionTag } from '@/types';
 
 export const QuestionTagTable: React.FC = () => {
     const { toast } = useToast();
