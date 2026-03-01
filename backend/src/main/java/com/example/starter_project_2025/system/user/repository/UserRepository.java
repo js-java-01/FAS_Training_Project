@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.user.repository;
 
+import com.example.starter_project_2025.base.repository.BaseRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -11,9 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UserRepository extends
-        JpaRepository<User, UUID>,
-        JpaSpecificationExecutor<User> {
+public interface UserRepository extends BaseRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
 

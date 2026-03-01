@@ -1,42 +1,47 @@
 package com.example.starter_project_2025.system.user.service;
 
+import com.example.starter_project_2025.base.mapper.BaseMapper;
+import com.example.starter_project_2025.base.repository.BaseRepository;
+import com.example.starter_project_2025.base.service.CrudServiceImpl;
 import com.example.starter_project_2025.constant.ErrorMessage;
-import com.example.starter_project_2025.exception.BusinessValidationException;
+import com.example.starter_project_2025.exception.ResourceNotFoundException;
+import com.example.starter_project_2025.security.UserDetailsImpl;
+import com.example.starter_project_2025.system.auth.entity.Role;
+import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.common.error.ErrorUtil;
 import com.example.starter_project_2025.system.user.dto.UserCreateRequest;
+import com.example.starter_project_2025.system.user.dto.UserFilter;
 import com.example.starter_project_2025.system.user.dto.UserResponse;
-import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.user.dto.UserUpdateRequest;
 import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.exception.BadRequestException;
-import com.example.starter_project_2025.exception.ResourceNotFoundException;
-import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.user.mapper.UserMapper;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
-import com.example.starter_project_2025.system.user.spec.UserSpecification;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import com.example.starter_project_2025.security.UserDetailsImpl;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends CrudServiceImpl<
+        User,
+        UUID,
+        UserResponse,
+        UserCreateRequest,
+        UserUpdateRequest,
+        UserFilter
+        > implements UserService {
 
     UserMapper userMapper;
     UserRepository userRepository;
@@ -44,35 +49,22 @@ public class UserServiceImpl implements UserService {
     PasswordEncoder passwordEncoder;
 
     @Override
-    @PreAuthorize("hasAuthority('USER_READ')")
-    public Page<UserResponse> getAll(
-            Pageable pageable,
-            String search,
-            List<UUID> roleIds,
-            LocalDateTime createFrom,
-            LocalDateTime createTo,
-            Boolean isActive
-    ) {
-        Specification<User> spec = Specification
-                .where(UserSpecification.hasKeyword(search))
-                .and(UserSpecification.hasRoleIds(roleIds))
-                .and(UserSpecification.createdAfter(createFrom))
-                .and(UserSpecification.createdBefore(createTo))
-                .and(UserSpecification.isActive(isActive));
-
-        return userRepository.findAll(spec, pageable)
-                .map(userMapper::toResponse);
+    protected BaseRepository<User, UUID> getRepository() {
+        return userRepository;
     }
 
     @Override
-    @PreAuthorize("hasAuthority('USER_READ')")
-    public UserResponse getById(UUID id) {
-        return userMapper.toResponse(findUserOrThrow(id));
+    protected BaseMapper<User, UserResponse, UserCreateRequest, UserUpdateRequest> getMapper() {
+        return userMapper;
     }
 
     @Override
-    @PreAuthorize("hasAuthority('USER_CREATE')")
-    public UserResponse create(UserCreateRequest request) {
+    protected String[] searchableFields() {
+        return new String[]{"email", "firstName", "lastName"};
+    }
+
+    @Override
+    protected void beforeCreate(User user, UserCreateRequest request) {
 
         Map<String, List<String>> errors = new HashMap<>();
 
@@ -81,20 +73,13 @@ public class UserServiceImpl implements UserService {
 
         ErrorUtil.throwIfHasErrors(errors);
 
-        User user = userMapper.toEntity(request);
-
         user.setPasswordHash(passwordEncoder.encode(request.password()));
 
-        Set<Role> roles = getRoles(request.roleIds());
-        roles.forEach(user::addRole);
-
-        return userMapper.toResponse(userRepository.save(user));
+        getRoles(request.roleIds()).forEach(user::addRole);
     }
 
     @Override
-    @PreAuthorize("hasAuthority('USER_UPDATE')")
-    public UserResponse update(UUID id, UserUpdateRequest request) {
-        User user = findUserOrThrow(id);
+    protected void beforeUpdate(User user, UserUpdateRequest request) {
 
         Map<String, List<String>> errors = new HashMap<>();
 
@@ -115,16 +100,6 @@ public class UserServiceImpl implements UserService {
         if (request.roleIds() != null) {
             user.replaceRoles(getRoles(request.roleIds()));
         }
-
-        userMapper.update(user, request);
-
-        return userMapper.toResponse(userRepository.save(user));
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('USER_DELETE')")
-    public void delete(UUID id) {
-        userRepository.delete(findUserOrThrow(id));
     }
 
     @Override
@@ -150,10 +125,34 @@ public class UserServiceImpl implements UserService {
                         new ResourceNotFoundException(ErrorMessage.USER_NOT_FOUND));
     }
 
-    private User findUserOrThrow(UUID id) {
-        return userRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("User", "id", id));
+    @Override
+    @PreAuthorize("hasAuthority('USER_READ')")
+    public Page<UserResponse> getAll(Pageable pageable, String search, UserFilter filter) {
+        return super.getAllEntity(pageable, search, filter);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('USER_READ')")
+    public UserResponse getById(UUID uuid) {
+        return super.getByIdEntity(uuid);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('USER_CREATE')")
+    public UserResponse create(UserCreateRequest request) {
+        return super.createEntity(request);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    public UserResponse update(UUID uuid, UserUpdateRequest request) {
+        return super.updateEntity(uuid, request);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('USER_DELETE')")
+    public void delete(UUID uuid) {
+        super.deleteEntity(uuid);
     }
 
     private void validateEmailUnique(String email, UUID currentUserId,

@@ -12,9 +12,9 @@ import Loading from "./common/Loading";
 import NoResult from "./common/NoResult";
 import { ConfirmDeleteModal } from "./modal/ConfirmDeleteModal";
 import { DetailModal } from "./modal/DetailModal";
-import { FormModal } from "./modal/FormModal";
-import { CardView } from "./table/CardView";
-import { CellRenderer } from "./table/CellRenderer";
+import { FormModal } from "./modal/form/FormModal";
+import { CardView } from "./table/card/CardView";
+import { CellRenderer, DATE_FORMAT_CYCLE, type DateFormatKey } from "./table/cell/CellRenderer";
 import { Pagination } from "./table/Pagination";
 import { RowActions } from "./table/RowActions";
 import { RowSelection } from "./table/RowSelection";
@@ -51,6 +51,17 @@ export function ProTable({
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [detailRow, setDetailRow] = useState<any>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
+
+  // Date format cycling per date-type column
+  const [dateFormats, setDateFormats] = useState<Record<string, DateFormatKey>>({});
+  const cycleDateFormat = useCallback((fieldName: string) => {
+    setDateFormats((prev) => {
+      const current = prev[fieldName] ?? "datetime";
+      const idx = DATE_FORMAT_CYCLE.indexOf(current);
+      const next = DATE_FORMAT_CYCLE[(idx + 1) % DATE_FORMAT_CYCLE.length];
+      return { ...prev, [fieldName]: next };
+    });
+  }, []);
 
   // Column widths state for resizing
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
@@ -143,6 +154,8 @@ export function ProTable({
                       onToggleSort={table.toggleSort}
                       width={columnWidths[f.name] || 150}
                       onResizeStart={(e) => onResizeStart(f.name, e)}
+                      dateFormat={dateFormats[f.name]}
+                      onDateFormatCycle={f.type === "date" ? cycleDateFormat : undefined}
                     />
                   ))}
                   <TableHead style={{ width: 120 }}>Actions</TableHead>
@@ -186,6 +199,7 @@ export function ProTable({
                             onBooleanToggle={(fieldName, newValue) => {
                               table.patchField(id, fieldName, newValue);
                             }}
+                            dateFormat={f.type === "date" ? (dateFormats[f.name] ?? "datetime") : undefined}
                           />
                         ))}
 

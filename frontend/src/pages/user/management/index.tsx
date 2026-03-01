@@ -14,6 +14,7 @@ const userSchema: EntitySchema = {
       label: "Email",
       type: "text",
       sortable: true,
+      bold: true,
     },
     {
       name: "firstName",

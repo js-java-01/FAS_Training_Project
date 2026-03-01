@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.auth.mapper;
 
+import com.example.starter_project_2025.base.mapper.BaseMapper;
 import com.example.starter_project_2025.system.auth.dto.role.RoleCreateRequest;
 import com.example.starter_project_2025.system.auth.dto.role.RoleResponse;
 import com.example.starter_project_2025.system.auth.dto.role.RoleUpdateRequest;
@@ -13,21 +14,25 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
-public interface RoleMapper {
+public interface RoleMapper extends BaseMapper<
+        Role,
+        RoleResponse,
+        RoleCreateRequest,
+        RoleUpdateRequest> {
 
-    @Mapping(target = "id", ignore = true)
+    @Override
     @Mapping(target = "isActive", constant = "true")
     @Mapping(target = "permissions", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
     Role toEntity(RoleCreateRequest request);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "permissions", ignore = true)
-    void update(@MappingTarget Role role, RoleUpdateRequest request);
-
+    @Override
     @Mapping(target = "permissionIds", source = "permissions")
     RoleResponse toResponse(Role role);
+
+    @Override
+    @Mapping(target = "permissions", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget Role role, RoleUpdateRequest request);
 
     default Set<UUID> mapPermissionIds(Set<Permission> permissions) {
         if (permissions == null) return new HashSet<>();

@@ -42,7 +42,7 @@ export const ImportResultContent = ({ result }: ImportResultContentProps) => {
       </div>
 
       {result.errors.length > 0 && (
-        <ScrollArea className="rounded-md border max-h-[250px]">
+        <ScrollArea className="rounded-md border h-[250px]">
           <table className="w-full text-sm table-fixed">
             <thead className="bg-muted/50 sticky top-0 z-10">
               <tr>
@@ -95,7 +95,7 @@ export function ImportResultModal({
 }: ImportResultModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl min-h-[440px] flex flex-col">
+      <DialogContent className="sm:max-w-xl max-h-[90vh] flex flex-col">
         {!result ? (
           <div className="p-8 text-center text-muted-foreground">
             No result data
@@ -112,7 +112,7 @@ export function ImportResultModal({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex-1 py-4">
+            <div className="flex-1 min-h-0 overflow-y-auto py-4">
               <ImportResultContent result={result} />
             </div>
 

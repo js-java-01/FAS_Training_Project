@@ -169,20 +169,16 @@ export function useProTable(api: any, schema: EntitySchema) {
   });
 
   const patchField = (id: any, fieldName: string, value: any) => {
-    // Find the full row from current data
     const currentData: any[] = query.data?.content ?? [];
     const row = currentData.find((r: any) => r[schema.idField] === id);
     if (!row) return;
 
-    // Build full update payload with the changed field
     const updateData = { ...row, [fieldName]: value };
 
-    // Remove read-only / server-managed fields
     delete updateData[schema.idField];
     delete updateData.createdAt;
     delete updateData.updatedAt;
 
-    // Optimistically update the cache
     qc.setQueryData(queryKey, (old: any) => {
       if (!old?.content) return old;
       return {

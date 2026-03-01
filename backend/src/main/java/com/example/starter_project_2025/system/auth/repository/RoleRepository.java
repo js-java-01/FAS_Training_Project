@@ -1,28 +1,18 @@
 package com.example.starter_project_2025.system.auth.repository;
 
+import com.example.starter_project_2025.base.repository.BaseRepository;
 import com.example.starter_project_2025.system.auth.entity.Role;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface RoleRepository extends
-        JpaRepository<Role, UUID>,
-        JpaSpecificationExecutor<Role>
-{
-    Optional<Role> findByName(String name);
+public interface RoleRepository extends BaseRepository<Role, UUID> {
 
-    boolean existsByName(String name);
+    Optional<Role> findByName(String name);
 
     Long countByIsActive(Boolean isActive);
 
     Long countByIdIn(Iterable<UUID> ids);
-
-    @Query("SELECT r FROM Role r LEFT JOIN FETCH r.permissions WHERE r.id = :id")
-    Optional<Role> findByIdWithPermissions(@Param("id") UUID id);
 }

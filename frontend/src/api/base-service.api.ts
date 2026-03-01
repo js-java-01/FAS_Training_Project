@@ -15,21 +15,25 @@ export const createBaseApiService = <
     import: async (file: File): Promise<ImportResult> => {
       const formData = new FormData();
       formData.append("file", file);
-      const response = await instance.post<ImportResult>(`${path}/import`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+      const response = await instance.post<ImportResult>(
+        `${path}/import`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         },
-      });
+      );
       return response.data;
     },
 
-    export: async (format: FileFormat): Promise<Blob> =>
-      (
-        await instance.get(`${path}/export`, {
-          params: { format },
-          responseType: "blob",
-        })
-      ),
+    export: async (format: FileFormat): Promise<Blob> => {
+      const res = await instance.get(`${path}/export`, {
+        params: { format },
+        responseType: "blob",
+      });
+      return res.data;
+    },
 
     getPage: async (
       pagination: Pagination,
@@ -40,7 +44,8 @@ export const createBaseApiService = <
       const params = new URLSearchParams();
 
       Object.entries(rest).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) params.append(key, String(value));
+        if (value !== undefined && value !== null)
+          params.append(key, String(value));
       });
 
       if (sort) {
@@ -50,15 +55,30 @@ export const createBaseApiService = <
 
       if (search) params.append("search", search);
 
+      const serializeValue = (value: any) => {
+        if (value instanceof Date) return value.toISOString();
+        return String(value);
+      };
+
       if (filter) {
-        Object.entries(filter as Record<string, any>).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== "") {
-            params.append(key, String(value));
-          }
-        });
+        Object.entries(filter as Record<string, any>).forEach(
+          ([key, value]) => {
+            if (value === undefined || value === null) return;
+
+            if (typeof value === "string" && !value.trim()) return;
+
+            if (Array.isArray(value)) {
+              value.forEach((v) => params.append(key, serializeValue(v)));
+            } else {
+              params.append(key, serializeValue(value));
+            }
+          },
+        );
       }
 
-      const response = await instance.get<PageResponse<Response>>(path, { params });
+      const response = await instance.get<PageResponse<Response>>(path, {
+        params,
+      });
       console.log("GetPage response:", response);
       return response.data;
     },
