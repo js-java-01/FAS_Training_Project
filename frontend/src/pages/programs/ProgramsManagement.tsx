@@ -1,5 +1,4 @@
 import { MainLayout } from "@/components/layout/MainLayout";
-import MainHeader from "@/components/layout/MainHeader";
 import ProgramsTable from "./table";
 
 export default function ProgramsManagement() {

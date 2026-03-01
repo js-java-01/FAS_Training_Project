@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import type { TrainingProgram } from "@/types/trainingProgram";
 import { useSortParam } from "@/hooks/useSortParam";
+import { encodeRouteId } from "@/utils/routeIdCodec";
 import { useGetAllTrainingPrograms } from "./services/queries";
 import { getColumns } from "./column";
 import { useQueryClient } from "@tanstack/react-query";
@@ -62,7 +63,7 @@ export default function ProgramsTable() {
   const columns = useMemo(
     () =>
       getColumns({
-        onView: (program) => navigate(`/programs/${program.id}`),
+        onView: (program) => navigate(`/programs/${encodeRouteId("programs", program.id)}`),
         onDelete: (program) => {
           setSelectedProgram(program);
           setIsDeleteModalOpen(true);
