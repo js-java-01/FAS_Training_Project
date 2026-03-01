@@ -14,6 +14,7 @@ import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { ReviewActionModal } from "@/components/ReviewActionModal";
 import { trainingClassApi } from "@/api/trainingClassApi";
+import { useSortParam } from "@/hooks/useSortParam";
 import { trainingClassKeys } from "./keys";
 import { encodeRouteId } from "@/utils/routeIdCodec";
 
@@ -46,11 +47,7 @@ export default function TrainingClassesTable() {
     const queryClient = useQueryClient();
 
     /* ===================== SORT ===================== */
-    const sortParam = useMemo(() => {
-        if (!sorting.length) return "className,asc";
-        const { id, desc } = sorting[0];
-        return `${id},${desc ? "desc" : "asc"}`;
-    }, [sorting]);
+    const sortParam = useSortParam(sorting, "className,asc");
 
     /* ===================== DATA ===================== */
     const {

@@ -7,7 +7,7 @@ import { trainingProgramKeys } from "../../keys";
 export const useGetAllTrainingPrograms = (params: {
   page: number;
   pageSize: number;
-  sort?: string[];
+  sort?: string;
   keyword?: string;
 }) => {
   return useQuery<PagedData<TrainingProgram>>({
@@ -16,7 +16,7 @@ export const useGetAllTrainingPrograms = (params: {
       trainingProgramApi.getAllTrainingPrograms({
         page: params.page,
         size: params.pageSize,
-        sort: params.sort ?? ["createdAt", "desc"],
+        sort: params.sort ?? "createdAt,desc",
         ...(params.keyword?.trim() ? { keyword: params.keyword.trim() } : {}),
       }),
     placeholderData: (prev?: PagedData<TrainingProgram>) => prev,
