@@ -8,6 +8,7 @@ import SortHeader from "@/components/data_table/SortHeader";
 
 export type ProgramTableActions = {
   onView?: (row: TrainingProgram) => void;
+  onDelete?: (row: TrainingProgram) => void;
 };
 
 export const getColumns = (actions?: ProgramTableActions) => {
@@ -89,11 +90,13 @@ export const getColumns = (actions?: ProgramTableActions) => {
               onClick={() => actions.onView?.(row.original)}
             />
           )}
-          <ActionBtn
-            tooltipText="Delete (coming soon)"
-            icon={<Trash size={12} />}
-            disabled
-          />
+          {actions?.onDelete && (
+            <ActionBtn
+              tooltipText="Delete"
+              icon={<Trash size={12} />}
+              onClick={() => actions.onDelete?.(row.original)}
+            />
+          )}
         </div>
       ),
       enableSorting: false,
