@@ -1,15 +1,15 @@
-package com.example.starter_project_2025.system.topic.service;
+package com.example.starter_project_2025.system.skill.service;
 
 import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
-import com.example.starter_project_2025.system.topic.dto.CreateSkillGroupRequest;
-import com.example.starter_project_2025.system.topic.dto.CreateSkillRequest;
-import com.example.starter_project_2025.system.topic.dto.SkillGroupResponse;
-import com.example.starter_project_2025.system.topic.dto.SkillResponse;
-import com.example.starter_project_2025.system.topic.entity.Skill;
-import com.example.starter_project_2025.system.topic.entity.SkillGroup;
-import com.example.starter_project_2025.system.topic.mapper.SkillMapper;
-import com.example.starter_project_2025.system.topic.repository.SkillGroupRepository;
-import com.example.starter_project_2025.system.topic.repository.SkillRepository;
+import com.example.starter_project_2025.system.skill.dto.CreateSkillGroupRequest;
+import com.example.starter_project_2025.system.skill.dto.CreateSkillRequest;
+import com.example.starter_project_2025.system.skill.dto.SkillGroupResponse;
+import com.example.starter_project_2025.system.skill.dto.SkillResponse;
+import com.example.starter_project_2025.system.skill.entity.Skill;
+import com.example.starter_project_2025.system.skill.entity.SkillGroup;
+import com.example.starter_project_2025.system.skill.mapper.SkillMapper;
+import com.example.starter_project_2025.system.skill.repository.SkillGroupRepository;
+import com.example.starter_project_2025.system.skill.repository.SkillRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;

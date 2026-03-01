@@ -1,7 +1,7 @@
-package com.example.starter_project_2025.system.topic.mapper;
+package com.example.starter_project_2025.system.skill.mapper;
 
-import com.example.starter_project_2025.system.topic.dto.SkillResponse;
-import com.example.starter_project_2025.system.topic.entity.Skill;
+import com.example.starter_project_2025.system.skill.dto.SkillResponse;
+import com.example.starter_project_2025.system.skill.entity.Skill;
 import org.springframework.stereotype.Component;
 
 @Component

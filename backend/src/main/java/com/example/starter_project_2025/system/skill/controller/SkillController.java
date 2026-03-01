@@ -1,10 +1,10 @@
-package com.example.starter_project_2025.system.topic.controller;
+package com.example.starter_project_2025.system.skill.controller;
 
-import com.example.starter_project_2025.system.topic.dto.CreateSkillGroupRequest;
-import com.example.starter_project_2025.system.topic.dto.CreateSkillRequest;
-import com.example.starter_project_2025.system.topic.dto.SkillGroupResponse;
-import com.example.starter_project_2025.system.topic.dto.SkillResponse;
-import com.example.starter_project_2025.system.topic.service.SkillService;
+import com.example.starter_project_2025.system.skill.dto.CreateSkillGroupRequest;
+import com.example.starter_project_2025.system.skill.dto.CreateSkillRequest;
+import com.example.starter_project_2025.system.skill.dto.SkillGroupResponse;
+import com.example.starter_project_2025.system.skill.dto.SkillResponse;
+import com.example.starter_project_2025.system.skill.service.SkillService;
 import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;

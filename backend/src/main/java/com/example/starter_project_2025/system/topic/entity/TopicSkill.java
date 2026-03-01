@@ -6,6 +6,8 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+import com.example.starter_project_2025.system.skill.entity.Skill;
+
 @Entity
 @Table(name = "topic_skills",
         uniqueConstraints = @UniqueConstraint(columnNames = {"topic_id", "skill_id"}))

@@ -35,13 +35,13 @@ import com.example.starter_project_2025.system.location.data.repository.Province
 import com.example.starter_project_2025.system.location.entity.Location;
 import com.example.starter_project_2025.system.location.repository.LocationRepository;
 import com.example.starter_project_2025.system.topic.entity.Topic;
-import com.example.starter_project_2025.system.topic.entity.Skill;
-import com.example.starter_project_2025.system.topic.entity.SkillGroup;
+import com.example.starter_project_2025.system.skill.entity.Skill;
+import com.example.starter_project_2025.system.skill.entity.SkillGroup;
 import com.example.starter_project_2025.system.topic.enums.TopicLevel;
 import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import com.example.starter_project_2025.system.topic.repository.TopicRepository;
-import com.example.starter_project_2025.system.topic.repository.SkillGroupRepository;
-import com.example.starter_project_2025.system.topic.repository.SkillRepository;
+import com.example.starter_project_2025.system.skill.repository.SkillGroupRepository;
+import com.example.starter_project_2025.system.skill.repository.SkillRepository;
 import com.example.starter_project_2025.system.menu.entity.Menu;
 import com.example.starter_project_2025.system.menu.entity.MenuItem;
 import com.example.starter_project_2025.system.menu.repository.MenuItemRepository;

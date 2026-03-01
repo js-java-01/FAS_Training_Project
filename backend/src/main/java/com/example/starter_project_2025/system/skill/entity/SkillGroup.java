@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.topic.entity;
+package com.example.starter_project_2025.system.skill.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

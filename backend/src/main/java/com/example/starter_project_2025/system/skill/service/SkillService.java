@@ -1,9 +1,9 @@
-package com.example.starter_project_2025.system.topic.service;
+package com.example.starter_project_2025.system.skill.service;
 
-import com.example.starter_project_2025.system.topic.dto.CreateSkillGroupRequest;
-import com.example.starter_project_2025.system.topic.dto.CreateSkillRequest;
-import com.example.starter_project_2025.system.topic.dto.SkillGroupResponse;
-import com.example.starter_project_2025.system.topic.dto.SkillResponse;
+import com.example.starter_project_2025.system.skill.dto.CreateSkillGroupRequest;
+import com.example.starter_project_2025.system.skill.dto.CreateSkillRequest;
+import com.example.starter_project_2025.system.skill.dto.SkillGroupResponse;
+import com.example.starter_project_2025.system.skill.dto.SkillResponse;
 import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import org.springframework.web.multipart.MultipartFile;
 

@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.topic.controller;
 
-import com.example.starter_project_2025.system.topic.dto.SkillResponse;
+import com.example.starter_project_2025.system.skill.dto.SkillResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicSkillResponse;
 import com.example.starter_project_2025.system.topic.dto.UpdateTopicSkillRequest;
 import com.example.starter_project_2025.system.topic.service.TopicSkillService;

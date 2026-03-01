@@ -1,6 +1,6 @@
-package com.example.starter_project_2025.system.topic.repository;
+package com.example.starter_project_2025.system.skill.repository;
 
-import com.example.starter_project_2025.system.topic.entity.Skill;
+import com.example.starter_project_2025.system.skill.entity.Skill;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

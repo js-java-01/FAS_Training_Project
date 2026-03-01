@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.topic.dto;
+package com.example.starter_project_2025.system.skill.dto;
 
 import lombok.Getter;
 import lombok.Setter;
