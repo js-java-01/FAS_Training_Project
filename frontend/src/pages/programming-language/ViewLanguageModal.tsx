@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { getLanguageBadgeStyle, getSupportedBadgeStyle, formatDate, displayValue } from './utils';
-import type { ProgrammingLanguage } from '../../types/programmingLanguage';
+import type { ProgrammingLanguage } from '../../types/feature/assessment/programming-language';
 import { Modal } from '@/components/modal/Modal';
 
 interface ViewLanguageModalProps {

@@ -3,9 +3,14 @@ import { Download, FileCheck, AlertCircle, X } from 'lucide-react';
 
 import { downloadTemplate } from '../../hooks/useAssessment';
 import { useToast } from '../../hooks/useToast.ts';
-import type { ImportResult } from '../../types/assessmentType';
 import { Modal } from '@/components/modal/Modal.tsx';
 import { Button } from '@/components/ui/button.tsx';
+
+export interface ImportResult {
+    successCount: number;
+    errorCount: number;
+    errors?: { row: number; message: string }[];
+}
 
 interface ImportAssessmentDialogProps {
     isOpen: boolean;

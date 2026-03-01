@@ -26,7 +26,7 @@ import com.example.starter_project_2025.system.programminglanguage.entity.Progra
 import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
-import com.example.starter_project_2025.system.user_role.entity.UserRole;
+import com.example.starter_project_2025.system.user.entity.UserRole;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -1008,7 +1008,11 @@ public class DataInitializer implements CommandLineRunner
     private ProgrammingLanguage createProgrammingLanguage(String name, String version, String description,
                                                           boolean isSupported)
     {
-        ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
+        ProgrammingLanguage language = new ProgrammingLanguage();
+        language.setName(name);
+        language.setVersion(version);
+        language.setDescription(description);
+        language.setSupported(isSupported);
         return language;
     }
 

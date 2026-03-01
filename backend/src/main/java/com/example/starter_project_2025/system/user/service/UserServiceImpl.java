@@ -1,9 +1,12 @@
 package com.example.starter_project_2025.system.user.service;
 
 import com.example.starter_project_2025.constant.ErrorMessage;
-import com.example.starter_project_2025.system.user.dto.CreateUserRequest;
-import com.example.starter_project_2025.system.user.dto.UserDTO;
+import com.example.starter_project_2025.exception.BusinessValidationException;
+import com.example.starter_project_2025.system.common.error.ErrorUtil;
+import com.example.starter_project_2025.system.user.dto.UserCreateRequest;
+import com.example.starter_project_2025.system.user.dto.UserResponse;
 import com.example.starter_project_2025.system.auth.entity.Role;
+import com.example.starter_project_2025.system.user.dto.UserUpdateRequest;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
@@ -23,8 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.example.starter_project_2025.security.UserDetailsImpl;
@@ -40,71 +43,77 @@ public class UserServiceImpl implements UserService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
 
+    @Override
     @PreAuthorize("hasAuthority('USER_READ')")
-    public Page<UserDTO> getAllUsers(
-            String searchContent,
-            UUID roleId,
+    public Page<UserResponse> getAll(
+            Pageable pageable,
+            String search,
+            List<UUID> roleIds,
             LocalDateTime createFrom,
             LocalDateTime createTo,
-            Boolean isActive,
-            Pageable pageable) {
+            Boolean isActive
+    ) {
         Specification<User> spec = Specification
-                .where(UserSpecification.hasUserKeyword(searchContent))
-                .and(UserSpecification.hasRoleId(roleId))
+                .where(UserSpecification.hasKeyword(search))
+                .and(UserSpecification.hasRoleIds(roleIds))
                 .and(UserSpecification.createdAfter(createFrom))
                 .and(UserSpecification.createdBefore(createTo))
                 .and(UserSpecification.isActive(isActive));
 
-        return userRepository.findAll(spec, pageable).map(userMapper::toResponse);
+        return userRepository.findAll(spec, pageable)
+                .map(userMapper::toResponse);
     }
 
     @Override
     @PreAuthorize("hasAuthority('USER_READ')")
-    public UserDTO getUserById(UUID id) {
-
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-
-        return userMapper.toResponse(user);
+    public UserResponse getById(UUID id) {
+        return userMapper.toResponse(findUserOrThrow(id));
     }
 
     @Override
     @PreAuthorize("hasAuthority('USER_CREATE')")
-    public UserDTO createUser(CreateUserRequest request) {
+    public UserResponse create(UserCreateRequest request) {
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("Email already exists: " + request.getEmail());
-        }
+        Map<String, List<String>> errors = new HashMap<>();
 
-        Role role = roleRepository.findById(request.getRoleId())
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", request.getRoleId()));
+        validateEmailUnique(request.email(), null, errors);
+        validateRoles(request.roleIds(), errors);
+
+        ErrorUtil.throwIfHasErrors(errors);
 
         User user = userMapper.toEntity(request);
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
-        user.setIsActive(true);
+        user.setPasswordHash(passwordEncoder.encode(request.password()));
+
+        Set<Role> roles = getRoles(request.roleIds());
+        roles.forEach(user::addRole);
 
         return userMapper.toResponse(userRepository.save(user));
     }
 
     @Override
     @PreAuthorize("hasAuthority('USER_UPDATE')")
-    public UserDTO updateUser(UUID id, UserDTO request) {
+    public UserResponse update(UUID id, UserUpdateRequest request) {
+        User user = findUserOrThrow(id);
 
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        Map<String, List<String>> errors = new HashMap<>();
 
-        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
-            if (userRepository.existsByEmail(request.getEmail())) {
-                throw new BadRequestException("Email already exists: " + request.getEmail());
-            }
-            user.setEmail(request.getEmail());
+        if (request.email() != null) {
+            validateEmailUnique(request.email(), user.getId(), errors);
         }
 
-        if (request.getRoleId() != null) {
-            Role role = roleRepository.findById(request.getRoleId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Role", "id", request.getRoleId()));
+        if (request.roleIds() != null) {
+            validateRoles(request.roleIds(), errors);
+        }
 
+        ErrorUtil.throwIfHasErrors(errors);
+
+        if (request.password() != null) {
+            user.setPasswordHash(passwordEncoder.encode(request.password()));
+        }
+
+        if (request.roleIds() != null) {
+            user.replaceRoles(getRoles(request.roleIds()));
         }
 
         userMapper.update(user, request);
@@ -114,63 +123,67 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PreAuthorize("hasAuthority('USER_DELETE')")
-    public void deleteUser(UUID id) {
-
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-
-        userRepository.delete(user);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('USER_ACTIVATE')")
-    public UserDTO toggleUserStatus(UUID id) {
-
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-
-        user.setIsActive(!user.getIsActive());
-
-        return userMapper.toResponse(userRepository.save(user));
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('ROLE_ASSIGN')")
-    public UserDTO assignRole(UUID userId, UUID roleId) {
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-        Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", roleId));
-
-        return userMapper.toResponse(userRepository.save(user));
-    }
-
-    @Override
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.USER_NOT_FOUND));
+    public void delete(UUID id) {
+        userRepository.delete(findUserOrThrow(id));
     }
 
     @Override
     public User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("No authenticated user found");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new RuntimeException("No authenticated user");
         }
 
-        Object principal = authentication.getPrincipal();
         String email;
+
+        Object principal = auth.getPrincipal();
 
         if (principal instanceof UserDetailsImpl userDetails) {
             email = userDetails.getEmail();
-        } else if (principal instanceof String) {
-            email = (String) principal;
         } else {
-            throw new RuntimeException("Unable to resolve current user principal");
+            email = principal.toString();
         }
 
-        return findByEmail(email);
+        return userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(ErrorMessage.USER_NOT_FOUND));
     }
 
+    private User findUserOrThrow(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User", "id", id));
+    }
+
+    private void validateEmailUnique(String email, UUID currentUserId,
+                                     Map<String, List<String>> errors) {
+
+        Optional<User> existing = userRepository.findByEmail(email);
+
+        if (existing.isPresent() &&
+                (currentUserId == null || !existing.get().getId().equals(currentUserId))) {
+
+            ErrorUtil.addError(errors, "email", "Email is already in use");
+        }
+    }
+
+    private void validateRoles(List<UUID> roleIds,
+                               Map<String, List<String>> errors) {
+
+        if (roleIds == null || roleIds.isEmpty()) {
+            ErrorUtil.addError(errors, "roleIds", "At least one role must be assigned");
+            return;
+        }
+
+        long found = roleRepository.countByIdIn(roleIds);
+
+        if (found != roleIds.size()) {
+            ErrorUtil.addError(errors, "roleIds", "One or more roles are invalid");
+        }
+    }
+
+    private Set<Role> getRoles(List<UUID> roleIds) {
+        return new HashSet<>(roleRepository.findAllById(roleIds));
+    }
 }

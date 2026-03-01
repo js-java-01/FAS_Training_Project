@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { LanguageFormFields } from './LanguageFormFields';
 import { validateProgrammingLanguage } from '../../lib/programmingLanguageSchema';
-import type { ProgrammingLanguageRequest } from '../../types/programmingLanguage';
+import type { ProgrammingLanguageRequest } from '../../types/feature/assessment/programming-language';
 import { Modal } from '@/components/modal/Modal';
 
 interface CreateLanguageModalProps {

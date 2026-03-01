@@ -1,0 +1,94 @@
+import type { FileFormat, ImportResult, Pagination } from "@/types";
+import type { PageResponse } from "@/types/common/pageable";
+import type { AxiosInstance } from "axios";
+
+export const createBaseApiService = <
+  Response = any,
+  Filter = any,
+  CreateRequest = any,
+  UpdateRequest = any,
+>(
+  instance: AxiosInstance,
+  path: string,
+) => {
+  return {
+    import: async (file: File): Promise<ImportResult> => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await instance.post<ImportResult>(`${path}/import`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    },
+
+    export: async (format: FileFormat): Promise<Blob> =>
+      (
+        await instance.get(`${path}/export`, {
+          params: { format },
+          responseType: "blob",
+        })
+      ),
+
+    getPage: async (
+      pagination: Pagination,
+      search?: string,
+      filter?: Filter,
+    ): Promise<PageResponse<Response>> => {
+      const { sort, ...rest } = pagination;
+      const params = new URLSearchParams();
+
+      Object.entries(rest).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) params.append(key, String(value));
+      });
+
+      if (sort) {
+        const sortArr = Array.isArray(sort) ? sort : [sort];
+        sortArr.forEach((s) => params.append("sort", s));
+      }
+
+      if (search) params.append("search", search);
+
+      if (filter) {
+        Object.entries(filter as Record<string, any>).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            params.append(key, String(value));
+          }
+        });
+      }
+
+      const response = await instance.get<PageResponse<Response>>(path, { params });
+      console.log("GetPage response:", response);
+      return response.data;
+    },
+
+    getById: async (id: string): Promise<Response> => {
+      console.log(`Fetching ${path} with ID:`, id);
+      const response = await instance.get<Response>(`${path}/${id}`);
+      console.log("GetById response:", response);
+      return response.data;
+    },
+
+    create: async (data: CreateRequest): Promise<Response> => {
+      console.log("Creating new entry at", path, "with data:", data);
+      const response = await instance.post<Response>(path, data);
+      console.log("Create response:", response);
+      return response.data;
+    },
+
+    update: async (id: string, data: UpdateRequest): Promise<Response> => {
+      console.log(`Updating ${path} with ID:`, id, "and data:", data);
+      const response = await instance.put<Response>(`${path}/${id}`, data);
+      console.log("Update response:", response);
+      return response.data;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      console.log(`Deleting ${path} with ID:`, id);
+      const response = await instance.delete(`${path}/${id}`);
+      console.log("Delete response:", response);
+      return response.data;
+    },
+  };
+};

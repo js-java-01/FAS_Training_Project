@@ -12,7 +12,6 @@ export default function QuestionCategoryManagement() {
     return (
         <MainLayout pathName={{ "question-categories": "Question Categories" }}>
             <div className="h-full flex-1 flex flex-col gap-4">
-                <MainHeader title="Question Categories" />
                 <QuestionCategoryTable />
             </div>
         </MainLayout>

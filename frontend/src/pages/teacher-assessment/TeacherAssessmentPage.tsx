@@ -9,13 +9,12 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from '@/components/data_table/DataTable';
 import { PermissionGate } from '@/components/PermissionGate';
 
-import { assessmentApi } from '@/api/assessmentApi';
-import type { Assessment, AssessmentStatus } from '@/types/assessment';
 import { AssessmentGrid } from './AssessmentGrid';
 import { getColumns } from './columns';
 import { ViewAssessmentModal } from './ViewAssessmentModal';
 import { DeleteAssessmentDialog } from './DeleteAssessmentDialog';
 import { useToast } from '@/hooks/useToast';
+import type { Assessment, AssessmentStatus } from '@/types';
 
 type ViewMode = 'card' | 'table';
 

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { LanguageFormFields } from './LanguageFormFields';
 import { getSupportedBadgeStyle } from './utils';
 import { validateProgrammingLanguage } from '../../lib/programmingLanguageSchema';
-import type { ProgrammingLanguage, ProgrammingLanguageRequest } from '../../types/programmingLanguage';
+import type { ProgrammingLanguage, ProgrammingLanguageRequest } from '../../types/feature/assessment/programming-language';
 import { Modal } from '@/components/modal/Modal';
 
 interface UpdateLanguageModalProps {

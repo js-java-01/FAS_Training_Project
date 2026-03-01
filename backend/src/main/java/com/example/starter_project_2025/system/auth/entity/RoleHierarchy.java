@@ -14,7 +14,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class    RoleHierarchy {
+public class RoleHierarchy {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

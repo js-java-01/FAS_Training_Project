@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Badge } from '@/components/ui/badge';
-import type { Assessment } from '../../types/assessment';
+import type { Assessment } from '../../types/feature/assessment/assessment';
 import { Modal } from '@/components/modal/Modal';
 
 interface ViewAssessmentModalProps {

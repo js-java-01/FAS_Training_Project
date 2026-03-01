@@ -1,6 +1,6 @@
 import React from 'react';
 import { AssessmentCard } from './AssessmentCard';
-import type { Assessment } from '@/types/assessment';
+import type { Assessment } from '@/types/feature/assessment/assessment';
 import { Loader2 } from 'lucide-react';
 
 interface AssessmentGridProps {
