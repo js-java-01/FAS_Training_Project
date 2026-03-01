@@ -41,7 +41,7 @@ export default function ClassesComponent() {
   const Component = getComponents();
 
   return (
-    <Suspense fallback={<MainLayoutSkeleton/>}>
+    <Suspense fallback={<MainLayoutSkeleton />}>
       <Component />
     </Suspense>
   );

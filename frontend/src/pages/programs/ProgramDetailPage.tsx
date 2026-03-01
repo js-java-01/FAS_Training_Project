@@ -8,6 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -18,24 +20,108 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { courseApi } from "@/api/courseApi";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, CalendarDays, FileText, Hash, Layers, MapPin } from "lucide-react";
+import { trainingProgramApi } from "@/api/trainingProgramApi";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, CalendarDays, FileText, Hash, Layers, MapPin, Pencil, Save, X } from "lucide-react";
 import dayjs from "dayjs";
+import { toast } from "sonner";
 import type { ReactNode } from "react";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetTrainingProgramById } from "./services/queries";
+import { trainingProgramKeys } from "./keys";
 import type { Course } from "@/types/course";
+import type { TrainingProgram } from "@/types/trainingProgram";
+
+type ProgramFormData = {
+  name: string;
+  version: string;
+  description: string;
+};
+
+const buildFormData = (program: TrainingProgram): ProgramFormData => ({
+  name: program.name ?? "",
+  version: program.version ?? "",
+  description: program.description ?? "",
+});
+
+const validateForm = (data: ProgramFormData): Record<string, string> => {
+  const errs: Record<string, string> = {};
+  if (!data.name.trim()) errs.name = "Program name is required";
+  if (!data.version.trim()) errs.version = "Version is required";
+  return errs;
+};
 
 export default function ProgramDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
   const { data, isLoading, isError } = useGetTrainingProgramById(id);
+  const queryClient = useQueryClient();
   const { data: coursesData } = useQuery({
     queryKey: ["program-detail-courses"],
     queryFn: () => courseApi.getCourses({ page: 0, size: 200, sort: "courseName,asc" }),
   });
+
+  /* ── Edit mode state ── */
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<ProgramFormData>({
+    name: "", version: "", description: "",
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+
+  const handleEdit = useCallback(() => {
+    if (data) {
+      setFormData(buildFormData(data));
+      setFormErrors({});
+      setIsEditing(true);
+    }
+  }, [data]);
+
+  const handleCancel = useCallback(() => {
+    setIsEditing(false);
+    setFormErrors({});
+    if (data) setFormData(buildFormData(data));
+  }, [data]);
+
+  const handleFieldChange = useCallback((name: keyof ProgramFormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormErrors((prev) => {
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    const errs = validateForm(formData);
+    if (Object.keys(errs).length > 0) {
+      setFormErrors(errs);
+      return;
+    }
+    if (!id) return;
+    setSaving(true);
+    try {
+      await trainingProgramApi.updateTrainingProgram(id, {
+        name: formData.name.trim(),
+        version: formData.version.trim(),
+        description: formData.description.trim() || undefined,
+      });
+      toast.success("Program updated successfully");
+      await queryClient.invalidateQueries({ queryKey: trainingProgramKeys.detail(id) });
+      await queryClient.invalidateQueries({ queryKey: ["training-programs"] });
+      setIsEditing(false);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err as { message?: string })?.message ||
+        "Failed to update program";
+      toast.error(msg);
+    } finally {
+      setSaving(false);
+    }
+  }, [id, formData, queryClient]);
 
   const relatedCourses = useMemo(() => {
     if (!data?.programCourseIds || data.programCourseIds.length === 0) return [] as Course[];
@@ -56,10 +142,47 @@ export default function ProgramDetailPage() {
             <h1 className="text-3xl font-bold tracking-tight">Programs</h1>
             <p className="text-muted-foreground">Programs details and configuration</p>
           </div>
-          <Button variant="outline" onClick={() => navigate("/programs")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to list
-          </Button>
+          <div className="flex items-center gap-2">
+            {isEditing ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={handleCancel}
+                  disabled={saving}
+                >
+                  <X className="h-4 w-4" />
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => void handleSave()}
+                  disabled={saving}
+                >
+                  <Save className="h-4 w-4" />
+                  {saving ? "Saving..." : "Save"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate("/programs")}>
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to list
+                </Button>
+                <Button
+                  size="sm"
+                  className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={handleEdit}
+                  disabled={!data}
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         {isLoading && (
@@ -102,6 +225,48 @@ export default function ProgramDetailPage() {
                   label="Program ID"
                   value={data.id}
                 />
+                {isEditing ? (
+                  <div className="rounded-md border p-3 space-y-1">
+                    <label className="flex items-center gap-2 text-muted-foreground text-sm">
+                      <FileText className="h-4 w-4" />
+                      <span>Program Name <span className="text-red-500">*</span></span>
+                    </label>
+                    <Input
+                      value={formData.name}
+                      onChange={(e) => handleFieldChange("name", e.target.value)}
+                      placeholder="Enter program name"
+                      maxLength={100}
+                    />
+                    {formErrors.name && <p className="text-sm text-red-500">{formErrors.name}</p>}
+                  </div>
+                ) : (
+                  <InfoRow
+                    icon={<FileText className="h-4 w-4" />}
+                    label="Program Name"
+                    value={data.name}
+                  />
+                )}
+                {isEditing ? (
+                  <div className="rounded-md border p-3 space-y-1">
+                    <label className="flex items-center gap-2 text-muted-foreground text-sm">
+                      <Layers className="h-4 w-4" />
+                      <span>Version <span className="text-red-500">*</span></span>
+                    </label>
+                    <Input
+                      value={formData.version}
+                      onChange={(e) => handleFieldChange("version", e.target.value)}
+                      placeholder="e.g. 1.0.0"
+                      maxLength={20}
+                    />
+                    {formErrors.version && <p className="text-sm text-red-500">{formErrors.version}</p>}
+                  </div>
+                ) : (
+                  <InfoRow
+                    icon={<Layers className="h-4 w-4" />}
+                    label="Version"
+                    value={data.version}
+                  />
+                )}
                 <InfoRow
                   icon={<CalendarDays className="h-4 w-4" />}
                   label="Created At"
@@ -122,11 +287,27 @@ export default function ProgramDetailPage() {
                   label="Location"
                   value="N/A"
                 />
-                <InfoRow
-                  icon={<FileText className="h-4 w-4" />}
-                  label="Description"
-                  value={data.description || "No description"}
-                />
+                {isEditing ? (
+                  <div className="rounded-md border p-3 space-y-1 md:col-span-2">
+                    <label className="flex items-center gap-2 text-muted-foreground text-sm">
+                      <FileText className="h-4 w-4" />
+                      <span>Description</span>
+                    </label>
+                    <Textarea
+                      value={formData.description}
+                      onChange={(e) => handleFieldChange("description", e.target.value)}
+                      placeholder="Enter description"
+                      rows={3}
+                      maxLength={500}
+                    />
+                  </div>
+                ) : (
+                  <InfoRow
+                    icon={<FileText className="h-4 w-4" />}
+                    label="Description"
+                    value={data.description || "No description"}
+                  />
+                )}
               </CardContent>
             </Card>
 

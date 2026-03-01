@@ -1,6 +1,3 @@
-import { DatabaseBackup, Edit } from 'lucide-react'
-
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -15,7 +12,6 @@ interface TopicMarkManagementProps {
   trainingClass: TrainingClass
 }
 export default function TopicMarkModal({ open, onOpenChange, trainingClass }: TopicMarkManagementProps) {
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -32,21 +28,22 @@ export default function TopicMarkModal({ open, onOpenChange, trainingClass }: To
        >
 
         {/* HEADER FIXED */}
-        <DialogHeader className="border-b px-4 pt-6 pb-4 text-left flex flex-row items-end justify-between">
-          <DialogTitle>Topic Mark [{trainingClass.classCode}]</DialogTitle>
-          <div className='flex gap-2'>
-            <Button variant={"outline"} size={"sm"}> <Edit /> Edit</Button>
-            <Button variant={"outline"} size={"sm"}> <DatabaseBackup/> Import / Export</Button>
-        </div>
+        <DialogHeader className="border-b pr-4 py-4 text-left flex flex-col gap-1">
+          <DialogTitle>
+            Topic Mark [{trainingClass.classCode}]
+          </DialogTitle>
         </DialogHeader>
 
 
         {/* BODY SCROLL */}
         <div className="flex-1 pt-2 overflow-y-auto min-h-[300px]">
-          <GradebookTable classId={trainingClass.id} />
+          <GradebookTable
+            classId={trainingClass.id}
+          />
         </div>
 
       </DialogContent>
+
     </Dialog>
   )
 }

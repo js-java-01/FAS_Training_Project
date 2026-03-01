@@ -4,7 +4,6 @@ import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
-import com.example.starter_project_2025.system.classes.repository.ClassRepository;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.enums.CourseLevel;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
@@ -40,22 +39,25 @@ import java.util.List;
  * Seed demo data for the manual-entry Topic Mark system.
  *
  * Structure created:
- *   Course  DEMO-COURSE-TM  (minGpaToPass = 6.0, scale 0-10)
- *     CourseAssessmentTypeWeight  Entrance Quiz 30% HIGHEST
- *                                 Midterm Test  50% LATEST
- *                                 Final Exam    20% AVERAGE
- *   TrainingClass  TC-DEMO-01  (Course x TC-DEMO-01, scores seeded)
- *   TrainingClass  TC-DEMO-02  (JBM-01 + RFP-01, no scores)
- *   TrainingClass  TC-DEMO-03  (JBM-01 + DEMO-COURSE-TM, no scores)
- *   TrainingClass  TC-DEMO-04  (DEMO-COURSE-TM, scores seeded)
- *   Students:      john, alice, bob, carol, david, eva (enrolled in TC-DEMO-01 & TC-DEMO-04)
- *   TopicMarkColumns  (4 per scored class: Quiz Ch1, Quiz Ch2, Midterm, Final)
- *   TopicMarkEntries  (all filled for TC-DEMO-01 and TC-DEMO-04)
- *   TopicMarkEntryHistory  (one audit record per entry)
- *   TopicMark  (finalScore computed, pass/fail set)
+ * Course DEMO-COURSE-TM (minGpaToPass = 6.0, scale 0-10)
+ * CourseAssessmentTypeWeight Entrance Quiz 30% HIGHEST
+ * Midterm Test 50% LATEST
+ * Final Exam 20% AVERAGE
+ * TrainingClass TC-DEMO-01 (Course x TC-DEMO-01, scores seeded)
+ * TrainingClass TC-DEMO-02 (JBM-01 + RFP-01, no scores)
+ * TrainingClass TC-DEMO-03 (JBM-01 + DEMO-COURSE-TM, no scores)
+ * TrainingClass TC-DEMO-04 (DEMO-COURSE-TM, scores seeded)
+ * Students: john, alice, bob, carol, david, eva (enrolled in TC-DEMO-01 &
+ * TC-DEMO-04)
+ * TopicMarkColumns (4 per scored class: Quiz Ch1, Quiz Ch2, Midterm, Final)
+ * TopicMarkEntries (all filled for TC-DEMO-01 and TC-DEMO-04)
+ * TopicMarkEntryHistory (one audit record per entry)
+ * TopicMark (finalScore computed, pass/fail set)
  *
- * TC-DEMO-01 results:  John 7.90 PASS | Alice 8.15 PASS | Bob 4.80 FAIL | Carol 9.39 PASS | David 5.83 FAIL | Eva 8.12 PASS
- * TC-DEMO-04 results:  John 8.05 PASS | Alice 9.06 PASS | Bob 4.60 FAIL | Carol 9.40 PASS | David 5.80 FAIL | Eva 8.61 PASS
+ * TC-DEMO-01 results: John 7.90 PASS | Alice 8.15 PASS | Bob 4.80 FAIL | Carol
+ * 9.39 PASS | David 5.83 FAIL | Eva 8.12 PASS
+ * TC-DEMO-04 results: John 8.05 PASS | Alice 9.06 PASS | Bob 4.60 FAIL | Carol
+ * 9.40 PASS | David 5.80 FAIL | Eva 8.61 PASS
  */
 @Component
 @Order(2)
@@ -70,17 +72,17 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
     @Autowired
     private TopicMarkDataInitializer self;
 
-    private final UserRepository                       userRepository;
-    private final PasswordEncoder                      passwordEncoder;
-    private final AssessmentTypeRepository             assessmentTypeRepository;
-    private final CourseRepository                     courseRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AssessmentTypeRepository assessmentTypeRepository;
+    private final CourseRepository courseRepository;
     private final CourseAssessmentTypeWeightRepository weightRepository;
-    private final TopicMarkColumnRepository            columnRepository;
-    private final TopicMarkEntryRepository             entryRepository;
-    private final TopicMarkEntryHistoryRepository      historyRepository;
-    private final TopicMarkRepository                  topicMarkRepository;
+    private final TopicMarkColumnRepository columnRepository;
+    private final TopicMarkEntryRepository entryRepository;
+    private final TopicMarkEntryHistoryRepository historyRepository;
+    private final TopicMarkRepository topicMarkRepository;
 
-    //  Entry point 
+    // Entry point
 
     @Override
     public void run(String... args) {
@@ -95,7 +97,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
     public void initialize() {
         log.info("=== TopicMarkDataInitializer: starting ===");
 
-        //  1. Shared infrastructure 
+        // 1. Shared infrastructure
 
         // Use admin@example.com as seed actor; fall back to first active user.
         // If no user exists yet, skip gracefully (DB not seeded yet).
@@ -106,35 +108,39 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                 .orElse(null);
 
         if (admin == null) {
-            log.warn("No active user found - TopicMark seed skipped. Will seed on next restart after UserDataInitializer runs.");
+            log.warn(
+                    "No active user found - TopicMark seed skipped. Will seed on next restart after UserDataInitializer runs.");
             return;
         }
 
-        AssessmentType quizType    = findOrCreateAssessmentType("Entrance Quiz", "Short entry quizzes");
-        AssessmentType midtermType = findOrCreateAssessmentType("Midterm Test",  "Comprehensive midterm exam");
-        AssessmentType finalType   = findOrCreateAssessmentType("Final Exam",    "End-of-course final exam");
+        AssessmentType quizType = findOrCreateAssessmentType("Entrance Quiz", "Short entry quizzes");
+        AssessmentType midtermType = findOrCreateAssessmentType("Midterm Test", "Comprehensive midterm exam");
+        AssessmentType finalType = findOrCreateAssessmentType("Final Exam", "End-of-course final exam");
 
         Course course = findOrCreateCourse(admin);
 
-        findOrCreateWeight(course, quizType,    0.30, GradingMethod.HIGHEST);
+        findOrCreateWeight(course, quizType, 0.30, GradingMethod.HIGHEST);
         findOrCreateWeight(course, midtermType, 0.50, GradingMethod.LATEST);
-        findOrCreateWeight(course, finalType,   0.20, GradingMethod.AVERAGE);
+        findOrCreateWeight(course, finalType, 0.20, GradingMethod.AVERAGE);
         log.info("Weights: Quiz 30% HIGHEST | Midterm 50% LATEST | Final 20% AVERAGE");
 
-        Semester      semester      = findOrCreateSemester();
+        Semester semester = findOrCreateSemester();
         TrainingClass trainingClass = findOrCreateTrainingClass(semester, admin);
-        CourseClass   courseClass   = findOrCreateCourseClass(course, trainingClass);
+        CourseClass courseClass = findOrCreateCourseClass(course, trainingClass);
 
         // Extra classes: TC-DEMO-02 and TC-DEMO-03, each linked to 2 courses
-        Course javaCourse  = findCourseByCode("JBM-01");
+        Course javaCourse = findCourseByCode("JBM-01");
         Course reactCourse = findCourseByCode("RFP-01");
 
         TrainingClass tc02 = findOrCreateTrainingClassByCode("TC-DEMO-02", "Demo Training Class 02", semester, admin);
-        if (javaCourse  != null) findOrCreateCourseClass(javaCourse,  tc02);
-        if (reactCourse != null) findOrCreateCourseClass(reactCourse, tc02);
+        if (javaCourse != null)
+            findOrCreateCourseClass(javaCourse, tc02);
+        if (reactCourse != null)
+            findOrCreateCourseClass(reactCourse, tc02);
 
         TrainingClass tc03 = findOrCreateTrainingClassByCode("TC-DEMO-03", "Demo Training Class 03", semester, admin);
-        if (javaCourse  != null) findOrCreateCourseClass(javaCourse,  tc03);
+        if (javaCourse != null)
+            findOrCreateCourseClass(javaCourse, tc03);
         findOrCreateCourseClass(course, tc03); // DEMO-COURSE-TM
 
         TrainingClass tc04 = findOrCreateTrainingClassByCode("TC-DEMO-04", "Demo Training Class 04", semester, admin);
@@ -142,14 +148,14 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
 
         log.info("Extra classes TC-DEMO-02, TC-DEMO-03, TC-DEMO-04 initialized");
 
-        //  2. Students + enrollments 
+        // 2. Students + enrollments
 
-        User john  = findOrCreateStudent("student@test.com",      "John",  "Doe");
+        User john = findOrCreateStudent("student@test.com", "John", "Doe");
         User alice = findOrCreateStudent("alice.johnson@test.com", "Alice", "Johnson");
-        User bob   = findOrCreateStudent("bob.wilson@test.com",    "Bob",   "Wilson");
-        User carol = findOrCreateStudent("carol.davis@test.com",   "Carol", "Davis");
-        User david = findOrCreateStudent("david.lee@test.com",     "David", "Lee");
-        User eva   = findOrCreateStudent("eva.chen@test.com",      "Eva",   "Chen");
+        User bob = findOrCreateStudent("bob.wilson@test.com", "Bob", "Wilson");
+        User carol = findOrCreateStudent("carol.davis@test.com", "Carol", "Davis");
+        User david = findOrCreateStudent("david.lee@test.com", "David", "Lee");
+        User eva = findOrCreateStudent("eva.chen@test.com", "Eva", "Chen");
 
         for (User s : List.of(john, alice, bob, carol, david, eva)) {
             findOrCreateEnrollment(s, courseClass.getCourse());
@@ -158,70 +164,83 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
         log.info("6 students enrolled in TC-DEMO-01 and TC-DEMO-04");
 
         double minGpa = course.getMinGpaToPass() != null ? course.getMinGpaToPass() : 6.0;
-        record SD(User user, double q1, double q2, double mid, double fin, double total) {}
+        record SD(User user, double q1, double q2, double mid, double fin, double total) {
+        }
 
-        //  3. Seed TC-DEMO-01 (guard: skip if columns already exist) 
-        // John:  Quiz[8.0,9.0] HIGHEST=9.0  *0.30=2.70 | Mid 7.0  *0.50=3.50 | Final 8.50 *0.20=1.70 => 7.90 PASS
-        // Alice: Quiz[8.0,8.5] HIGHEST=8.5  *0.30=2.55 | Mid 8.2  *0.50=4.10 | Final 7.50 *0.20=1.50 => 8.15 PASS
-        // Bob:   Quiz[5.5,4.8] HIGHEST=5.5  *0.30=1.65 | Mid 4.0  *0.50=2.00 | Final 5.75 *0.20=1.15 => 4.80 FAIL
-        // Carol: Quiz[9.5,9.8] HIGHEST=9.8  *0.30=2.94 | Mid 9.2  *0.50=4.60 | Final 9.25 *0.20=1.85 => 9.39 PASS
-        // David: Quiz[6.2,5.5] HIGHEST=6.2  *0.30=1.86 | Mid 5.5  *0.50=2.75 | Final 6.10 *0.20=1.22 => 5.83 FAIL
-        // Eva:   Quiz[8.5,8.8] HIGHEST=8.8  *0.30=2.64 | Mid 7.6  *0.50=3.80 | Final 8.40 *0.20=1.68 => 8.12 PASS
+        // 3. Seed TC-DEMO-01 (guard: skip if columns already exist)
+        // John: Quiz[8.0,9.0] HIGHEST=9.0 *0.30=2.70 | Mid 7.0 *0.50=3.50 | Final 8.50
+        // *0.20=1.70 => 7.90 PASS
+        // Alice: Quiz[8.0,8.5] HIGHEST=8.5 *0.30=2.55 | Mid 8.2 *0.50=4.10 | Final 7.50
+        // *0.20=1.50 => 8.15 PASS
+        // Bob: Quiz[5.5,4.8] HIGHEST=5.5 *0.30=1.65 | Mid 4.0 *0.50=2.00 | Final 5.75
+        // *0.20=1.15 => 4.80 FAIL
+        // Carol: Quiz[9.5,9.8] HIGHEST=9.8 *0.30=2.94 | Mid 9.2 *0.50=4.60 | Final 9.25
+        // *0.20=1.85 => 9.39 PASS
+        // David: Quiz[6.2,5.5] HIGHEST=6.2 *0.30=1.86 | Mid 5.5 *0.50=2.75 | Final 6.10
+        // *0.20=1.22 => 5.83 FAIL
+        // Eva: Quiz[8.5,8.8] HIGHEST=8.8 *0.30=2.64 | Mid 7.6 *0.50=3.80 | Final 8.40
+        // *0.20=1.68 => 8.12 PASS
 
         if (columnRepository.findActiveByCourseClassId(courseClass.getId()).isEmpty()) {
-            TopicMarkColumn quizCol1   = createColumn(courseClass, quizType,    "Quiz Chapter 1", 1, admin);
-            TopicMarkColumn quizCol2   = createColumn(courseClass, quizType,    "Quiz Chapter 2", 2, admin);
-            TopicMarkColumn midtermCol = createColumn(courseClass, midtermType, "Midterm Exam",   1, admin);
-            TopicMarkColumn finalCol   = createColumn(courseClass, finalType,   "Final Exam",     1, admin);
+            TopicMarkColumn quizCol1 = createColumn(courseClass, quizType, "Quiz Chapter 1", 1, admin);
+            TopicMarkColumn quizCol2 = createColumn(courseClass, quizType, "Quiz Chapter 2", 2, admin);
+            TopicMarkColumn midtermCol = createColumn(courseClass, midtermType, "Midterm Exam", 1, admin);
+            TopicMarkColumn finalCol = createColumn(courseClass, finalType, "Final Exam", 1, admin);
 
             List.of(
-                new SD(john,  8.0, 9.0, 7.0,  8.50, 7.90),
-                new SD(alice, 8.0, 8.5, 8.2,  7.50, 8.15),
-                new SD(bob,   5.5, 4.8, 4.0,  5.75, 4.80),
-                new SD(carol, 9.5, 9.8, 9.2,  9.25, 9.39),
-                new SD(david, 6.2, 5.5, 5.5,  6.10, 5.83),
-                new SD(eva,   8.5, 8.8, 7.6,  8.40, 8.12)
-            ).forEach(sd -> {
-                saveEntry(quizCol1,   sd.user(), sd.q1(),  admin);
-                saveEntry(quizCol2,   sd.user(), sd.q2(),  admin);
-                saveEntry(midtermCol, sd.user(), sd.mid(), admin);
-                saveEntry(finalCol,   sd.user(), sd.fin(), admin);
-                upsertTopicMark(courseClass, sd.user(), sd.total(), minGpa);
-            });
-            log.info("TC-DEMO-01 seeded: John 7.90 PASS | Alice 8.15 PASS | Bob 4.80 FAIL | Carol 9.39 PASS | David 5.83 FAIL | Eva 8.12 PASS");
+                    new SD(john, 8.0, 9.0, 7.0, 8.50, 7.90),
+                    new SD(alice, 8.0, 8.5, 8.2, 7.50, 8.15),
+                    new SD(bob, 5.5, 4.8, 4.0, 5.75, 4.80),
+                    new SD(carol, 9.5, 9.8, 9.2, 9.25, 9.39),
+                    new SD(david, 6.2, 5.5, 5.5, 6.10, 5.83),
+                    new SD(eva, 8.5, 8.8, 7.6, 8.40, 8.12)).forEach(sd -> {
+                        saveEntry(quizCol1, sd.user(), sd.q1(), admin);
+                        saveEntry(quizCol2, sd.user(), sd.q2(), admin);
+                        saveEntry(midtermCol, sd.user(), sd.mid(), admin);
+                        saveEntry(finalCol, sd.user(), sd.fin(), admin);
+                        upsertTopicMark(courseClass, sd.user(), sd.total(), minGpa);
+                    });
+            log.info(
+                    "TC-DEMO-01 seeded: John 7.90 PASS | Alice 8.15 PASS | Bob 4.80 FAIL | Carol 9.39 PASS | David 5.83 FAIL | Eva 8.12 PASS");
         } else {
             log.info("TC-DEMO-01 columns already exist - skipped");
         }
 
-        //  4. Seed TC-DEMO-04 (guard: skip if columns already exist) 
-        // John:  Quiz[7.5,8.0] HIGHEST=8.0  *0.30=2.40 | Mid 8.5  *0.50=4.25 | Final 7.0  *0.20=1.40 => 8.05 PASS
-        // Alice: Quiz[9.0,9.2] HIGHEST=9.2  *0.30=2.76 | Mid 8.8  *0.50=4.40 | Final 9.5  *0.20=1.90 => 9.06 PASS
-        // Bob:   Quiz[3.5,4.0] HIGHEST=4.0  *0.30=1.20 | Mid 5.0  *0.50=2.50 | Final 4.5  *0.20=0.90 => 4.60 FAIL
-        // Carol: Quiz[9.8,9.5] HIGHEST=9.8  *0.30=2.94 | Mid 9.0  *0.50=4.50 | Final 9.8  *0.20=1.96 => 9.40 PASS
-        // David: Quiz[5.0,6.0] HIGHEST=6.0  *0.30=1.80 | Mid 5.8  *0.50=2.90 | Final 5.5  *0.20=1.10 => 5.80 FAIL
-        // Eva:   Quiz[8.0,8.5] HIGHEST=8.5  *0.30=2.55 | Mid 9.0  *0.50=4.50 | Final 7.8  *0.20=1.56 => 8.61 PASS
+        // 4. Seed TC-DEMO-04 (guard: skip if columns already exist)
+        // John: Quiz[7.5,8.0] HIGHEST=8.0 *0.30=2.40 | Mid 8.5 *0.50=4.25 | Final 7.0
+        // *0.20=1.40 => 8.05 PASS
+        // Alice: Quiz[9.0,9.2] HIGHEST=9.2 *0.30=2.76 | Mid 8.8 *0.50=4.40 | Final 9.5
+        // *0.20=1.90 => 9.06 PASS
+        // Bob: Quiz[3.5,4.0] HIGHEST=4.0 *0.30=1.20 | Mid 5.0 *0.50=2.50 | Final 4.5
+        // *0.20=0.90 => 4.60 FAIL
+        // Carol: Quiz[9.8,9.5] HIGHEST=9.8 *0.30=2.94 | Mid 9.0 *0.50=4.50 | Final 9.8
+        // *0.20=1.96 => 9.40 PASS
+        // David: Quiz[5.0,6.0] HIGHEST=6.0 *0.30=1.80 | Mid 5.8 *0.50=2.90 | Final 5.5
+        // *0.20=1.10 => 5.80 FAIL
+        // Eva: Quiz[8.0,8.5] HIGHEST=8.5 *0.30=2.55 | Mid 9.0 *0.50=4.50 | Final 7.8
+        // *0.20=1.56 => 8.61 PASS
 
         if (columnRepository.findActiveByCourseClassId(courseClass04.getId()).isEmpty()) {
-            TopicMarkColumn q1c4  = createColumn(courseClass04, quizType,    "Quiz Chapter 1", 1, admin);
-            TopicMarkColumn q2c4  = createColumn(courseClass04, quizType,    "Quiz Chapter 2", 2, admin);
-            TopicMarkColumn midc4 = createColumn(courseClass04, midtermType, "Midterm Exam",   1, admin);
-            TopicMarkColumn finc4 = createColumn(courseClass04, finalType,   "Final Exam",     1, admin);
+            TopicMarkColumn q1c4 = createColumn(courseClass04, quizType, "Quiz Chapter 1", 1, admin);
+            TopicMarkColumn q2c4 = createColumn(courseClass04, quizType, "Quiz Chapter 2", 2, admin);
+            TopicMarkColumn midc4 = createColumn(courseClass04, midtermType, "Midterm Exam", 1, admin);
+            TopicMarkColumn finc4 = createColumn(courseClass04, finalType, "Final Exam", 1, admin);
 
             List.of(
-                new SD(john,  7.5, 8.0, 8.5, 7.0, 8.05),
-                new SD(alice, 9.0, 9.2, 8.8, 9.5, 9.06),
-                new SD(bob,   3.5, 4.0, 5.0, 4.5, 4.60),
-                new SD(carol, 9.8, 9.5, 9.0, 9.8, 9.40),
-                new SD(david, 5.0, 6.0, 5.8, 5.5, 5.80),
-                new SD(eva,   8.0, 8.5, 9.0, 7.8, 8.61)
-            ).forEach(sd -> {
-                saveEntry(q1c4,  sd.user(), sd.q1(),  admin);
-                saveEntry(q2c4,  sd.user(), sd.q2(),  admin);
-                saveEntry(midc4, sd.user(), sd.mid(), admin);
-                saveEntry(finc4, sd.user(), sd.fin(), admin);
-                upsertTopicMark(courseClass04, sd.user(), sd.total(), minGpa);
-            });
-            log.info("TC-DEMO-04 seeded: John 8.05 PASS | Alice 9.06 PASS | Bob 4.60 FAIL | Carol 9.40 PASS | David 5.80 FAIL | Eva 8.61 PASS");
+                    new SD(john, 7.5, 8.0, 8.5, 7.0, 8.05),
+                    new SD(alice, 9.0, 9.2, 8.8, 9.5, 9.06),
+                    new SD(bob, 3.5, 4.0, 5.0, 4.5, 4.60),
+                    new SD(carol, 9.8, 9.5, 9.0, 9.8, 9.40),
+                    new SD(david, 5.0, 6.0, 5.8, 5.5, 5.80),
+                    new SD(eva, 8.0, 8.5, 9.0, 7.8, 8.61)).forEach(sd -> {
+                        saveEntry(q1c4, sd.user(), sd.q1(), admin);
+                        saveEntry(q2c4, sd.user(), sd.q2(), admin);
+                        saveEntry(midc4, sd.user(), sd.mid(), admin);
+                        saveEntry(finc4, sd.user(), sd.fin(), admin);
+                        upsertTopicMark(courseClass04, sd.user(), sd.total(), minGpa);
+                    });
+            log.info(
+                    "TC-DEMO-04 seeded: John 8.05 PASS | Alice 9.06 PASS | Bob 4.60 FAIL | Carol 9.40 PASS | David 5.80 FAIL | Eva 8.61 PASS");
         } else {
             log.info("TC-DEMO-04 columns already exist - skipped");
         }
@@ -229,7 +248,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
         log.info("=== TopicMarkDataInitializer: completed ===");
     }
 
-    //  Helpers 
+    // Helpers
 
     private AssessmentType findOrCreateAssessmentType(String name, String description) {
         return em.createQuery("SELECT a FROM AssessmentType a WHERE a.name = :n", AssessmentType.class)
@@ -368,7 +387,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
     }
 
     private TopicMarkColumn createColumn(CourseClass courseClass, AssessmentType type,
-                                          String label, int index, User createdBy) {
+            String label, int index, User createdBy) {
         return columnRepository.save(TopicMarkColumn.builder()
                 .courseClass(courseClass)
                 .assessmentType(type)

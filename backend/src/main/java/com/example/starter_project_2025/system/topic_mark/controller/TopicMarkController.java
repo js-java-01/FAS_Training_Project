@@ -33,6 +33,7 @@ import java.util.UUID;
  *   GET    /api/course-classes/{courseClassId}/topic-marks/search         → paginated search
  *   GET    /api/course-classes/{courseClassId}/topic-marks/{userId}       → student detail
  *   PUT    /api/course-classes/{courseClassId}/topic-marks/{userId}       → update scores
+ *   GET    /api/course-classes/{courseClassId}/topic-marks/history        → score change history
  *
  * Import / Export:
  *   GET    /api/course-classes/{courseClassId}/topic-marks/export          → export gradebook (scores)
@@ -115,6 +116,21 @@ public class TopicMarkController {
             Authentication authentication) {
         UUID editorId = resolveCurrentUserId(authentication);
         return ResponseEntity.ok(topicMarkService.updateScores(courseClassId, userId, request, editorId));
+    }
+
+    @GetMapping("/api/course-classes/{courseClassId}/topic-marks/history")
+    @Operation(
+            summary = "Get score change history for a course class",
+            description = "Returns a paginated list of all score change records for the course class. " +
+                          "Default sort is updatedAt,desc. Supports ?page=0&size=10&sort=updatedAt,desc")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "History retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "CourseClass not found", content = @Content)
+    })
+    public ResponseEntity<ScoreHistoryResponse> getScoreHistory(
+            @Parameter(description = "Course class ID", required = true) @PathVariable UUID courseClassId,
+            @ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(topicMarkService.getScoreHistory(courseClassId, pageable));
     }
 
     @GetMapping("/api/course-classes/{courseClassId}/topic-marks/export")

@@ -1,10 +1,5 @@
 import axiosInstance from "./axiosInstance";
-import type {
-  ModuleGroup,
-  Module,
-  CreateModuleGroupRequest,
-  CreateModuleRequest,
-} from "../types/module";
+import type { ModuleGroup, Module, CreateModuleGroupRequest, CreateModuleRequest } from "../types/module";
 import type { ApiResponse, PagedData } from "@/types/response.ts";
 
 /* =========================
@@ -19,53 +14,33 @@ export const moduleGroupApi = {
     keyword?: string;
     isActive?: boolean;
   }) => {
-    const res = await axiosInstance.get<ApiResponse<PagedData<ModuleGroup>>>(
-      "/module-groups",
-      { params },
-    );
+    const res = await axiosInstance.get<ApiResponse<PagedData<ModuleGroup>>>("/module-groups", { params });
 
     return res.data.data;
   },
 
   getAllModuleGroupsList: async (): Promise<ModuleGroup[]> => {
-    const response = await axiosInstance.get<ModuleGroup[]>(
-      "/module-groups/details",
-    );
+    const response = await axiosInstance.get<ModuleGroup[]>("/module-groups/details");
     return response.data;
   },
 
   getActiveModuleGroups: async (): Promise<ModuleGroup[]> => {
-    const response = await axiosInstance.get<ModuleGroup[]>(
-      "/module-groups/active",
-    );
+    const response = await axiosInstance.get<ModuleGroup[]>("/module-groups/active");
     return response.data;
   },
 
   getModuleGroupById: async (id: string): Promise<ModuleGroup> => {
-    const response = await axiosInstance.get<ModuleGroup>(
-      `/module-groups/${id}`,
-    );
+    const response = await axiosInstance.get<ModuleGroup>(`/module-groups/${id}`);
     return response.data;
   },
 
-  createModuleGroup: async (
-    moduleGroup: CreateModuleGroupRequest,
-  ): Promise<ModuleGroup> => {
-    const response = await axiosInstance.post<ModuleGroup>(
-      "/module-groups",
-      moduleGroup,
-    );
+  createModuleGroup: async (moduleGroup: CreateModuleGroupRequest): Promise<ModuleGroup> => {
+    const response = await axiosInstance.post<ModuleGroup>("/module-groups", moduleGroup);
     return response.data;
   },
 
-  updateModuleGroup: async (
-    id: string,
-    moduleGroup: Partial<ModuleGroup>,
-  ): Promise<ModuleGroup> => {
-    const response = await axiosInstance.put<ModuleGroup>(
-      `/module-groups/${id}`,
-      moduleGroup,
-    );
+  updateModuleGroup: async (id: string, moduleGroup: Partial<ModuleGroup>): Promise<ModuleGroup> => {
+    const response = await axiosInstance.put<ModuleGroup>(`/module-groups/${id}`, moduleGroup);
     return response.data;
   },
 
@@ -74,15 +49,10 @@ export const moduleGroupApi = {
   },
 
   toggleModuleGroupStatus: async (id: string): Promise<ModuleGroup> => {
-    const response = await axiosInstance.post<ModuleGroup>(
-      `/module-groups/${id}/toggle-status`,
-    );
+    const response = await axiosInstance.post<ModuleGroup>(`/module-groups/${id}/toggle-status`);
     return response.data;
   },
-  exportModuleGroups: async (params?: {
-    keyword?: string;
-    status?: string;
-  }): Promise<Blob> => {
+  exportModuleGroups: async (params?: { keyword?: string; status?: string }): Promise<Blob> => {
     const res = await axiosInstance.get("/module-groups/export", {
       params,
       responseType: "blob",
@@ -98,10 +68,7 @@ export const moduleGroupApi = {
     });
   },
 
-  exportTemplateModuleGroups: async (params?: {
-    keyword?: string;
-    status?: string;
-  }): Promise<Blob> => {
+  exportTemplateModuleGroups: async (params?: { keyword?: string; status?: string }): Promise<Blob> => {
     const res = await axiosInstance.get("/module-groups/template", {
       params,
       responseType: "blob",
@@ -124,31 +91,22 @@ export const moduleApi = {
     isActive?: boolean;
     moduleGroupId?: string;
   }): Promise<PagedData<Module>> => {
-    const res = await axiosInstance.get<ApiResponse<PagedData<Module>>>(
-      "/modules",
-      { params },
-    );
+    const res = await axiosInstance.get<ApiResponse<PagedData<Module>>>("/modules", { params });
 
     return res.data.data;
   },
   getModulesByModuleGroup: async (moduleGroupId: string): Promise<Module[]> => {
-    const response = await axiosInstance.get<Module[]>(
-      `/modules/module-group/${moduleGroupId}`,
-    );
+    const response = await axiosInstance.get<Module[]>(`/modules/module-group/${moduleGroupId}`);
     return response.data;
   },
 
   getRootModules: async (moduleGroupId: string): Promise<Module[]> => {
-    const response = await axiosInstance.get<Module[]>(
-      `/modules/module-group/${moduleGroupId}/root`,
-    );
+    const response = await axiosInstance.get<Module[]>(`/modules/module-group/${moduleGroupId}/root`);
     return response.data;
   },
 
   getChildModules: async (parentId: string): Promise<Module[]> => {
-    const response = await axiosInstance.get<Module[]>(
-      `/modules/parent/${parentId}`,
-    );
+    const response = await axiosInstance.get<Module[]>(`/modules/parent/${parentId}`);
     return response.data;
   },
 
@@ -162,10 +120,7 @@ export const moduleApi = {
     return response.data;
   },
 
-  updateModule: async (
-    id: string,
-    module: Partial<Module>,
-  ): Promise<Module> => {
+  updateModule: async (id: string, module: Partial<Module>): Promise<Module> => {
     const response = await axiosInstance.put<Module>(`/modules/${id}`, module);
     return response.data;
   },
@@ -175,16 +130,11 @@ export const moduleApi = {
   },
 
   toggleModuleStatus: async (id: string): Promise<Module> => {
-    const response = await axiosInstance.post<Module>(
-      `/modules/${id}/toggle-status`,
-    );
+    const response = await axiosInstance.post<Module>(`/modules/${id}/toggle-status`);
     return response.data;
   },
 
-  exportModules: async (params?: {
-    keyword?: string;
-    status?: string;
-  }): Promise<Blob> => {
+  exportModules: async (params?: { keyword?: string; status?: string }): Promise<Blob> => {
     const res = await axiosInstance.get("/modules/export", {
       params,
       responseType: "blob",
@@ -199,10 +149,7 @@ export const moduleApi = {
       },
     });
   },
-  exportTemplateModules: async (params?: {
-    keyword?: string;
-    status?: string;
-  }): Promise<Blob> => {
+  exportTemplateModules: async (params?: { keyword?: string; status?: string }): Promise<Blob> => {
     const res = await axiosInstance.get("/modules/template", {
       params,
       responseType: "blob",

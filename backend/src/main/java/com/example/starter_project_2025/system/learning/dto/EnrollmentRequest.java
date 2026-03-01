@@ -1,9 +1,16 @@
 package com.example.starter_project_2025.system.learning.dto;
 
-import jakarta.validation.constraints.NotNull;
-
 import java.util.UUID;
 
-public record EnrollmentRequest(
-                @NotNull UUID courseId) {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class EnrollmentRequest {
+    private UUID classID;
+    private String enrollKey;
+
 }
