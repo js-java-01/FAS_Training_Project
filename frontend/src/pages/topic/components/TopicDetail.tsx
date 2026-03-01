@@ -2,11 +2,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { topicApi, type Topic } from "@/api/topicApi";
 import { toast } from "sonner";
-import { 
-  FiEdit, FiBookOpen, FiHash, FiBarChart2, FiCalendar, 
-  FiUser, FiX, FiSave, FiFileText, FiLayers 
+import {
+  FiEdit, FiBookOpen, FiHash, FiBarChart2, FiCalendar,
+  FiUser, FiX, FiSave, FiFileText, FiLayers
 } from "react-icons/fi";
-
+import TopicObjectivesPage from "@/pages/topic/components/TopicObjectivesPage";
 const tabs = ["Overview", "Skills", "Objectives", "Assessment Scheme", "Delivery Principles", "Outline & Schedule", "Time Allocation"];
 
 const inputCls = "w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -62,11 +62,10 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 text-sm transition-all ${
-                activeTab === tab
+              className={`pb-2 text-sm transition-all ${activeTab === tab
                   ? "border-b-2 border-blue-600 text-blue-600 font-medium"
                   : "text-gray-500 hover:text-gray-700"
-              }`}
+                }`}
             >
               {tab}
             </button>
@@ -121,7 +120,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
                 <FiSave /> {loading ? "Saving..." : "Save Changes"}
               </button>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <Field icon={<FiBookOpen />} label="Topic Name">
                 <input {...register("topicName", { required: true })} className={inputCls} />
@@ -149,8 +148,12 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
         </form>
       )}
 
+      {activeTab === "Objectives" && (
+        <TopicObjectivesPage topicId={topic.id} />
+      )}
+
       {/* OTHER TABS PLACEHOLDER */}
-      {activeTab !== "Overview" && (
+      {activeTab !== "Overview" && activeTab !== "Objectives" && (
         <div className="py-20 text-center border-2 border-dashed rounded-xl bg-gray-50 text-gray-400">
           <FiLayers size={40} className="mx-auto mb-2 opacity-20" />
           <p>Content for {activeTab} is being updated by the content team.</p>

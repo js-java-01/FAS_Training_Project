@@ -16,7 +16,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -58,21 +59,11 @@ public class TopicObjectiveServiceImpl implements TopicObjectiveService {
     }
 
     @Override
-    public List<TopicObjectiveResponse> getByTopic(UUID topicId) {
+    public Page<TopicObjectiveResponse> getByTopic(UUID topicId, Pageable pageable) {
 
-        // 1. Check topic tồn tại
-        Topic topic = topicRepository.findById(topicId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found"));
+        Page<TopicObjective> page = objectiveRepository.findByTopicId(topicId, pageable);
 
-        // 2. Lấy objectives
-        List<TopicObjective> objectives =
-                objectiveRepository.findByTopicIdOrderByCreatedDateAsc(topicId);
-
-        // 3. Map sang response
-        return objectives.stream()
-                .map(mapper::toResponse)
-                .toList();
+        return page.map(mapper::toResponse);
     }
 
     @Override
@@ -136,7 +127,7 @@ public class TopicObjectiveServiceImpl implements TopicObjectiveService {
                 .orElseThrow(() -> new ResourceNotFoundException("Topic", "id", topicId));
 
         List<TopicObjective> objectives =
-                objectiveRepository.findByTopicId(topicId);
+                objectiveRepository.findByTopicId(topicId, Pageable.unpaged()).getContent();
 
         try (Workbook workbook = new XSSFWorkbook()) {
 

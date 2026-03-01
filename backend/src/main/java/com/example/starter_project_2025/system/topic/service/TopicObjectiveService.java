@@ -3,6 +3,8 @@ package com.example.starter_project_2025.system.topic.service;
 import com.example.starter_project_2025.system.topic.dto.TopicObjectiveCreateRequest;
 import com.example.starter_project_2025.system.topic.dto.TopicObjectiveResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicObjectiveUpdateRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,7 +15,7 @@ public interface TopicObjectiveService {
 
     TopicObjectiveResponse create(UUID topicId, TopicObjectiveCreateRequest request);
 
-    List<TopicObjectiveResponse> getByTopic(UUID topicId);
+    Page<TopicObjectiveResponse> getByTopic(UUID topicId, Pageable pageable);
 
     TopicObjectiveResponse update(UUID topicId,
                                   UUID objectiveId,

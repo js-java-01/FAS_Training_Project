@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.topic.controller;
 
+import com.example.starter_project_2025.system.modulegroups.dto.response.PageResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicObjectiveCreateRequest;
 import com.example.starter_project_2025.system.topic.dto.TopicObjectiveResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicObjectiveUpdateRequest;
@@ -9,6 +10,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +32,7 @@ public class TopicObjectiveController {
     private final TopicObjectiveService objectiveService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('TOPIC_OBJECTIVE_CREATE')")
+    @PreAuthorize("hasAuthority('TOPIC_CREATE')")
     public ResponseEntity<TopicObjectiveResponse> create(
             @PathVariable UUID topicId,
             @Valid @RequestBody TopicObjectiveCreateRequest request) {
@@ -40,14 +43,17 @@ public class TopicObjectiveController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('TOPIC_READ')")
-    public ResponseEntity<List<TopicObjectiveResponse>> getByTopic(
-            @PathVariable UUID topicId) {
+    public ResponseEntity<Page<TopicObjectiveResponse>> getByTopic(
+            @PathVariable UUID topicId,
+            Pageable pageable) {
 
-        return ResponseEntity.ok(objectiveService.getByTopic(topicId));
+        return ResponseEntity.ok(
+                objectiveService.getByTopic(topicId, pageable)
+        );
     }
 
     @PutMapping("/{objectiveId}")
-    @PreAuthorize("hasAuthority('TOPIC_OBJECTIVE_UPDATE')")
+    @PreAuthorize("hasAuthority('TOPIC_UPDATE')")
     public ResponseEntity<TopicObjectiveResponse> update(
             @PathVariable UUID topicId,
             @PathVariable UUID objectiveId,
@@ -59,7 +65,7 @@ public class TopicObjectiveController {
     }
 
     @DeleteMapping("/{objectiveId}")
-    @PreAuthorize("hasAuthority('TOPIC_OBJECTIVE_DELETE')")
+    @PreAuthorize("hasAuthority('TOPIC_DELETE')")
     public ResponseEntity<Void> delete(
             @PathVariable UUID topicId,
             @PathVariable UUID objectiveId) {

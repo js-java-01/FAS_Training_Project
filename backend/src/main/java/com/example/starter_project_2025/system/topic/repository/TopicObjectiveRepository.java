@@ -1,6 +1,8 @@
 package com.example.starter_project_2025.system.topic.repository;
 
 import com.example.starter_project_2025.system.topic.entity.TopicObjective;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -10,11 +12,10 @@ public interface TopicObjectiveRepository extends JpaRepository<TopicObjective, 
 
     boolean existsByCodeAndTopicId(String code, UUID topicId);
 
-    List<TopicObjective> findByTopicIdOrderByCreatedDateAsc(UUID topicId);
-
     boolean existsByCodeAndTopicIdAndIdNot(String code, UUID topicId, UUID id);
 
     boolean existsByTopicIdAndCode(UUID topicId, String code);
 
-    List<TopicObjective> findByTopicId(UUID topicId);
+
+    Page<TopicObjective> findByTopicId(UUID topicId, Pageable pageable);
 }
