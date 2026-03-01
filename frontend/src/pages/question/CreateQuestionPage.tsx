@@ -25,6 +25,7 @@ export default function CreateQuestionPage() {
                 { content: '', correct: false, orderIndex: 0 },
                 { content: '', correct: false, orderIndex: 1 },
             ],
+            tagIds: [],
         }
     ]);
     const [errors, setErrors] = useState<Record<string, Record<string, string>>>({});
@@ -124,6 +125,7 @@ export default function CreateQuestionPage() {
                     { content: '', correct: false, orderIndex: 0 },
                     { content: '', correct: false, orderIndex: 1 },
                 ],
+                tagIds: [],
             }
         ]);
         setActiveQuestionIndex(questions.length);
