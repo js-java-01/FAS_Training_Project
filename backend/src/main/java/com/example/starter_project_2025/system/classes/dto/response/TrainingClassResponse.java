@@ -11,8 +11,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class TrainingClassResponse
-{
+public class TrainingClassResponse {
 
     private UUID id;
 

@@ -15,34 +15,33 @@ import java.util.UUID;
 
 @Repository
 public interface TrainingClassRepository
-        extends JpaRepository<TrainingClass, UUID>,
-        JpaSpecificationExecutor<TrainingClass>
-{
+                extends JpaRepository<TrainingClass, UUID>,
+                JpaSpecificationExecutor<TrainingClass> {
 
-    boolean existsByClassNameIgnoreCase(String className);
+        boolean existsByClassNameIgnoreCase(String className);
 
-    boolean existsByClassCodeIgnoreCase(String classCode);
+        boolean existsByClassCodeIgnoreCase(String classCode);
 
-    @Query("""
-                SELECT tc FROM TrainingClass tc
-                LEFT JOIN tc.creator
-                LEFT JOIN tc.approver
-                LEFT JOIN tc.semester
-                WHERE (:keyword IS NULL OR LOWER(tc.className) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                       OR LOWER(tc.classCode) LIKE LOWER(CONCAT('%', :keyword, '%')))
-                AND (:isActive IS NULL OR tc.isActive = :isActive)
-            """)
-    Page<TrainingClass> search(
-            @Param("keyword") String keyword,
-            @Param("isActive") Boolean isActive,
-            Pageable pageable);
+        @Query("""
+                            SELECT tc FROM TrainingClass tc
+                            LEFT JOIN tc.creator
+                            LEFT JOIN tc.approver
+                            LEFT JOIN tc.semester
+                            WHERE (:keyword IS NULL OR LOWER(tc.className) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                                   OR LOWER(tc.classCode) LIKE LOWER(CONCAT('%', :keyword, '%')))
+                            AND (:isActive IS NULL OR tc.isActive = :isActive)
+                        """)
+        Page<TrainingClass> search(
+                        @Param("keyword") String keyword,
+                        @Param("isActive") Boolean isActive,
+                        Pageable pageable);
 
-    @Query("SELECT c FROM TrainingClass c " +
-            "JOIN FETCH c.semester s " +
-            "JOIN c.enrollments e " +
-            "WHERE e.user.id = :studentId " +
-            "ORDER BY s.startDate DESC")
-    List<TrainingClass> findByStudentId(@Param("studentId") UUID studentId);
+        @Query("SELECT c FROM TrainingClass c " +
+                        "JOIN FETCH c.semester s " +
+                        "JOIN c.enrollments e " +
+                        "WHERE e.user.id = :studentId " +
+                        "ORDER BY s.startDate DESC")
+        List<TrainingClass> findByStudentId(@Param("studentId") UUID studentId);
 
-    List<TrainingClass> findByCreator(User user);
+        List<TrainingClass> findByCreator(User user);
 }

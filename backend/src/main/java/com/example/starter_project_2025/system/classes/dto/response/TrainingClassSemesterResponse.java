@@ -10,8 +10,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrainingClassSemesterResponse
-{
+public class TrainingClassSemesterResponse {
     private UUID SemesterID;
     private String SemesterName;
     private List<TrainingClassResponse> classes;

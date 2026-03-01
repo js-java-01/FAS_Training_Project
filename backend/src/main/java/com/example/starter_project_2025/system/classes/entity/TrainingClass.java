@@ -22,8 +22,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrainingClass
-{
+public class TrainingClass {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "class_id")

@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
@@ -46,6 +47,9 @@ public class User {
     @Column(nullable = false, length = 100)
     String lastName;
 
+    @Formula("concat(first_name, ' ', last_name)")
+    String fullName;
+
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     Set<UserRole> userRoles;
 
@@ -70,4 +74,5 @@ public class User {
 
     @UpdateTimestamp
     LocalDateTime updatedAt;
+
 }
