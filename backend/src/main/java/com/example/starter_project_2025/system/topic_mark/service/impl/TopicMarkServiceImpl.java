@@ -13,6 +13,7 @@ import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.topic_mark.dto.*;
 import com.example.starter_project_2025.system.topic_mark.entity.*;
+import com.example.starter_project_2025.system.topic_mark.enums.ChangeType;
 import com.example.starter_project_2025.system.topic_mark.repository.*;
 import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
 import com.example.starter_project_2025.system.user.entity.User;
@@ -318,6 +319,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                         .columnLabel(h.getTopicMarkEntry().getTopicMarkColumn().getColumnLabel())
                         .oldScore(h.getOldScore())
                         .newScore(h.getNewScore())
+                        .changeType(h.getChangeType() != null ? h.getChangeType().name() : null)
                         .reason(h.getReason())
                         .updatedBy(h.getUpdatedBy().getFirstName() + " " + h.getUpdatedBy().getLastName())
                         .updatedAt(h.getUpdatedAt())
@@ -376,17 +378,19 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             Double newScore = update.getScore();
 
             if (!Objects.equals(oldScore, newScore)) {
+                ChangeType changeType = determineChangeType(oldScore, newScore);
                 topicMarkEntryHistoryRepository.save(TopicMarkEntryHistory.builder()
                         .topicMarkEntry(entry)
                         .oldScore(oldScore)
                         .newScore(newScore)
+                        .changeType(changeType)
                         .reason(request.getReason())
                         .updatedBy(editor)
                         .build());
                 entry.setScore(newScore);
                 topicMarkEntryRepository.save(entry);
-                log.debug("Updated entry id={} col=[{}] {} -> {}", entry.getId(),
-                        column.getColumnLabel(), oldScore, newScore);
+                log.debug("Updated entry id={} col=[{}] {} -> {} ({})", entry.getId(),
+                        column.getColumnLabel(), oldScore, newScore, changeType);
             }
         }
         tryComputeAndSaveFinalScore(courseClass, userId, mark);
@@ -644,10 +648,12 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
                     Double oldScore = entry.getScore();
                     if (!Objects.equals(oldScore, score)) {
+                        ChangeType changeType = determineChangeType(oldScore, score);
                         topicMarkEntryHistoryRepository.save(TopicMarkEntryHistory.builder()
                                 .topicMarkEntry(entry)
                                 .oldScore(oldScore)
                                 .newScore(score)
+                                .changeType(changeType)
                                 .reason("Excel import")
                                 .updatedBy(editor)
                                 .build());
@@ -688,6 +694,13 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         } catch (IOException e) {
             throw new RuntimeException("Error reading Excel file: " + e.getMessage(), e);
         }
+    }
+
+    private ChangeType determineChangeType(Double oldScore, Double newScore) {
+        if (oldScore == null && newScore == null) return null;
+        if (oldScore == null) return ChangeType.INCREASE;
+        if (newScore == null) return ChangeType.DECREASE;
+        return newScore >= oldScore ? ChangeType.INCREASE : ChangeType.DECREASE;
     }
 
     private String getCellString(Cell cell) {

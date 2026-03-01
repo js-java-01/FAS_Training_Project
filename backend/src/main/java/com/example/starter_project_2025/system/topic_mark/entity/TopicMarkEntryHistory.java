@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.topic_mark.entity;
 
+import com.example.starter_project_2025.system.topic_mark.enums.ChangeType;
 import com.example.starter_project_2025.system.user.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -39,6 +40,11 @@ public class TopicMarkEntryHistory {
     @Column(name = "new_score")
     @Schema(description = "Score value after the change", nullable = true, example = "8.5")
     private Double newScore;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "change_type")
+    @Schema(description = "Type of score change: INCREASE or DECREASE", example = "INCREASE")
+    private ChangeType changeType;
 
     @Column(name = "reason", columnDefinition = "TEXT")
     @Schema(description = "Reason provided by the editor for this change", example = "Re-graded after review")

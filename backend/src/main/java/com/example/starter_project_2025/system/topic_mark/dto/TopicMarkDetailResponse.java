@@ -103,6 +103,9 @@ public class TopicMarkDetailResponse {
         @Schema(description = "Score after the change", nullable = true, example = "8.5")
         private Double newScore;
 
+        @Schema(description = "Type of change: INCREASE or DECREASE", example = "INCREASE")
+        private String changeType;
+
         @Schema(description = "Reason provided for the change", example = "Re-graded after review")
         private String reason;
 
