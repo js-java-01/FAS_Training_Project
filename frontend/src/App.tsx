@@ -39,7 +39,7 @@ import Unauthorized from "./pages/Unauthorized";
 import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import { TopicManagement } from "./pages/topic/TopicManagement";
 import TopicDetailPage from "./pages/topic/TopicDetailPage";
-import ProgramsManagement from "./pages/programs/ProgramsManagement";
+import ProgramManagement from "./pages/programs/ProgramManagement";
 import ProgramCreatePage from "./pages/programs/ProgramCreatePage";
 
 function App() {
@@ -122,7 +122,7 @@ function App() {
               path="/programs"
               element={
                 <ProtectedRoute>
-                  <ProgramsManagement />
+                  <ProgramManagement />
                 </ProtectedRoute>
               }
             />
