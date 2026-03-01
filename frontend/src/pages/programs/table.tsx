@@ -13,6 +13,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { trainingProgramApi } from "@/api/trainingProgramApi";
+import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import {
+  useExportTrainingPrograms,
+  useImportTrainingPrograms,
+  useDownloadTrainingProgramTemplate,
+} from "./services/mutations";
 
 export default function ProgramsTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -97,6 +103,12 @@ export default function ProgramsTable() {
         onSortingChange={setSorting}
         headerActions={
           <div className="flex gap-2">
+            <EntityImportExportButton
+              title="Training Programs"
+              useImportHook={useImportTrainingPrograms}
+              useExportHook={useExportTrainingPrograms}
+              useTemplateHook={useDownloadTrainingProgramTemplate}
+            />
             <Button
               onClick={() => navigate("/programs/new")}
               className="bg-blue-600 hover:bg-blue-700 text-white gap-2"

@@ -50,4 +50,33 @@ export const trainingProgramApi = {
   deleteTrainingProgram: async (id: string): Promise<void> => {
     await axiosInstance.delete(`/training-programs/${id}`);
   },
+
+  exportTrainingPrograms: async (): Promise<Blob> => {
+    const response = await axiosInstance.get("/training-programs/export", {
+      responseType: "blob",
+    });
+    return response.data;
+  },
+
+  downloadTemplate: async (): Promise<Blob> => {
+    const response = await axiosInstance.get("/training-programs/template", {
+      responseType: "blob",
+    });
+    return response.data;
+  },
+
+  importTrainingPrograms: async (
+    file: File,
+  ): Promise<import("@/components/modal/import-export/ImportTab").ImportResult> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await axiosInstance.post(
+      "/training-programs/import",
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
+    return response.data;
+  },
 };
