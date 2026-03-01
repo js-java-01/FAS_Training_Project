@@ -24,6 +24,7 @@ import {
 } from "./services/mutations";
 import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
+import { useSortParam } from "@/hooks/useSortParam";
 
 export default function CourseTable() {
   /* ---------- permissions ---------- */
@@ -56,11 +57,7 @@ export default function CourseTable() {
   const statusParam = statusFilter.length === 1 ? statusFilter[0] : undefined;
 
   /* ---------- sort param ---------- */
-  const sortParam = useMemo(() => {
-    if (!sorting.length) return "createdDate,desc";
-    const { id, desc } = sorting[0];
-    return `${id},${desc ? "desc" : "asc"}`;
-  }, [sorting]);
+  const sortParam = useSortParam(sorting, "createdDate,desc")
 
   /* ---------- query ---------- */
   const {
