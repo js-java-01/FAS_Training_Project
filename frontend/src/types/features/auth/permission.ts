@@ -1,33 +1,17 @@
-export interface Permission {
-  id: string;
-  name: string;
-  description: string;
-  resource: string;
-  action: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PermissionCreateRequest {
-  name: string;
-  description: string;
-  resource: string;
-  action: string;
-  isActive: boolean;
-}
-
-export interface PermissionUpdateRequest {
+export interface PermissionDTO {
+  id?: string;
   name?: string;
   description?: string;
   resource?: string;
   action?: string;
   isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PermissionFilter {
+  isActive?: boolean;
   resource?: string;
   action?: string;
-  isActive?: boolean;
   createdRange?: [string, string];
 }

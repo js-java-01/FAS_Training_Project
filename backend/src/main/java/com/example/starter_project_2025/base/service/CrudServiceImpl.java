@@ -1,8 +1,10 @@
 package com.example.starter_project_2025.base.service;
 
-import com.example.starter_project_2025.base.mapper.BaseMapper;
-import com.example.starter_project_2025.base.repository.BaseRepository;
+import com.example.starter_project_2025.base.dto.CrudDto;
+import com.example.starter_project_2025.base.mapper.BaseCrudMapper;
+import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.base.spec.AutoSpecBuilder;
+import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
@@ -15,25 +17,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Transactional
-public abstract class CrudServiceImpl<E, ID, R, C, U, F> implements CrudService<ID, R, C, U, F> {
+public abstract class CrudServiceImpl<
+        E,
+        I,
+        D extends CrudDto<I>,
+        F> implements CrudService<I, D, F> {
 
     @Autowired
     protected  AutoSpecBuilder autoSpecBuilder;
 
-    protected abstract BaseRepository<E, ID> getRepository();
-    protected abstract BaseMapper<E, R, C, U> getMapper();
+    protected abstract BaseCrudRepository<E, I> getRepository();
+    protected abstract BaseCrudMapper<E, D> getMapper();
     protected abstract String[] searchableFields();
 
-    protected void beforeCreate(E entity, C request) {}
-    protected void afterCreate(E entity, C request) {}
+    protected void beforeCreate(E entity, D request) {}
+    protected void afterCreate(E entity, D request) {}
 
-    protected void beforeUpdate(E entity, U request) {}
-    protected void afterUpdate(E entity, U request) {}
+    protected void beforeUpdate(E entity, D request) {}
+    protected void afterUpdate(E entity, D request) {}
 
     protected void beforeDelete(E entity) {}
     protected void afterDelete(E entity) {}
 
-    protected R createEntity(C request) {
+    protected D createEntity(D request) {
 
         E entity = getMapper().toEntity(request);
 
@@ -46,7 +52,11 @@ public abstract class CrudServiceImpl<E, ID, R, C, U, F> implements CrudService<
         return getMapper().toResponse(saved);
     }
 
-    protected R updateEntity(ID id, U request) {
+    protected D updateEntity(I id, D request) {
+
+        if (!id.equals(request.getId())) {
+            throw new BadRequestException("ID mismatch");
+        }
 
         E entity = getRepository().findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Entity not found"));
@@ -62,7 +72,7 @@ public abstract class CrudServiceImpl<E, ID, R, C, U, F> implements CrudService<
         return getMapper().toResponse(saved);
     }
 
-    protected void deleteEntity(ID id) {
+    protected void deleteEntity(I id) {
 
         E entity = getRepository().findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Entity not found"));
@@ -74,13 +84,13 @@ public abstract class CrudServiceImpl<E, ID, R, C, U, F> implements CrudService<
         afterDelete(entity);
     }
 
-    protected R getByIdEntity(ID id) {
+    protected D getByIdEntity(I id) {
         return getRepository().findById(id)
                 .map(getMapper()::toResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Entity not found"));
     }
 
-    protected Page<R> getAllEntity(Pageable pageable,String search, F filter) {
+    protected Page<D> getAllEntity(Pageable pageable,String search, F filter) {
 
         Specification<E> spec = Specification.where(null);
 

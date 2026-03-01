@@ -1,18 +1,16 @@
 package com.example.starter_project_2025.system.user.service;
 
-import com.example.starter_project_2025.base.mapper.BaseMapper;
-import com.example.starter_project_2025.base.repository.BaseRepository;
+import com.example.starter_project_2025.base.mapper.BaseCrudMapper;
+import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.base.service.CrudServiceImpl;
 import com.example.starter_project_2025.constant.ErrorMessage;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.auth.entity.Role;
-import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.system.auth.repository.RoleCrudRepository;
 import com.example.starter_project_2025.system.common.error.ErrorUtil;
-import com.example.starter_project_2025.system.user.dto.UserCreateRequest;
+import com.example.starter_project_2025.system.user.dto.UserDTO;
 import com.example.starter_project_2025.system.user.dto.UserFilter;
-import com.example.starter_project_2025.system.user.dto.UserResponse;
-import com.example.starter_project_2025.system.user.dto.UserUpdateRequest;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.mapper.UserMapper;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
@@ -34,27 +32,22 @@ import java.util.*;
 @Transactional
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class UserServiceImpl extends CrudServiceImpl<
-        User,
-        UUID,
-        UserResponse,
-        UserCreateRequest,
-        UserUpdateRequest,
-        UserFilter
-        > implements UserService {
+public class UserServiceImpl
+        extends CrudServiceImpl<User, UUID, UserDTO, UserFilter>
+        implements UserService {
 
     UserMapper userMapper;
     UserRepository userRepository;
-    RoleRepository roleRepository;
+    RoleCrudRepository roleRepository;
     PasswordEncoder passwordEncoder;
 
     @Override
-    protected BaseRepository<User, UUID> getRepository() {
+    protected BaseCrudRepository<User, UUID> getRepository() {
         return userRepository;
     }
 
     @Override
-    protected BaseMapper<User, UserResponse, UserCreateRequest, UserUpdateRequest> getMapper() {
+    protected BaseCrudMapper<User, UserDTO> getMapper() {
         return userMapper;
     }
 
@@ -64,41 +57,41 @@ public class UserServiceImpl extends CrudServiceImpl<
     }
 
     @Override
-    protected void beforeCreate(User user, UserCreateRequest request) {
+    protected void beforeCreate(User user, UserDTO request) {
 
         Map<String, List<String>> errors = new HashMap<>();
 
-        validateEmailUnique(request.email(), null, errors);
-        validateRoles(request.roleIds(), errors);
+        validateEmailUnique(request.getEmail(), null, errors);
+        validateRoles(request.getRoleIds(), errors);
 
         ErrorUtil.throwIfHasErrors(errors);
 
-        user.setPasswordHash(passwordEncoder.encode(request.password()));
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
-        getRoles(request.roleIds()).forEach(user::addRole);
+        getRoles(request.getRoleIds()).forEach(user::addRole);
     }
 
     @Override
-    protected void beforeUpdate(User user, UserUpdateRequest request) {
+    protected void beforeUpdate(User user, UserDTO request) {
 
         Map<String, List<String>> errors = new HashMap<>();
 
-        if (request.email() != null) {
-            validateEmailUnique(request.email(), user.getId(), errors);
+        if (request.getEmail() != null) {
+            validateEmailUnique(request.getEmail(), user.getId(), errors);
         }
 
-        if (request.roleIds() != null) {
-            validateRoles(request.roleIds(), errors);
+        if (request.getRoleIds() != null) {
+            validateRoles(request.getRoleIds(), errors);
         }
 
         ErrorUtil.throwIfHasErrors(errors);
 
-        if (request.password() != null) {
-            user.setPasswordHash(passwordEncoder.encode(request.password()));
+        if (request.getPassword() != null) {
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
 
-        if (request.roleIds() != null) {
-            user.replaceRoles(getRoles(request.roleIds()));
+        if (request.getRoleIds() != null) {
+            user.replaceRoles(getRoles(request.getRoleIds()));
         }
     }
 
@@ -127,32 +120,32 @@ public class UserServiceImpl extends CrudServiceImpl<
 
     @Override
     @PreAuthorize("hasAuthority('USER_READ')")
-    public Page<UserResponse> getAll(Pageable pageable, String search, UserFilter filter) {
+    public Page<UserDTO> getAll(Pageable pageable, String search, UserFilter filter) {
         return super.getAllEntity(pageable, search, filter);
     }
 
     @Override
     @PreAuthorize("hasAuthority('USER_READ')")
-    public UserResponse getById(UUID uuid) {
-        return super.getByIdEntity(uuid);
+    public UserDTO getById(UUID id) {
+        return super.getByIdEntity(id);
     }
 
     @Override
     @PreAuthorize("hasAuthority('USER_CREATE')")
-    public UserResponse create(UserCreateRequest request) {
+    public UserDTO create(UserDTO request) {
         return super.createEntity(request);
     }
 
     @Override
     @PreAuthorize("hasAuthority('USER_UPDATE')")
-    public UserResponse update(UUID uuid, UserUpdateRequest request) {
-        return super.updateEntity(uuid, request);
+    public UserDTO update(UUID id, UserDTO request) {
+        return super.updateEntity(id, request);
     }
 
     @Override
     @PreAuthorize("hasAuthority('USER_DELETE')")
-    public void delete(UUID uuid) {
-        super.deleteEntity(uuid);
+    public void delete(UUID id) {
+        super.deleteEntity(id);
     }
 
     private void validateEmailUnique(String email, UUID currentUserId,
@@ -167,7 +160,7 @@ public class UserServiceImpl extends CrudServiceImpl<
         }
     }
 
-    private void validateRoles(List<UUID> roleIds,
+    private void validateRoles(Set<UUID> roleIds,
                                Map<String, List<String>> errors) {
 
         if (roleIds == null || roleIds.isEmpty()) {
@@ -182,7 +175,7 @@ public class UserServiceImpl extends CrudServiceImpl<
         }
     }
 
-    private Set<Role> getRoles(List<UUID> roleIds) {
+    private Set<Role> getRoles(Set<UUID> roleIds) {
         return new HashSet<>(roleRepository.findAllById(roleIds));
     }
 }

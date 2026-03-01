@@ -1,16 +1,14 @@
 package com.example.starter_project_2025.system.auth.service.permission;
 
-import com.example.starter_project_2025.base.mapper.BaseMapper;
-import com.example.starter_project_2025.base.repository.BaseRepository;
+import com.example.starter_project_2025.base.mapper.BaseCrudMapper;
+import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.base.service.CrudServiceImpl;
 import com.example.starter_project_2025.exception.BadRequestException;
-import com.example.starter_project_2025.system.auth.dto.permission.PermissionCreateRequest;
+import com.example.starter_project_2025.system.auth.dto.permission.PermissionDTO;
 import com.example.starter_project_2025.system.auth.dto.permission.PermissionFilter;
-import com.example.starter_project_2025.system.auth.dto.permission.PermissionResponse;
-import com.example.starter_project_2025.system.auth.dto.permission.PermissionUpdateRequest;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.mapper.PermissionMapper;
-import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
+import com.example.starter_project_2025.system.auth.repository.PermissionCrudRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -25,25 +23,20 @@ import java.util.UUID;
 @Transactional
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class PermissionServiceImpl extends CrudServiceImpl<
-        Permission,
-        UUID,
-        PermissionResponse,
-        PermissionCreateRequest,
-        PermissionUpdateRequest,
-        PermissionFilter
-        > implements PermissionService {
+public class PermissionServiceImpl
+        extends CrudServiceImpl<Permission, UUID, PermissionDTO, PermissionFilter>
+        implements PermissionService {
 
     PermissionMapper permissionMapper;
-    PermissionRepository permissionRepository;
+    PermissionCrudRepository permissionRepository;
 
     @Override
-    protected BaseRepository<Permission, UUID> getRepository() {
+    protected BaseCrudRepository<Permission, UUID> getRepository() {
         return permissionRepository;
     }
 
     @Override
-    protected BaseMapper<Permission, PermissionResponse, PermissionCreateRequest, PermissionUpdateRequest> getMapper() {
+    protected BaseCrudMapper<Permission, PermissionDTO> getMapper() {
         return permissionMapper;
     }
 
@@ -54,47 +47,47 @@ public class PermissionServiceImpl extends CrudServiceImpl<
 
     @Override
     protected void beforeCreate(Permission permission,
-                                PermissionCreateRequest request) {
+                                PermissionDTO request) {
 
-        if (permissionRepository.existsByName(request.name())) {
+        if (permissionRepository.existsByName(request.getName())) {
             throw new BadRequestException("Permission name already exists");
         }
     }
 
     @Override
     protected void beforeUpdate(Permission permission,
-                                PermissionUpdateRequest request) {
+                                PermissionDTO request) {
 
-        if (request.name() != null &&
-                !request.name().equals(permission.getName()) &&
-                permissionRepository.existsByName(request.name())) {
+        if (request.getName() != null &&
+                !request.getName().equals(permission.getName()) &&
+                permissionRepository.existsByName(request.getName())) {
 
             throw new BadRequestException("Permission name already exists");
         }
     }
 
     @Override
-    public Page<PermissionResponse> getAll(Pageable pageable, String search, PermissionFilter filter) {
+    public Page<PermissionDTO> getAll(Pageable pageable, String search, PermissionFilter filter) {
         return super.getAllEntity(pageable, search, filter);
     }
 
     @Override
-    public PermissionResponse getById(UUID uuid) {
-        return super.getByIdEntity(uuid);
+    public PermissionDTO getById(UUID id) {
+        return super.getByIdEntity(id);
     }
 
     @Override
-    public PermissionResponse create(PermissionCreateRequest request) {
+    public PermissionDTO create(PermissionDTO request) {
         return super.createEntity(request);
     }
 
     @Override
-    public PermissionResponse update(UUID uuid, PermissionUpdateRequest request) {
-        return super.updateEntity(uuid, request);
+    public PermissionDTO update(UUID id, PermissionDTO request) {
+        return super.updateEntity(id, request);
     }
 
     @Override
-    public void delete(UUID uuid) {
-        super.deleteEntity(uuid);
+    public void delete(UUID id) {
+        super.deleteEntity(id);
     }
 }

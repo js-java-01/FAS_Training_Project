@@ -175,7 +175,6 @@ export function useProTable(api: any, schema: EntitySchema) {
 
     const updateData = { ...row, [fieldName]: value };
 
-    delete updateData[schema.idField];
     delete updateData.createdAt;
     delete updateData.updatedAt;
 

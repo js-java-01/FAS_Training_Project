@@ -1,17 +1,15 @@
 package com.example.starter_project_2025.system.auth.service.role;
 
-import com.example.starter_project_2025.base.mapper.BaseMapper;
-import com.example.starter_project_2025.base.repository.BaseRepository;
+import com.example.starter_project_2025.base.mapper.BaseCrudMapper;
+import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.base.service.CrudServiceImpl;
-import com.example.starter_project_2025.system.auth.dto.role.RoleCreateRequest;
+import com.example.starter_project_2025.system.auth.dto.role.RoleDTO;
 import com.example.starter_project_2025.system.auth.dto.role.RoleFilter;
-import com.example.starter_project_2025.system.auth.dto.role.RoleResponse;
-import com.example.starter_project_2025.system.auth.dto.role.RoleUpdateRequest;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.mapper.RoleMapper;
-import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
-import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.system.auth.repository.PermissionCrudRepository;
+import com.example.starter_project_2025.system.auth.repository.RoleCrudRepository;
 import com.example.starter_project_2025.system.common.error.ErrorUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -28,96 +26,90 @@ import java.util.*;
 @Transactional
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class RoleServiceImpl extends CrudServiceImpl<
-        Role,
-        UUID,
-        RoleResponse,
-        RoleCreateRequest,
-        RoleUpdateRequest,
-        RoleFilter
-        > implements RoleService {
+public class RoleServiceImpl
+        extends CrudServiceImpl<Role, UUID, RoleDTO, RoleFilter>
+        implements RoleService {
 
     RoleMapper roleMapper;
-    RoleRepository roleRepository;
-    PermissionRepository permissionRepository;
+    RoleCrudRepository roleRepository;
+    PermissionCrudRepository permissionRepository;
 
     @Override
-    protected BaseRepository<Role, UUID> getRepository() {
+    protected BaseCrudRepository<Role, UUID> getRepository() {
         return roleRepository;
     }
 
     @Override
-    protected BaseMapper<Role, RoleResponse, RoleCreateRequest, RoleUpdateRequest> getMapper() {
+    protected BaseCrudMapper<Role, RoleDTO> getMapper() {
         return roleMapper;
     }
 
     @Override
     protected String[] searchableFields() {
-        return new String[]{ "name", "description"};
+        return new String[]{"name", "description"};
     }
 
     @Override
-    protected void beforeCreate(Role role, RoleCreateRequest request) {
+    protected void beforeCreate(Role role, RoleDTO request) {
 
         Map<String, List<String>> errors = new HashMap<>();
 
-        validateRoleNameUnique(request.name(), null, errors);
-        validatePermissions(request.permissionIds(), errors);
+        validateRoleNameUnique(request.getName(), null, errors);
+        validatePermissions(request.getPermissionIds(), errors);
 
         ErrorUtil.throwIfHasErrors(errors);
 
-        getPermissions(request.permissionIds()).forEach(role::addPermission);
+        getPermissions(request.getPermissionIds()).forEach(role::addPermission);
     }
 
     @Override
-    protected void beforeUpdate(Role role, RoleUpdateRequest request) {
+    protected void beforeUpdate(Role role, RoleDTO request) {
 
         Map<String, List<String>> errors = new HashMap<>();
 
-        if (request.name() != null) {
-            validateRoleNameUnique(request.name(), role.getId(), errors);
+        if (request.getName() != null) {
+            validateRoleNameUnique(request.getName(), role.getId(), errors);
         }
 
-        if (request.permissionIds() != null) {
-            validatePermissions(request.permissionIds(), errors);
+        if (request.getPermissionIds() != null) {
+            validatePermissions(request.getPermissionIds(), errors);
         }
 
         ErrorUtil.throwIfHasErrors(errors);
 
-        if (request.permissionIds() != null) {
-            role.setPermissionsSafe(getPermissions(request.permissionIds()));
+        if (request.getPermissionIds() != null) {
+            role.setPermissionsSafe(getPermissions(request.getPermissionIds()));
         }
     }
-
 
     @Override
     @PreAuthorize("hasAuthority('ROLE_READ')")
-    public Page<RoleResponse> getAll(Pageable pageable, String search, RoleFilter filter) {
+    public Page<RoleDTO> getAll(Pageable pageable, String search, RoleFilter filter) {
         return super.getAllEntity(pageable, search, filter);
     }
 
     @Override
     @PreAuthorize("hasAuthority('ROLE_READ')")
-    public RoleResponse getById(UUID uuid) {
-        return super.getByIdEntity(uuid);
+    public RoleDTO getById(UUID id) {
+        return super.getByIdEntity(id);
     }
 
     @Override
     @PreAuthorize("hasAuthority('ROLE_CREATE')")
-    public RoleResponse create(RoleCreateRequest request) {
+    public RoleDTO create(RoleDTO request) {
         return super.createEntity(request);
     }
 
     @Override
     @PreAuthorize("hasAuthority('ROLE_UPDATE')")
-    public RoleResponse update(UUID id, RoleUpdateRequest request) {
+    public RoleDTO update(UUID id, RoleDTO request) {
         return super.updateEntity(id, request);
     }
 
     @Override
     @PreAuthorize("hasAuthority('ROLE_DELETE')")
-    public void delete(UUID uuid) {
-        super.deleteEntity(uuid);
+    public void delete(UUID id) {
+        super.deleteEntity(id);
     }
 
     private void validateRoleNameUnique(String name, UUID currentId,

@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.base.controller;
 
-import com.example.starter_project_2025.base.repository.BaseRepository;
+import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.system.dataio.core.common.FileFormat;
 import com.example.starter_project_2025.system.dataio.core.exporter.service.ExportService;
 import com.example.starter_project_2025.system.dataio.core.importer.result.ImportResult;
@@ -14,8 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
-public abstract class BaseCrudDataIoController<E, ID, R, C, U, F>
-        extends BaseCrudController<ID, R, C, U, F> {
+public abstract class BaseCrudDataIoController<E, I, D, F>
+        extends BaseCrudController<I, D, F> {
 
     @Autowired
     protected ExportService exportService;
@@ -23,7 +23,7 @@ public abstract class BaseCrudDataIoController<E, ID, R, C, U, F>
     @Autowired
     protected ImportService importService;
 
-    protected abstract BaseRepository<E, ID> getRepository();
+    protected abstract BaseCrudRepository<E, I> getRepository();
 
     protected abstract Class<E> getEntityClass();
 

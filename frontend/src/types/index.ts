@@ -18,4 +18,5 @@ export * from "./features/assessment/question-tag";
 export * from "./features/assessment/question";
 export * from "./features/user/user";
 export * from "./features/auth/role";
+export * from "./features/auth/permission";
 

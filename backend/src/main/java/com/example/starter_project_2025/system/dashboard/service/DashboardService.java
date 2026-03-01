@@ -2,8 +2,7 @@ package com.example.starter_project_2025.system.dashboard.service;
 
 import com.example.starter_project_2025.system.dashboard.dto.DashboardStatsDTO;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
-import com.example.starter_project_2025.system.auth.repository.RoleRepository;
-import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
+import com.example.starter_project_2025.system.auth.repository.RoleCrudRepository;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DashboardService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final RoleCrudRepository roleRepository;
     private final ModuleRepository ModuleGroupsRepository;
     private final ModuleRepository ModuleRepository;
 

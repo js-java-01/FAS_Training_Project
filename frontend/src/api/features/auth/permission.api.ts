@@ -1,13 +1,9 @@
-import { createBaseApiService } from '@/api/base-service.api';
-import { Url } from '@/api/url';
-import type { Permission, PermissionCreateRequest, PermissionFilter, PermissionUpdateRequest } from '../../../types/features/auth/permission';
-import axiosInstance from '../../axiosInstance';
+import { createBaseApiService } from "@/api/base-service.api";
+import { Url } from "@/api/url";
+import type { PermissionDTO, PermissionFilter } from "@/types";
 
-const base = createBaseApiService<
-  Permission,
-  PermissionFilter,
-  PermissionCreateRequest,
-  PermissionUpdateRequest
->(axiosInstance, Url.PERMISSION);
+const base = createBaseApiService<PermissionDTO, PermissionFilter>({
+  path: Url.PERMISSION,
+});
 
 export const permissionApi = Object.assign({}, base, {});

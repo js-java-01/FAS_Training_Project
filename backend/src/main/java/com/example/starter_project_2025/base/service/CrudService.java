@@ -3,15 +3,15 @@ package com.example.starter_project_2025.base.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-public interface CrudService<ID, R, C, U, F> {
+public interface CrudService<I, D, F> {
 
-    Page<R> getAll(Pageable pageable, String search, F filter);
+    Page<D> getAll(Pageable pageable, String search, F filter);
 
-    R getById(ID id);
+    D getById(I id);
 
-    R create(C request);
+    D create(D request);
 
-    R update(ID id, U request);
+    D update(I id, D request);
 
-    void delete(ID id);
+    void delete(I id);
 }
