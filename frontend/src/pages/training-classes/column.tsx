@@ -3,13 +3,15 @@ import type { TrainingClass } from "@/types/trainingClass";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { Check, EditIcon, EyeIcon, X } from "lucide-react";
+import { Check, EyeIcon, X } from "lucide-react";
 import dayjs from "dayjs";
 import SortHeader from "@/components/data_table/SortHeader";
-import { ClassStatus } from "./enum/ClassStatus";
 
 export type TableActions = {
   onView?: (row: TrainingClass) => void;
+  onNavigate?: (row: TrainingClass) => void;
+  onApprove?: (row: TrainingClass) => void;
+  onReject?: (row: TrainingClass) => void;
 };
 
 export type TablePermissions = {
@@ -108,44 +110,57 @@ export const getColumns = (role: string, permissions: TablePermissions, actions?
   const statusColumn =
     role === "MANAGER"
       ? columnHelper.accessor("status", {
-          header: (info) => <SortHeader info={info} title="Approval Status" />,
-          size: 140,
-          cell: (info) => {
-            const statusVal = info.getValue();
-            let badgeColor = "bg-gray-100 text-gray-700";
-            let label = statusVal;
+        header: (info) => <SortHeader info={info} title="Status" />,
+        size: 120,
+        cell: ({ getValue, row }) => {
+          const status = getValue() as string;
+          const isActive = row.original.isActive;
 
-            if (statusVal === "APPROVED") {
-              badgeColor = "bg-green-100 text-green-700 border-green-200";
-              label = ClassStatus.APPROVED;
-            } else if (statusVal === "PENDING_APPROVAL") {
-              badgeColor = "bg-yellow-100 text-yellow-700 border-yellow-200";
-              label = ClassStatus.PENDING_APPROVAL;
-            } else if (statusVal === "REJECTED") {
-              badgeColor = "bg-red-100 text-red-700 border-red-200";
-              label = ClassStatus.REJECTED;
+          let badgeClass = "bg-gray-100 text-gray-700 border-gray-200";
+          let label = status;
+
+          // Handle legacy or mapped statuses
+          if (status === "APPROVED") {
+            if (isActive) {
+              badgeClass = "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 shadow-none";
+              label = "Active";
+            } else {
+              // Approved but future -> Planning / Scheduled? or just Approved
+              badgeClass = "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200 shadow-none";
+              label = "Approved (Inactive)";
             }
+          } else if (status === "PENDING_APPROVAL") {
+            badgeClass = "bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200 shadow-none";
+            label = "Pending";
+          } else if (status === "REJECTED") {
+            badgeClass = "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none";
+            label = "Rejected";
+          }
 
-            return <Badge className={`${badgeColor} shadow-none`}>{label}</Badge>;
-          },
-          meta: { title: "Approval Status" },
-        })
-      : columnHelper.accessor("isActive", {
-          header: (info) => <SortHeader info={info} title="Active Status" />,
-          size: 120,
-          cell: (info) => (
-            <Badge
-              className={
-                info.getValue()
-                  ? "bg-blue-100 text-blue-700 border-blue-200 shadow-none"
-                  : "bg-gray-100 text-gray-700 border-gray-200 shadow-none"
-              }
-            >
-              {info.getValue() ? "Active" : "Inactive"}
+          return (
+            <Badge className={badgeClass}>
+              {label}
             </Badge>
-          ),
-          meta: { title: "Active Status" },
-        });
+          );
+        },
+        meta: { title: "Status" },
+      })
+      : columnHelper.accessor("isActive", {
+        header: (info) => <SortHeader info={info} title="Active Status" />,
+        size: 120,
+        cell: (info) => (
+          <Badge
+            className={
+              info.getValue()
+                ? "bg-blue-100 text-blue-700 border-blue-200 shadow-none"
+                : "bg-gray-100 text-gray-700 border-gray-200 shadow-none"
+            }
+          >
+            {info.getValue() ? "Active" : "Inactive"}
+          </Badge>
+        ),
+        meta: { title: "Active Status" },
+      });
 
   const actionColumn = columnHelper.display({
     id: "actions",
@@ -153,20 +168,27 @@ export const getColumns = (role: string, permissions: TablePermissions, actions?
     size: 180,
     cell: ({ row }) => (
       <div className="flex gap-2">
-        {actions?.onView && (
-          <ActionBtn tooltipText="View" icon={<EyeIcon size={12} />} onClick={() => actions.onView!(row.original)} />
+        {actions?.onNavigate && (
+          <ActionBtn
+            tooltipText="View"
+            icon={<EyeIcon size={12} />}
+            onClick={() => actions.onNavigate!(row.original)}
+          />
         )}
-
-        {permissions.canUpdate && <ActionBtn tooltipText="Update" icon={<EditIcon size={12} />} onClick={() => {}} />}
-
-        {permissions.canUpdate && (
-          <>
-            <ActionBtn tooltipText="Approve" icon={<Check size={12} />} onClick={() => {}} />
-            <ActionBtn tooltipText="Reject" icon={<X size={12} />} onClick={() => {}} />
-          </>
+        {row.original.status === "PENDING_APPROVAL" && actions?.onApprove && (
+          <ActionBtn
+            tooltipText="Approve"
+            icon={<Check size={12} />}
+            onClick={() => actions.onApprove!(row.original)}
+          />
         )}
-
-        {permissions.canDelete && <ActionBtn tooltipText="Delete" icon={<X size={12} />} onClick={() => {}} />}
+        {row.original.status === "PENDING_APPROVAL" && actions?.onReject && (
+          <ActionBtn
+            tooltipText="Reject"
+            icon={<X size={12} />}
+            onClick={() => actions.onReject!(row.original)}
+          />
+        )}
       </div>
     ),
     enableSorting: false,
@@ -175,3 +197,6 @@ export const getColumns = (role: string, permissions: TablePermissions, actions?
 
   return [...baseColumns, statusColumn, actionColumn];
 };
+
+
+

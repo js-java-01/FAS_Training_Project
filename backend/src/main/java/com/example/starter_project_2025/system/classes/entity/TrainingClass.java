@@ -67,4 +67,7 @@ public class TrainingClass {
 
     @Column(name = "end_date")
     private LocalDate endDate;
+
+    @Column(name = "review_reason")
+    private String reviewReason;
 }

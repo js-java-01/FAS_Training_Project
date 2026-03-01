@@ -8,9 +8,19 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
-import ImportTab from "./ImportTab";
+import { useState, useEffect } from "react";
+import ImportTab, { type ImportResult } from "./ImportTab";
 import ExportTab from "./ExportTab";
+
+type Props = {
+  title?: string;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+
+  onImport?: (file: File) => Promise<ImportResult | void>;
+  onExport?: () => Promise<void>;
+  onDownloadTemplate?: () => Promise<void>;
+};
 
 export default function ImportExportModal({
   title,
@@ -19,15 +29,19 @@ export default function ImportExportModal({
   onImport,
   onExport,
   onDownloadTemplate,
-}: {
-  title?: string;
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  onImport: (file: File) => Promise<void>;
-  onExport: () => Promise<void>;
-  onDownloadTemplate: () => Promise<void>;
-}) {
-  const [tab, setTab] = useState("import");
+}: Props) {
+  const hasImport = !!onImport;
+  const hasExport = !!onExport;
+
+  const [tab, setTab] = useState<"import" | "export">(
+    hasImport ? "import" : "export"
+  );
+
+  // Nếu quyền thay đổi thì reset tab
+  useEffect(() => {
+    if (!hasImport && hasExport) setTab("export");
+    if (hasImport && !hasExport) setTab("import");
+  }, [hasImport, hasExport]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -41,29 +55,44 @@ export default function ImportExportModal({
         </DialogHeader>
 
         {/* Tabs */}
-        <div className="px-6 mt-4">
-          <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="import">Import</TabsTrigger>
-              <TabsTrigger value="export">Export</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        {(hasImport || hasExport) && (
+          <div className="px-6 mt-4">
+            <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+              <TabsList
+                className={`grid w-full ${
+                  hasImport && hasExport
+                    ? "grid-cols-2"
+                    : "grid-cols-1"
+                }`}
+              >
+                {hasImport && (
+                  <TabsTrigger value="import">Import</TabsTrigger>
+                )}
 
-        {/* Scroll Body */}
+                {hasExport && (
+                  <TabsTrigger value="export">Export</TabsTrigger>
+                )}
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
+
+        {/* Body */}
         <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
-          {tab === "import" && (
+          {tab === "import" && hasImport && (
             <ImportTab
               onImport={onImport}
               onDownloadTemplate={onDownloadTemplate}
             />
           )}
 
-          {tab === "export" && <ExportTab title={title} onExport={onExport} />}
+          {tab === "export" && hasExport && (
+            <ExportTab title={title} onExport={onExport} />
+          )}
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 pb-6 border-t">
+        <DialogFooter className="px-6 py-3 border-t">
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Close
           </Button>

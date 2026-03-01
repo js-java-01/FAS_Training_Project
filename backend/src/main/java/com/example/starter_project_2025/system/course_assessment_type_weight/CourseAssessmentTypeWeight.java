@@ -3,10 +3,14 @@ package com.example.starter_project_2025.system.course_assessment_type_weight;
 import java.util.UUID;
 
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,10 +39,15 @@ public class CourseAssessmentTypeWeight {
     @JoinColumn(name = "course_id", nullable = false)
     @JsonBackReference
     private Course course;
+
     @ManyToOne
     @JoinColumn(name = "assessment_type_id", nullable = false)
     @JsonBackReference
     private AssessmentType assessmentType;
+
     private Double weight;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "grading_method")
+    private GradingMethod gradingMethod;
 }

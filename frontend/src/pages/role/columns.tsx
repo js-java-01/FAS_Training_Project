@@ -2,7 +2,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import type { Role } from "@/types/role";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { EditIcon, EyeIcon, Trash, ToggleLeft } from "lucide-react";
+import { EditIcon, EyeIcon, ToggleLeft } from "lucide-react";
 import dayjs from "dayjs";
 import { Badge } from "@/components/ui/badge";
 import SortHeader from "@/components/data_table/SortHeader";
@@ -11,7 +11,6 @@ import FilterHeader from "@/components/data_table/FilterHeader";
 export type TableActions = {
   onView?: (row: Role) => void;
   onEdit?: (row: Role) => void;
-  onDelete?: (row: Role) => void;
   onToggleStatus?: (id: string) => void;
 };
 
@@ -134,13 +133,6 @@ export const getColumns = (actions?: TableActions) => {
               tooltipText="Toggle"
               icon={<ToggleLeft size={12} />}
               onClick={() => actions.onToggleStatus!(row.original.id)}
-            />
-          )}
-          {actions?.onDelete && (
-            <ActionBtn
-              tooltipText="Delete"
-              icon={<Trash size={12} />}
-              onClick={() => actions.onDelete!(row.original)}
             />
           )}
         </div>

@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.course.controller;
 
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.course.dto.CourseCreateRequest;
 import com.example.starter_project_2025.system.course.dto.CourseResponse;
 import com.example.starter_project_2025.system.course.dto.CourseUpdateRequest;
@@ -110,8 +111,8 @@ public class CourseController {
         @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         @PreAuthorize("hasAuthority('COURSE_IMPORT')")
         @Operation(summary = "Import courses from Excel")
-        public ResponseEntity<Void> importCourses(@RequestParam("file") MultipartFile file) throws IOException {
-                courseService.importCourses(file);
-                return ResponseEntity.ok().build();
+        public ResponseEntity<ImportResultResponse> importCourses(
+                        @RequestParam("file") MultipartFile file) throws IOException {
+                return ResponseEntity.ok(courseService.importCourses(file));
         }
 }

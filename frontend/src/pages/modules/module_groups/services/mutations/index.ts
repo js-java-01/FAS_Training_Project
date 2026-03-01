@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { moduleGroupApi } from "@/api/moduleApi";
 
 /* ========= EXPORT ========= */
@@ -12,15 +12,30 @@ export const useExportModuleGroup = () => {
 
 /* ========= IMPORT ========= */
 export const useImportModuleGroup = () => {
-    return useMutation({
-        mutationFn: async (file: File) => {
-            const formData = new FormData();
-            formData.append("file", file);
+  const queryClient = useQueryClient();
 
-            await moduleGroupApi.importModuleGroups(formData);
-        },
-    });
+  const invalidateQueries = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["module-groups"] }), // update table
+      queryClient.invalidateQueries({ queryKey: ["module-groups", "active"] }), // update sidebar
+    ]);
+  };
+
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response =
+        await moduleGroupApi.importModuleGroups(formData);
+
+      return response.data;
+    },
+    onSuccess: invalidateQueries,
+  });
 };
+
+/* ========= DOWNLOAD TEMPLATE ========= */
 export const useDownloadTemplate = () => {
     return useMutation({
         mutationFn: async () => {

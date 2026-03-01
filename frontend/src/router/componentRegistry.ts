@@ -9,6 +9,11 @@ import { StudentClassManagement } from "@/pages/training-classes/trainee/Student
 import { OwnClassPage } from "@/pages/training-classes/trainee/OwnClassPage";
 import TrainingClassesManagement from "@/pages/training-classes/TrainingClassesManagement";
 import TrainerClassesManagement from "@/pages/training-classes/trainer/TrainerClassesManagament";
+import LocationsManagement from "@/pages/locations/LocationsManagement";
+import PermissionsManagement from "@/pages/permissions/PermissionsManagement";
+import TopicManagement from "@/pages/topic/TopicManagement";
+import ProgramManagement from "@/pages/programs/ProgramManagement";
+import ClassesComponent from "@/pages/classes/ClassesManagement";
 
 
 export const componentRegistry: Record<string, ComponentType> = {
@@ -16,11 +21,14 @@ export const componentRegistry: Record<string, ComponentType> = {
   "/users": UserManagement,
   "/modules": ModulesManagement,
   "/moduleGroups": ModuleGroupsManagement,
-  "/training-classes": TrainingClassesManagement,
   "/notFoundPage": NotFoundPage,
   "/roles": RoleManagement,
-  "/classes": StudentClassManagement,
+  "/classes": ClassesComponent,
   "/my-classes": OwnClassPage,
   "/trainer-semesters": TrainerClassesManagement,
+  "/locations": LocationsManagement,
+  "/permissions": PermissionsManagement,
+  "/topics": TopicManagement,
+  "/programs": ProgramManagement,
 
 };

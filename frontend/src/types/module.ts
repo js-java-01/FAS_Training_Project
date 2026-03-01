@@ -60,6 +60,7 @@ export type IconKey =
   | "layers"
   | "folder"
   | "workflow"
+  | "map-pin"
 
   // Code
   | "code"
@@ -108,8 +109,8 @@ export interface ModuleGroup {
 
 export interface Module {
     id: string;
-  moduleGroupId: string;
-  moduleGroupName: string;
+    moduleGroupId: string;
+    moduleGroupName: string;
     parentId?: string;
 
     title: string;

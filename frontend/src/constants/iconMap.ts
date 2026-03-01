@@ -83,6 +83,8 @@ import {
   Star,
   Target,
   Rocket,
+  MapPin,
+
 } from "lucide-react"
 
 export const iconMap: Record<IconKey, LucideIcon> = {
@@ -148,6 +150,7 @@ export const iconMap: Record<IconKey, LucideIcon> = {
   layers: Layers,
   folder: Folder,
   workflow: Workflow,
+  "map-pin": MapPin,
 
   // Code
   code: Code,

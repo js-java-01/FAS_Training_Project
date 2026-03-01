@@ -1,53 +1,51 @@
 import { ChevronRight, type LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
 import {
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarMenuSub,
-    SidebarMenuSubButton,
-    SidebarMenuSubItem,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
 type NavItem = {
-    title: string;
-    url: string;
-    icon: LucideIcon;
-    isActive?: boolean;
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  isActive?: boolean;
 };
 
 export function NavMain({
-    title,
-    items,
-    sidebarState,
+  title,
+  items,
+  sidebarState,
 }: {
-    title: string;
-    items: NavItem[];
-    sidebarState: "expanded" | "collapsed";
+  title: string;
+  items: NavItem[];
+  sidebarState: "expanded" | "collapsed";
 }) {
-    const groupActive = items.some((i) => i.isActive);
+  const groupActive = items.some((i) => i.isActive);
 
-    /* ================= COLLAPSED =================
+  /* ================= COLLAPSED =================
        icons only
     ============================================= */
-    if (sidebarState !== "expanded") {
-        return (
-            <>
-                {items.map((item) => (
-                    <SidebarMenuItem
-                        key={item.title}
-                        className="flex justify-center"
-                    >
-                        <SidebarMenuButton
-                            asChild
-                            tooltip={item.title}
-                            isActive={item.isActive}
-                            className="
+  if (sidebarState !== "expanded") {
+    return (
+      <>
+        {items.map((item) => (
+          <SidebarMenuItem key={item.title} className="flex justify-center">
+            <SidebarMenuButton
+              asChild
+              tooltip={item.title}
+              isActive={item.isActive}
+              className="
                             !p-0
                             flex
                             items-center
@@ -56,10 +54,10 @@ export function NavMain({
                             data-[active=true]:!bg-blue-800
                             data-[active=true]:!text-white
                         "
-                        >
-                            <a
-                                href={item.url}
-                                className="
+            >
+              <Link
+                to={item.url}
+                className="
                                 flex
                                 h-9
                                 w-9
@@ -68,74 +66,71 @@ export function NavMain({
                                 rounded-[10px]
                                 transition-colors
                             "
-                            >
-                                <item.icon className="h-5 w-5" />
-                            </a>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                ))}
-            </>
-        );
-    }
+              >
+                <item.icon className="h-5 w-5" />
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+      </>
+    );
+  }
 
-    /* ================= EXPANDED =================
+  /* ================= EXPANDED =================
              module group + collapsible
     ============================================= */
-    return (
-        <Collapsible
-            key={title}
-            asChild
-            defaultOpen={true}
-            className="group/collapsible"
-        >
-            <SidebarMenuItem>
-                <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                        tooltip={title}
-                        isActive={groupActive}
-                        className="
+  return (
+    <Collapsible
+      key={title}
+      asChild
+      defaultOpen={true}
+      className="group/collapsible"
+    >
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton
+            tooltip={title}
+            isActive={groupActive}
+            className="
                             data-[active=true]:data-[state=closed]:bg-blue-800
                             data-[active=true]:data-[state=closed]:text-white
                         "
-                    >
-                        <span>{title}</span>
-                        <ChevronRight
-                            className="
+          >
+            <span>{title}</span>
+            <ChevronRight
+              className="
                                 ml-auto
                                 transition-transform
                                 duration-200
                                 group-data-[state=open]/collapsible:rotate-90
                             "
-                        />
-                    </SidebarMenuButton>
-                </CollapsibleTrigger>
+            />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
 
-                <CollapsibleContent>
-                    <SidebarMenuSub>
-                        {items.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.title}>
-                                <SidebarMenuSubButton
-                                    asChild
-                                    isActive={subItem.isActive}
-                                    className="
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            {items.map((subItem) => (
+              <SidebarMenuSubItem key={subItem.title}>
+                <SidebarMenuSubButton
+                  asChild
+                  isActive={subItem.isActive}
+                  className="
                                         group
                                         data-[active=true]:bg-blue-800
                                         data-[active=true]:text-white
                                     "
-                                >
-                                    <a
-                                        href={subItem.url}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <subItem.icon className="h-4 w-4 group-data-[active=true]:text-white" />
-                                        <span>{subItem.title}</span>
-                                    </a>
-                                </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                        ))}
-                    </SidebarMenuSub>
-                </CollapsibleContent>
-            </SidebarMenuItem>
-        </Collapsible>
-    );
+                >
+                  <Link to={subItem.url} className="flex items-center gap-2">
+                    <subItem.icon className="h-4 w-4 group-data-[active=true]:text-white" />
+                    <span>{subItem.title}</span>
+                  </Link>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  );
 }
