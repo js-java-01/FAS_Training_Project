@@ -56,9 +56,20 @@ export const buildGradebookColumns = (
         <SortHeader info={info} title="Student Name" />
       ),
       cell: (info) => (
-        <span className="font-medium">
+        <span>
           {info.getValue()}
         </span>
+      ),
+    }),
+    columnHelper.accessor("email", {
+      size: 220,
+      header: (info) => (
+        <SortHeader info={info} title="Student Email" />
+      ),
+      cell: (info) => (
+        <Badge variant={"outline"}>
+          {info.getValue()}
+        </Badge>
       ),
     }),
   ]
