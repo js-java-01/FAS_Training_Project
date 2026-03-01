@@ -9,11 +9,20 @@ import type { TrainingProgram } from "@/types/trainingProgram";
 import { useSortParam } from "@/hooks/useSortParam";
 import { useGetAllTrainingPrograms } from "./services/queries";
 import { getColumns } from "./column";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
+import { trainingProgramApi } from "@/api/trainingProgramApi";
 
 export default function ProgramsTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+
+  const [selectedProgram, setSelectedProgram] = useState<TrainingProgram | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
@@ -48,9 +57,26 @@ export default function ProgramsTable() {
     () =>
       getColumns({
         onView: (program) => navigate(`/programs/${program.id}`),
+        onDelete: (program) => {
+          setSelectedProgram(program);
+          setIsDeleteModalOpen(true);
+        },
       }),
     [navigate],
   );
+
+  const handleDelete = async () => {
+    if (!selectedProgram) return;
+    try {
+      await trainingProgramApi.deleteTrainingProgram(selectedProgram.id);
+      toast.success("Training program deleted successfully");
+      await queryClient.invalidateQueries({ queryKey: ["training-programs"] });
+      setIsDeleteModalOpen(false);
+      setSelectedProgram(null);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to delete training program");
+    }
+  };
 
   return (
     <div className="relative space-y-4 h-full flex-1">
@@ -79,6 +105,25 @@ export default function ProgramsTable() {
               Create New Program
             </Button>
           </div>
+        }
+      />
+      <ConfirmDeleteModal
+        open={isDeleteModalOpen}
+        onCancel={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedProgram(null);
+        }}
+        onConfirm={handleDelete}
+        title="Delete Training Program"
+        message={
+          <>
+            This action cannot be undone. This will permanently delete the training
+            program{" "}
+            <span className="font-semibold">
+              &quot;{selectedProgram?.name}&quot;
+            </span>
+            .
+          </>
         }
       />
     </div>
