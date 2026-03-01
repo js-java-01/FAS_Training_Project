@@ -91,7 +91,7 @@ export default function TrainingClassesTable({
   return (
     <div className="relative space-y-4 h-full flex-1">
       <Breadcrumb className="mb-4">
-        <BreadcrumbList className="text-base sm:text-lg">
+        <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink
               href="#"
@@ -99,7 +99,7 @@ export default function TrainingClassesTable({
                 e.preventDefault();
                 onSelectSemester(null);
               }}
-              className="text-muted-foreground hover:text-blue-600 font-medium"
+              className=" hover:text-blue-300 text-blue-800"
             >
               Danh sách Học kỳ
             </BreadcrumbLink>
@@ -108,7 +108,7 @@ export default function TrainingClassesTable({
           <BreadcrumbSeparator />
 
           <BreadcrumbItem>
-            <BreadcrumbPage className="font-bold text-foreground tracking-tight">
+            <BreadcrumbPage className="font-bold text-blue-800">
               Học kỳ {tableData?.data?.semesterName || "..."}
             </BreadcrumbPage>
           </BreadcrumbItem>

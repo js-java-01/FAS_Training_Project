@@ -30,21 +30,50 @@ export default function ClassDetailManagement({ classId, className, onBack }: Cl
                 e.preventDefault();
                 onBack();
               }}
+              className="text-blue-800"
             >
               Danh sách lớp học
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage className="font-bold">{className}</BreadcrumbPage>
+            <BreadcrumbPage className="font-bold text-blue-800">{className}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <Tabs defaultValue="trainees" className="flex-1 flex flex-col min-h-0">
-        <TabsList className="w-fit shrink-0 mb-4">
-          <TabsTrigger value="trainees">Danh sách Học viên</TabsTrigger>
-          <TabsTrigger value="courses">Danh sách Môn học</TabsTrigger>
+        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
+          <TabsTrigger
+            value="trainees"
+            className="
+    relative h-10 rounded-none border-b-2 border-b-transparent 
+    bg-transparent px-4 pb-3 pt-2 font-medium 
+    text-muted-foreground shadow-none 
+    transition-all duration-300 ease-in-out
+    hover:text-foreground hover:border-b-gray-300
+    data-[state=active]:border-b-blue-800 
+    data-[state=active]:text-blue-800 
+    data-[state=active]:shadow-none
+  "
+          >
+            Danh sách Học viên
+          </TabsTrigger>
+          <TabsTrigger
+            value="courses"
+            className="
+    relative h-10 rounded-none border-b-2 border-b-transparent 
+    bg-transparent px-4 pb-3 pt-2 font-medium 
+    text-muted-foreground shadow-none 
+    transition-all duration-300 ease-in-out
+    hover:text-foreground hover:border-b-gray-300
+    data-[state=active]:border-b-blue-800 
+    data-[state=active]:text-blue-800 
+    data-[state=active]:shadow-none
+  "
+          >
+            Danh sách Môn học
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="trainees" className="flex-1 min-h-0 flex flex-col outline-none mt-0">
