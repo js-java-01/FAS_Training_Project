@@ -196,10 +196,14 @@ public class TopicMarkController {
         UUID editorId = resolveCurrentUserId(authentication);
         ImportResultResponse response = topicMarkService.importGradebook(courseClassId, file, editorId);
         if (response.getFailedCount() > 0) {
-            response.setMessage("Import completed. Some rows failed.");
+            if (response.getMessage() == null || response.getMessage().isBlank()) {
+                response.setMessage("Import completed. Some rows failed.");
+            }
             return ResponseEntity.badRequest().body(response);
         }
-        response.setMessage("Import gradebook scores successfully");
+        if (response.getMessage() == null || response.getMessage().isBlank()) {
+            response.setMessage("Import gradebook scores successfully");
+        }
         return ResponseEntity.ok(response);
     }
 

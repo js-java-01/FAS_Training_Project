@@ -607,6 +607,15 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         ImportResultResponse result = new ImportResultResponse();
         List<ImportErrorDetail> errors = new ArrayList<>();
 
+        if (file == null || file.isEmpty()) {
+            result.setMessage("File import is empty.");
+            result.setTotalRows(0);
+            result.setSuccessCount(0);
+            result.setFailedCount(1);
+            result.setErrors(List.of(new ImportErrorDetail(0, "File", "File is empty")));
+            return result;
+        }
+
         try (Workbook wb = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = wb.getSheetAt(0);
             if (sheet == null) {
@@ -642,6 +651,16 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             // Pre-load valid columns for this courseClass
             Set<UUID> validColumnIds = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId)
                     .stream().map(TopicMarkColumn::getId).collect(Collectors.toSet());
+
+            if (!colIndexToColumnId.values().containsAll(validColumnIds)) {
+                result.setMessage("File chưa fill hết data: thiếu cột điểm trong file import. Vui lòng export template mới và điền đầy đủ cột điểm.");
+                result.setTotalRows(0);
+                result.setSuccessCount(0);
+                result.setFailedCount(1);
+                result.setErrors(List.of(new ImportErrorDetail(0, "Columns",
+                        "Missing score columns in import file")));
+                return result;
+            }
 
             // 2. Parse data rows (row 2+), skip header (row 1)
             int totalRows = 0;
