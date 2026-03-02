@@ -33,10 +33,10 @@ export const ResetPasswordForm = ({ onSubmit, loading }: ResetPasswordFormProps)
                 onSubmit={form.handleSubmit(onSubmit)}
                 style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", padding: "1rem 0" }}
             >
-                <h2 className="text-3xl font-semibold mb-1" style={{ color: "#2c5f5d" }}>
+                <h2 className="text-3xl font-semibold mb-1" style={{ color: "#1e293b" }}>
                     New Password
                 </h2>
-                <p className="text-sm mb-4" style={{ color: "#6b8585" }}>
+                <p className="text-sm mb-4" style={{ color: "#64748b" }}>
                     Please enter your new secure password
                 </p>
 
@@ -50,7 +50,7 @@ export const ResetPasswordForm = ({ onSubmit, loading }: ResetPasswordFormProps)
                                     <i className="fas fa-lock" />
                                     <input {...field} type={showPassword ? "text" : "password"} placeholder="New Password" />
                                     <span
-                                        style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#5fb3a9" }}
+                                        style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#475569" }}
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
                                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -72,7 +72,7 @@ export const ResetPasswordForm = ({ onSubmit, loading }: ResetPasswordFormProps)
                                     <i className="fas fa-lock" />
                                     <input {...field} type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" />
                                     <span
-                                        style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#5fb3a9" }}
+                                        style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#475569" }}
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                     >
                                         {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
