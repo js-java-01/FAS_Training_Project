@@ -29,7 +29,7 @@ export const RoleManagement: React.FC = () => {
         roleApi.getAllRoles(),
         permissionApi.getAllPermissionsList(),
       ]);
-      setRoles(rolesData.content);
+      setRoles(rolesData.items);
       setPermissions(permissionsData);
     } catch (error) {
       console.error('Error loading data:', error);
