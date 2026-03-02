@@ -29,7 +29,6 @@ interface TrainingClassesTableProps {
   semesterId: string;
   onSelectSemester: (semesterId: string | null) => void;
   permissions: string[];
-  onViewDetails: (id: string, name: string) => void;
 }
 
 export default function TrainingClassesTable({
@@ -37,12 +36,10 @@ export default function TrainingClassesTable({
   semesterId,
   onSelectSemester,
   permissions,
-  onViewDetails,
 }: TrainingClassesTableProps) {
   /* ===================== STATE ===================== */
 
   const [openForm, setOpenForm] = useState(false);
-  const [viewingClass, setViewingClass] = useState<TrainingClass | null>(null);
 
   /* ---------- faceted filter ---------- */
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
@@ -70,13 +67,8 @@ export default function TrainingClassesTable({
     canDelete: permissions.includes("CLASS_DELETE"),
   };
 
-  const columns = useMemo(
-    () =>
-      getColumns(role, tablePermissions, {
-        onView: setViewingClass,
-      }),
-    [],
-  );
+  // CON CAI HAM NAVIGATE
+  const columns = useMemo(() => getColumns(role, tablePermissions, {}), []);
 
   /* ===================== HANDLERS ===================== */
   const invalidateAll = async () => {
@@ -157,13 +149,6 @@ export default function TrainingClassesTable({
       />
 
       <TrainingClassForm role={role} open={openForm} onClose={() => setOpenForm(false)} onSaved={handleSaved} />
-
-      <TrainingClassDetailDialog
-        open={!!viewingClass}
-        trainingClass={viewingClass}
-        onClose={() => setViewingClass(null)}
-        onViewDetails={onViewDetails}
-      />
     </div>
   );
 }

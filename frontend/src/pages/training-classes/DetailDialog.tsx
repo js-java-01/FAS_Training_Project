@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { GraduationCap, FileText, Calendar, User, ToggleLeft, Hash, BookOpen } from "lucide-react";
 import type { TrainingClass } from "@/types/trainingClass";
 import dayjs from "dayjs";
-import { useNavigate } from "react-router-dom";
 
 /* --- Detail Row --- */
 const DetailRow = ({
@@ -49,25 +48,12 @@ const DetailRow = ({
 interface TrainingClassDetailDialogProps {
   open: boolean;
   onClose: () => void;
-  onViewDetails: (id: string, name: string) => void;
   trainingClass: TrainingClass | null;
 }
 
-export const TrainingClassDetailDialog = ({
-  open,
-  onClose,
-  onViewDetails,
-  trainingClass,
-}: TrainingClassDetailDialogProps) => {
+export const TrainingClassDetailDialog = ({ open, onClose, trainingClass }: TrainingClassDetailDialogProps) => {
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) onClose();
-  };
-
-  const handleGoToDetails = () => {
-    if (trainingClass) {
-      onViewDetails(trainingClass.id, trainingClass.className);
-    }
-    onClose();
   };
 
   if (!trainingClass) return null;
@@ -120,9 +106,6 @@ export const TrainingClassDetailDialog = ({
         <DialogFooter className="p-6 pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
             Đóng
-          </Button>
-          <Button onClick={handleGoToDetails} className="bg-blue-600 text-white">
-            Xem chi tiết
           </Button>
         </DialogFooter>
       </DialogContent>
