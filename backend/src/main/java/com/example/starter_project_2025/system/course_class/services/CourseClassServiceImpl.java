@@ -80,6 +80,14 @@ public class CourseClassServiceImpl implements CourseClassService
                 .toList();
     }
 
+        @Override
+        @Transactional(readOnly = true)
+        public CourseClassResponse getById(UUID id) {
+                CourseClass courseClass = courseClassRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException("CourseClass not found: " + id));
+                return toResponse(courseClass);
+        }
+
     private CourseClassResponse toResponse(CourseClass cc) {
         CourseClassResponse.CourseInfo courseInfo = cc.getCourse() == null ? null :
                 new CourseClassResponse.CourseInfo(
