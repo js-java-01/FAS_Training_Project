@@ -38,6 +38,7 @@ import TopicDetailPage from "./pages/topic/TopicDetailPage";
 import ProgramManagement from "./pages/programs/ProgramManagement";
 import ProgramCreatePage from "./pages/programs/ProgramCreatePage";
 import ProgramDetailPage from "./pages/programs/ProgramDetailPage";
+import ClassesDetailComponent from "@/pages/classes/ClassesDetailManagement.tsx";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
