@@ -151,7 +151,7 @@
 }
 
 .dark .auth-main-wrapper {
-  background-color: #0f172a;
+  background-color: #f1f5f9;
 }
 
 .auth-animated-circle {
@@ -361,7 +361,7 @@
 }
 
 .dark .auth-field-container {
-  background-color: #1e293b;
+  background-color: #e2e8f0;
 }
 
 .auth-field-container i {
@@ -371,7 +371,7 @@
 }
 
 .dark .auth-field-container i {
-  color: #94a3b8;
+  color: #475569;
 }
 
 .auth-field-container input {
@@ -385,7 +385,7 @@
 }
 
 .dark .auth-field-container input {
-  color: #f1f5f9;
+  color: #1e293b;
 }
 
 .auth-field-container input::placeholder {
@@ -395,7 +395,7 @@
 }
 
 .dark .auth-field-container input::placeholder {
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .auth-action-button {
@@ -414,7 +414,7 @@
 }
 
 .dark .auth-action-button {
-  background-color: #334155;
+  background-color: #1e293b;
 }
 
 .auth-action-button:hover {
@@ -422,7 +422,7 @@
 }
 
 .dark .auth-action-button:hover {
-  background-color: #475569;
+  background-color: #0f172a;
 }
 
 .auth-action-button:disabled {
@@ -447,8 +447,9 @@
 }
 
 .dark .auth-social-link {
-  border-color: #475569;
-  color: #94a3b8;
+  border-color: #94a3b8;
+  color: #475569;
+  background: transparent;
 }
 
 .auth-social-link:hover {
@@ -458,9 +459,9 @@
 }
 
 .dark .auth-social-link:hover {
-  color: #f1f5f9;
-  border-color: #94a3b8;
-  background: #334155;
+  color: #1e293b;
+  border-color: #1e293b;
+  background: #e2e8f0;
 }
 
 /* Responsive */
