@@ -11,3 +11,8 @@ export interface QuestionCategoryRequest {
   description: string;
 }
 
+export interface QuestionCategoryFilter {
+  createdFrom?: string;
+  createdTo?: string;
+}
+

@@ -1,7 +1,6 @@
-package com.example.starter_project_2025.system.assessment.dto.assessmentType.request;
+package com.example.starter_project_2025.system.assessment.dto.assessment_type.request;
 
 import jakarta.validation.constraints.Size;
-import lombok.Data;
 
 
 public record UpdateAssessmentTypeRequest(

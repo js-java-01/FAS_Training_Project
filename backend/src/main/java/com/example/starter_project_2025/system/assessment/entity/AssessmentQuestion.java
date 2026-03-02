@@ -28,7 +28,7 @@ public class AssessmentQuestion {
 
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
-    @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
+    @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer","assessmentQuestions" })
     Question question;
 
     @Column(name = "score")

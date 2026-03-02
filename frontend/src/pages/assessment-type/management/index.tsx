@@ -1,11 +1,11 @@
-import { questionCategoryApi } from "@/api";
+import { assessmentTypeApi } from "@/api";
 import { ProTable } from "@/components/datatable/ProTable";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useProTable } from "@/hooks/useProTable";
 import type { EntitySchema } from "@/types/common/datatable";
 
-const questionCategorySchema: EntitySchema = {
-    entityName: "questionCategory",
+const assessmentTypeSchema: EntitySchema = {
+    entityName: "assessmentType",
     idField: "id",
     fields: [
         {
@@ -44,14 +44,14 @@ const questionCategorySchema: EntitySchema = {
     ],
 };
 
-const QuestionCategoryManagement = () => {
-    const table = useProTable(questionCategoryApi, questionCategorySchema);
+const AssessmentTypeManagementPage = () => {
+    const table = useProTable(assessmentTypeApi, assessmentTypeSchema);
 
     return (
-        <MainLayout pathName={{ "question-categories": "Question Categories" }}>
+        <MainLayout pathName={{ "assessment-type": "Assessment Type Management" }}>
             <ProTable table={table} />
         </MainLayout>
     );
 };
 
-export default QuestionCategoryManagement;
+export default AssessmentTypeManagementPage;

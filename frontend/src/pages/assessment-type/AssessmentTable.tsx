@@ -53,7 +53,7 @@ export const AssessmentTable: React.FC = () => {
     // ========================================
     const { data: tableData, isLoading, isFetching } = useQuery({
         queryKey: ['assessments', page, size, keyword],
-        queryFn: () => assessmentTypeApi.getAll({
+        queryFn: () => assessmentTypeApi.getPage({
             page,
             size,
             // sortBy: sorting[0]?.id || 'createdAt',
@@ -64,7 +64,7 @@ export const AssessmentTable: React.FC = () => {
 
     // Safe table data with defaults (similar to ModulesTable pattern)
     const safeTableData = useMemo(() => ({
-        items: tableData?.content ?? [],
+        items: tableData?.items ?? [],
         page: tableData?.number ?? page,
         pageSize: tableData?.size ?? size,
         totalPages: tableData?.totalPages ?? 0,

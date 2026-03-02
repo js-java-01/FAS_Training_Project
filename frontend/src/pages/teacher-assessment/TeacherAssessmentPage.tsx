@@ -1,5 +1,4 @@
 import { MainLayout } from '@/components/layout/MainLayout';
-import MainHeader from '@/components/layout/MainHeader';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { LayoutGrid, Plus, Table as TableIcon } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
@@ -8,6 +7,7 @@ import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { DataTable } from '@/components/data_table/DataTable';
 import { PermissionGate } from '@/components/PermissionGate';
+import { assessmentApi } from '@/api';
 
 import { AssessmentGrid } from './AssessmentGrid';
 import { getColumns } from './columns';
@@ -50,7 +50,7 @@ export default function TeacherAssessmentPage() {
     // ========================================
     const { data: tableData, isLoading, isFetching } = useQuery({
         queryKey: ['assessments', page, size, keyword, statusFilter, assessmentTypeFilter],
-        queryFn: () => assessmentApi.getAll({
+        queryFn: () => assessmentApi.getPage({
             page,
             size,
             keyword: keyword || undefined,
@@ -61,7 +61,7 @@ export default function TeacherAssessmentPage() {
 
     // Safe table data with defaults
     const safeTableData = useMemo(() => ({
-        items: tableData?.content ?? [],
+        items: tableData?.items ?? [],
         page: tableData?.number ?? page,
         pageSize: tableData?.size ?? size,
         totalPages: tableData?.totalPages ?? 0,
@@ -108,27 +108,19 @@ export default function TeacherAssessmentPage() {
 
     const headerActions = (
         <div className="flex gap-2">
-            {/* View Mode Toggle */}
-            <div className="flex border rounded-lg">
-                <Button
-                    variant={viewMode === 'table' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('table')}
-                    className="h-8 rounded-r-none"
-                >
-                    <TableIcon className="h-4 w-4" />
-                    Table
-                </Button>
-                <Button
-                    variant={viewMode === 'card' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('card')}
-                    className="h-8 rounded-l-none border-l"
-                >
+            {/* View Mode Toggle - ProTable style */}
+            <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setViewMode(viewMode === 'table' ? 'card' : 'table')}
+                title={viewMode === 'table' ? 'Switch to card view' : 'Switch to table view'}
+            >
+                {viewMode === 'table' ? (
                     <LayoutGrid className="h-4 w-4" />
-                    Card
-                </Button>
-            </div>
+                ) : (
+                    <TableIcon className="h-4 w-4" />
+                )}
+            </Button>
 
             <PermissionGate permission="ASSESSMENT_CREATE">
                 <Button
@@ -206,7 +198,7 @@ export default function TeacherAssessmentPage() {
                     isOpen={showDeleteDialog}
                     onClose={() => setShowDeleteDialog(false)}
                     assessment={selectedAssessment}
-                    onConfirm={() => selectedAssessment && deleteMutation.mutate(selectedAssessment.id)}
+                    onConfirm={() => selectedAssessment && deleteMutation.mutate(String(selectedAssessment.id))}
                     isPending={deleteMutation.isPending}
                 />
             </div>

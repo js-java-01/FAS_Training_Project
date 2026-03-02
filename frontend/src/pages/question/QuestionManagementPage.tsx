@@ -9,8 +9,10 @@ import { PermissionGate } from '@/components/PermissionGate';
 import { Badge } from '@/components/ui/badge';
 import ActionBtn from '@/components/data_table/ActionBtn';
 import { useToast } from '@/hooks/useToast';
-import { questionApi, questionCategoryApi } from '@/api';
+import { questionApi } from '@/api/questionApi';
+import { questionCategoryApi } from '@/api';
 import type { QuestionCategory } from '@/types';
+import type { QuestionListItem } from '@/types/question';
 
 export default function QuestionManagementPage() {
     const { toast } = useToast();
@@ -31,10 +33,12 @@ export default function QuestionManagementPage() {
     const [showFilters, setShowFilters] = useState(false);
 
     // Fetch categories
-    const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    const { data: categoriesResponse, isLoading: categoriesLoading } = useQuery({
         queryKey: ['question-categories'],
-        queryFn: () => questionCategoryApi.getAll()
+        queryFn: () => questionCategoryApi.getPage({ page: 0, size: 1000 })
     });
+
+    const categories = useMemo(() => categoriesResponse?.items ?? [], [categoriesResponse]);
 
     // Fetch questions with tags - using new getAllContent API
     const { data: allQuestions = [], isLoading: questionsLoading } = useQuery({

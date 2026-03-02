@@ -16,17 +16,23 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
     onChange,
     errors,
 }) => {
-    const { data: categories, isLoading: categoriesLoading } = useQuery({
+    const { data: categoriesResponse, isLoading: categoriesLoading } = useQuery({
         queryKey: ['question-categories'],
-        queryFn: () => questionCategoryApi.getAll()
+        queryFn: () => questionCategoryApi.getPage({ page: 0, size: 1000 })
     });
+
+    const categories = categoriesResponse?.items ?? [];
 
     const { data: tagsResponse, isLoading: tagsLoading } = useQuery({
         queryKey: ['question-tags'],
-        queryFn: () => questionTagApi.getAll({ size: 1000 })
+        queryFn: () => questionTagApi.getPage({ page: 0, size: 1000 })
     });
 
-    const availableTags = tagsResponse?.content ?? [];
+    console.log("🎯 [QuestionFormFields] tagsResponse:", tagsResponse);
+    console.log("🎯 [QuestionFormFields] tagsLoading:", tagsLoading);
+
+    const availableTags = tagsResponse?.items ?? [];
+    console.log("🎯 [QuestionFormFields] availableTags:", availableTags);
 
     const handleTypeChange = (newType: 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE') => {
         const newOptions = [...data.options];
@@ -119,7 +125,7 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
                         disabled={categoriesLoading}
                     >
                         <option value="">Select a category...</option>
-                        {categories?.map((category) => (
+                        {categories?.map((category: QuestionCategory) => (
                             <option key={category.id} value={category.id}>
                                 {category.name}
                             </option>
@@ -155,7 +161,7 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
                 ) : (
                     <div className="space-y-3">
                         <div className="flex flex-wrap gap-2">
-                            {availableTags.map(tag => {
+                            {availableTags.map((tag: QuestionTag) => {
                                 const isSelected = data.tagIds?.includes(tag.id) ?? false;
                                 return (
                                     <button
@@ -169,8 +175,8 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
                                             onChange({ ...data, tagIds: newTagIds });
                                         }}
                                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${isSelected
-                                                ? 'bg-orange-600 text-white hover:bg-orange-700'
-                                                : 'bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200'
+                                            ? 'bg-orange-600 text-white hover:bg-orange-700'
+                                            : 'bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200'
                                             }`}
                                     >
                                         #{tag.name}

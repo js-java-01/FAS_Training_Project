@@ -5,7 +5,7 @@ import {
 import React, { useState, useMemo, useCallback } from 'react';
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
-import { PermissionGate } from '../../components/PermissionGate';
+import { PermissionGate } from '../../../components/PermissionGate';
 
 
 import { CreateQuestionTagModal } from './CreateQuestionTagModal';
@@ -44,12 +44,12 @@ export const QuestionTagTable: React.FC = () => {
     // ========================================
     const { data: tagsResponse, isLoading, isFetching } = useQuery({
         queryKey: ['question-tags'],
-        queryFn: () => questionTagApi.getAll()
+        queryFn: () => questionTagApi.getPage({ page: 0, size: 1000 })
     });
 
-    // Safe table data with defaults - extract content from paginated response
+    // Safe table data with defaults - extract items from paginated response
     const safeTableData = useMemo(() => {
-        const items = tagsResponse?.content ?? [];
+        const items = tagsResponse?.items ?? [];
         // Client-side filtering based on keyword
         const filteredItems = keyword
             ? items.filter(tag =>

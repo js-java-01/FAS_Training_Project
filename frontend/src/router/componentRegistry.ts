@@ -3,7 +3,6 @@ import { Dashboard } from "@/pages/Dashboard";
 import ModulesManagement from "@/pages/modules/module/ModulesManagement.tsx";
 import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsManagement.tsx";
 import NotFoundPage from "@/pages/NotFoundPage.tsx";
-import AssessmentManagement from "@/pages/AssessmentManagement";
 import { LocationManagement } from "@/pages/LocationManagement";
 import CourseManagement from "@/pages/course/CourseManagement";
 import { TeacherAssessmentPage } from "@/pages/teacher-assessment";
@@ -27,6 +26,7 @@ import UserManagement from "@/pages/user/management";
 import { AttemptHistoryPage, QuizPage, ResultPage, SelectAssessmentPage } from "@/pages/assessment";
 import { RoleManagementPage } from "@/pages/role";
 import ProgrammingLanguageManagement from "@/pages/programming-language/ProgrammingLanguageManagement";
+import AssessmentTypeManagementPage from "@/pages/assessment-type/management";
 
 // ── Route Configuration Types ─────────────────────────────────────────────────
 export interface RouteConfig {
@@ -47,7 +47,7 @@ export const routes: RouteConfig[] = [
     { path: "/roles", component: RoleManagementPage, isModuleDriven: true },
     { path: "/locations", component: LocationManagement, isModuleDriven: true },
     { path: "/programming-languages", component: ProgrammingLanguageManagement, isModuleDriven: true },
-    { path: "/assessment-type", component: AssessmentManagement, isModuleDriven: true },
+    { path: "/assessment-type", component: AssessmentTypeManagementPage, isModuleDriven: true },
     { path: "/courses", component: CourseManagement, isModuleDriven: true },
     { path: "/my-courses", component: CourseManagement, isModuleDriven: true },
     { path: "/assessments", component: SelectAssessmentPage, isModuleDriven: true },

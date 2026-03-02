@@ -67,7 +67,7 @@ public class DataInitializer implements CommandLineRunner
     private final QuestionRepository questionRepository;
     private final AssessmentQuestionRepository assessmentQuestionRepository;
     private final UserRoleRepository userRoleRepository;
-    private final TagRepository tagRepository;
+    private final QuestionTagRepository tagRepository;
 
     @Override
     @Transactional
@@ -1086,23 +1086,23 @@ public class DataInitializer implements CommandLineRunner
             return;
         }
 
-        Tag basic = new Tag();
+        QuestionTag basic = new QuestionTag();
         basic.setName("BASIC");
         basic.setDescription("Basic level question");
 
-        Tag oop = new Tag();
+        QuestionTag oop = new QuestionTag();
         oop.setName("OOP");
         oop.setDescription("Object-Oriented Programming");
 
-        Tag spring = new Tag();
+        QuestionTag spring = new QuestionTag();
         spring.setName("SPRING");
         spring.setDescription("Spring Framework related");
 
-        Tag database = new Tag();
+        QuestionTag database = new QuestionTag();
         database.setName("DATABASE");
         database.setDescription("Database and SQL related");
 
-        Tag algorithm = new Tag();
+        QuestionTag algorithm = new QuestionTag();
         algorithm.setName("ALGORITHM");
         algorithm.setDescription("Algorithm and problem solving");
 

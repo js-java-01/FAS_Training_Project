@@ -1,12 +1,15 @@
-export interface QuestionTag {
-    id: number;
-    name: string;
-    description: string;
-    createdAt?: string;
-    updatedAt?: string;
+export interface QuestionTagDTO {
+  id?: number;             
+  name?: string;
+  description?: string;
+  active?: boolean;         
+  createdAt?: string;      
+  updatedAt?: string;       
 }
 
-export interface QuestionTagRequest {
-    name: string;
-    description: string;
+export interface QuestionTagFilter {
+  id?: number;
+  name?: string;          
+  description?: string;   
+  questionIds?: number[];
 }

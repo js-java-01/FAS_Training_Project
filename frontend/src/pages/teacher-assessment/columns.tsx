@@ -58,6 +58,24 @@ export const getColumns = (
             enableHiding: false,
         }),
 
+        /* ================= ROW NUMBER ================= */
+        columnHelper.display({
+            id: "rowNumber",
+            header: "#",
+            size: 60,
+            cell: ({ row, table }) => {
+                const pagination = table.getState().pagination;
+                const rowNumber = pagination.pageIndex * pagination.pageSize + row.index + 1;
+                return (
+                    <span className="text-sm text-gray-600 block">
+                        {rowNumber}
+                    </span>
+                );
+            },
+            enableSorting: false,
+            enableHiding: false,
+        }),
+
         /* ================= CODE ================= */
         columnHelper.accessor("code", {
             id: "code",

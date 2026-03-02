@@ -1,11 +1,11 @@
-import { questionCategoryApi } from "@/api";
+import { questionTagApi } from "@/api";
 import { ProTable } from "@/components/datatable/ProTable";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useProTable } from "@/hooks/useProTable";
 import type { EntitySchema } from "@/types/common/datatable";
 
-const questionCategorySchema: EntitySchema = {
-    entityName: "questionCategory",
+const questionTagSchema: EntitySchema = {
+    entityName: "questionTag",
     idField: "id",
     fields: [
         {
@@ -44,14 +44,14 @@ const questionCategorySchema: EntitySchema = {
     ],
 };
 
-const QuestionCategoryManagement = () => {
-    const table = useProTable(questionCategoryApi, questionCategorySchema);
+const QuestionTagManagementPage = () => {
+    const table = useProTable(questionTagApi, questionTagSchema);
 
     return (
-        <MainLayout pathName={{ "question-categories": "Question Categories" }}>
+        <MainLayout pathName={{ "question-tag": "Question Tag Management" }}>
             <ProTable table={table} />
         </MainLayout>
     );
 };
 
-export default QuestionCategoryManagement;
+export default QuestionTagManagementPage;

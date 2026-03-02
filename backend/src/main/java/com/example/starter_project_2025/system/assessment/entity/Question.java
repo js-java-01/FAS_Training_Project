@@ -37,21 +37,21 @@ public class Question {
 
     @ManyToOne
     @JoinColumn(name = "question_category_id")
-    @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
+    @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer","question"  })
     QuestionCategory category;
 
     // Quan trọng: Cái này để lưu luôn Option khi tạo câu hỏi
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonIgnoreProperties({ "question" })
     List<QuestionOption> options;
 
     @ManyToMany
     @JoinTable(
-            name = "question_tag",
+            name = "tag",
             joinColumns = @JoinColumn(name = "question_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
-    Set<Tag> tags = new HashSet<>();
+    @JsonIgnoreProperties({"questions"})
+    Set<QuestionTag> tags = new HashSet<>();
 
     @PrePersist
     void prePersist() {

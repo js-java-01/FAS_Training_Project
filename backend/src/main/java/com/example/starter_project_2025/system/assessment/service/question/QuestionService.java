@@ -6,14 +6,13 @@ import com.example.starter_project_2025.system.assessment.dto.question.response.
 import com.example.starter_project_2025.system.assessment.entity.Question;
 import com.example.starter_project_2025.system.assessment.entity.QuestionCategory;
 import com.example.starter_project_2025.system.assessment.entity.QuestionOption;
-import com.example.starter_project_2025.system.assessment.entity.Tag;
+import com.example.starter_project_2025.system.assessment.entity.QuestionTag;
 import com.example.starter_project_2025.system.assessment.mapper.QuestionMapper;
 import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
 import com.example.starter_project_2025.system.assessment.repository.QuestionRepository;
-import com.example.starter_project_2025.system.assessment.repository.TagRepository;
+import com.example.starter_project_2025.system.assessment.repository.QuestionTagRepository;
 import com.example.starter_project_2025.system.assessment.spec.QuestionSpecification;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,7 +26,7 @@ public class QuestionService {
 
     private final QuestionRepository questionRepo;
     private final QuestionCategoryRepository categoryRepo;
-    private final TagRepository tagRepo;
+    private final QuestionTagRepository tagRepo;
     private final QuestionMapper questionMapper;
 
     public QuestionResponseDTO createQuestion(QuestionRequestDTO dto) {
@@ -62,7 +61,7 @@ public class QuestionService {
 
         if (dto.getTagIds() != null && !dto.getTagIds().isEmpty()) {
 
-            Set<Tag> tags = new HashSet<>(tagRepo.findAllById(dto.getTagIds()));
+            Set<QuestionTag> tags = new HashSet<>(tagRepo.findAllById(dto.getTagIds()));
 
             if (tags.size() != dto.getTagIds().size()) {
                 throw new RuntimeException("Some tags not found");
@@ -139,7 +138,7 @@ public class QuestionService {
         // ===== UPDATE TAGS =====
         if (dto.tagIds() != null) {
 
-            Set<Tag> tags = new HashSet<>(tagRepo.findAllById(dto.tagIds()));
+            Set<QuestionTag> tags = new HashSet<>(tagRepo.findAllById(dto.tagIds()));
 
             if (tags.size() != dto.tagIds().size()) {
                 throw new RuntimeException("Some tags not found");

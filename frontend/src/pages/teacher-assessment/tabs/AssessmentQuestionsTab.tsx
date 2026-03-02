@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, FileQuestion, CheckCircle2, XCircle, Save, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import type { AssessmentQuestion } from '@/types/features/assessment/assessment-question';
 
 import { AddQuestionModal } from './AddQuestionModal';
 import { useToast } from '@/hooks/useToast';
@@ -17,7 +18,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
     const [showAddModal, setShowAddModal] = useState(false);
 
     // Fetch assessment questions
-    const { data: assessmentQuestions = [], isLoading, error: fetchError } = useQuery({
+    const { data: assessmentQuestions = [], isLoading, error: fetchError } = useQuery<AssessmentQuestion[]>({
         queryKey: ['assessmentQuestions', assessmentId],
         queryFn: () => assessmentQuestionApi.getByAssessmentId(assessmentId!),
         enabled: !!assessmentId,
@@ -25,17 +26,22 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
 
     // Create assessment question mutation
     const createMutation = useMutation({
-        mutationFn: (data: { questionId: string; score: number; orderIndex: number }) =>
-            assessmentQuestionApi.create({
+        mutationFn: (data: { questionId: string; score: number; orderIndex: number }) => {
+            console.log("🔵 Creating assessment question with data:", data);
+            return assessmentQuestionApi.create({
                 assessmentId: assessmentId!,
                 questionId: data.questionId,
                 score: data.score,
                 orderIndex: data.orderIndex,
-            }),
-        onSuccess: () => {
+            });
+        },
+        onSuccess: (response) => {
+            console.log("✅ Question added successfully:", response);
             queryClient.invalidateQueries({ queryKey: ['assessmentQuestions', assessmentId] });
         },
         onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+            console.error("❌ Failed to add question:", error);
+            console.error("❌ Error response:", error.response);
             toast({ variant: 'destructive', title: 'Error', description: error.response?.data?.message || 'Failed to add question' });
         },
     });
@@ -71,8 +77,9 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
     }
 
     const handleAddQuestions = async (selected: { questionId: string; score: number }[]) => {
-        const startOrderIndex = assessmentQuestions.length > 0
-            ? Math.max(...assessmentQuestions.map(aq => aq.orderIndex)) + 1
+        const safeQuestions = Array.isArray(assessmentQuestions) ? assessmentQuestions : [];
+        const startOrderIndex = safeQuestions.length > 0
+            ? Math.max(...safeQuestions.map((aq: AssessmentQuestion) => aq.orderIndex)) + 1
             : 0;
 
         let successCount = 0;
@@ -114,13 +121,6 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
         }
     };
 
-    // Calculate statistics
-    const totalScore = assessmentQuestions.reduce((sum, aq) => sum + aq.score, 0);
-    const questionsWithoutCorrectAnswer = assessmentQuestions.filter(
-        aq => !aq.question.options.some(opt => opt.correct)
-    ).length;
-    const existingQuestionIds = assessmentQuestions.map(aq => aq.question.id);
-
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-40">
@@ -149,6 +149,14 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
         );
     }
 
+    // Calculate statistics - only after loading is complete and data is available
+    const safeAssessmentQuestions = Array.isArray(assessmentQuestions) ? assessmentQuestions : [];
+    const totalScore = safeAssessmentQuestions.reduce((sum: number, aq: AssessmentQuestion) => sum + aq.score, 0);
+    const questionsWithoutCorrectAnswer = safeAssessmentQuestions.filter(
+        (aq: AssessmentQuestion) => !aq.question.options.some((opt: any) => opt.correct)
+    ).length;
+    const existingQuestionIds = safeAssessmentQuestions.map((aq: AssessmentQuestion) => aq.question.id);
+
     return (
         <div className="max-w-6xl">
             <div className="flex items-center justify-between mb-6">
@@ -172,7 +180,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-600">Total Questions</p>
-                            <p className="text-2xl font-bold text-gray-900 mt-1">{assessmentQuestions.length}</p>
+                            <p className="text-2xl font-bold text-gray-900 mt-1">{safeAssessmentQuestions.length}</p>
                         </div>
                         <FileQuestion className="h-8 w-8 text-blue-600" />
                     </div>
@@ -200,7 +208,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
             </div>
 
             {/* Empty State */}
-            {assessmentQuestions.length === 0 ? (
+            {safeAssessmentQuestions.length === 0 ? (
                 <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
                     <FileQuestion className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No questions added yet</h3>
@@ -218,8 +226,8 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
             ) : (
                 /* Questions List */
                 <div className="space-y-3">
-                    {assessmentQuestions.map((assessmentQuestion, index) => {
-                        const hasCorrectAnswer = assessmentQuestion.question.options.some(opt => opt.correct);
+                    {safeAssessmentQuestions.map((assessmentQuestion: AssessmentQuestion, index: number) => {
+                        const hasCorrectAnswer = assessmentQuestion.question.options.some((opt: any) => opt.correct);
 
                         return (
                             <div

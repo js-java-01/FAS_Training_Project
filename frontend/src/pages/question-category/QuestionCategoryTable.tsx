@@ -18,7 +18,7 @@ import { getColumns } from './columns';
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/useToast';
 import { questionCategoryApi } from '@/api';
-import type { QuestionCategory } from '@/types';
+import type { QuestionCategory, QuestionCategoryRequest } from '@/types';
 
 export const QuestionCategoryTable: React.FC = () => {
     const { toast } = useToast();
@@ -42,10 +42,12 @@ export const QuestionCategoryTable: React.FC = () => {
     // ========================================
     // Data Loading (Queries)
     // ========================================
-    const { data: categories, isLoading, isFetching } = useQuery({
+    const { data: categoriesResponse, isLoading, isFetching } = useQuery({
         queryKey: ['question-categories'],
-        queryFn: () => questionCategoryApi.getAll()
+        queryFn: () => questionCategoryApi.getPage({ page: 0, size: 1000 })
     });
+
+    const categories = categoriesResponse?.items ?? [];
 
     // Safe table data with defaults
     const safeTableData = useMemo(() => {
