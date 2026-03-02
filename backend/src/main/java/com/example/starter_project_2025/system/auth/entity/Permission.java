@@ -1,10 +1,10 @@
 package com.example.starter_project_2025.system.auth.entity;
 
-import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportEntity;
-import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportField;
-import com.example.starter_project_2025.system.dataio.core.importer.annotation.ImportDefault;
-import com.example.starter_project_2025.system.dataio.core.importer.annotation.ImportField;
-import com.example.starter_project_2025.system.dataio.core.template.annotation.ImportEntity;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportEntity;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportField;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportDefault;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportField;
+import com.example.starter_project_2025.system.dataio.template.annotation.ImportEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

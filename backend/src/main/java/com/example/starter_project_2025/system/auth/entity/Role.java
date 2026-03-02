@@ -1,12 +1,10 @@
 package com.example.starter_project_2025.system.auth.entity;
 
-import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportEntity;
-import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportField;
-import com.example.starter_project_2025.system.dataio.core.importer.annotation.ImportDefault;
-import com.example.starter_project_2025.system.dataio.core.importer.annotation.ImportField;
-import com.example.starter_project_2025.system.dataio.core.template.annotation.ImportEntity;
-import com.example.starter_project_2025.system.dataio.mapping.role.PermissionLookupResolver;
-import com.example.starter_project_2025.system.dataio.mapping.role.PermissionNamesExtractor;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportEntity;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportField;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportDefault;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportField;
+import com.example.starter_project_2025.system.dataio.template.annotation.ImportEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -55,8 +53,8 @@ public class Role {
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
-    @ImportField(name = "Permissions", required = true, resolver = PermissionLookupResolver.class)
-    @ExportField(name = "Permissions", extractor = PermissionNamesExtractor.class)
+    @ImportField(name = "Permissions", relation = true, lookupEntity = Permission.class, lookupField = "name")
+    @ExportField(name = "Permissions", relation = true, path = "permission.name")
     Set<Permission> permissions = new HashSet<>();
 
     @CreationTimestamp
