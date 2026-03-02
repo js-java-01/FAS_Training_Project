@@ -1,6 +1,6 @@
 import React from "react";
-import { MainLayout } from "../components/layout/MainLayout";
-import UserTable from "./user/UserTable";
+import { MainLayout } from "../../components/layout/MainLayout";
+import UserTable from "./UserTable";
 
 export const UserManagement: React.FC = () => {
   return (

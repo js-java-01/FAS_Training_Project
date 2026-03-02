@@ -21,7 +21,6 @@ public interface TrainingClassRepository
               JpaSpecificationExecutor<TrainingClass> {
 
        boolean existsByClassNameIgnoreCase(String className);
-
        boolean existsByClassCodeIgnoreCase(String classCode);
 
        @Query("""

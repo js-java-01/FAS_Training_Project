@@ -1,9 +1,9 @@
 package com.example.starter_project_2025.system.classes.service.classes;
 
 import com.example.starter_project_2025.system.classes.dto.response.TrainerClassSemesterResponse;
-import com.example.starter_project_2025.system.classes.dto.response.ClassResponse;
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
 import com.example.starter_project_2025.system.classes.dto.request.UpdateClassRequest;
+import com.example.starter_project_2025.system.classes.dto.response.ClassResponse;
 import com.example.starter_project_2025.system.classes.dto.request.CreateClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
 import com.example.starter_project_2025.system.classes.dto.request.SearchTrainerClassInSemesterRequest;

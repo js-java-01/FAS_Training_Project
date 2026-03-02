@@ -292,7 +292,13 @@ export default function ClassDetailPage() {
                 </div>
         )}
 
-        <TopicMarkModal open={openTopicMark} onOpenChange={setOpenTopicMark} trainingClass={trainingClass}/>
+            {trainingClass && (
+              <TopicMarkModal
+                open={openTopicMark}
+                onOpenChange={setOpenTopicMark}
+                trainingClass={trainingClass}
+              />
+            )}
         </MainLayout>
     );
 }
