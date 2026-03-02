@@ -14,7 +14,7 @@ export const useGetAllSemesters = (params: GetSemestersParams, role: string) => 
         return res.data;
       } else {
         const res = await semesterApi.getSemesters(params);
-        return res;
+        return res.data;
       }
     },
     staleTime: 10 * 60 * 1000,

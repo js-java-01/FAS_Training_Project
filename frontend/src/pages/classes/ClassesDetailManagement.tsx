@@ -1,5 +1,6 @@
 import { MainLayoutSkeleton } from "@/components/skeleton/MainLayoutSkeleton";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
+import { ROLES } from "@/types/role";
 import { lazy, Suspense } from "react";
 
 const AdminDetailComponent = lazy(
@@ -20,8 +21,9 @@ export default function ClassesDetailComponent() {
 
   const getComponent = () => {
     switch (activeRole?.name) {
-      case "SUPER_ADMIN":
-      case "ADMIN":
+      case ROLES.SUPER_ADMIN:
+      case ROLES.ADMIN:
+      case ROLES.TRAINER:
         return roleComponents.adminDetail;
 
       default:

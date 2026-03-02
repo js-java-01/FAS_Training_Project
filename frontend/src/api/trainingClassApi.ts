@@ -26,7 +26,6 @@ export const trainingClassApi = {
     );
     return res.data.data;
   },
-  // added
   getTrainingClassById: async (id: string): Promise<TrainingClass> => {
     const res = await axiosInstance.get<ApiResponse<TrainingClass>>(`/classes/${id}`);
     return res.data.data;

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -12,7 +12,7 @@ import type { ClassInfoFormData } from "./components/ClassInfoTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft,Pencil, Save, X } from "lucide-react";
+import { ArrowLeft,FileBarChartIcon,Pencil, Save, X } from "lucide-react";
 import ClassInfoTab from "./components/ClassInfoTab";
 import { getTrainingClassStatusPresentation } from "./utils/statusPresentation";
 import { decodeRouteId } from "@/utils/routeIdCodec";
@@ -20,6 +20,7 @@ import TopicMarkModal from "../topic-mark/TopicMarkManagement";
 import ClassTraineesTable from "../classes/component/ClassTraineesTable";
 import type { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
+import ClassCoursesTable from "../classes/component/ClassCoursesTable";
 
 const TABS = [
     { value: "class-info", label: "Class Info" },
@@ -28,6 +29,7 @@ const TABS = [
     { value: "course-assignment", label: "Course Assignment" },
     { value: "budget-operation", label: "Budget & Operation Info" },
     { value: "activities", label: "Activities" },
+    { value: "course-list", label: "Course List" },
 ] as const;
 
 /* ── helpers ── */
@@ -99,7 +101,7 @@ export default function ClassDetailPage() {
     const [saving, setSaving] = useState(false);
 
     /* Semesters for edit mode */
-    const { data: semesters = [], isLoading: loadingSemesters } = useGetAllSemesters(
+        const { data: semestersData, isLoading: loadingSemesters } = useGetAllSemesters(
     {
       page: 0,
       size: 20,
@@ -107,6 +109,7 @@ export default function ClassDetailPage() {
     },
     role,
   );
+        const semesters = semestersData?.items ?? [];
 
     const handleEdit = useCallback(() => {
         if (trainingClass) {
@@ -282,10 +285,13 @@ export default function ClassDetailPage() {
                         </TabsContent>
 
                         {/* Placeholder tabs */}
-                  <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1 h-full flex">
-                      <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button>
+                        <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1 h-full flex">
+                            <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button>
                             <ClassTraineesTable classId={trainingClass.id} trainingClass={trainingClass} />
-
+                        </TabsContent>
+                        
+                        <TabsContent value="course-list" className="pt-6 overflow-y-auto flex-1">    
+                            <ClassCoursesTable classId={trainingClass.id} />
                         </TabsContent>
                         <TabsContent value="calendar" className="pt-6 overflow-y-auto flex-1">
                             <PlaceholderTab label="Calendar" />
