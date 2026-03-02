@@ -277,7 +277,6 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("CLASS_CREATE", "Create new classes", "CLASS", "CREATE"),
                                 createPermission("CLASS_READ", "View classes", "CLASS", "READ"),
                                 createPermission("CLASS_UPDATE", "Update existing classes", "CLASS", "UPDATE"),
-                                createPermission("CLASS_USER_READ", "User can view classes", "CLASS_USER", "READ"),
                                 createPermission("SEMESTER_CREATE", "Create new semesters", "SEMESTER", "CREATE"),
                                 createPermission("SEMESTER_READ", "View semesters", "SEMESTER", "READ"),
                                 createPermission("SEMESTER_UPDATE", "Update semesters", "SEMESTER", "UPDATE"),
@@ -363,13 +362,13 @@ public class DataInitializer implements CommandLineRunner {
                 adminRole.setName("ADMIN");
                 adminRole.setDescription("Administrator with full system access");
                 adminRole.setHierarchyLevel(2);
-                List<String> excludedPermissions = List.of(
+                List<String> excludedAdminPermissions = List.of(
                         "MODULE_GROUP_CREATE",
                         "MODULE_CREATE");
 
                 List<Permission> adminPermissions = permissionRepository.findAll()
                         .stream()
-                        .filter(p -> !excludedPermissions.contains(p.getName()))
+                        .filter(p -> !excludedAdminPermissions.contains(p.getName()))
                         .toList();
 
                 adminRole.setPermissions(new HashSet<>(adminPermissions));
@@ -393,10 +392,30 @@ public class DataInitializer implements CommandLineRunner {
                 studentRole.setName("STUDENT");
                 studentRole.setHierarchyLevel(5);
                 studentRole.setDescription("Student with limited access to educational resources");
-                List<Permission> studentPermissions = new java.util.ArrayList<>(
-                                permissionRepository.findByAction("READ"));
-                permissionRepository.findByName("ENROLL_COURSE").ifPresent(studentPermissions::add);
-                studentRole.setPermissions(new HashSet<>(studentPermissions));
+
+                List<Permission> studentPermissions = new ArrayList<>(
+                        permissionRepository.findByAction("READ")
+                );
+
+                permissionRepository.findByName("ENROLL_COURSE")
+                        .ifPresent(studentPermissions::add);
+
+                List<String> excludedStudentPermissions = List.of(
+                        "ROLE_READ",
+                        "USER_READ",
+                        "PERMISSION_READ",
+                        "SEMESTER_READ",
+                        "STUDENT_READ",
+                        "LOCATION_READ",
+                        "DEPARTMENT_READ"
+                );
+
+                Set<Permission> filteredPermissions = studentPermissions.stream()
+                        .filter(p -> !excludedStudentPermissions.contains(p.getName()))
+                        .collect(Collectors.toSet());
+
+                studentRole.setPermissions(filteredPermissions);
+
                 roleRepository.save(studentRole);
 
                 // TRAINER
@@ -778,7 +797,7 @@ public class DataInitializer implements CommandLineRunner {
                                                 "Manage students"),
 
                                 createModule(trainingGroup, "Classes", "/classes", "people", 6,
-                                                "CLASS_USER_READ",
+                                                "CLASS_READ",
                                                 "User search and view classes"),
                                 createModule(trainingGroup, "My Classes", "/my-classes", "user-round", 6,
                                                 "CLASS_VIEW_OWN_CLASSES_READ",
@@ -906,7 +925,7 @@ public class DataInitializer implements CommandLineRunner {
 
                 q1.setOptions(options);
 
-                questionRepository.save(q1); // 🔥 cascade save options
+                questionRepository.save(q1);
 
                 log.info("Initialized 1 question with options");
         }

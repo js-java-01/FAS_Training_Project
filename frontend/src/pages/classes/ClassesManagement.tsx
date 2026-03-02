@@ -42,7 +42,7 @@ export default function ClassesComponent() {
 
   return (
     <Suspense fallback={<MainLayoutSkeleton />}>
-      <Component />
+      <Component semesterId="" />
     </Suspense>
   );
 }
