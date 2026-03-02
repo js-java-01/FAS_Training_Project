@@ -1,12 +1,11 @@
 package com.example.starter_project_2025.system.assessment.spec;
 
 import com.example.starter_project_2025.system.assessment.entity.Question;
-import com.example.starter_project_2025.system.assessment.entity.Tag;
+import com.example.starter_project_2025.system.assessment.entity.QuestionTag;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -46,7 +45,7 @@ public class QuestionSpecification {
             }
 
             if (tagIds != null && !tagIds.isEmpty()) {
-                Join<Question, Tag> tagJoin = root.join("tags");
+                Join<Question, QuestionTag> tagJoin = root.join("tags");
                 predicates.add(tagJoin.get("id").in(tagIds));
             }
 

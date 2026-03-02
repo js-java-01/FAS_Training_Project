@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.assessment.dto.questionTag.request;
+package com.example.starter_project_2025.system.assessment.dto.question_tag.request;
 
 import lombok.Builder;
 

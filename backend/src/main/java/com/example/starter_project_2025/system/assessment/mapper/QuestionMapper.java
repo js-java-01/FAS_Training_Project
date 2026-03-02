@@ -3,7 +3,7 @@ package com.example.starter_project_2025.system.assessment.mapper;
 import com.example.starter_project_2025.system.assessment.dto.question.response.QuestionResponseDTO;
 import com.example.starter_project_2025.system.assessment.entity.Question;
 import com.example.starter_project_2025.system.assessment.entity.QuestionOption;
-import com.example.starter_project_2025.system.assessment.entity.Tag;
+import com.example.starter_project_2025.system.assessment.entity.QuestionTag;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -23,9 +23,9 @@ public interface QuestionMapper {
 
     QuestionResponseDTO.OptionDTO toOptionDTO(QuestionOption option);
 
-    QuestionResponseDTO.TagDTO toTagDTO(Tag tag);
+    QuestionResponseDTO.TagDTO toTagDTO(QuestionTag tag);
 
     List<QuestionResponseDTO.OptionDTO> toOptionDTOList(List<QuestionOption> options);
 
-    List<QuestionResponseDTO.TagDTO> toTagDTOList(java.util.Set<Tag> tags);
+    List<QuestionResponseDTO.TagDTO> toTagDTOList(java.util.Set<QuestionTag> tags);
 }

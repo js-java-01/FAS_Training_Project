@@ -46,12 +46,12 @@ public class Question {
 
     @ManyToMany
     @JoinTable(
-            name = "question_tag",
+            name = "tag",
             joinColumns = @JoinColumn(name = "question_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     @JsonIgnoreProperties({"questions"})
-    Set<Tag> tags = new HashSet<>();
+    Set<QuestionTag> tags = new HashSet<>();
 
     @PrePersist
     void prePersist() {
