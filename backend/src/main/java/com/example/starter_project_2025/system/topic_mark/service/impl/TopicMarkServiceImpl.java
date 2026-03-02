@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -854,6 +855,8 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             CellStyle headerStyle = buildHeaderStyle(wb);
             CellStyle lockedStyle = buildLockedStyle(wb);
             CellStyle inputStyle = buildInputStyle(wb);
+            CellStyle noteTitleStyle = buildNoteTitleStyle(wb);
+            CellStyle noteBodyStyle = buildNoteBodyStyle(wb);
 
             final int SCORE_COL_START = 4;
 
@@ -902,6 +905,27 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             }
 
             sheet.createFreezePane(0, 2);
+
+            int noteStartRow = enrollments.size() + 4;
+
+            Row noteTitleRow = sheet.createRow(noteStartRow);
+            putCell(noteTitleRow, 0, "Note", noteTitleStyle);
+            putCell(noteTitleRow, 2, "Score format requirement:", noteTitleStyle);
+
+            Row noteRow1 = sheet.createRow(noteStartRow + 1);
+            putCell(noteRow1, 2, "Decimal separator must be (.)", noteBodyStyle);
+
+            Row noteRow2 = sheet.createRow(noteStartRow + 2);
+            putCell(noteRow2, 2, "Accepted example: 9.99", noteBodyStyle);
+
+            Row noteRow3 = sheet.createRow(noteStartRow + 3);
+            putCell(noteRow3, 2, "Not accepted: 6,88", noteBodyStyle);
+
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow, noteStartRow + 3, 0, 1));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow, noteStartRow, 2, 3));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow + 1, noteStartRow + 1, 2, 3));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow + 2, noteStartRow + 2, 2, 3));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow + 3, noteStartRow + 3, 2, 3));
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             wb.write(out);
@@ -1118,6 +1142,32 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         f.setBold(true);
         s.setFont(f);
         s.setAlignment(HorizontalAlignment.CENTER);
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        return s;
+    }
+
+    private CellStyle buildNoteTitleStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        Font f = wb.createFont();
+        f.setBold(true);
+        s.setFont(f);
+        s.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        s.setVerticalAlignment(VerticalAlignment.TOP);
+        s.setBorderBottom(BorderStyle.THIN);
+        s.setBorderTop(BorderStyle.THIN);
+        s.setBorderLeft(BorderStyle.THIN);
+        s.setBorderRight(BorderStyle.THIN);
+        return s;
+    }
+
+    private CellStyle buildNoteBodyStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        s.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         s.setBorderBottom(BorderStyle.THIN);
         s.setBorderTop(BorderStyle.THIN);
         s.setBorderLeft(BorderStyle.THIN);
