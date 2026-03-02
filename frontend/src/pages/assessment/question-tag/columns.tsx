@@ -5,7 +5,7 @@ import type { QuestionTag } from "../../types/feature/assessment/question-tag";
 import { Badge } from "@/components/ui/badge";
 import { Eye, SquarePen, Trash2, Hash } from "lucide-react";
 import { PermissionGate } from "@/components/PermissionGate";
-import SortHeader from "../../components/data_table/SortHeader";
+import SortHeader from "../../../components/data_table/SortHeader";
 
 export type QuestionTagTableActions = {
     onView?: (row: QuestionTag) => void;

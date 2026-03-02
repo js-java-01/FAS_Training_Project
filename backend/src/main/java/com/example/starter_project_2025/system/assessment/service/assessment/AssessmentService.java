@@ -37,11 +37,7 @@ public class AssessmentService {
             throw new IllegalArgumentException("Assessment code already exists");
         }
 
-        AssessmentType assessmentType = assessmentTypeRepository.findById(request.assessmentTypeId())
-                .orElseThrow(() -> new EntityNotFoundException("AssessmentType not found"));
-
         Assessment assessment = assessmentMapper.toEntity(request);
-        assessment.setAssessmentType(assessmentType);
 
         return assessmentMapper.toDto(
                 assessmentRepository.save(assessment)
@@ -54,12 +50,6 @@ public class AssessmentService {
 
         Assessment assessment = assessmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Assessment not found"));
-
-        if (request.assessmentTypeId() != null) {
-            AssessmentType assessmentType = assessmentTypeRepository.findById(request.assessmentTypeId())
-                    .orElseThrow(() -> new EntityNotFoundException("AssessmentType not found"));
-            assessment.setAssessmentType(assessmentType);
-        }
 
         assessmentMapper.updateEntityFromRequest(request, assessment);
 

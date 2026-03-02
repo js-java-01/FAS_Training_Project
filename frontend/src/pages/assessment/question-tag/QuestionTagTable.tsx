@@ -5,7 +5,7 @@ import {
 import React, { useState, useMemo, useCallback } from 'react';
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
-import { PermissionGate } from '../../components/PermissionGate';
+import { PermissionGate } from '../../../components/PermissionGate';
 
 
 import { CreateQuestionTagModal } from './CreateQuestionTagModal';
