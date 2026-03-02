@@ -1,25 +1,54 @@
 package com.example.starter_project_2025.system.auth.dto.permission;
 
+import com.example.starter_project_2025.base.dto.CrudDto;
+import com.example.starter_project_2025.base.dto.group.OnCreate;
+import com.example.starter_project_2025.base.dto.group.OnUpdate;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Data
-public class PermissionDTO {
-    private UUID id;
+import static com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY;
 
-    @NotBlank(message = "Permission name is required")
-    private String name;
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class PermissionDTO implements CrudDto<UUID> {
 
-    private String description;
+    @Null(groups = OnCreate.class)
+    @NotNull(groups = OnUpdate.class)
+    UUID id;
 
-    @NotBlank(message = "Resource is required")
-    private String resource;
+    @NotBlank(groups = OnCreate.class, message = "Permission name is required")
+    @Size(max = 100, message = "Name must not exceed 100 characters")
+    String name;
 
-    @NotBlank(message = "Action is required")
-    private String action;
+    @Size(max = 255, message = "Description must not exceed 255 characters")
+    String description;
 
-    private LocalDateTime createdAt;
+    @NotBlank(groups = OnCreate.class, message = "Resource is required")
+    @Size(max = 50, message = "Resource must not exceed 50 characters")
+    String resource;
+
+    @NotBlank(groups = OnCreate.class, message = "Action is required")
+    @Size(max = 50, message = "Action must not exceed 50 characters")
+    String action;
+
+    @NotNull(groups = OnCreate.class, message = "Active status is required")
+    Boolean isActive;
+
+    @JsonProperty(access = READ_ONLY)
+    LocalDateTime createdAt;
+
+    @JsonProperty(access = READ_ONLY)
+    LocalDateTime updatedAt;
 }

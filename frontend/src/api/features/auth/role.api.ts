@@ -1,18 +1,9 @@
 import { createBaseApiService } from "@/api/base-service.api";
 import { Url } from "@/api/url";
-import type {
-  Role,
-  RoleCreateRequest,
-  RoleFilter,
-  RoleUpdateRequest,
-} from "@/types";
-import axiosInstance from "../../axiosInstance";
+import type { RoleDTO, RoleFilter } from "@/types";
 
-const base = createBaseApiService<
-  Role,
-  RoleFilter,
-  RoleCreateRequest,
-  RoleUpdateRequest
->(axiosInstance, Url.ROLE);
+const base = createBaseApiService<RoleDTO, RoleFilter>({
+  path: Url.ROLE,
+});
 
 export const roleApi = Object.assign({}, base, {});

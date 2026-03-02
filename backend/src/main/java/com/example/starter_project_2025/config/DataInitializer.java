@@ -5,8 +5,8 @@ import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus
 import com.example.starter_project_2025.system.assessment.repository.*;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
-import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
-import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.system.auth.repository.PermissionCrudRepository;
+import com.example.starter_project_2025.system.auth.repository.RoleCrudRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.enums.CourseLevel;
@@ -48,8 +48,8 @@ import java.util.List;
 public class DataInitializer implements CommandLineRunner
 {
 
-    private final RoleRepository roleRepository;
-    private final PermissionRepository permissionRepository;
+    private final RoleCrudRepository roleRepository;
+    private final PermissionCrudRepository permissionRepository;
     private final MenuRepository menuRepository;
     private final MenuItemRepository menuItemRepository;
     private final ProvinceRepository provinceRepository;
