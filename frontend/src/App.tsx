@@ -9,8 +9,7 @@ import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import { routes } from "./router/componentRegistry";
 import { Toaster } from "sonner";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
-import QuestionBankMockPage from "./pages/question/QuestionBankMockPage";
-import { QuestionTagManagement } from "./pages/question-tag";
+import QuestionTagManagementPage from "./pages/question-tag/management";
 
 
 function App() {
@@ -45,8 +44,7 @@ function App() {
 
             {/* Special routes */}
             <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />
-            <Route path="/questions/mock" element={<QuestionBankMockPage />} />
-            <Route path="/question-tags" element={<QuestionTagManagement />} />
+            <Route path="/question-tags" element={<QuestionTagManagementPage />} />
             
             {/* Dynamic routes from backend Module table */}
             {moduleGroups.flatMap((group) =>

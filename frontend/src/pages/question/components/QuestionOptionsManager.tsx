@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Trash2, GripVertical, CheckCircle2, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
-import type { QuestionCreateRequest, QuestionOptionRequest } from '@/types/feature/assessment/question';
+import type { QuestionCreateRequest, QuestionOptionRequest } from '@/types';
 import { useToast } from '@/hooks/useToast';
 
 interface QuestionOptionsManagerProps {
@@ -23,7 +23,7 @@ export const QuestionOptionsManager: React.FC<QuestionOptionsManagerProps> = ({
             ...data,
             options: [
                 ...data.options,
-                { content: '', correct: false, orderIndex: data.options.length }
+                { content: '', correct: false, orderIndex: data.options.length, questionId: '' }
             ]
         });
     };

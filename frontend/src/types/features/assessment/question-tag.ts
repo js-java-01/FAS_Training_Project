@@ -10,3 +10,8 @@ export interface QuestionTagRequest {
     name: string;
     description: string;
 }
+
+export interface QuestionTagFilter {
+    createdFrom?: string;
+    createdTo?: string;
+}

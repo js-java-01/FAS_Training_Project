@@ -1,5 +1,4 @@
 import { MainLayout } from '@/components/layout/MainLayout';
-import MainHeader from '@/components/layout/MainHeader';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 
@@ -9,7 +8,7 @@ import { Loader2, Save, X, Plus, Trash2, CheckCircle2, AlertCircle } from 'lucid
 import { QuestionFormFields, QuestionOptionsManager } from './components';
 import { useToast } from '@/hooks/useToast';
 import type { QuestionCreateRequest } from '@/types';
-import { questionApi } from '@/api';
+import { questionApi } from '@/api/questionApi';
 
 export default function CreateQuestionPage() {
     const navigate = useNavigate();
@@ -22,8 +21,8 @@ export default function CreateQuestionPage() {
             isActive: true,
             categoryId: '',
             options: [
-                { content: '', correct: false, orderIndex: 0 },
-                { content: '', correct: false, orderIndex: 1 },
+                { content: '', correct: false, orderIndex: 0, questionId: '' },
+                { content: '', correct: false, orderIndex: 1, questionId: '' },
             ],
             tagIds: [],
         }
@@ -122,8 +121,8 @@ export default function CreateQuestionPage() {
                 isActive: true,
                 categoryId: '',
                 options: [
-                    { content: '', correct: false, orderIndex: 0 },
-                    { content: '', correct: false, orderIndex: 1 },
+                    { content: '', correct: false, orderIndex: 0, questionId: '' },
+                    { content: '', correct: false, orderIndex: 1, questionId: '' },
                 ],
                 tagIds: [],
             }

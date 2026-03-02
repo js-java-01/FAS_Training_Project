@@ -21,10 +21,10 @@ export const AssessmentFormFields: React.FC<AssessmentFormFieldsProps> = ({
     // Fetch assessment types for dropdown
     const { data: assessmentTypesData } = useQuery({
         queryKey: ['assessmentTypes'],
-        queryFn: () => assessmentTypeApi.getAll({ page: 0, size: 100 })
+        queryFn: () => assessmentTypeApi.getPage({ page: 0, size: 100 })
     });
 
-    const assessmentTypes = assessmentTypesData?.content ?? [];
+    const assessmentTypes = assessmentTypesData?.items ?? [];
 
     return (
         <div className="space-y-4">
@@ -100,7 +100,7 @@ export const AssessmentFormFields: React.FC<AssessmentFormFieldsProps> = ({
                 </label>
                 <select
                     id={`${idPrefix}assessmentTypeId`}
-                    value={data.assessmentTypeId}
+                    value={data.assessmentTypeId || ''}
                     onChange={(e) => onChange({ ...data, assessmentTypeId: e.target.value })}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.assessmentTypeId ? 'border-red-300' : 'border-gray-300'
                         }`}

@@ -1,5 +1,4 @@
 import { MainLayout } from '@/components/layout/MainLayout';
-import MainHeader from '@/components/layout/MainHeader';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -9,7 +8,7 @@ import { Loader2, Save, X, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-r
 import { QuestionFormFields, QuestionOptionsManager } from './components';
 import { useToast } from '@/hooks/useToast';
 import type { QuestionCreateRequest } from '@/types';
-import { questionApi } from '@/api';
+import { questionApi } from '@/api/questionApi';
 
 export default function EditQuestionPage() {
     const { id } = useParams<{ id: string }>();
@@ -23,8 +22,8 @@ export default function EditQuestionPage() {
         isActive: true,
         categoryId: '',
         options: [
-            { content: '', correct: false, orderIndex: 0 },
-            { content: '', correct: false, orderIndex: 1 },
+            { content: '', correct: false, orderIndex: 0, questionId: '' },
+            { content: '', correct: false, orderIndex: 1, questionId: '' },
         ],
         tagIds: []
     });
@@ -50,6 +49,7 @@ export default function EditQuestionPage() {
                     content: opt.content,
                     correct: opt.correct,
                     orderIndex: opt.orderIndex,
+                    questionId: question.id, // Use parent question ID
                 })),
                 tagIds: question.tags?.map(tag => tag.id) || []
             });

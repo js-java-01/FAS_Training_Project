@@ -42,3 +42,12 @@ export interface QuestionCreateRequest {
   options: QuestionOptionRequest[];
   tagIds?: number[];
 }
+
+export interface QuestionFilter {
+  categoryId?: string;
+  tagIds?: number[];
+  questionType?: string;
+  isActive?: boolean;
+  createdFrom?: string;
+  createdTo?: string;
+}

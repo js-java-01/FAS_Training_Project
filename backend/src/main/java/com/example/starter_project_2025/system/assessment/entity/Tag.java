@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.assessment.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
@@ -30,6 +31,7 @@ public class Tag {
     String description;
 
     @ManyToMany(mappedBy = "tags")
+    @JsonIgnoreProperties({"tags"})
     Set<Question> questions = new HashSet<>();
 }
 

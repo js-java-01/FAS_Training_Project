@@ -44,12 +44,12 @@ export const QuestionTagTable: React.FC = () => {
     // ========================================
     const { data: tagsResponse, isLoading, isFetching } = useQuery({
         queryKey: ['question-tags'],
-        queryFn: () => questionTagApi.getAll()
+        queryFn: () => questionTagApi.getPage({ page: 0, size: 1000 })
     });
 
-    // Safe table data with defaults - extract content from paginated response
+    // Safe table data with defaults - extract items from paginated response
     const safeTableData = useMemo(() => {
-        const items = tagsResponse?.content ?? [];
+        const items = tagsResponse?.items ?? [];
         // Client-side filtering based on keyword
         const filteredItems = keyword
             ? items.filter(tag =>

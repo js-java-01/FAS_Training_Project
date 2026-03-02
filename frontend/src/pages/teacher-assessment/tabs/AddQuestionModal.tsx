@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Search, Plus, CheckCircle2 } from 'lucide-react';
-import type { Question } from '@/types';
-import { questionApi, questionCategoryApi } from '@/api';
+import type { QuestionCategory } from '@/types';
+import type { QuestionListItem } from '@/types/question';
+import { questionApi } from '@/api/questionApi';
+import { questionCategoryApi } from '@/api';
 
 interface AddQuestionModalProps {
     isOpen: boolean;
@@ -17,23 +19,25 @@ interface AddQuestionModalProps {
 
 export function AddQuestionModal({ isOpen, onClose, onAdd, existingQuestionIds }: AddQuestionModalProps) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
+    const [selectedQuestions, setSelectedQuestions] = useState<QuestionListItem[]>([]);
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
     const [defaultScore, setDefaultScore] = useState(10);
 
     // Fetch all available questions
     const { data: allQuestions = [], isLoading: questionsLoading } = useQuery({
         queryKey: ['questions'],
-        queryFn: () => questionApi.getAll(),
+        queryFn: () => questionApi.getAllContent(),
         enabled: isOpen,
     });
 
     // Fetch all categories
-    const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    const { data: categoriesResponse, isLoading: categoriesLoading } = useQuery({
         queryKey: ['question-categories'],
-        queryFn: () => questionCategoryApi.getAll(),
+        queryFn: () => questionCategoryApi.getPage({ page: 0, size: 1000 }),
         enabled: isOpen,
     });
+
+    const categories = categoriesResponse?.items ?? [];
 
     // Filter out questions that are already added to the assessment
     const availableQuestions = useMemo(() => {
@@ -61,7 +65,7 @@ export function AddQuestionModal({ isOpen, onClose, onAdd, existingQuestionIds }
         return filtered;
     }, [availableQuestions, selectedCategoryId, searchTerm]);
 
-    const toggleQuestion = (question: Question) => {
+    const toggleQuestion = (question: QuestionListItem) => {
         setSelectedQuestions(prev => {
             const isSelected = prev.find(q => q.id === question.id);
             if (isSelected) {
@@ -261,7 +265,7 @@ export function AddQuestionModal({ isOpen, onClose, onAdd, existingQuestionIds }
                                                     <div className="pt-1">
                                                         <Checkbox
                                                             checked={isSelected}
-                                                            onCheckedChange={(checked) => {
+                                                            onCheckedChange={() => {
                                                                 // No need to call toggleQuestion here as it will bubble to the div
                                                             }}
                                                             className="h-5 w-5 rounded border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"

@@ -10,3 +10,8 @@ export interface AssessmentTypeRequest {
   name: string;
   description: string;
 }
+
+export interface AssessmentTypeFilter {
+  createdFrom?: string;
+  createdTo?: string;
+}

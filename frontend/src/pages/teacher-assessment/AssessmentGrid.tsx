@@ -34,6 +34,14 @@ export const AssessmentGrid: React.FC<AssessmentGridProps> = ({
     onPageChange,
     onPageSizeChange,
 }) => {
+    // Dynamically adjust grid columns based on item count
+    const getGridCols = () => {
+        const count = assessments.length;
+        if (count === 1) return 'grid-cols-1';
+        if (count === 2) return 'grid-cols-1 md:grid-cols-2';
+        return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+    };
+
     return (
         <div className="flex flex-col gap-4 h-full">
             {/* Search and Actions */}
@@ -60,7 +68,7 @@ export const AssessmentGrid: React.FC<AssessmentGridProps> = ({
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 flex-1 overflow-auto">
+                    <div className={`grid ${getGridCols()} gap-6 ${assessments.length <= 3 ? 'max-w-6xl mx-auto w-full' : ''} flex-1 content-start`}>
                         {assessments.map((assessment) => (
                             <AssessmentCard
                                 key={assessment.id}
@@ -72,8 +80,8 @@ export const AssessmentGrid: React.FC<AssessmentGridProps> = ({
                         ))}
                     </div>
 
-                    {/* Pagination */}
-                    <div className="flex items-center justify-between border-t pt-4">
+                    {/* Pagination - Stays at bottom */}
+                    <div className="flex items-center justify-between border-t pt-4 mt-auto">
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-700">Rows per page:</span>
                             <select
