@@ -25,7 +25,6 @@ import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { encodeRouteId } from "@/utils/routeIdCodec";
 import { useDebounce } from "@/hooks/useDebounce";
 
-
 /* ======================================================= */
 interface TrainingClassesTableProps {
   role: string;
@@ -194,7 +193,8 @@ export default function TrainingClassesTable({
             setPageIndex(0);
           }}
           headerActions={
-            canCreate && (
+            canCreate &&
+            (role === "ADMIN" || role === "MANAGER") && (
               <div className="flex gap-2">
                 <Button onClick={() => setOpenForm(true)} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
                   <Plus className="h-4 w-4" />
