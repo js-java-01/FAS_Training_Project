@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.location.service.impl;
 
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.location.dto.LocationImportResult;
 import com.example.starter_project_2025.system.location.entity.Location;
 import com.example.starter_project_2025.system.location.repository.LocationRepository;
@@ -28,42 +29,47 @@ public class LocationImportExportServiceImpl implements LocationImportExportServ
         List<Location> locations = locationRepo.findAll();
 
         if ("csv".equalsIgnoreCase(format)) {
-            return CsvUtil.exportLocations(locations,communeRepo);
+            return CsvUtil.exportLocations(locations, communeRepo);
         }
         return ExcelUtil.exportLocations(locations, communeRepo);
     }
 
     @Override
-    public LocationImportResult importLocations(MultipartFile[] files) {
-        LocationImportResult finalResult = new LocationImportResult();
+    public ImportResultResponse importLocations(MultipartFile file) {
+        ImportResultResponse result = new ImportResultResponse();
 
-        for (MultipartFile file : files) {
-            if (file.isEmpty()) continue;
-
-            LocationImportResult fileResult;
-
-            String filename = file.getOriginalFilename();
-            if (filename == null) {
-                finalResult.addError("Invalid file");
-                continue;
-            }
-
-            if (filename.endsWith(".csv")) {
-                fileResult = CsvUtil.importLocations(file, locationRepo, provinceRepo, communeRepo);
-            } else if (filename.endsWith(".xlsx")) {
-                fileResult = ExcelUtil.importLocations(file, locationRepo, provinceRepo, communeRepo);
-            } else {
-                finalResult.addError("Unsupported file: " + filename);
-                continue;
-            }
-
-            // merge result
-            finalResult.merge(fileResult,filename);
+        if (file == null || file.isEmpty()) {
+            result.addError(0, "file", "File is empty");
+            result.buildMessage();
+            return result;
         }
 
-        return finalResult;
-    }
+        String filename = file.getOriginalFilename();
+        if (filename == null) {
+            result.addError(0, "file", "Invalid file");
+            result.buildMessage();
+            return result;
+        }
 
+        LocationImportResult fileResult;
+        if (filename.endsWith(".csv")) {
+            fileResult = CsvUtil.importLocations(file, locationRepo, provinceRepo, communeRepo);
+        } else if (filename.endsWith(".xlsx") || filename.endsWith(".xls")) {
+            fileResult = ExcelUtil.importLocations(file, locationRepo, provinceRepo, communeRepo);
+        } else {
+            result.addError(0, "file", "Unsupported file format. Use .xlsx or .csv");
+            result.buildMessage();
+            return result;
+        }
+
+        result.setTotalRows(fileResult.getTotal());
+        result.setSuccessCount(fileResult.getSuccess());
+        for (String err : fileResult.getErrors()) {
+            result.addError(0, "", err);
+        }
+        result.buildMessage();
+        return result;
+    }
 
     @Override
     public byte[] downloadImportTemplate() {

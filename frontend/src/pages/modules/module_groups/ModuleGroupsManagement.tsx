@@ -1,5 +1,5 @@
 import { MainLayout } from "@/components/layout/MainLayout.tsx";
-import ModuleGroupsTable from "@/pages/modules/module_groups/table.tsx";
+import ModuleGroupsTable from "@/pages/modules/module_groups/ModuleGroupTable";
 
 
 export default function ModuleGroupsManagement() {
@@ -11,4 +11,3 @@ export default function ModuleGroupsManagement() {
         </MainLayout>
     );
 }
-

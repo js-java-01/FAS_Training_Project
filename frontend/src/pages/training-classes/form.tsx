@@ -23,16 +23,49 @@ type FormValues = {
   endDate: string;
 };
 
+const getTodayString = () => {
+  const now = new Date();
+  const timezoneOffsetMs = now.getTimezoneOffset() * 60 * 1000;
+  return new Date(now.getTime() - timezoneOffsetMs).toISOString().slice(0, 10);
+};
+
+const getNextDateString = (dateString: string) => {
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + 1);
+
+  const timezoneOffsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 10);
+};
+
+const todayString = getTodayString();
+
 const formSchema = z
   .object({
     className: z
       .string()
       .min(2, { message: "Class name must be at least 2 characters" })
       .regex(/^[^0-9]+$/, { message: "Class name must not contain numbers" }),
-    classCode: z.string().min(1, { message: "Class code is required" }),
-    semesterId: z.string().min(1, { message: "Please select a semester" }),
-    startDate: z.string().min(1, { message: "Start date is required" }),
-    endDate: z.string().min(1, { message: "End date is required" }),
+    classCode: z
+      .string()
+      .min(1, { message: "Class code is required" }),
+    semesterId: z
+      .string()
+      .min(1, { message: "Please select a semester" }),
+    startDate: z
+      .string()
+      .min(1, { message: "Start date is required" }),
+    endDate: z
+      .string()
+      .min(1, { message: "End date is required" }),
+  })
+  .refine((data) => data.startDate >= todayString, {
+    message: "Start date cannot be in the past",
+    path: ["startDate"],
+  })
+  .refine((data) => data.endDate >= todayString, {
+    message: "End date cannot be in the past",
+    path: ["endDate"],
   })
   .refine((data) => new Date(data.startDate) < new Date(data.endDate), {
     message: "Start date must be before end date",
@@ -43,7 +76,7 @@ export const TrainingClassForm: React.FC<{
   open: boolean;
   onClose: () => void;
   onSaved?: (saved: TrainingClass) => void;
-  role: string;
+  role?: string;
 }> = ({ open, onClose, onSaved, role }) => {
   const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -53,13 +86,14 @@ export const TrainingClassForm: React.FC<{
       size: 20,
       unpaged: true,
     },
-    role,
+    role!
   );
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -71,6 +105,11 @@ export const TrainingClassForm: React.FC<{
       endDate: "",
     },
   });
+
+  const selectedStartDate = watch("startDate");
+  const minEndDate = selectedStartDate
+    ? getNextDateString(selectedStartDate)
+    : todayString;
 
   useEffect(() => {
     if (open) {
@@ -103,7 +142,8 @@ export const TrainingClassForm: React.FC<{
     } catch (err: unknown) {
       console.error("Save error", err);
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ||
         (err as { message?: string })?.message ||
         "Error saving data";
       setServerError(msg);
@@ -122,12 +162,16 @@ export const TrainingClassForm: React.FC<{
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>Open Class Request</DialogTitle>
-            <DialogDescription>Fill in the details to request opening a new training class.</DialogDescription>
+            <DialogDescription>
+              Fill in the details to request opening a new training class.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             {serverError && (
-              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">{serverError}</div>
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+                {serverError}
+              </div>
             )}
 
             {/* Class Name */}
@@ -138,11 +182,10 @@ export const TrainingClassForm: React.FC<{
               <input
                 {...register("className")}
                 className={`w-full px-3 py-2 border rounded-md outline-none transition
-                                    ${
-                                      errors.className
-                                        ? "border-red-500 focus:ring-red-200"
-                                        : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    }`}
+                                    ${errors.className
+                    ? "border-red-500 focus:ring-red-200"
+                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  }`}
                 placeholder="Enter class name"
               />
               {errors.className && <p className="text-xs text-red-600">{errors.className.message}</p>}
@@ -156,11 +199,10 @@ export const TrainingClassForm: React.FC<{
               <input
                 {...register("classCode")}
                 className={`w-full px-3 py-2 border rounded-md outline-none transition
-                                    ${
-                                      errors.classCode
-                                        ? "border-red-500 focus:ring-red-200"
-                                        : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    }`}
+                                    ${errors.classCode
+                    ? "border-red-500 focus:ring-red-200"
+                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  }`}
                 placeholder="Enter class code"
               />
               {errors.classCode && <p className="text-xs text-red-600">{errors.classCode.message}</p>}
@@ -174,11 +216,10 @@ export const TrainingClassForm: React.FC<{
               <select
                 {...register("semesterId")}
                 className={`w-full px-3 py-2 border rounded-md outline-none transition
-                                    ${
-                                      errors.semesterId
-                                        ? "border-red-500 focus:ring-red-200"
-                                        : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    }`}
+                                    ${errors.semesterId
+                    ? "border-red-500 focus:ring-red-200"
+                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  }`}
                 disabled={loadingSemesters}
               >
                 <option value="">{loadingSemesters ? "Loading semesters..." : "Select a semester"}</option>
@@ -202,11 +243,10 @@ export const TrainingClassForm: React.FC<{
                   type="date"
                   {...register("startDate")}
                   className={`w-full px-3 py-2 border rounded-md outline-none transition
-                                        ${
-                                          errors.startDate
-                                            ? "border-red-500 focus:ring-red-200"
-                                            : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        }`}
+                                        ${errors.startDate
+                      ? "border-red-500 focus:ring-red-200"
+                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    }`}
                 />
                 {errors.startDate && <p className="text-xs text-red-600">{errors.startDate.message}</p>}
               </div>
@@ -220,11 +260,10 @@ export const TrainingClassForm: React.FC<{
                   type="date"
                   {...register("endDate")}
                   className={`w-full px-3 py-2 border rounded-md outline-none transition
-                                        ${
-                                          errors.endDate
-                                            ? "border-red-500 focus:ring-red-200"
-                                            : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        }`}
+                                        ${errors.endDate
+                      ? "border-red-500 focus:ring-red-200"
+                      : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    }`}
                 />
                 {errors.endDate && <p className="text-xs text-red-600">{errors.endDate.message}</p>}
               </div>

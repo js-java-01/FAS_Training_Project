@@ -74,6 +74,6 @@ public class ProgrammingLanguageExportController {
     private String generateFilename(ExportRequest request) {
         String date = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
         String extension = exportService.getFileExtension(request);
-        return String.format("programming-languages-%s.%s", date, extension);
+        return "programming-languages-%s.%s".formatted(date, extension);
     }
 }

@@ -15,7 +15,7 @@ public class OtpServiceImpl implements OtpService {
 
     @Override
     public <T> String generatedOtpAndSave(String email, T DTO) {
-        String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+        String otp = "%06d".formatted(new java.util.Random().nextInt(1000000));
         String key = PREFIX + email + ":" + otp;
         redisService.save(key, DTO, 5, java.util.concurrent.TimeUnit.MINUTES);
         return otp;

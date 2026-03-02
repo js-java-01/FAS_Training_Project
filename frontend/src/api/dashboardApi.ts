@@ -8,6 +8,8 @@ export interface DashboardStats {
   activeUsers: number;
   activeRoles: number;
   activeMenus: number;
+  totalCourses: number;  
+  totalTopics: number;
 }
 
 export const dashboardApi = {

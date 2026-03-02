@@ -3,34 +3,19 @@ import { useSelector } from "react-redux";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 
 export const usePermissions = () => {
-  const { permissions, role, email, firstName, lastName } = useSelector((state: RootState) => state.auth);
-  const { viewRole } = useRoleSwitch();
+  const { email, role, firstName, lastName } = useSelector((state: RootState) => state.auth);
+  const { activePermissions } = useRoleSwitch();
 
-  const user = { email, role, firstName, lastName, permissions };
+  const user = { email, role, firstName, lastName };
 
-  const isViewingAsStudent = viewRole === "STUDENT";
+  const hasPermission = (permission: string): boolean =>
+    activePermissions.includes(permission);
 
-  const hasPermission = (permission: string): boolean => {
-    if (isViewingAsStudent) {
-      // In student view, only READ-type accesses are allowed
-      return permission.endsWith("_READ");
-    }
-    return permissions.includes(permission);
-  };
+  const hasAnyPermission = (requiredPermissions: string[]): boolean =>
+    requiredPermissions.some((p) => activePermissions.includes(p));
 
-  const hasAnyPermission = (requiredPermissions: string[]): boolean => {
-    if (isViewingAsStudent) {
-      return requiredPermissions.some((p) => p.endsWith("_READ"));
-    }
-    return requiredPermissions.some((p) => permissions.includes(p));
-  };
-
-  const hasAllPermissions = (requiredPermissions: string[]): boolean => {
-    if (isViewingAsStudent) {
-      return requiredPermissions.every((p) => p.endsWith("_READ"));
-    }
-    return requiredPermissions.every((p) => permissions.includes(p));
-  };
+  const hasAllPermissions = (requiredPermissions: string[]): boolean =>
+    requiredPermissions.every((p) => activePermissions.includes(p));
 
   const canAccessResource = (resource: string, action: string): boolean => {
     const permissionName = `${resource.toUpperCase()}_${action.toUpperCase()}`;
@@ -45,3 +30,4 @@ export const usePermissions = () => {
     canAccessResource,
   };
 };
+

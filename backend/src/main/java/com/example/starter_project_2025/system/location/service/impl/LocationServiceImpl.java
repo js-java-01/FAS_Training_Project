@@ -141,6 +141,8 @@ public class LocationServiceImpl implements LocationService {
                 .communeName(communeName)
                 .provinceName(provinceName)
                 .status(location.getLocationStatus())
+                .createdAt(location.getCreatedAt())
+                .updatedAt(location.getUpdatedAt())
                 .build();
     }
 

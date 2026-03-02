@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.learning.controller;
 
 import com.example.starter_project_2025.security.UserDetailsImpl;
+import com.example.starter_project_2025.system.learning.dto.EnrolledCourseResponse;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import com.example.starter_project_2025.system.learning.service.enroll.EnrollmentService;
 import jakarta.validation.Valid;

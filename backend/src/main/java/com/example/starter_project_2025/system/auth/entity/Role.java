@@ -38,6 +38,9 @@ public class Role {
     @Column(nullable = false)
     private Boolean isActive = true;
 
+    @Column(nullable = false)
+    private Integer hierarchyLevel = 0;
+
     @OneToMany(mappedBy = "role")
     private List<UserRole> users;
 

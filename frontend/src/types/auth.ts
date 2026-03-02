@@ -79,3 +79,20 @@ export interface AuthState {
   permissions: string[];
   isAuthenticated: boolean;
 }
+
+/**
+ * Role constant (no enum - compatible with erasableSyntaxOnly)
+ */
+export const USER_ROLE = {
+  SUPERADMIN: "SUPERADMIN",
+  ADMIN: "ADMIN",
+  TRAINER: "TRAINER",
+  TRAINEE: "TRAINEE",
+  STUDENT: "STUDENT",
+} as const;
+
+/**
+ * UserRole type (union from USER_ROLE values)
+ */
+export type UserRole =
+  (typeof USER_ROLE)[keyof typeof USER_ROLE];

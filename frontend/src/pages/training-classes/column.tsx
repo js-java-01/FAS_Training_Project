@@ -110,53 +110,57 @@ export const getColumns = (role: string, permissions: TablePermissions, actions?
   const statusColumn =
     role === "MANAGER"
       ? columnHelper.accessor("status", {
-          header: (info) => <SortHeader info={info} title="Status" />,
-          size: 120,
-          cell: ({ getValue, row }) => {
-            const status = getValue() as string;
-            const isActive = row.original.isActive;
+        header: (info) => <SortHeader info={info} title="Status" />,
+        size: 120,
+        cell: ({ getValue, row }) => {
+          const status = getValue() as string;
+          const isActive = row.original.isActive;
 
-            let badgeClass = "bg-gray-100 text-gray-700 border-gray-200";
-            let label = status;
+          let badgeClass = "bg-gray-100 text-gray-700 border-gray-200";
+          let label = status;
 
-            // Handle legacy or mapped statuses
-            if (status === "APPROVED") {
-              if (isActive) {
-                badgeClass = "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 shadow-none";
-                label = "Active";
-              } else {
-                // Approved but future -> Planning / Scheduled? or just Approved
-                badgeClass = "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200 shadow-none";
-                label = "Approved (Inactive)";
-              }
-            } else if (status === "PENDING_APPROVAL") {
-              badgeClass = "bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200 shadow-none";
-              label = "Pending";
-            } else if (status === "REJECTED") {
-              badgeClass = "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none";
-              label = "Rejected";
+          // Handle legacy or mapped statuses
+          if (status === "APPROVED") {
+            if (isActive) {
+              badgeClass = "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 shadow-none";
+              label = "Active";
+            } else {
+              // Approved but future -> Planning / Scheduled? or just Approved
+              badgeClass = "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200 shadow-none";
+              label = "Approved (Inactive)";
             }
+          } else if (status === "PENDING_APPROVAL") {
+            badgeClass = "bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200 shadow-none";
+            label = "Pending";
+          } else if (status === "REJECTED") {
+            badgeClass = "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none";
+            label = "Rejected";
+          }
 
-            return <Badge className={badgeClass}>{label}</Badge>;
-          },
-          meta: { title: "Status" },
-        })
-      : columnHelper.accessor("isActive", {
-          header: (info) => <SortHeader info={info} title="Active Status" />,
-          size: 120,
-          cell: (info) => (
-            <Badge
-              className={
-                info.getValue()
-                  ? "bg-blue-100 text-blue-700 border-blue-200 shadow-none"
-                  : "bg-gray-100 text-gray-700 border-gray-200 shadow-none"
-              }
-            >
-              {info.getValue() ? "Active" : "Inactive"}
+          return (
+            <Badge className={badgeClass}>
+              {label}
             </Badge>
-          ),
-          meta: { title: "Active Status" },
-        });
+          );
+        },
+        meta: { title: "Status" },
+      })
+      : columnHelper.accessor("isActive", {
+        header: (info) => <SortHeader info={info} title="Active Status" />,
+        size: 120,
+        cell: (info) => (
+          <Badge
+            className={
+              info.getValue()
+                ? "bg-blue-100 text-blue-700 border-blue-200 shadow-none"
+                : "bg-gray-100 text-gray-700 border-gray-200 shadow-none"
+            }
+          >
+            {info.getValue() ? "Active" : "Inactive"}
+          </Badge>
+        ),
+        meta: { title: "Active Status" },
+      });
 
   const actionColumn = columnHelper.display({
     id: "actions",
@@ -179,7 +183,11 @@ export const getColumns = (role: string, permissions: TablePermissions, actions?
           />
         )}
         {row.original.status === "PENDING_APPROVAL" && actions?.onReject && (
-          <ActionBtn tooltipText="Reject" icon={<X size={12} />} onClick={() => actions.onReject!(row.original)} />
+          <ActionBtn
+            tooltipText="Reject"
+            icon={<X size={12} />}
+            onClick={() => actions.onReject!(row.original)}
+          />
         )}
       </div>
     ),
@@ -189,3 +197,6 @@ export const getColumns = (role: string, permissions: TablePermissions, actions?
 
   return [...baseColumns, statusColumn, actionColumn];
 };
+
+
+

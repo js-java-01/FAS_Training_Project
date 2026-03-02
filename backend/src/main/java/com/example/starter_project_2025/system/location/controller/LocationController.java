@@ -24,8 +24,7 @@ public class LocationController {
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String communeId,
             @RequestParam(required = false) LocationStatus status,
-            @PageableDefault(size = 10) Pageable pageable
-    ) {
+            @PageableDefault(size = 10) Pageable pageable) {
         return locationService.search(q, communeId, status, pageable);
     }
 
@@ -42,8 +41,7 @@ public class LocationController {
     @PutMapping("/{id}")
     public LocationResponse update(
             @PathVariable UUID id,
-            @RequestBody LocationRequest request
-    ) {
+            @RequestBody LocationRequest request) {
         return locationService.update(id, request);
     }
 

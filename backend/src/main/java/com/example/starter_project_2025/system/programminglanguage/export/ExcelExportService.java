@@ -104,10 +104,10 @@ public class ExcelExportService implements ExportService {
     private void setCellValue(Cell cell, Object value) {
         if (value == null) {
             cell.setCellValue("");
-        } else if (value instanceof Number) {
-            cell.setCellValue(((Number) value).doubleValue());
-        } else if (value instanceof Boolean) {
-            cell.setCellValue((Boolean) value ? "Yes" : "No");
+        } else if (value instanceof Number number) {
+            cell.setCellValue(number.doubleValue());
+        } else if (value instanceof Boolean boolean1) {
+            cell.setCellValue(boolean1 ? "Yes" : "No");
         } else {
             cell.setCellValue(value.toString());
         }

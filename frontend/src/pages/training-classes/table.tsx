@@ -3,11 +3,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import type { TrainingClass } from "@/types/trainingClass";
 import { getColumns, type TablePermissions } from "./column";
 import { TrainingClassForm } from "./form";
-import { TrainingClassDetailDialog } from "./DetailDialog";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ClassStatus } from "./enum/ClassStatus";
 import { useGetTrainerClasses } from "./trainer/services/queries";
@@ -20,6 +20,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { ClientDataTable } from "@/components/data_table/ClientDataTable";
+import { TrainingClassDetailDialog } from "./DetailDialog";
+
 
 /* ======================================================= */
 interface TrainingClassesTableProps {

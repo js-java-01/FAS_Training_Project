@@ -9,6 +9,7 @@ import com.example.starter_project_2025.system.course.enums.CourseStatus;
 import com.example.starter_project_2025.system.course.mapper.CourseMapper;
 import com.example.starter_project_2025.system.course.repository.CourseRepository;
 import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import com.example.starter_project_2025.system.user.service.UserService;
 
@@ -200,7 +201,15 @@ public class CourseServiceImpl implements CourseService {
     // ─── IMPORT ──────────────────────────────────────────────────────────────
     @Override
     @PreAuthorize("hasAuthority('COURSE_IMPORT')")
-    public void importCourses(MultipartFile file) throws IOException {
+    public ImportResultResponse importCourses(MultipartFile file) throws IOException {
+        ImportResultResponse result = new ImportResultResponse();
+
+        if (file == null || file.isEmpty()) {
+            result.addError(0, "file", "File is empty or missing");
+            result.buildMessage();
+            return result;
+        }
+
         try (Workbook wb = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = wb.getSheetAt(0);
             User currentUser = userService.getCurrentUser();
@@ -215,11 +224,13 @@ public class CourseServiceImpl implements CourseService {
                 if (name == null || name.isBlank() || code == null || code.isBlank())
                     continue;
 
-                // Collect duplicates to report to the caller
-                if (courseRepository.existsByCourseCode(code))
-                    throw new org.springframework.web.server.ResponseStatusException(
-                            org.springframework.http.HttpStatus.BAD_REQUEST,
-                            "Course code already exists: " + code);
+                int rowNum = i + 1;
+                result.setTotalRows(result.getTotalRows() + 1);
+
+                if (courseRepository.existsByCourseCode(code)) {
+                    result.addError(rowNum, "courseCode", "Course code already exists: " + code);
+                    continue;
+                }
 
                 Course course = new Course();
                 course.setCourseName(name);
@@ -284,8 +295,12 @@ public class CourseServiceImpl implements CourseService {
 
                 course.setCreator(currentUser);
                 courseRepository.save(course);
+                result.addSuccess();
             }
         }
+
+        result.buildMessage();
+        return result;
     }
 
     private String getCellValue(Cell cell) {

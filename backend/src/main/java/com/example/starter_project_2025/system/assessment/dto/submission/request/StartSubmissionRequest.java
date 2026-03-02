@@ -9,6 +9,8 @@ import java.util.UUID;
 public class StartSubmissionRequest {
 
     private Long assessmentId;
+    
+    private UUID courseClassId;
 
 }
 

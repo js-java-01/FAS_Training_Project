@@ -10,6 +10,8 @@ import java.util.UUID;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, UUID> {
         boolean existsByCourseCode(String courseCode);
+        
+        java.util.Optional<Course> findByCourseCode(String courseCode);
 
         @Query("SELECT c FROM Course c " +
                         "WHERE (:keyword IS NULL OR LOWER(c.courseName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(c.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) "

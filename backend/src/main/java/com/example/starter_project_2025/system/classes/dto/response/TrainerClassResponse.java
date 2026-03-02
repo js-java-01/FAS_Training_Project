@@ -11,8 +11,7 @@ import java.util.UUID;
 @Data
 @Getter
 @Setter
-public class TrainerClassResponse
-{
+public class TrainerClassResponse {
     private UUID id;
 
     private String className;

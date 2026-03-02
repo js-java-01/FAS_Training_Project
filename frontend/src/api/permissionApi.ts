@@ -37,4 +37,20 @@ export const permissionApi = {
   deletePermission: async (id: string): Promise<void> => {
     await axiosInstance.delete(`/permissions/${id}`);
   },
+
+  exportPermissions: async (): Promise<Blob> => {
+    const res = await axiosInstance.get('/permissions/export', { responseType: 'blob' });
+    return res.data;
+  },
+
+  importPermissions: async (formData: FormData) => {
+    return axiosInstance.post('/permissions/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  downloadTemplate: async (): Promise<Blob> => {
+    const res = await axiosInstance.get('/permissions/template', { responseType: 'blob' });
+    return res.data;
+  },
 };

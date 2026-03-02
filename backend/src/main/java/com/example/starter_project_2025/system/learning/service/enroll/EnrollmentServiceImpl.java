@@ -24,18 +24,6 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     private final UserRepository userRepository;
 
     @Override
-    public TrainingClassSemesterResponse enroll(EnrollmentRequest request) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public List<CourseResponse> getMyEnrolledCourses() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public String enroll(EnrollmentRequest request, UUID id) {
         var classes = trainingClassRepository.findById(request.getClassID())
                 .orElseThrow(() -> new RuntimeException("Class not found"));
@@ -49,7 +37,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         }
         var enrollment = new Enrollment();
         enrollment.setUser(user);
-        enrollment.setTrainingClass(classes);
+        // enrollment.setTrainingClass(classes);
         enrollmentRepository.save(enrollment);
         return "Enrollment successful";
     }

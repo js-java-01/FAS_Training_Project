@@ -1,9 +1,5 @@
 package com.example.starter_project_2025.system.classes.dto.request;
 
-import java.util.UUID;
-
-import org.springframework.data.domain.Pageable;
-
 import com.example.starter_project_2025.system.classes.entity.ClassStatus;
 
 import lombok.AllArgsConstructor;

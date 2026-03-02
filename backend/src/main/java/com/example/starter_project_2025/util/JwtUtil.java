@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -52,6 +53,7 @@ public class JwtUtil
         System.out.println("Permissions in token: " + permissions);
 
         return Jwts.builder()
+                .setId(UUID.randomUUID().toString())
                 .setSubject(userDetails.getEmail())
                 .claim("userId", userDetails.getId().toString())
                 .claim("role", userDetails.getRole())
@@ -135,6 +137,20 @@ public class JwtUtil
         } catch (JwtException | IllegalArgumentException e)
         {
             return false;
+        }
+    }
+
+    public String extractJti(String token)
+    {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.getId();
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
         }
     }
 }

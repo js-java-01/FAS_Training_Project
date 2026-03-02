@@ -1,24 +1,57 @@
 import axiosInstance from './axiosInstance';
 import type { Course, CreateCourseRequest, UpdateCourseRequest } from '../types/course';
+import type {
+  CourseObjective,
+  CreateCourseObjectiveRequest,
+  UpdateCourseObjectiveRequest,
+} from '../types/courseObjective';
 
-export type CourseFilterParams = {
-  keyword?: string;
-  topicCode?: string;
-  trainerId?: string;
-  status?: string;
-  sort?: string;
-};
+export interface CoursePageResponse {
+  items: Course[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    totalElements: number;
+  };
+}
 
 export const courseApi = {
-  getCourses: async (page = 0, size = 10, filters?: CourseFilterParams) => {
-    const q = new URLSearchParams({ page: String(page), size: String(size) });
-    if (filters?.keyword) q.set('keyword', filters.keyword);
-    if (filters?.topicCode) q.set('topicCode', filters.topicCode);
-    if (filters?.trainerId) q.set('trainerId', filters.trainerId);
-    if (filters?.status) q.set('status', filters.status);
-    if (filters?.sort) q.set('sort', filters.sort);
-    const response = await axiosInstance.get(`/courses?${q.toString()}`);
-    return response.data; // Spring Page<Course>
+  getCourses: async (params: {
+    page?: number;
+    size?: number;
+    sort?: string;
+    keyword?: string;
+    status?: string;
+    trainerId?: string;
+  } = {}): Promise<CoursePageResponse> => {
+    const { page = 0, size = 10, sort, keyword, status, trainerId } = params;
+    const response = await axiosInstance.get<{
+      content: Course[];
+      number: number;
+      size: number;
+      totalPages: number;
+      totalElements: number;
+    }>('/courses', {
+      params: {
+        page,
+        size,
+        ...(sort ? { sort } : {}),
+        ...(keyword?.trim() ? { keyword: keyword.trim() } : {}),
+        ...(status ? { status } : {}),
+        ...(trainerId ? { trainerId } : {}),
+      },
+    });
+    const d = response.data;
+    return {
+      items: d.content,
+      pagination: {
+        page: d.number,
+        pageSize: d.size,
+        totalPages: d.totalPages,
+        totalElements: d.totalElements,
+      },
+    };
   },
 
   getCourseById: async (id: string): Promise<Course> => {
@@ -50,11 +83,83 @@ export const courseApi = {
     return response.data;
   },
 
-  importCourses: async (file: File): Promise<void> => {
+  importCourses: async (file: File): Promise<import('@/components/modal/import-export/ImportTab').ImportResult> => {
     const formData = new FormData();
     formData.append('file', file);
-    await axiosInstance.post('/courses/import', formData, {
+    const response = await axiosInstance.post('/courses/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return response.data;
+  },
+
+  // =============================
+  // COURSE OBJECTIVES
+  // =============================
+
+  getObjectivesByCourse: async (
+    courseId: string
+  ): Promise<CourseObjective[]> => {
+    const response = await axiosInstance.get(
+      `/courses/${courseId}/objectives`
+    );
+    return response.data;
+  },
+
+  createObjective: async (
+    courseId: string,
+    payload: CreateCourseObjectiveRequest
+  ): Promise<CourseObjective> => {
+    const response = await axiosInstance.post(
+      `/courses/${courseId}/objectives`,
+      payload
+    );
+    return response.data;
+  },
+
+  updateObjective: async (
+    courseId: string,
+    objectiveId: string,
+    payload: UpdateCourseObjectiveRequest
+  ): Promise<CourseObjective> => {
+    const response = await axiosInstance.put(
+      `/courses/${courseId}/objectives/${objectiveId}`,
+      payload
+    );
+    return response.data;
+  },
+
+  deleteObjective: async (
+    courseId: string,
+    objectiveId: string
+  ): Promise<void> => {
+    await axiosInstance.delete(
+      `/courses/${courseId}/objectives/${objectiveId}`
+    );
+  },
+
+  exportObjectives: async (courseId: string): Promise<Blob> => {
+    const response = await axiosInstance.get(
+      `/courses/${courseId}/objectives/export`,
+      { responseType: 'blob' }
+    );
+    return response.data;
+  },
+
+  downloadObjectivesTemplate: async (courseId: string): Promise<Blob> => {
+    const response = await axiosInstance.get(
+      `/courses/${courseId}/objectives/template`,
+      { responseType: 'blob' }
+    );
+    return response.data;
+  },
+
+  importObjectives: async (courseId: string, file: File): Promise<void> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    await axiosInstance.post(
+      `/courses/${courseId}/objectives/import`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
   },
 };

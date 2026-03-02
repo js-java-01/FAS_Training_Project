@@ -2,6 +2,7 @@ import axios from "axios";
 import type { LoginResponse } from "@/types/auth";
 import { store } from "@/store/store";
 import { setLogout } from "@/store/slices/auth/authSlice";
+import mfaGate from "./mfaGate";
 import type { ExportFormat } from "@/types/export";
 
 const axiosInstance = axios.create({
@@ -46,6 +47,13 @@ axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalReq = error.config;
+
+    // Only handle MFA_REQUIRED if user is authenticated (has token)
+    const token = localStorage.getItem("token");
+    if (token && error?.response?.status === 403 && error?.response?.data?.code === "MFA_REQUIRED" && !originalReq._mfa_retry) {
+      originalReq._mfa_retry = true;
+      return mfaGate.enqueue(originalReq);
+    }
 
         if (error?.response?.status === 401 && !originalReq._retry && !originalReq.url.includes("/auth/login") && !originalReq.url.includes("/auth/logout")) {
             originalReq._retry = true;

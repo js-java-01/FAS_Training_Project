@@ -4,6 +4,7 @@ import com.example.starter_project_2025.system.course.dto.CourseCreateRequest;
 import com.example.starter_project_2025.system.course.dto.CourseResponse;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
+import com.example.starter_project_2025.system.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

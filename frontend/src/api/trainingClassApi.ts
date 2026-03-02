@@ -3,6 +3,7 @@ import type {
   TrainingClass,
   CreateTrainingClassRequest,
   TrainingClassSemesterResponse,
+  UpdateTrainingClassRequest,
 } from "@/types/trainingClass";
 import type { ApiResponse, PagedData } from "@/types/response";
 import type { TraineeDetailsResponse } from "@/types/trainerClass";
@@ -48,6 +49,31 @@ export const trainingClassApi = {
     const res = await axiosInstance.get<ApiResponse<TrainingClassSemesterResponse>>("/classes/trainer/my-classes", {
       params,
     });
+    return res.data;
+  },
+  updateTrainingClass: async (
+    id: string,
+    data: UpdateTrainingClassRequest,
+  ): Promise<TrainingClass> => {
+    const res = await axiosInstance.put<ApiResponse<TrainingClass>>(
+      `/classes/${id}`,
+      data,
+    );
+    return res.data.data;
+  },
+  approveClass: async (id: string, reason?: string): Promise<TrainingClass> => {
+    const res = await axiosInstance.put<TrainingClass>(
+      `/classes/${id}/approve`,
+      { reviewReason: reason },
+    );
+    return res.data;
+  },
+
+  rejectClass: async (id: string, reason: string): Promise<TrainingClass> => {
+    const res = await axiosInstance.put<TrainingClass>(
+      `/classes/${id}/reject`,
+      { reviewReason: reason },
+    );
     return res.data;
   },
 };

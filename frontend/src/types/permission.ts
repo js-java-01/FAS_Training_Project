@@ -4,6 +4,7 @@ export interface Permission {
   description: string;
   resource: string;
   action: string;
+  createdAt?: string;
 }
 
 export interface CreatePermissionRequest {

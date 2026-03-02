@@ -5,7 +5,9 @@ import com.example.starter_project_2025.system.export.ExportService;
 import com.example.starter_project_2025.system.export.configs.UserExportConfig;
 import com.example.starter_project_2025.system.user.dto.CreateUserRequest;
 import com.example.starter_project_2025.system.user.dto.UserDTO;
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.user.service.UserImportExportService;
 import com.example.starter_project_2025.system.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -18,9 +20,12 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -38,13 +43,31 @@ public class UserController {
 
     UserService userService;
     ExportService exportService;
+    UserImportExportService importExportService;
 
     @GetMapping("/export")
     public void exportUsers(
             @RequestParam ExportFormat format,
-            HttpServletResponse response
-    ) throws IOException {
+            HttpServletResponse response) throws IOException {
         exportService.export(format, userService.findAll(), UserExportConfig.CONFIG, response);
+    }
+
+    @Operation(summary = "Download import template", description = "Download Excel template file for user import")
+    @GetMapping("/import/template")
+    public ResponseEntity<byte[]> downloadTemplate() {
+        byte[] file = importExportService.downloadImportTemplate();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=users_import_template.xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(file);
+    }
+
+    @Operation(summary = "Import users", description = "Upload Excel file (.xlsx) to import users")
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ImportResultResponse> importUsers(
+            @RequestPart("file") MultipartFile file) {
+        ImportResultResponse result = importExportService.importUsers(file);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping
@@ -55,16 +78,14 @@ public class UserController {
             @RequestParam(required = false) LocalDateTime createFrom,
             @RequestParam(required = false) LocalDateTime createTo,
             @RequestParam(required = false) Boolean isActive,
-            @PageableDefault(size = 10) Pageable pageable
-    ) {
+            @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(userService.getAllUsers(
                 searchContent,
                 roleId,
                 createFrom,
                 createTo,
                 isActive,
-                pageable
-        ));
+                pageable));
     }
 
     @GetMapping("/{id}")
@@ -84,23 +105,20 @@ public class UserController {
     @Operation(summary = "Update user", description = "Update an existing user")
     public ResponseEntity<UserDTO> updateUser(
             @PathVariable UUID id,
-            @Valid @RequestBody UserDTO request
-    ) {
+            @Valid @RequestBody UserDTO request) {
         return ResponseEntity.ok(userService.updateUser(id, request));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete user", description = "Delete a user by ID")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id)
-    {
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/toggle-status")
     @Operation(summary = "Toggle user status", description = "Activate or deactivate a user")
-    public ResponseEntity<UserDTO> toggleUserStatus(@PathVariable UUID id)
-    {
+    public ResponseEntity<UserDTO> toggleUserStatus(@PathVariable UUID id) {
         UserDTO user = userService.toggleUserStatus(id);
         return ResponseEntity.ok(user);
     }
@@ -109,8 +127,7 @@ public class UserController {
     @Operation(summary = "Assign role to user", description = "Assign a role to a specific user")
     public ResponseEntity<UserDTO> assignRole(
             @PathVariable UUID userId,
-            @RequestBody Map<String, UUID> request
-    ) {
+            @RequestBody Map<String, UUID> request) {
         UUID roleId = request.get("roleId");
         UserDTO user = userService.assignRole(userId, roleId);
         return ResponseEntity.ok(user);

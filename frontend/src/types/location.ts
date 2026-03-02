@@ -1,7 +1,10 @@
-export enum LocationStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-}
+export const LocationStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export type LocationStatus =
+  typeof LocationStatus[keyof typeof LocationStatus];
 
 export interface Location {
   id: string;
@@ -11,6 +14,8 @@ export interface Location {
   communeName: string;
   provinceName: string;
   status: LocationStatus;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateLocationRequest {
@@ -36,4 +41,3 @@ export interface LocationImportResult {
   success: number;
   errors: LocationImportError[];
 }
-
