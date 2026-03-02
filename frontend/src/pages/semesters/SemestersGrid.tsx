@@ -12,11 +12,10 @@ import { Pagination, PaginationContent, PaginationItem, PaginationEllipsis } fro
 import { semesterApi } from "@/api/semesterApi";
 
 import { usePagination } from "@/hooks/usePagination";
-import type { Semester } from "@/types/trainingClass";
+// import type { SemesterResponse } from "@/types/trainingClass";
 import { SemesterForm } from "./components/SemesterForm";
 import { SemesterDetailDialog } from "./components/SemesterDetailDialog";
-import { SemesterCard } from "./components/SemesterCard";
-import type { SemesterResponse } from "./dto/SemesterResponse";
+import { SemesterCard, type SemesterResponse } from "./components/SemesterCard";
 import { useDownloadTemplate, useExportSemesters, useImportSemesters } from "./services/mutations/mutations";
 import { useGetAllSemesters } from "./services/queries/useSemesters";
 import type { CreateSemesterRequest } from "./dto/CreateSemesterRequest";
@@ -37,9 +36,9 @@ export default function SemestersGrid({ onSelectSemester }: SemestersGridProps) 
   const canDelete = permissions.includes("SEMESTER_DELETE");
   /* ---------- Modal & View States ---------- */
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingSemester, setEditingSemester] = useState<Semester | null>(null);
-  const [viewingSemester, setViewingSemester] = useState<Semester | null>(null);
-  const [deletingSemester, setDeletingSemester] = useState<Semester | null>(null);
+  const [editingSemester, setEditingSemester] = useState<SemesterResponse | null>(null);
+  const [viewingSemester, setViewingSemester] = useState<SemesterResponse | null>(null);
+  const [deletingSemester, setDeletingSemester] = useState<SemesterResponse  | null>(null);
   const [openBackupModal, setOpenBackupModal] = useState(false);
 
   /* ---------- Pagination State ---------- */
@@ -98,7 +97,7 @@ export default function SemestersGrid({ onSelectSemester }: SemestersGridProps) 
     await queryClient.invalidateQueries({ queryKey: ["semesters"] });
   };
 
-  const validateSemesterData = (formData: Partial<Semester>) => {
+  const validateSemesterData = (formData: Partial<SemesterResponse>) => {
     if (!formData.name?.trim()) {
       toast.error("Vui lòng nhập tên học kỳ");
       return false;
@@ -123,7 +122,7 @@ export default function SemestersGrid({ onSelectSemester }: SemestersGridProps) 
     return true;
   };
 
-  const handleCreate = async (formData: Partial<Semester>) => {
+  const handleCreate = async (formData: Partial<SemesterResponse>) => {
     if (!validateSemesterData(formData)) return;
     try {
       await semesterApi.createSemester(formData as CreateSemesterRequest);
@@ -140,7 +139,7 @@ export default function SemestersGrid({ onSelectSemester }: SemestersGridProps) 
     }
   };
 
-  const handleUpdate = async (formData: Partial<Semester>) => {
+  const handleUpdate = async (formData: Partial<SemesterResponse>) => {
     if (!validateSemesterData(formData)) return;
     if (!editingSemester?.id) return;
     try {

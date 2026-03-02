@@ -4,7 +4,7 @@ import { ROLES } from "@/types/role";
 import { lazy, Suspense } from "react";
 
 const StudentComponent = lazy(
-  () => import("../training-classes/trainee/StudentClassManagement")
+  () => import("./StudentClassManagement")
 );
 
 const UnauthorizedComponent = lazy(
@@ -42,7 +42,7 @@ export default function ClassesComponent() {
 
   return (
     <Suspense fallback={<MainLayoutSkeleton />}>
-      <Component semesterId="" />
+      <Component  />
     </Suspense>
   );
 }
