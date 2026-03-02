@@ -44,7 +44,7 @@ import java.util.List;
  * CourseAssessmentTypeWeight Entrance Quiz 30% HIGHEST
  * Midterm Test 50% LATEST
  * Final Exam 20% AVERAGE
- * TrainingClass TC-DEMO-01 (Course x TC-DEMO-01, scores seeded)
+ * TrainingClass TC-DEMO-01 (DEMO-COURSE-TM + JBM-01, scores seeded separately)
  * TrainingClass TC-DEMO-02 (JBM-01 + RFP-01, no scores)
  * TrainingClass TC-DEMO-03 (JBM-01 + DEMO-COURSE-TM, no scores)
  * TrainingClass TC-DEMO-04 (DEMO-COURSE-TM, scores seeded)
@@ -134,6 +134,17 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
         Course javaCourse = findCourseByCode("JBM-01");
         Course reactCourse = findCourseByCode("RFP-01");
 
+        CourseClass courseClass01Extra = null;
+        if (javaCourse != null) {
+            findOrCreateWeight(javaCourse, quizType, 0.30, GradingMethod.HIGHEST);
+            findOrCreateWeight(javaCourse, midtermType, 0.50, GradingMethod.LATEST);
+            findOrCreateWeight(javaCourse, finalType, 0.20, GradingMethod.AVERAGE);
+            courseClass01Extra = findOrCreateCourseClass(javaCourse, trainingClass, admin);
+            log.info("TC-DEMO-01 extra course class linked: {}", javaCourse.getCourseCode());
+        } else {
+            log.warn("JBM-01 not found - skip extra course class seed for TC-DEMO-01");
+        }
+
         TrainingClass tc02 = findOrCreateTrainingClassByCode("TC-DEMO-02", "Demo Training Class 02", semester, admin);
         if (javaCourse != null)
             findOrCreateCourseClass(javaCourse, tc02, admin);
@@ -206,6 +217,40 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                     "TC-DEMO-01 seeded: John 7.90 PASS | Alice 8.15 PASS | Bob 4.80 FAIL | Carol 9.39 PASS | David 5.83 FAIL | Eva 8.12 PASS");
         } else {
             log.info("TC-DEMO-01 columns already exist - skipped");
+        }
+
+        // 3b. Seed extra CourseClass in TC-DEMO-01 (JBM-01) with separate gradebook
+        if (courseClass01Extra != null) {
+            final CourseClass extraCourseClass = courseClass01Extra;
+
+            double minGpaExtra = extraCourseClass.getCourse().getMinGpaToPass() != null
+                ? extraCourseClass.getCourse().getMinGpaToPass()
+                    : 5.0;
+
+            if (columnRepository.findActiveByCourseClassId(extraCourseClass.getId()).isEmpty()) {
+            TopicMarkColumn quizCol1Extra = createColumn(extraCourseClass, quizType, "JBM Quiz Chapter 1", 1, admin);
+            TopicMarkColumn quizCol2Extra = createColumn(extraCourseClass, quizType, "JBM Quiz Chapter 2", 2, admin);
+            TopicMarkColumn midtermColExtra = createColumn(extraCourseClass, midtermType, "JBM Midterm", 1, admin);
+            TopicMarkColumn finalColExtra = createColumn(extraCourseClass, finalType, "JBM Final", 1, admin);
+
+                List.of(
+                        new SD(john, 7.2, 8.1, 7.8, 8.0, 7.86),
+                        new SD(alice, 8.6, 8.9, 9.0, 8.8, 8.94),
+                        new SD(bob, 4.5, 5.2, 4.8, 4.9, 4.94),
+                        new SD(carol, 9.2, 9.4, 9.1, 9.0, 9.25),
+                        new SD(david, 5.8, 6.0, 5.4, 5.6, 5.64),
+                        new SD(eva, 8.1, 8.3, 8.0, 8.2, 8.26)).forEach(sd -> {
+                            saveEntry(quizCol1Extra, sd.user(), sd.q1(), admin);
+                            saveEntry(quizCol2Extra, sd.user(), sd.q2(), admin);
+                            saveEntry(midtermColExtra, sd.user(), sd.mid(), admin);
+                            saveEntry(finalColExtra, sd.user(), sd.fin(), admin);
+                            upsertTopicMark(extraCourseClass, sd.user(), sd.total(), minGpaExtra);
+                        });
+                log.info(
+                        "TC-DEMO-01 (JBM-01) seeded: John 7.86 PASS | Alice 8.94 PASS | Bob 4.94 FAIL | Carol 9.25 PASS | David 5.64 PASS | Eva 8.26 PASS");
+            } else {
+                log.info("TC-DEMO-01 (JBM-01) columns already exist - skipped");
+            }
         }
 
         // 4. Seed TC-DEMO-04 (guard: skip if columns already exist)
@@ -409,7 +454,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                 .topicMarkEntry(entry)
                 .oldScore(null)
                 .newScore(score)
-                .changeType(ChangeType.INCREASE)
+//                .changeType(ChangeType.INCREASE)
                 .reason("Initial seed data")
                 .updatedBy(seeder)
                 .build());
