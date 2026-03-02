@@ -668,12 +668,19 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 Row row = sheet.getRow(r);
                 if (row == null)
                     continue;
-
-                totalRows++;
                 int excelRowNum = r + 1; // 1-based for user display
 
                 // Get user ID from hidden column 1
                 String userIdStr = getCellString(row.getCell(1));
+                boolean hasScoreInput = hasAnyScoreInput(row, colIndexToColumnId.keySet());
+                boolean isPotentialStudentRow = isPotentialStudentRow(row);
+
+                if ((userIdStr == null || userIdStr.isBlank()) && !hasScoreInput && !isPotentialStudentRow) {
+                    continue;
+                }
+
+                totalRows++;
+
                 if (userIdStr == null || userIdStr.isBlank()) {
                     errors.add(new ImportErrorDetail(excelRowNum, "User ID", "Missing user ID"));
                     continue;
@@ -840,6 +847,30 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         };
     }
 
+    private boolean hasAnyScoreInput(Row row, Set<Integer> scoreColumns) {
+        for (Integer colIdx : scoreColumns) {
+            String raw = getCellString(row.getCell(colIdx));
+            if (raw != null && !raw.isBlank()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isPotentialStudentRow(Row row) {
+        String sttRaw = getCellString(row.getCell(0));
+        if (sttRaw != null && !sttRaw.isBlank()) {
+            try {
+                Double.parseDouble(sttRaw.trim());
+                return true;
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        String emailRaw = getCellString(row.getCell(3));
+        return emailRaw != null && !emailRaw.isBlank();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> exportGradebookTemplate(UUID courseClassId) {
@@ -872,9 +903,9 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             }
 
             Row headerRow = sheet.createRow(1);
-            putCell(headerRow, 0, "STT", headerStyle);
+            putCell(headerRow, 0, "No.", headerStyle);
             putCell(headerRow, 1, "User ID", headerStyle);
-            putCell(headerRow, 2, "Họ và tên", headerStyle);
+            putCell(headerRow, 2, "Full Name", headerStyle);
             putCell(headerRow, 3, "Email", headerStyle);
             for (int i = 0; i < columns.size(); i++) {
                 putCell(headerRow, SCORE_COL_START + i, columns.get(i).getColumnLabel(), headerStyle);
@@ -908,24 +939,31 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
             int noteStartRow = enrollments.size() + 4;
 
-            Row noteTitleRow = sheet.createRow(noteStartRow);
+            for (int r = noteStartRow; r <= noteStartRow + 3; r++) {
+                Row noteBgRow = sheet.createRow(r);
+                for (int c = 0; c <= 2; c++) {
+                    noteBgRow.createCell(c).setCellStyle(noteBodyStyle);
+                }
+            }
+
+            Row noteTitleRow = sheet.getRow(noteStartRow);
             putCell(noteTitleRow, 0, "Note", noteTitleStyle);
             putCell(noteTitleRow, 2, "Score format requirement:", noteTitleStyle);
 
-            Row noteRow1 = sheet.createRow(noteStartRow + 1);
-            putCell(noteRow1, 2, "Decimal separator must be (.)", noteBodyStyle);
+            Row noteRow1 = sheet.getRow(noteStartRow + 1);
+            putCell(noteRow1, 2, "Use dot (.) for decimal", noteBodyStyle);
 
-            Row noteRow2 = sheet.createRow(noteStartRow + 2);
+            Row noteRow2 = sheet.getRow(noteStartRow + 2);
             putCell(noteRow2, 2, "Accepted example: 9.99", noteBodyStyle);
 
-            Row noteRow3 = sheet.createRow(noteStartRow + 3);
+            Row noteRow3 = sheet.getRow(noteStartRow + 3);
             putCell(noteRow3, 2, "Not accepted: 6,88", noteBodyStyle);
 
-            sheet.addMergedRegion(new CellRangeAddress(noteStartRow, noteStartRow + 3, 0, 1));
-            sheet.addMergedRegion(new CellRangeAddress(noteStartRow, noteStartRow, 2, 3));
-            sheet.addMergedRegion(new CellRangeAddress(noteStartRow + 1, noteStartRow + 1, 2, 3));
-            sheet.addMergedRegion(new CellRangeAddress(noteStartRow + 2, noteStartRow + 2, 2, 3));
-            sheet.addMergedRegion(new CellRangeAddress(noteStartRow + 3, noteStartRow + 3, 2, 3));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow, noteStartRow + 3, 0, 0));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow, noteStartRow, 2, 4));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow + 1, noteStartRow + 1, 2, 4));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow + 2, noteStartRow + 2, 2, 4));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow + 3, noteStartRow + 3, 2, 4));
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             wb.write(out);
@@ -1157,10 +1195,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         s.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
         s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         s.setVerticalAlignment(VerticalAlignment.TOP);
-        s.setBorderBottom(BorderStyle.THIN);
-        s.setBorderTop(BorderStyle.THIN);
-        s.setBorderLeft(BorderStyle.THIN);
-        s.setBorderRight(BorderStyle.THIN);
+        s.setAlignment(HorizontalAlignment.LEFT);
         return s;
     }
 
@@ -1168,10 +1203,8 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         CellStyle s = wb.createCellStyle();
         s.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
         s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        s.setBorderBottom(BorderStyle.THIN);
-        s.setBorderTop(BorderStyle.THIN);
-        s.setBorderLeft(BorderStyle.THIN);
-        s.setBorderRight(BorderStyle.THIN);
+        s.setAlignment(HorizontalAlignment.LEFT);
+        s.setVerticalAlignment(VerticalAlignment.CENTER);
         return s;
     }
 }
