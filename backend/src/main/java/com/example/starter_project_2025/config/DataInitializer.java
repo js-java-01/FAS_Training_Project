@@ -1031,13 +1031,13 @@ public class DataInitializer implements CommandLineRunner {
                 }
         }
 
-        private CourseClass buildCourseClass(Course course, TrainingClass classInfo, User trainer) {
-                CourseClass cc = new CourseClass();
-                cc.setCourse(course);
-                cc.setClassInfo(classInfo);
-                cc.setTrainer(trainer);
-                return cc;
-        }
+//        private CourseClass buildCourseClass(Course course, TrainingClass classInfo, User trainer) {
+//                CourseClass cc = new CourseClass();
+//                cc.setCourse(course);
+//                cc.setClassInfo(classInfo);
+//                cc.setTrainer(trainer);
+//                return cc;
+//        }
 
         private void initializeEnrollments()
         {
