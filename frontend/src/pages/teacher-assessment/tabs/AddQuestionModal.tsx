@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Search, Plus, CheckCircle2 } from 'lucide-react';
-import type { QuestionCategory } from '@/types';
+import type { QuestionCategoryDTO } from '@/types';
 import type { QuestionListItem } from '@/types/question';
 import { questionApi } from '@/api/questionApi';
 import { questionCategoryApi } from '@/api';
@@ -37,7 +37,16 @@ export function AddQuestionModal({ isOpen, onClose, onAdd, existingQuestionIds }
         enabled: isOpen,
     });
 
-    const categories = categoriesResponse?.items ?? [];
+    const categories = categoriesResponse?.content ?? [];
+
+    // Create category lookup map
+    const categoryLookup = useMemo(() => {
+        const map = new Map<string, QuestionCategoryDTO>();
+        categories.forEach(category => {
+            if (category.id) map.set(category.id, category);
+        });
+        return map;
+    }, [categories]);
 
     // Filter out questions that are already added to the assessment
     const availableQuestions = useMemo(() => {
@@ -50,15 +59,14 @@ export function AddQuestionModal({ isOpen, onClose, onAdd, existingQuestionIds }
 
         // Filter by selected category
         if (selectedCategoryId) {
-            filtered = filtered.filter(q => q.category?.id === selectedCategoryId);
+            filtered = filtered.filter(q => q.categoryId === selectedCategoryId);
         }
 
         // Filter by search term
         if (searchTerm.trim()) {
             const term = searchTerm.toLowerCase();
             filtered = filtered.filter(q =>
-                q.content.toLowerCase().includes(term) ||
-                (q.category?.name?.toLowerCase().includes(term) ?? false)
+                q.content.toLowerCase().includes(term)
             );
         }
 
@@ -155,8 +163,8 @@ export function AddQuestionModal({ isOpen, onClose, onAdd, existingQuestionIds }
                                             </span>
                                         </div>
                                     </button>
-                                    {categories.map((category: QuestionCategory) => {
-                                        const count = availableQuestions.filter(q => q.category?.id === category.id).length;
+                                    {categories.map((category: QuestionCategoryDTO) => {
+                                        const count = availableQuestions.filter(q => q.categoryId === category.id).length;
                                         const isSelected = selectedCategoryId === category.id;
                                         return (
                                             <button
@@ -277,7 +285,7 @@ export function AddQuestionModal({ isOpen, onClose, onAdd, existingQuestionIds }
                                                         </p>
                                                         <div className="flex items-center gap-2 mt-3">
                                                             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-100 text-gray-600">
-                                                                {question.category?.name || 'No Category'}
+                                                                {question.categoryId ? (categoryLookup.get(question.categoryId)?.name || 'No Category') : 'No Category'}
                                                             </span>
                                                             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-700">
                                                                 {question.questionType}

@@ -20,20 +20,11 @@ export interface Question {
   content: string;
   questionType: string;
   isActive: boolean;
-
+  categoryId: string;
+  tagIds: number[];
+  options: QuestionOption[];
   createdAt: string;
   updatedAt: string;
-
-  category: {
-    id: string;
-    name: string;
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-  };
-
-  options: QuestionOption[];
-  tags?: QuestionTag[];
 }
 
 export interface QuestionListItem {
@@ -41,9 +32,9 @@ export interface QuestionListItem {
   content: string;
   questionType: string;
   isActive: boolean;
-  category: SimplifiedCategory;
+  categoryId: string;
+  tagIds: number[];
   options: Omit<QuestionOption, 'id'>[];
-  tags: QuestionTag[];
 }
 
 export interface QuestionCreateRequest {

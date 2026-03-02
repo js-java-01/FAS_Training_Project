@@ -1,8 +1,8 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AlertCircle, FileText, Layers, Settings, Tag, X } from 'lucide-react';
-import type { QuestionCreateRequest } from '@/types';
+import { AlertCircle, FileText, Layers, Settings, Tag } from 'lucide-react';
+import type { QuestionCreateRequest, QuestionCategoryDTO, QuestionTagDTO } from '@/types';
 import { questionCategoryApi, questionTagApi } from '@/api';
 
 interface QuestionFormFieldsProps {
@@ -21,18 +21,18 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
         queryFn: () => questionCategoryApi.getPage({ page: 0, size: 1000 })
     });
 
-    const categories = categoriesResponse?.items ?? [];
+    const categories = categoriesResponse?.content ?? [];
 
     const { data: tagsResponse, isLoading: tagsLoading } = useQuery({
         queryKey: ['question-tags'],
         queryFn: () => questionTagApi.getPage({ page: 0, size: 1000 })
     });
 
-    console.log("🎯 [QuestionFormFields] tagsResponse:", tagsResponse);
-    console.log("🎯 [QuestionFormFields] tagsLoading:", tagsLoading);
+    console.log(" [QuestionFormFields] tagsResponse:", tagsResponse);
+    console.log(" [QuestionFormFields] tagsLoading:", tagsLoading);
 
-    const availableTags = tagsResponse?.items ?? [];
-    console.log("🎯 [QuestionFormFields] availableTags:", availableTags);
+    const availableTags = tagsResponse?.content ?? [];
+    console.log(" [QuestionFormFields] availableTags:", availableTags);
 
     const handleTypeChange = (newType: 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE') => {
         const newOptions = [...data.options];
@@ -125,7 +125,7 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
                         disabled={categoriesLoading}
                     >
                         <option value="">Select a category...</option>
-                        {categories?.map((category: QuestionCategory) => (
+                        {categories?.map((category: QuestionCategoryDTO) => (
                             <option key={category.id} value={category.id}>
                                 {category.name}
                             </option>
@@ -161,8 +161,8 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
                 ) : (
                     <div className="space-y-3">
                         <div className="flex flex-wrap gap-2">
-                            {availableTags.map((tag: QuestionTag) => {
-                                const isSelected = data.tagIds?.includes(tag.id) ?? false;
+                            {availableTags.filter(tag => tag.id).map((tag: QuestionTagDTO) => {
+                                const isSelected = data.tagIds?.includes(tag.id!) ?? false;
                                 return (
                                     <button
                                         key={tag.id}
@@ -171,7 +171,7 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
                                             const currentTagIds = data.tagIds ?? [];
                                             const newTagIds = isSelected
                                                 ? currentTagIds.filter(id => id !== tag.id)
-                                                : [...currentTagIds, tag.id];
+                                                : [...currentTagIds, tag.id!];
                                             onChange({ ...data, tagIds: newTagIds });
                                         }}
                                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${isSelected
@@ -212,9 +212,9 @@ export const QuestionFormFields: React.FC<QuestionFormFieldsProps> = ({
                     <label htmlFor="isActive" className="flex-1 cursor-pointer">
                         <div className="font-bold text-gray-900">Active Question</div>
                         <div className="text-sm text-gray-600">
-                            {data.isActive
+                            {/* {data.isActive
                                 ? '✓ This question will be available for use in assessments'
-                                : '○ This question will be hidden from assessments'}
+                                : '○ This question will be hidden from assessments'} */}
                         </div>
                     </label>
                     {data.isActive && (

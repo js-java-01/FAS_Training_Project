@@ -15,7 +15,7 @@ export const questionApi = {
         sort?: string;
     }): Promise<PagedQuestionResponse> => {
         const response = await axiosInstance.get<PagedQuestionResponse>(
-            '/v1/questions',
+            '/questions',
             { params }
         );
         return response.data;
@@ -24,7 +24,8 @@ export const questionApi = {
     // ==================== GET ALL CONTENT (Non-paginated) ====================
     getAllContent: async (): Promise<QuestionListItem[]> => {
         const response = await axiosInstance.get<PagedQuestionResponse>(
-            '/v1/questions'
+            '/questions',
+            { params: { page: 0, size: 9999 } }
         );
         return response.data.content || [];
     },
@@ -34,7 +35,7 @@ export const questionApi = {
         data: QuestionCreateRequest
     ): Promise<Question> => {
         const payload = {
-            questionCategoryId: data.categoryId,
+            categoryId: data.categoryId,
             questionType: data.questionType,
             content: data.content,
             isActive: data.isActive,
@@ -43,7 +44,7 @@ export const questionApi = {
         };
 
         const response = await axiosInstance.post<Question>(
-            '/v1/questions',
+            '/questions',
             payload
         );
         return response.data;
@@ -62,7 +63,8 @@ export const questionApi = {
         }));
 
         const payload = {
-            questionCategoryId: data.categoryId,
+            id,
+            categoryId: data.categoryId,
             questionType: data.questionType,
             content: data.content,
             isActive: data.isActive,
@@ -70,8 +72,8 @@ export const questionApi = {
             tagIds: data.tagIds || []
         };
 
-        const response = await axiosInstance.patch<Question>(
-            `/v1/questions/${id}`,
+        const response = await axiosInstance.put<Question>(
+            `/questions/${id}`,
             payload
         );
         return response.data;
@@ -80,13 +82,13 @@ export const questionApi = {
     // ==================== GET BY ID ====================
     getById: async (id: string): Promise<Question> => {
         const response = await axiosInstance.get<Question>(
-            `/v1/questions/${id}`
+            `/questions/${id}`
         );
         return response.data;
     },
 
     // ==================== DELETE ====================
     delete: async (id: string): Promise<void> => {
-        await axiosInstance.delete(`/v1/questions/${id}`);
+        await axiosInstance.delete(`/questions/${id}`);
     }
 };

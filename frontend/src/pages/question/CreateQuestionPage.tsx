@@ -21,8 +21,8 @@ export default function CreateQuestionPage() {
             isActive: true,
             categoryId: '',
             options: [
-                { content: '', correct: false, orderIndex: 0, questionId: '' },
-                { content: '', correct: false, orderIndex: 1, questionId: '' },
+                { content: '', correct: false, orderIndex: 0 },
+                { content: '', correct: false, orderIndex: 1 },
             ],
             tagIds: [],
         }
@@ -121,8 +121,8 @@ export default function CreateQuestionPage() {
                 isActive: true,
                 categoryId: '',
                 options: [
-                    { content: '', correct: false, orderIndex: 0, questionId: '' },
-                    { content: '', correct: false, orderIndex: 1, questionId: '' },
+                    { content: '', correct: false, orderIndex: 0 },
+                    { content: '', correct: false, orderIndex: 1 },
                 ],
                 tagIds: [],
             }

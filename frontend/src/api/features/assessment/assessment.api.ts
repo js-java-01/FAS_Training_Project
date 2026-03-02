@@ -1,14 +1,9 @@
-import type { Assessment, AssessmentCreateRequest, AssessmentUpdateRequest } from '@/types';
-import axiosInstance from '../../axiosInstance';
 import { createBaseApiService } from '@/api/base-service.api';
 import { Url } from '@/api/url';
+import type { Assessment } from '@/types';
 
-const base = createBaseApiService<
-  Assessment,
-  null,
-  AssessmentCreateRequest,
-  AssessmentUpdateRequest
->(axiosInstance, Url.ASSESSMENT);
+
+const base = createBaseApiService<Assessment, null>({ path: Url.ASSESSMENT });
 
 // Adapter for API compatibility (ensures both .items and .content properties exist)
 const adaptPageResponse = async (promise: any) => {

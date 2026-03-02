@@ -1,5 +1,4 @@
 import type { QuestionOption, QuestionOptionRequest } from "./question-option";
-import type { QuestionTag } from "./question-tag";
 
 export interface SimplifiedCategory {
   id: string;
@@ -7,21 +6,15 @@ export interface SimplifiedCategory {
 }
 
 export interface Question {
-  id: string;
+  id?: string;
   content: string;
   questionType: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  category: {
-    id: string;
-    name: string;
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-  };
+  categoryId: string;
   options: QuestionOption[];
-  tags?: QuestionTag[];
+  tagIds: number[];
 }
 
 export interface QuestionListItem {
@@ -29,9 +22,9 @@ export interface QuestionListItem {
   content: string;
   questionType: string;
   isActive: boolean;
-  category: SimplifiedCategory;
+  categoryId: string;
+  tagIds: number[];
   options: Omit<QuestionOption, 'id'>[];
-  tags: QuestionTag[];
 }
 
 export interface QuestionCreateRequest {
