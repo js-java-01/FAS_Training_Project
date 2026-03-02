@@ -12,12 +12,13 @@ import java.util.UUID;
 public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID>, JpaSpecificationExecutor<Enrollment> {
     Optional<Enrollment> findByUserIdAndTrainingClassId(UUID userId, UUID classId);
 
-    List<Enrollment> findByCourseId(UUID courseId);
+    // List<Enrollment> findByCourseId(UUID courseId);
 
-    List<Enrollment> findByCourseIdAndStatus(UUID courseId, EnrollmentStatus status);
+    // List<Enrollment> findByCourseIdAndStatus(UUID courseId, EnrollmentStatus
+    // status);
 
     // boolean existsByUserIdAndCohortId(UUID userId, UUID cohortId);
-    boolean existsByUserIdAndCourseId(UUID userId, UUID courseId);
+    // boolean existsByUserIdAndCourseId(UUID userId, UUID courseId);
 
     List<Enrollment> findByUserId(UUID userId);
 }

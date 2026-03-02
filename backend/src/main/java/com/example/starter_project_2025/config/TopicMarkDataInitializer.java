@@ -346,18 +346,20 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
     }
 
     private CourseClass findOrCreateCourseClass(Course course, TrainingClass tc) {
-        return em.createQuery(
-                "SELECT cc FROM CourseClass cc WHERE cc.course.id = :c AND cc.classInfo.id = :t", CourseClass.class)
-                .setParameter("c", course.getId())
-                .setParameter("t", tc.getId())
-                .getResultStream().findFirst()
-                .orElseGet(() -> {
-                    CourseClass cc = new CourseClass();
-                    cc.setCourse(course);
-                    cc.setClassInfo(tc);
-                    em.persist(cc);
-                    return cc;
-                });
+        return null;
+        // return em.createQuery(
+        // "SELECT cc FROM CourseClass cc WHERE cc.course.id = :c AND cc.classInfo.id =
+        // :t", CourseClass.class)
+        // .setParameter("c", course.getId())
+        // .setParameter("t", tc.getId())
+        // .getResultStream().findFirst()
+        // .orElseGet(() -> {
+        // CourseClass cc = new CourseClass();
+        // cc.setCourse(course);
+        // cc.setClassInfo(tc);
+        // em.persist(cc);
+        // return cc;
+        // });
     }
 
     private User findOrCreateStudent(String email, String firstName, String lastName) {
@@ -380,8 +382,8 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
         if (count == 0) {
             Enrollment e = new Enrollment();
             e.setUser(user);
-            e.setCourse(course);
-            e.setStatus(EnrollmentStatus.ACTIVE);
+            // e.setCourse(course);
+            // e.setStatus(EnrollmentStatus.ACTIVE);
             em.persist(e);
         }
     }
