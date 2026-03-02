@@ -1340,34 +1340,38 @@ public class DataInitializer implements CommandLineRunner {
                 }
 
                 List<TrainingClass> classes = List.of(
-                        buildTrainingClass("Ká»¹ sÆ° pháº§n má»m - KhÃ³a 1", "SE-K1-01", manager,
+                        buildTrainingClass("Kỹ sư phần mềm - Khóa 1", "SE-K1-01", manager,
                                 semesterMap.get("Fall 2025"), LocalDate.of(2025, 9, 10),
                                 LocalDate.of(2025, 12, 20), admin),
-                        buildTrainingClass("Há»‡ thá»‘ng thÃ´ng tin - KhÃ³a 1", "IS-K1-01", manager,
+
+                        buildTrainingClass("Hệ thống thông tin - Khóa 1", "IS-K1-01", manager,
                                 semesterMap.get("Fall 2025"), LocalDate.of(2025, 9, 15),
                                 LocalDate.of(2025, 12, 25), admin),
 
-                        buildTrainingClass("Ká»¹ sÆ° pháº§n má»m - KhÃ³a 2", "SE-K2-01", manager,
+                        buildTrainingClass("Kỹ sư phần mềm - Khóa 2", "SE-K2-01", manager,
                                 semesterMap.get("Spring 2026"), LocalDate.of(2026, 1, 10),
                                 LocalDate.of(2026, 4, 20), admin),
-                        buildTrainingClass("Khoa há»c dá»¯ liá»‡u - KhÃ³a 1", "DS-K1-01", manager,
+
+                        buildTrainingClass("Khoa học dữ liệu - Khóa 1", "DS-K1-01", manager,
                                 semesterMap.get("Spring 2026"), LocalDate.of(2026, 1, 15),
                                 LocalDate.of(2026, 4, 25), admin),
 
-                        buildTrainingClass("TrÃ­ tuá»‡ nhÃ¢n táº¡o - KhÃ³a 1", "AI-K1-01", manager,
+                        buildTrainingClass("Trí tuệ nhân tạo - Khóa 1", "AI-K1-01", manager,
                                 semesterMap.get("Summer 2026"), LocalDate.of(2026, 5, 10),
                                 LocalDate.of(2026, 8, 20), admin),
-                        buildTrainingClass("An toÃ n thÃ´ng tin - KhÃ³a 1", "CS-K1-01", manager,
+
+                        buildTrainingClass("An toàn thông tin - Khóa 1", "CS-K1-01", manager,
                                 semesterMap.get("Summer 2026"), LocalDate.of(2026, 5, 15),
                                 LocalDate.of(2026, 8, 25), admin),
 
-                        buildTrainingClass("Ká»¹ sÆ° pháº§n má»m - KhÃ³a 3", "SE-K3-01", manager,
+                        buildTrainingClass("Kỹ sư phần mềm - Khóa 3", "SE-K3-01", manager,
                                 semesterMap.get("Fall 2026"), LocalDate.of(2026, 9, 10),
                                 LocalDate.of(2026, 12, 20), admin),
-                        buildTrainingClass("Thiáº¿t káº¿ Ä‘á»“ há»a - KhÃ³a 1", "GD-K1-01", manager,
-                                semesterMap.get("Fall 2026"), LocalDate.of(2026, 9, 15),
-                                LocalDate.of(2026, 12, 25), admin));
 
+                        buildTrainingClass("Thiết kế đồ họa - Khóa 1", "GD-K1-01", manager,
+                                semesterMap.get("Fall 2026"), LocalDate.of(2026, 9, 15),
+                                LocalDate.of(2026, 12, 25), admin)
+                );
                 List<TrainingClass> validClasses = classes.stream()
                         .filter(c -> c.getSemester() != null)
                         .toList();
