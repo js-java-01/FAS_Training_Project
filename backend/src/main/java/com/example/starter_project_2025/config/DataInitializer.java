@@ -79,6 +79,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Component
 @RequiredArgsConstructor
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
@@ -151,11 +152,13 @@ public class DataInitializer implements CommandLineRunner {
                 }
 
                 initializeEnrollments();
-
         }
 
         private void initializePermissions() {
                 List<Permission> permissions = Arrays.asList(
+                        createPermission("DASHBOARD_READ", "AHIHI", "DASHBOARD",
+                                "READ"),
+
                                 /* ================= MODULE GROUP ================= */
                                 createPermission("MODULE_GROUP_CREATE", "Create new module groups", "MODULE_GROUP",
                                                 "CREATE"),
@@ -279,7 +282,8 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("SEMESTER_UPDATE", "Update semesters", "SEMESTER", "UPDATE"),
                                 createPermission("CLASS_VIEW_OWN_CLASSES_READ", "View own classes", "CLASS", "READ"),
                                 createPermission("SEMESTER_DELETE", "Delete semesters", "SEMESTER", "DELETE"),
-                                createPermission("SWITCH_ROLE", "Switch to another role view", "ROLE", "SWITCH"));
+                                createPermission("SWITCH_ROLE", "Switch to another role view", "ROLE", "SWITCH"),
+                                createPermission("SIDEBAR_READ", "View Sidebar", "SIDEBAR", "READ"));
                 permissionRepository.saveAll(permissions);
                 log.info("Initialized {} permissions", permissions.size());
         }
@@ -293,20 +297,74 @@ public class DataInitializer implements CommandLineRunner {
                 return permission;
         }
 
+        private void initializeTrainerRole() {
+
+                if (roleRepository.findByName("TRAINER").isPresent()) {
+                        return;
+                }
+
+                List<Permission> allPermissions = permissionRepository.findAll();
+
+                Set<Permission> trainerPermissions = allPermissions.stream()
+                        .filter(p ->
+                                ("READ".equals(p.getAction())
+                                        && Arrays.asList("SIDEBAR", "CLASS", "COURSE", "SEMESTER", "STUDENT", "MODULE", "DASHBOARD")
+                                        .contains(p.getResource()))
+                        )
+                        .collect(Collectors.toSet());
+
+                List<String> extraPermissionNames = Arrays.asList(
+                        "LESSON_CREATE", "LESSON_UPDATE", "LESSON_DELETE",
+                        "SESSION_CREATE", "SESSION_UPDATE", "SESSION_DELETE",
+                        "COURSE_OUTLINE_EDIT",
+                        "ASSESSMENT_CREATE", "ASSESSMENT_UPDATE", "ASSESSMENT_DELETE",
+                        "ASSESSMENT_ASSIGN", "ASSESSMENT_PUBLISH", "ASSESSMENT_SUBMIT",
+                        "QUESTION_CREATE", "QUESTION_UPDATE", "QUESTION_DELETE",
+                        "QUESTION_CATEGORY_CREATE", "QUESTION_CATEGORY_UPDATE", "QUESTION_CATEGORY_DELETE",
+                        "ENROLL_COURSE"
+                );
+
+                for (String name : extraPermissionNames) {
+                        permissionRepository.findByName(name)
+                                .ifPresent(trainerPermissions::add);
+                }
+
+                Role trainerRole = new Role();
+                trainerRole.setName("TRAINER");
+                trainerRole.setHierarchyLevel(4);
+                trainerRole.setDescription("Trainer with course/lesson/assessment management access");
+                trainerRole.setPermissions(trainerPermissions);
+
+                roleRepository.save(trainerRole);
+
+                log.info("Initialized TRAINER role with {} permissions", trainerPermissions.size());
+        }
+
         private void initializeRoles() {
+
+
                 // ADMIN
                 Role adminRole = new Role();
                 adminRole.setName("ADMIN");
                 adminRole.setDescription("Administrator with full system access");
-                // adminRole.setHierarchyLevel(1);
-                adminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
+                adminRole.setHierarchyLevel(2);
+                List<String> excludedPermissions = List.of(
+                        "MODULE_GROUP_CREATE",
+                        "MODULE_CREATE");
+
+                List<Permission> adminPermissions = permissionRepository.findAll()
+                        .stream()
+                        .filter(p -> !excludedPermissions.contains(p.getName()))
+                        .toList();
+
+                adminRole.setPermissions(new HashSet<>(adminPermissions));
                 roleRepository.save(adminRole);
 
-                // DEPARTMENT_MANAGER
+                // MANAGER
                 Role departmentManagerRole = new Role();
-                departmentManagerRole.setName("DEPARTMENT_MANAGER");
+                departmentManagerRole.setName("MANAGER");
                 departmentManagerRole.setDescription("Department Manager with class management permissions");
-
+                departmentManagerRole.setHierarchyLevel(3);
                 List<Permission> departmentPermissions = permissionRepository.findAll()
                                 .stream()
                                 .filter(p -> "CLASS".equals(p.getResource()))
@@ -318,6 +376,7 @@ public class DataInitializer implements CommandLineRunner {
                 // STUDENT
                 Role studentRole = new Role();
                 studentRole.setName("STUDENT");
+                studentRole.setHierarchyLevel(5);
                 studentRole.setDescription("Student with limited access to educational resources");
                 List<Permission> studentPermissions = new java.util.ArrayList<>(
                                 permissionRepository.findByAction("READ"));
@@ -326,34 +385,39 @@ public class DataInitializer implements CommandLineRunner {
                 roleRepository.save(studentRole);
 
                 // TRAINER
-                Role trainerRole = new Role();
-                trainerRole.setName("TRAINER");
-                trainerRole.setDescription("Trainer with course/lesson/assessment management access");
-                List<Permission> trainerPermissions = new java.util.ArrayList<>(
-                                permissionRepository.findByAction("READ"));
-                for (String pn : Arrays.asList(
-                                "LESSON_CREATE", "LESSON_UPDATE", "LESSON_DELETE",
-                                "SESSION_CREATE", "SESSION_UPDATE", "SESSION_DELETE",
-                                "COURSE_OUTLINE_EDIT",
-                                "ASSESSMENT_CREATE", "ASSESSMENT_UPDATE", "ASSESSMENT_DELETE",
-                                "ASSESSMENT_ASSIGN", "ASSESSMENT_PUBLISH", "ASSESSMENT_SUBMIT",
-                                "QUESTION_CREATE", "QUESTION_UPDATE", "QUESTION_DELETE",
-                                "QUESTION_CATEGORY_CREATE", "QUESTION_CATEGORY_UPDATE", "QUESTION_CATEGORY_DELETE",
-                                "ENROLL_COURSE")) {
-                        permissionRepository.findByName(pn).ifPresent(trainerPermissions::add);
-                }
-                trainerRole.setPermissions(new HashSet<>(trainerPermissions));
-                roleRepository.save(trainerRole);
+                initializeTrainerRole();
+
 
                 // SUPER_ADMIN
                 Role superAdminRole = new Role();
                 superAdminRole.setName("SUPER_ADMIN");
+                superAdminRole.setHierarchyLevel(1);
                 superAdminRole.setDescription("Super Administrator with all permissions and role-switch capability");
                 superAdminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
                 roleRepository.save(superAdminRole);
 
-                log.info("Initialized 4 roles: ADMIN, DEPARTMENT_MANAGER, STUDENT, TRAINER, SUPER_ADMIN");
+                log.info("Initialized 4 roles: ADMIN, MANAGER, STUDENT, TRAINER, SUPER_ADMIN");
+
+
+                List<Permission> allPermissions = permissionRepository.findAll();
+
+                Set<Permission> managerPermissions = allPermissions.stream()
+                        .filter(p -> "UPDATE".equals(p.getAction())
+                                && Arrays.asList("STUDENT").contains(p.getResource())
+                                || "READ".equals(p.getAction()) && Arrays.asList("MENU", "SEMESTER")
+                                .contains(p.getResource())
+                                || "CLASS".equals(p.getResource())
+                                || "COURSE".equals(p.getResource())
+                                || "SEMESTER".equals(p.getResource()))
+                        .collect(Collectors.toSet());
+                createRoleIfNotFound("MANAGER", "Manager with class and course management permissions",
+                        managerPermissions);
+
+
+
         }
+
+
 
         private void initializeUsers() {
                 User admin = new User();
@@ -380,6 +444,8 @@ public class DataInitializer implements CommandLineRunner {
                 trainer.setIsActive(true);
                 userRepository.save(trainer);
 
+
+
                 User student1 = new User();
                 student1.setEmail("student@example.com");
                 student1.setPasswordHash(passwordEncoder.encode("password123"));
@@ -396,7 +462,28 @@ public class DataInitializer implements CommandLineRunner {
                 student2.setIsActive(true);
                 userRepository.save(student2);
 
+                // MANAGER (2)
+                createUserIfNotFound("manager1@example.com", "Alice", "Manager");
+                createUserIfNotFound("manager2@example.com", "David", "Manager");
+                createUserIfNotFound("trainer1@example.com", "Bob", "Teacher");
+                createUserIfNotFound("trainer2@example.com", "Michael", "Trainer");
+                createUserIfNotFound("trainer3@example.com", "Sarah", "Instructor");
+
+
+
                 log.info("Initialized 5 users: admin, superadmin, trainer, student, jane.smith");
+        }
+
+        private void createUserIfNotFound(String email, String firstName, String lastName) {
+                if (!userRepository.existsByEmail(email)) {
+                        User user = new User();
+                        user.setEmail(email);
+                        user.setPasswordHash(passwordEncoder.encode("password123"));
+                        user.setFirstName(firstName);
+                        user.setLastName(lastName);
+                        user.setIsActive(true);
+                        userRepository.save(user);
+                }
         }
 
         private void initializeUserRoles() {
@@ -406,10 +493,18 @@ public class DataInitializer implements CommandLineRunner {
                                 .orElseThrow(() -> new RuntimeException("Role SUPER_ADMIN not found"));
                 Role trainerRole = roleRepository.findByName("TRAINER")
                                 .orElseThrow(() -> new RuntimeException("Role TRAINER not found"));
-                Role departmentManagerRole = roleRepository.findByName("DEPARTMENT_MANAGER")
-                                .orElseThrow(() -> new RuntimeException("Role DEPARTMENT_MANAGER not found"));
+                Role departmentManagerRole = roleRepository.findByName("MANAGER")
+                                .orElseThrow(() -> new RuntimeException("Role MANAGER not found"));
                 Role studentRole = roleRepository.findByName("STUDENT")
                                 .orElseThrow(() -> new RuntimeException("Role STUDENT not found"));
+                User manager1 = userRepository.findByEmail("manager1@example.com").orElseThrow();
+                User manager2 = userRepository.findByEmail("manager2@example.com").orElseThrow();
+
+
+                User trainer1 = userRepository.findByEmail("trainer1@example.com").orElseThrow();
+                User trainer2 = userRepository.findByEmail("trainer2@example.com").orElseThrow();
+                User trainer3 = userRepository.findByEmail("trainer3@example.com").orElseThrow();
+
 
                 User adminUser = userRepository.findByEmail("admin@example.com")
                                 .orElseThrow(() -> new RuntimeException("Admin user not found"));
@@ -438,10 +533,17 @@ public class DataInitializer implements CommandLineRunner {
 
                 // Trainer user: only TRAINER
                 saveUserRole(trainerUser, trainerRole, true);
+                saveUserRole(trainer1, trainerRole, true);
+                saveUserRole(trainer2, trainerRole, true);
+                saveUserRole(trainer3, trainerRole, true);
 
                 // Student users
                 saveUserRole(student1, studentRole, true);
                 saveUserRole(student2, studentRole, true);
+
+                // Manager
+                saveUserRole(manager1, departmentManagerRole, true);
+                saveUserRole(manager2, departmentManagerRole, true);
 
                 log.info("Successfully assigned roles to users in UserRole table.");
         }
@@ -603,11 +705,11 @@ public class DataInitializer implements CommandLineRunner {
                 moduleRepository.saveAll(Arrays.asList(
 
                                 createModule(systemGroup, "Modules", "/modules", "menu", 1,
-                                                "MODULE_READ",
+                                                "MODULE_CREATE",
                                                 "Manage system modules"),
 
                                 createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 2,
-                                                "MODULE_GROUP_READ",
+                                                "MODULE_GROUP_CREATE",
                                                 "Manage module groups"),
 
                                 createModule(systemGroup, "Users", "/users", "users", 3,
@@ -672,11 +774,9 @@ public class DataInitializer implements CommandLineRunner {
                                                 "SEMESTER_READ",
                                                 "Manage academic semesters")));
 
-                /*
-                 * =======================================================
-                 * MODULE GROUP: Assessment
-                 * =======================================================
-                 */
+                   /* =======================================================
+       MODULE GROUP: Assessment
+    ======================================================= */
                 ModuleGroups assessmentGroup = new ModuleGroups();
                 assessmentGroup.setName("Assessment");
                 assessmentGroup.setDescription("Manage assessments and related permissions");
@@ -684,13 +784,17 @@ public class DataInitializer implements CommandLineRunner {
                 assessmentGroup.setIsActive(true);
                 assessmentGroup = moduleGroupsRepository.save(assessmentGroup);
 
-                // Nhóm: Assessment
-                ModuleGroups assessmentTypeGroup = new ModuleGroups();
-                assessmentTypeGroup.setName("Assessment");
-                assessmentTypeGroup.setDescription("Manage assessment types and related permissions");
-                assessmentTypeGroup.setDisplayOrder(3);
-                assessmentTypeGroup.setIsActive(true);
-                assessmentTypeGroup = moduleGroupsRepository.save(assessmentTypeGroup);
+                moduleRepository.save(
+                        createModule(
+                                assessmentGroup,
+                                "Assessment Type",
+                                "/assessment-type",
+                                "shield",
+                                1,
+                                "ASSESSMENTTYPE_READ",
+                                "Manage assessment types"
+                        )
+                );
 
                 log.info("Initialized module groups and modules successfully.");
         }
@@ -1280,5 +1384,17 @@ public class DataInitializer implements CommandLineRunner {
 
                 trainingClassRepository.saveAll(validClasses);
                 log.info("Initialized {} Training Classes distributed across multiple Semesters.", validClasses.size());
+        }
+
+        private void createRoleIfNotFound(String roleName, String description, Set<Permission> permissions) {
+                if (roleRepository.findByName(roleName).isEmpty()) {
+                        Role role = new Role();
+                        role.setName(roleName);
+                        role.setDescription(description);
+                        role.setPermissions(permissions);
+
+                        roleRepository.save(role);
+                        log.info("Created role: {}", roleName);
+                }
         }
 }
