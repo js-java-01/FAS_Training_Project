@@ -352,6 +352,15 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         User editor = userRepository.findById(editorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Editor not found: " + editorId));
 
+        List<UpdateTopicMarkRequest.EntryUpdate> updates = request.getEntries();
+        if (updates == null || updates.isEmpty()) {
+            if (request.getColumnId() != null) {
+                updates = List.of(new UpdateTopicMarkRequest.EntryUpdate(request.getColumnId(), request.getScore()));
+            } else {
+                throw new IllegalArgumentException("At least one entry must be provided");
+            }
+        }
+
         // Ensure TopicMark record exists
         TopicMark mark = topicMarkRepository.findByCourseClassIdAndUserId(courseClassId, userId)
                 .orElseGet(() -> topicMarkRepository.save(TopicMark.builder()
@@ -360,7 +369,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                         .isPassed(false)
                         .build()));
 
-        for (UpdateTopicMarkRequest.EntryUpdate update : request.getEntries()) {
+        for (UpdateTopicMarkRequest.EntryUpdate update : updates) {
             TopicMarkColumn column = topicMarkColumnRepository.findById(update.getColumnId())
                     .orElseThrow(() -> new ResourceNotFoundException("Column not found: " + update.getColumnId()));
 
