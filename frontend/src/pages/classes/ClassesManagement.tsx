@@ -15,11 +15,16 @@ const AdminComponent = lazy(
   () => import("../training-classes/TrainingClassesManagement")
 );
 
+const TrainerComponent = lazy(
+  () => import("../training-classes/trainer/TrainerClassesManagament")
+);
+
 
 const roleComponents = {
   student: StudentComponent,
   unauthorized: UnauthorizedComponent,
-  admin: AdminComponent
+  admin: AdminComponent,
+  trainer: TrainerComponent,
 };
 
 export default function ClassesComponent() {
@@ -28,6 +33,9 @@ export default function ClassesComponent() {
     switch (activeRole?.name) {
       case ROLES.STUDENT:
         return roleComponents.student;
+
+        case ROLES.TRAINER:
+          return roleComponents.trainer;
 
       case ROLES.SUPER_ADMIN:
       case ROLES.ADMIN:
