@@ -4,8 +4,9 @@ import { ROLES } from "@/types/role";
 import { lazy, Suspense } from "react";
 
 const StudentComponent = lazy(
-  () => import("./StudentClassManagement")
+  () => import("../training-classes/trainee/StudentClassManagement")
 );
+
 
 const UnauthorizedComponent = lazy(
   () => import("../Unauthorized")
