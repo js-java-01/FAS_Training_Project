@@ -1,9 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { FiSave, FiPlus, FiTrash2, FiClipboard, FiCopy } from "react-icons/fi";
+import {
+  FiSave,
+  FiPlus,
+  FiTrash2,
+  FiClipboard,
+  FiCopy,
+  FiEdit,
+  FiX,
+} from "react-icons/fi";
+import { DatabaseBackup } from "lucide-react";
+import dayjs from "dayjs";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import {
   courseApi,
   COURSE_ASSESSMENT_TYPES,
@@ -41,6 +52,7 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
   /* ── config state ── */
   const [configLoading, setConfigLoading] = useState(true);
   const [configSaving, setConfigSaving] = useState(false);
+  const [configEditing, setConfigEditing] = useState(false);
 
   const {
     register: regCfg,
@@ -117,12 +129,18 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
         allowFinalRetake: form.allowFinalRetake,
       });
       toast.success("Scheme configuration saved");
+      setConfigEditing(false);
       await loadConfig();
     } catch {
       toast.error("Failed to save scheme configuration");
     } finally {
       setConfigSaving(false);
     }
+  };
+
+  const onCancelConfig = () => {
+    setConfigEditing(false);
+    loadConfig();
   };
 
   /* ── clone from topic ── */
@@ -160,6 +178,48 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
       prev.map((c) => (c._localId === localId ? { ...c, [field]: value } : c)),
     );
     setHasCompChanges(true);
+  };
+
+  const [importExportOpen, setImportExportOpen] = useState(false);
+
+  /* ── import/export helpers ── */
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExport = async () => {
+    try {
+      const blob = await courseApi.exportComponents(courseId);
+      const date = dayjs().format("YYYY-MM-DD");
+      downloadBlob(
+        blob,
+        `assessment_components_course_${courseId}_${date}.xlsx`,
+      );
+      toast.success("Exported successfully");
+    } catch {
+      toast.error("Export failed");
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    const result = await courseApi.importComponents(courseId, file);
+    await loadComponents();
+    return result;
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await courseApi.downloadComponentsTemplate(courseId);
+      downloadBlob(blob, "assessment_components_template.xlsx");
+      toast.success("Template downloaded");
+    } catch {
+      toast.error("Failed to download template");
+    }
   };
 
   const addComponent = () => {
@@ -263,15 +323,38 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
             <FiClipboard className="text-blue-500" />
             Assessment Scheme Configuration
           </div>
-          <Button
-            size="sm"
-            onClick={handleCfgSubmit(onSaveConfig)}
-            disabled={configSaving}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
-          >
-            <FiSave className="mr-1.5" />
-            {configSaving ? "Saving…" : "Save Scheme Config"}
-          </Button>
+          <div className="flex items-center gap-2">
+            {configEditing ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs"
+                  onClick={onCancelConfig}
+                >
+                  <FiX className="mr-1" /> Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleCfgSubmit(onSaveConfig)}
+                  disabled={configSaving}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                >
+                  <FiSave className="mr-1.5" />
+                  {configSaving ? "Saving…" : "Save Scheme Config"}
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="text-xs gap-1.5"
+                onClick={() => setConfigEditing(true)}
+              >
+                <FiEdit size={13} /> Edit
+              </Button>
+            )}
+          </div>
         </div>
 
         <form className="px-5 py-4 space-y-4">
@@ -285,8 +368,14 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
                 step="0.1"
                 min={0}
                 max={10}
+                disabled={!configEditing}
                 {...regCfg("minGpaToPass", { valueAsNumber: true })}
-                className={inputCls}
+                className={
+                  inputCls +
+                  (!configEditing
+                    ? " bg-gray-50 text-gray-600 cursor-default"
+                    : "")
+                }
               />
             </div>
             <div className="space-y-1">
@@ -297,8 +386,14 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
                 type="number"
                 min={0}
                 max={100}
+                disabled={!configEditing}
                 {...regCfg("minAttendance", { valueAsNumber: true })}
-                className={inputCls}
+                className={
+                  inputCls +
+                  (!configEditing
+                    ? " bg-gray-50 text-gray-600 cursor-default"
+                    : "")
+                }
               />
             </div>
           </div>
@@ -309,7 +404,10 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
             </span>
             <Switch
               checked={!!allowRetake}
-              onCheckedChange={(v: boolean) => setCfgVal("allowFinalRetake", v)}
+              disabled={!configEditing}
+              onCheckedChange={(v: boolean) =>
+                configEditing && setCfgVal("allowFinalRetake", v)
+              }
             />
           </div>
         </form>
@@ -331,6 +429,26 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
                 {totalWeight.toFixed(2)}%
               </span>
             </span>
+
+            {/* import/export */}
+            <Button
+              variant="secondary"
+              size="sm"
+              className="text-xs gap-1.5"
+              onClick={() => setImportExportOpen(true)}
+            >
+              <DatabaseBackup size={14} />
+              Import / Export
+            </Button>
+
+            {/* add component */}
+            <Button
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs gap-1.5"
+              onClick={addComponent}
+            >
+              <FiPlus size={14} /> Add Component
+            </Button>
 
             {/* cancel / save */}
             {hasCompChanges && (
@@ -396,17 +514,22 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
             </tbody>
           </table>
         </div>
-
-        {/* add row */}
-        <div className="px-4 py-3 border-t bg-gray-50/30">
-          <button
-            onClick={addComponent}
-            className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium"
-          >
-            <FiPlus size={14} /> Add Component
-          </button>
-        </div>
       </div>
+
+      <ImportExportModal
+        title="Assessment Components"
+        open={importExportOpen}
+        setOpen={setImportExportOpen}
+        onImport={handleImport}
+        onExport={handleExport}
+        onDownloadTemplate={handleDownloadTemplate}
+        validateFile={(file) => {
+          if (!file.name.match(/\.(xlsx|xls)$/i)) {
+            return "Only .xlsx or .xls files are supported";
+          }
+          return null;
+        }}
+      />
     </div>
   );
 }

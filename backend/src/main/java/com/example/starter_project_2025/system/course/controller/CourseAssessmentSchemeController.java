@@ -1,12 +1,17 @@
 package com.example.starter_project_2025.system.course.controller;
 
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.course.dto.CourseAssessmentComponentRequest;
 import com.example.starter_project_2025.system.course.dto.CourseAssessmentComponentResponse;
 import com.example.starter_project_2025.system.course.dto.CourseAssessmentSchemeConfigDTO;
 import com.example.starter_project_2025.system.course.service.CourseAssessmentSchemeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -62,5 +67,35 @@ public class CourseAssessmentSchemeController {
             @PathVariable UUID topicId) {
 
         service.cloneFromTopic(topicId, courseId);
+    }
+
+    @GetMapping("/components/export")
+    public ResponseEntity<byte[]> exportComponents(@PathVariable UUID courseId) {
+        byte[] data = service.exportComponents(courseId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDispositionFormData("attachment",
+                "assessment_components_course_" + courseId + ".xlsx");
+        return ResponseEntity.ok().headers(headers).body(data);
+    }
+
+    @PostMapping("/components/import")
+    public ImportResultResponse importComponents(
+            @PathVariable UUID courseId,
+            @RequestParam("file") MultipartFile file) {
+
+        return service.importComponents(courseId, file);
+    }
+
+    @GetMapping("/components/template")
+    public ResponseEntity<byte[]> downloadComponentsTemplate(@PathVariable UUID courseId) {
+        byte[] data = service.downloadComponentsTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDispositionFormData("attachment",
+                "assessment_components_template.xlsx");
+        return ResponseEntity.ok().headers(headers).body(data);
     }
 }

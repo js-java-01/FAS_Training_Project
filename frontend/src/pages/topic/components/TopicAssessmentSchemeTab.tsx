@@ -6,6 +6,8 @@ import {
   FiPlus,
   FiTrash2,
   FiClipboard,
+  FiEdit,
+  FiX,
 } from "react-icons/fi";
 import { DatabaseBackup } from "lucide-react";
 import dayjs from "dayjs";
@@ -40,7 +42,10 @@ interface EditableComponent extends AssessmentComponentResponse {
 }
 
 type ComponentFieldError = Partial<
-  Record<"type" | "name" | "count" | "weight" | "duration" | "displayOrder", string>
+  Record<
+    "type" | "name" | "count" | "weight" | "duration" | "displayOrder",
+    string
+  >
 >;
 
 /* ─── Main Tab ──────────────────────────────────────────────── */
@@ -53,6 +58,7 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
   const [config, setConfig] = useState<AssessmentSchemeConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(true);
   const [configSaving, setConfigSaving] = useState(false);
+  const [configEditing, setConfigEditing] = useState(false);
 
   const {
     register: regCfg,
@@ -73,7 +79,9 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
   const [componentErrors, setComponentErrors] = useState<
     Record<string, ComponentFieldError>
   >({});
-  const [deleteTarget, setDeleteTarget] = useState<EditableComponent | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<EditableComponent | null>(
+    null,
+  );
   const [deleting, setDeleting] = useState(false);
 
   /* ── import/export state ── */
@@ -130,12 +138,18 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
       });
       setConfig(updated);
       resetCfg(updated);
+      setConfigEditing(false);
       toast.success("Scheme configuration saved");
     } catch {
       toast.error("Failed to save scheme configuration");
     } finally {
       setConfigSaving(false);
     }
+  };
+
+  const onCancelConfig = () => {
+    setConfigEditing(false);
+    loadConfig();
   };
 
   /* ── component helpers ── */
@@ -145,7 +159,9 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
   );
   const weightOk = Math.abs(totalWeight - 100) < 0.01;
 
-  const validateOneComponent = (comp: EditableComponent): ComponentFieldError => {
+  const validateOneComponent = (
+    comp: EditableComponent,
+  ): ComponentFieldError => {
     const errors: ComponentFieldError = {};
 
     if (!comp.type) {
@@ -379,15 +395,38 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
             <FiClipboard className="text-blue-500" />
             Assessment Scheme Configuration
           </div>
-          <Button
-            size="sm"
-            onClick={handleCfgSubmit(onSaveConfig)}
-            disabled={configSaving}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
-          >
-            <FiSave className="mr-1.5" />
-            {configSaving ? "Saving…" : "Save Scheme Config"}
-          </Button>
+          <div className="flex items-center gap-2">
+            {configEditing ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs"
+                  onClick={onCancelConfig}
+                >
+                  <FiX className="mr-1" /> Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleCfgSubmit(onSaveConfig)}
+                  disabled={configSaving}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                >
+                  <FiSave className="mr-1.5" />
+                  {configSaving ? "Saving…" : "Save Scheme Config"}
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="text-xs gap-1.5"
+                onClick={() => setConfigEditing(true)}
+              >
+                <FiEdit size={13} /> Edit
+              </Button>
+            )}
+          </div>
         </div>
 
         <form className="px-5 py-4 space-y-4">
@@ -401,16 +440,25 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
                 step="0.1"
                 min={0}
                 max={10}
+                disabled={!configEditing}
                 {...regCfg("minGpaToPass", {
                   valueAsNumber: true,
                   required: "Min GPA is required",
-                  min: { value: 0, message: "Min GPA must be between 0 and 10" },
+                  min: {
+                    value: 0,
+                    message: "Min GPA must be between 0 and 10",
+                  },
                   max: {
                     value: 10,
                     message: "Min GPA must be between 0 and 10",
                   },
                 })}
-                className={inputCls}
+                className={
+                  inputCls +
+                  (!configEditing
+                    ? " bg-gray-50 text-gray-600 cursor-default"
+                    : "")
+                }
               />
               {configErrors.minGpaToPass && (
                 <p className="text-xs text-red-500 mt-1">
@@ -426,6 +474,7 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
                 type="number"
                 min={0}
                 max={100}
+                disabled={!configEditing}
                 {...regCfg("minAttendance", {
                   valueAsNumber: true,
                   required: "Min attendance is required",
@@ -438,7 +487,12 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
                     message: "Min attendance must be between 0 and 100",
                   },
                 })}
-                className={inputCls}
+                className={
+                  inputCls +
+                  (!configEditing
+                    ? " bg-gray-50 text-gray-600 cursor-default"
+                    : "")
+                }
               />
               {configErrors.minAttendance && (
                 <p className="text-xs text-red-500 mt-1">
@@ -454,7 +508,10 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
             </span>
             <Switch
               checked={!!allowRetake}
-              onCheckedChange={(v: boolean) => setCfgVal("allowFinalRetake", v)}
+              disabled={!configEditing}
+              onCheckedChange={(v: boolean) =>
+                configEditing && setCfgVal("allowFinalRetake", v)
+              }
             />
           </div>
         </form>
@@ -491,6 +548,15 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
             >
               <DatabaseBackup className="h-4 w-4" />
               Import / Export
+            </Button>
+
+            {/* add component */}
+            <Button
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs gap-1.5"
+              onClick={addComponent}
+            >
+              <FiPlus size={14} /> Add Component
             </Button>
 
             {/* cancel / save */}
@@ -558,16 +624,6 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
             </tbody>
           </table>
         </div>
-
-        {/* add row */}
-        <div className="px-4 py-3 border-t bg-gray-50/30">
-          <button
-            onClick={addComponent}
-            className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium"
-          >
-            <FiPlus size={14} /> Add Component
-          </button>
-        </div>
       </div>
 
       <ImportExportModal
@@ -631,7 +687,9 @@ function ComponentRow({
             </option>
           ))}
         </select>
-        {errors?.type && <p className="text-[11px] text-red-500 mt-1">{errors.type}</p>}
+        {errors?.type && (
+          <p className="text-[11px] text-red-500 mt-1">{errors.type}</p>
+        )}
       </td>
 
       {/* name */}
@@ -644,7 +702,9 @@ function ComponentRow({
             errors?.name ? "border-red-500" : ""
           }`}
         />
-        {errors?.name && <p className="text-[11px] text-red-500 mt-1">{errors.name}</p>}
+        {errors?.name && (
+          <p className="text-[11px] text-red-500 mt-1">{errors.name}</p>
+        )}
       </td>
 
       {/* count */}
@@ -658,7 +718,9 @@ function ComponentRow({
             errors?.count ? "border-red-500" : ""
           }`}
         />
-        {errors?.count && <p className="text-[11px] text-red-500 mt-1">{errors.count}</p>}
+        {errors?.count && (
+          <p className="text-[11px] text-red-500 mt-1">{errors.count}</p>
+        )}
       </td>
 
       {/* weight */}
@@ -674,7 +736,9 @@ function ComponentRow({
             errors?.weight ? "border-red-500" : ""
           }`}
         />
-        {errors?.weight && <p className="text-[11px] text-red-500 mt-1">{errors.weight}</p>}
+        {errors?.weight && (
+          <p className="text-[11px] text-red-500 mt-1">{errors.weight}</p>
+        )}
       </td>
 
       {/* duration */}
@@ -695,7 +759,9 @@ function ComponentRow({
             errors?.duration ? "border-red-500" : ""
           }`}
         />
-        {errors?.duration && <p className="text-[11px] text-red-500 mt-1">{errors.duration}</p>}
+        {errors?.duration && (
+          <p className="text-[11px] text-red-500 mt-1">{errors.duration}</p>
+        )}
       </td>
 
       {/* order */}

@@ -173,10 +173,10 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 text-sm ${
+              className={`pb-2 text-sm transition-all ${
                 activeTab === tab
                   ? "border-b-2 border-blue-600 text-blue-600 font-medium"
-                  : "text-gray-500"
+                  : "text-gray-500 hover:text-gray-700"
               }`}
             >
               {tab}
@@ -189,16 +189,16 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
             <button
               type="button"
               onClick={cancelEdit}
-              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1 rounded-md cursor-pointer hover:bg-blue-700"
+              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md cursor-pointer hover:bg-blue-700 transition-colors"
             >
               <FiX size={14} />
-              Done
+              Cancel
             </button>
           ) : (
             <button
               type="button"
               onClick={startEdit}
-              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1 rounded-md cursor-pointer hover:bg-blue-700"
+              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md cursor-pointer hover:bg-blue-700 transition-colors"
             >
               <FiEdit size={14} />
               Edit
@@ -208,12 +208,17 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
       {/* READ-ONLY */}
       {activeTab === "Overview" && !isEditing && (
-        <OverviewTab course={course} />
+        <div className="animate-in fade-in duration-300">
+          <OverviewTab course={course} />
+        </div>
       )}
 
       {/* INLINE EDIT FORM */}
       {activeTab === "Overview" && isEditing && (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6 animate-in fade-in duration-300"
+        >
           {/* Basic Information */}
           <div className="border rounded-lg p-4">
             <div className="flex justify-between items-center mb-4">

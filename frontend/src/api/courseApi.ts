@@ -245,4 +245,34 @@ export const courseApi = {
       `/courses/${courseId}/assessment-scheme/clone-from-topic/${topicId}`,
     );
   },
+
+  exportComponents: async (courseId: string): Promise<Blob> => {
+    const res = await axiosInstance.get(
+      `/courses/${courseId}/assessment-scheme/components/export`,
+      { responseType: 'blob' },
+    );
+    return res.data;
+  },
+
+  importComponents: async (
+    courseId: string,
+    file: File,
+  ): Promise<import('@/components/modal/import-export/ImportTab').ImportResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await axiosInstance.post(
+      `/courses/${courseId}/assessment-scheme/components/import`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    );
+    return res.data;
+  },
+
+  downloadComponentsTemplate: async (courseId: string): Promise<Blob> => {
+    const res = await axiosInstance.get(
+      `/courses/${courseId}/assessment-scheme/components/template`,
+      { responseType: 'blob' },
+    );
+    return res.data;
+  },
 };
