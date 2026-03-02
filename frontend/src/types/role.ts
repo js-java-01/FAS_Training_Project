@@ -37,7 +37,7 @@ export interface RoleSwitchRole {
 
 export const ROLES = {
   ADMIN: "ADMIN",
-  DEPARTMENT_MANAGER: "DEPARTMENT_MANAGER",
+  MANAGER: "MANAGER",
   STUDENT: "STUDENT",
   TRAINER: "TRAINER",
   SUPER_ADMIN: "SUPER_ADMIN",

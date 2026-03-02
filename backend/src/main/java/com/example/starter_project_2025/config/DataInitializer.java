@@ -158,6 +158,7 @@ public class DataInitializer implements CommandLineRunner {
                 List<Permission> permissions = Arrays.asList(
                         createPermission("DASHBOARD_READ", "AHIHI", "DASHBOARD",
                                 "READ"),
+                        createPermission("SIDEBAR_READ", "View Sidebar", "SIDEBAR", "READ"),
 
                                 /* ================= MODULE GROUP ================= */
                                 createPermission("MODULE_GROUP_CREATE", "Create new module groups", "MODULE_GROUP",
@@ -283,7 +284,21 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("CLASS_VIEW_OWN_CLASSES_READ", "View own classes", "CLASS", "READ"),
                                 createPermission("SEMESTER_DELETE", "Delete semesters", "SEMESTER", "DELETE"),
                                 createPermission("SWITCH_ROLE", "Switch to another role view", "ROLE", "SWITCH"),
-                                createPermission("SIDEBAR_READ", "View Sidebar", "SIDEBAR", "READ"));
+
+                        /* ================= PERMISSION ================= */
+                        createPermission("PERMISSION_CREATE", "Create new permissions", "PERMISSION", "CREATE"),
+                        createPermission("PERMISSION_READ", "View permissions", "PERMISSION", "READ"),
+                        createPermission("PERMISSION_UPDATE", "Update existing permissions", "PERMISSION",
+                                "UPDATE"),
+                        createPermission("PERMISSION_DELETE", "Delete permissions", "PERMISSION", "DELETE"),
+                        createPermission("PERMISSION_IMPORT", "Import permissions", "PERMISSION", "IMPORT"),
+                        createPermission("PERMISSION_EXPORT", "Export permissions", "PERMISSION", "EXPORT"),
+                        createPermission("TOPIC_CREATE", "Create new topics", "TOPIC", "CREATE"),
+                        createPermission("TOPIC_READ", "View topics", "TOPIC", "READ"),
+                        createPermission("TOPIC_UPDATE", "Update existing topics", "TOPIC", "UPDATE"),
+                        createPermission("TOPIC_DELETE", "Delete topics", "TOPIC", "DELETE"),
+                        createPermission("TOPIC_IMPORT", "Import topics from Excel", "TOPIC", "IMPORT"),
+                        createPermission("TOPIC_EXPORT", "Export topics to Excel", "TOPIC", "EXPORT"));
                 permissionRepository.saveAll(permissions);
                 log.info("Initialized {} permissions", permissions.size());
         }
@@ -687,7 +702,7 @@ public class DataInitializer implements CommandLineRunner {
                                                 "/dashboard",
                                                 "home",
                                                 1,
-                                                "MODULE_READ",
+                                                "DASHBOARD_READ",
                                                 "System dashboard overview"));
 
                 /*
@@ -716,11 +731,14 @@ public class DataInitializer implements CommandLineRunner {
                                                 "USER_READ",
                                                 "Manage system users"),
 
-                                createModule(systemGroup, "Roles", "/roles", "shield", 4,
-                                                "ROLE_READ",
-                                                "Manage roles and permissions"),
+                        createModule(systemGroup, "Roles", "/roles", "shield", 4,
+                                "ROLE_READ",
+                                "Manage roles and permissions"),
 
-                                createModule(systemGroup, "Locations", "/locations", "map-pin", 5,
+                        createModule(systemGroup, "Permissions", "/permissions", "key", 5,
+                                "PERMISSION_READ",
+                                "Manage system permissions"),
+                        createModule(systemGroup, "Locations", "/locations", "map-pin", 5,
                                                 "LOCATION_READ",
                                                 "Manage office locations"),
 
