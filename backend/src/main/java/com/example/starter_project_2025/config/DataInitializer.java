@@ -466,6 +466,8 @@ public class DataInitializer implements CommandLineRunner {
 
         private void initializeUsers()
         {
+                // SUPER ADMIN
+                createUserIfNotFound("superadmin@example.com", "Super", "Admin");
                 // ADMIN (2)
                 createUserIfNotFound("admin@example.com", "Admin", "User");
                 createUserIfNotFound("super.admin@example.com", "Super", "Admin");
@@ -505,6 +507,9 @@ public class DataInitializer implements CommandLineRunner {
 
         private void initializeUserRoles()
         {
+
+                Role superAdminRole = roleRepository.findByName("SUPER_ADMIN")
+                        .orElseThrow(() -> new RuntimeException("Role SUPER ADMIN not found"));
                 Role adminRole = roleRepository.findByName("ADMIN")
                         .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
                 Role managerRole = roleRepository.findByName("MANAGER")
@@ -515,7 +520,7 @@ public class DataInitializer implements CommandLineRunner {
                         .orElseThrow(() -> new RuntimeException("Role STUDENT not found"));
 
                 User admin1 = userRepository.findByEmail("admin@example.com").orElseThrow();
-                User admin2 = userRepository.findByEmail("super.admin@example.com").orElseThrow();
+                User superadmin = userRepository.findByEmail("superadmin@example.com").orElseThrow();
 
                 User manager1 = userRepository.findByEmail("manager1@example.com").orElseThrow();
                 User manager2 = userRepository.findByEmail("manager2@example.com").orElseThrow();
@@ -534,7 +539,7 @@ public class DataInitializer implements CommandLineRunner {
                 assignRoleIfNotFound(admin1, adminRole, true);
                 assignRoleIfNotFound(admin1, studentRole, false);
 
-                assignRoleIfNotFound(admin2, adminRole, true);
+                assignRoleIfNotFound(superadmin, superAdminRole, true);
 
                 assignRoleIfNotFound(manager1, managerRole, true);
                 assignRoleIfNotFound(manager1, trainerRole, false);
@@ -1036,13 +1041,6 @@ public class DataInitializer implements CommandLineRunner {
                 }
         }
 
-//        private CourseClass buildCourseClass(Course course, TrainingClass classInfo, User trainer) {
-//                CourseClass cc = new CourseClass();
-//                cc.setCourse(course);
-//                cc.setClassInfo(classInfo);
-//                cc.setTrainer(trainer);
-//                return cc;
-//        }
 
         private void initializeEnrollments()
         {

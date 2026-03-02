@@ -2,9 +2,16 @@ import type { CourseClasses, GradebookTableResponse, GradeHistoryItem, GradeHist
 import axiosInstance from "./axiosInstance";
 
 export const topicMarkApi = {
-  getCourseByClassId: async (id: string): Promise<CourseClasses[]> => {
+  getCoursesByClassId: async (id: string): Promise<CourseClasses[]> => {
     const response = await axiosInstance.get<CourseClasses[]>(
       `/course-classes/by-class/${id}`,
+    );
+    return response.data;
+  },
+
+  getClassCourseById: async (id: string): Promise<CourseClasses> => {
+    const response = await axiosInstance.get<CourseClasses>(
+      `/course-classes/${id}`,
     );
     return response.data;
   },
@@ -56,4 +63,39 @@ export const topicMarkApi = {
         reason,
       }
     ),
+
+    exportTopicMark: async (id: string): Promise<Blob> => {
+      const res = await axiosInstance.get(`/course-classes/${id}/topic-marks/export`, {
+        responseType: "blob",
+      });
+
+      if (res.status !== 200) {
+         const text = await res.data.text();
+         console.log("Error response:", text);
+      }
+
+      return res.data;
+  },
+
+  exportTemplate: async (id: string): Promise<Blob> => {
+    const res = await axiosInstance.get(`/course-classes/${id}/topic-marks/export/template`, {
+      responseType: "blob",
+    });
+
+    if (res.status !== 200) {
+       const text = await res.data.text();
+       console.log("Error response:", text);
+    }
+
+    return res.data;
+  },
+
+  importTopicMark: async (formData: FormData, id: string) => {
+    return axiosInstance.post(`/course-classes/${id}/topic-marks/import`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+
 };

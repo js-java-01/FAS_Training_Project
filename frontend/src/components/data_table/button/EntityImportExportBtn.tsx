@@ -5,15 +5,15 @@ import ImportExportModal from "@/components/modal/import-export/ImportExportModa
 import { toast } from "sonner";
 import dayjs from "dayjs";
 
-type MutationHook<TArgs, TResult> = () => {
+type MutationFactory<TArgs, TResult> = () => {
   mutateAsync: (args: TArgs) => Promise<TResult>;
 };
 
 type Props = {
   title: string;
-  useImportHook: MutationHook<File, any>;
-  useExportHook: MutationHook<void, Blob>;
-  useTemplateHook: MutationHook<void, Blob>;
+  useImportHook: MutationFactory<File, any>;
+  useExportHook: MutationFactory<void, Blob>;
+  useTemplateHook: MutationFactory<void, Blob>;
 };
 
 export default function EntityImportExportButton({
@@ -24,9 +24,9 @@ export default function EntityImportExportButton({
 }: Props) {
   const [open, setOpen] = useState(false);
 
-  const { mutateAsync: importMutate } = useImportHook();
-  const { mutateAsync: exportMutate } = useExportHook();
-  const { mutateAsync: templateMutate } = useTemplateHook();
+  const importMutation = useImportHook();
+  const exportMutation = useExportHook();
+  const templateMutation = useTemplateHook();
 
   const downloadBlob = (blob: Blob, filename: string) => {
     const url = window.URL.createObjectURL(blob);
@@ -41,10 +41,12 @@ export default function EntityImportExportButton({
 
   const handleImport = async (file: File) => {
     try {
-      const res = await importMutate(file);
+      const res = await importMutation.mutateAsync(file);
+
       if (!res || res.failedCount === 0) {
         toast.success(`${title} imported successfully`);
       }
+
       return res;
     } catch (err: any) {
       const errorData = err?.response?.data;
@@ -60,11 +62,13 @@ export default function EntityImportExportButton({
 
   const handleExport = async () => {
     try {
-      const blob = await exportMutate(undefined as any);
+      const blob = await exportMutation.mutateAsync(undefined as void);
+
       downloadBlob(
         blob,
         `${title.toLowerCase()}_${dayjs().format("DD-MM-YYYY_HH-mm-ss")}.xlsx`,
       );
+
       toast.success(`${title} exported successfully`);
     } catch {
       toast.error(`Failed to export ${title}`);
@@ -73,13 +77,15 @@ export default function EntityImportExportButton({
 
   const handleDownloadTemplate = async () => {
     try {
-      const blob = await templateMutate(undefined as any);
+      const blob = await templateMutation.mutateAsync(undefined as void);
+
       downloadBlob(
         blob,
         `${title.toLowerCase()}_template_${dayjs().format(
           "DD-MM-YYYY_HH-mm-ss",
         )}.xlsx`,
       );
+
       toast.success(`Template downloaded successfully`);
     } catch {
       toast.error(`Failed to download template`);
