@@ -30,244 +30,272 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class CourseObjectiveServiceImpl implements CourseObjectiveService {
-        private final CourseRepository courseRepository;
-        private final CourseObjectiveRepository repository;
-        private final CourseObjectiveMapper mapper;
-        private final UserService userService;
+    private final CourseRepository courseRepository;
+    private final CourseObjectiveRepository repository;
+    private final CourseObjectiveMapper mapper;
+    private final UserService userService;
 
-        @Override
-        public CourseObjectiveResponse create(
-                        UUID courseId,
-                        CourseObjectiveCreateRequest req) {
+    @Override
+    public CourseObjectiveResponse create(
+            UUID courseId,
+            CourseObjectiveCreateRequest req) {
 
-                Course course = courseRepository.findById(courseId)
-                                .orElseThrow();
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow();
 
-                // BUSINESS RULE 1:
-                // Chỉ cho thêm objective khi course ở DRAFT
-                if (course.getStatus() != CourseStatus.DRAFT) {
-                        throw new RuntimeException(
-                                        "Cannot add objective when course is not in DRAFT status");
-                }
-
-                // BUSINESS RULE 2:
-                // Unique name trong cùng course
-                if (repository.existsByCourseIdAndName(courseId, req.getName())) {
-                        throw new RuntimeException(
-                                        "Objective name already exists in this course");
-                }
-
-                CourseObjective objective = mapper.toEntity(req);
-                objective.setCourse(course);
-
-                return mapper.toResponse(repository.save(objective));
+        // BUSINESS RULE 1:
+        // Chỉ cho thêm objective khi course ở DRAFT
+        if (course.getStatus() != CourseStatus.DRAFT) {
+            throw new RuntimeException(
+                    "Cannot add objective when course is not in DRAFT status");
         }
 
-        @Override
-        public List<CourseObjectiveResponse> getByCourse(UUID courseId) {
-
-                return repository.findByCourseId(courseId)
-                                .stream()
-                                .map(mapper::toResponse)
-                                .toList();
+        // BUSINESS RULE 2:
+        // Unique name trong cùng course
+        if (repository.existsByCourseIdAndName(courseId, req.getName())) {
+            throw new RuntimeException(
+                    "Objective name already exists in this course");
+        }
+        // BUSINESS RULE 3: unique code trong cùng course
+        if (repository.existsByCourseIdAndCode(courseId, req.getCode())) {
+            throw new RuntimeException(
+                    "Objective code already exists in this course");
         }
 
-        public CourseObjectiveResponse updateObjective(
-                        UUID courseId,
-                        UUID objectiveId,
-                        ObjectiveUpdateRequest request) {
+        CourseObjective objective = mapper.toEntity(req);
+        objective.setCourse(course);
 
-                // Check course tồn tại
-                Course course = courseRepository.findById(courseId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+        return mapper.toResponse(repository.save(objective));
+    }
 
-                // Check objective tồn tại
-                CourseObjective objective = repository.findById(objectiveId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Objective not found"));
+    @Override
+    public List<CourseObjectiveResponse> getByCourse(UUID courseId) {
 
-                // Validate objective thuộc course
-                if (!objective.getCourse().getId().equals(course.getId())) {
-                        throw new BadRequestException("Objective does not belong to this course");
-                }
+        return repository.findByCourseId(courseId)
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
+    }
 
-                // Validate unique name trong cùng course (nếu yêu cầu)
-                boolean exists = repository
-                                .existsByCourseIdAndNameAndIdNot(
-                                                courseId,
-                                                request.getName(),
-                                                objectiveId);
+    public CourseObjectiveResponse updateObjective(
+            UUID courseId,
+            UUID objectiveId,
+            ObjectiveUpdateRequest request) {
 
-                if (exists) {
-                        throw new BadRequestException("Objective name already exists in this course");
-                }
+        // Check course tồn tại
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
-                // Update data
-                objective.setName(request.getName());
-                objective.setDescription(request.getDescription());
+        // Check objective tồn tại
+        CourseObjective objective = repository.findById(objectiveId)
+                .orElseThrow(() -> new ResourceNotFoundException("Objective not found"));
 
-                repository.save(objective);
-
-                return mapper.toResponse(objective);
+        // Validate objective thuộc course
+        if (!objective.getCourse().getId().equals(course.getId())) {
+            throw new BadRequestException("Objective does not belong to this course");
         }
 
-        @Override
-        public void deleteObjective(UUID courseId, UUID objectiveId) {
+        // Validate unique name trong cùng course (nếu yêu cầu)
+        boolean exists = repository
+                .existsByCourseIdAndNameAndIdNot(
+                        courseId,
+                        request.getName(),
+                        objectiveId);
 
-                CourseObjective objective = repository
-                                .findById(objectiveId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Objective not found"));
-
-                // Check objective thuộc course nào
-                if (!objective.getCourse().getId().equals(courseId)) {
-                        throw new BadRequestException("Objective does not belong to this course");
-                }
-
-                repository.delete(objective);
+        if (exists) {
+            throw new BadRequestException("Objective name already exists in this course");
         }
 
-        // ─── EXPORT ──────────────────────────────────────────────────────────────
+        boolean codeExists = repository
+                .existsByCourseIdAndCodeAndIdNot(
+                        courseId,
+                        request.getCode(),
+                        objectiveId);
 
-        private static final String[] HEADERS = { "Name", "Description" };
-
-        @Override
-        public ResponseEntity<byte[]> exportObjectives(UUID courseId) {
-                List<CourseObjective> objectives = repository.findByCourseId(courseId);
-
-                try (Workbook wb = new XSSFWorkbook()) {
-                        Sheet sheet = wb.createSheet("Objectives");
-
-                        Font bold = wb.createFont();
-                        bold.setBold(true);
-                        CellStyle headerStyle = wb.createCellStyle();
-                        headerStyle.setFont(bold);
-                        headerStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
-                        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-                        Row header = sheet.createRow(0);
-                        for (int i = 0; i < HEADERS.length; i++) {
-                                Cell cell = header.createCell(i);
-                                cell.setCellValue(HEADERS[i]);
-                                cell.setCellStyle(headerStyle);
-                        }
-
-                        int rowIdx = 1;
-                        for (CourseObjective obj : objectives) {
-                                Row row = sheet.createRow(rowIdx++);
-                                row.createCell(0).setCellValue(obj.getName() != null ? obj.getName() : "");
-                                row.createCell(1)
-                                                .setCellValue(obj.getDescription() != null ? obj.getDescription() : "");
-                        }
-                        sheet.autoSizeColumn(0);
-                        sheet.autoSizeColumn(1);
-
-                        ByteArrayOutputStream out = new ByteArrayOutputStream();
-                        wb.write(out);
-
-                        return ResponseEntity.ok()
-                                        .header(HttpHeaders.CONTENT_DISPOSITION,
-                                                        "attachment; filename=objectives_export.xlsx")
-                                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                                        .body(out.toByteArray());
-
-                } catch (Exception e) {
-                        throw new RuntimeException("Failed to export objectives", e);
-                }
+        if (codeExists) {
+            throw new BadRequestException("Objective code already exists in this course");
         }
 
-        // ─── TEMPLATE ────────────────────────────────────────────────────────────
+        // Update data
+        objective.setCode(request.getCode());
+        objective.setName(request.getName());
+        objective.setDescription(request.getDescription());
 
-        @Override
-        public ResponseEntity<byte[]> downloadTemplate() {
-                try (Workbook wb = new XSSFWorkbook()) {
-                        Sheet sheet = wb.createSheet("Objectives");
+        repository.save(objective);
 
-                        Font bold = wb.createFont();
-                        bold.setBold(true);
-                        CellStyle headerStyle = wb.createCellStyle();
-                        headerStyle.setFont(bold);
+        return mapper.toResponse(objective);
+    }
 
-                        Row headerRow = sheet.createRow(0);
-                        for (int i = 0; i < HEADERS.length; i++) {
-                                Cell cell = headerRow.createCell(i);
-                                cell.setCellValue(HEADERS[i]);
-                                cell.setCellStyle(headerStyle);
-                        }
+    @Override
+    public void deleteObjective(UUID courseId, UUID objectiveId) {
 
-                        Row sample = sheet.createRow(1);
-                        sample.createCell(0).setCellValue("Understand core Java concepts");
-                        sample.createCell(1)
-                                        .setCellValue("Student can explain OOP, collections, and exception handling");
+        CourseObjective objective = repository
+                .findById(objectiveId)
+                .orElseThrow(() -> new ResourceNotFoundException("Objective not found"));
 
-                        sheet.autoSizeColumn(0);
-                        sheet.autoSizeColumn(1);
-
-                        ByteArrayOutputStream out = new ByteArrayOutputStream();
-                        wb.write(out);
-
-                        return ResponseEntity.ok()
-                                        .header(HttpHeaders.CONTENT_DISPOSITION,
-                                                        "attachment; filename=objectives_template.xlsx")
-                                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                                        .body(out.toByteArray());
-
-                } catch (Exception e) {
-                        throw new RuntimeException("Failed to generate objectives template", e);
-                }
+        // Check objective thuộc course nào
+        if (!objective.getCourse().getId().equals(courseId)) {
+            throw new BadRequestException("Objective does not belong to this course");
         }
 
-        // ─── IMPORT ──────────────────────────────────────────────────────────────
+        repository.delete(objective);
+    }
 
-        @Override
-        public void importObjectives(UUID courseId, MultipartFile file) {
-                Course course = courseRepository.findById(courseId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+    // ─── EXPORT ──────────────────────────────────────────────────────────────
 
-                if (course.getStatus() == CourseStatus.ACTIVE) {
-                        throw new RuntimeException("Course is not editable");
-                }
+    private static final String[] HEADERS = {"Code", "Name", "Description"};
 
-                try (InputStream is = file.getInputStream();
-                                Workbook wb = new XSSFWorkbook(is)) {
+    @Override
+    public ResponseEntity<byte[]> exportObjectives(UUID courseId) {
+        List<CourseObjective> objectives = repository.findByCourseId(courseId);
 
-                        Sheet sheet = wb.getSheetAt(0);
-                        Iterator<Row> rows = sheet.iterator();
-                        if (!rows.hasNext())
-                                return;
-                        rows.next(); // skip header
+        try (Workbook wb = new XSSFWorkbook()) {
+            Sheet sheet = wb.createSheet("Objectives");
 
-                        while (rows.hasNext()) {
-                                Row row = rows.next();
+            Font bold = wb.createFont();
+            bold.setBold(true);
+            CellStyle headerStyle = wb.createCellStyle();
+            headerStyle.setFont(bold);
+            headerStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-                                String name = getCellStr(row, 0);
-                                if (name == null || name.isBlank())
-                                        continue;
+            Row header = sheet.createRow(0);
+            for (int i = 0; i < HEADERS.length; i++) {
+                Cell cell = header.createCell(i);
+                cell.setCellValue(HEADERS[i]);
+                cell.setCellStyle(headerStyle);
+            }
 
-                                // Skip duplicates silently
-                                if (repository.existsByCourseIdAndName(courseId, name))
-                                        continue;
+            int rowIdx = 1;
+            for (CourseObjective obj : objectives) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(obj.getCode() != null ? obj.getCode() : "");
+                row.createCell(1).setCellValue(obj.getName() != null ? obj.getName() : "");
+                row.createCell(2).setCellValue(obj.getDescription() != null ? obj.getDescription() : "");
+            }
+            sheet.autoSizeColumn(0);
+            sheet.autoSizeColumn(1);
+            sheet.autoSizeColumn(2);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            wb.write(out);
 
-                                CourseObjective obj = new CourseObjective();
-                                obj.setName(name);
-                                obj.setDescription(getCellStr(row, 1));
-                                obj.setCourse(course);
-                                repository.save(obj);
-                        }
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=objectives_export.xlsx")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(out.toByteArray());
 
-                } catch (RuntimeException e) {
-                        throw e;
-                } catch (Exception e) {
-                        throw new RuntimeException("Failed to import objectives", e);
-                }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to export objectives", e);
+        }
+    }
+
+    // ─── TEMPLATE ────────────────────────────────────────────────────────────
+
+    @Override
+    public ResponseEntity<byte[]> downloadTemplate() {
+        try (Workbook wb = new XSSFWorkbook()) {
+            Sheet sheet = wb.createSheet("Objectives");
+
+            Font bold = wb.createFont();
+            bold.setBold(true);
+            CellStyle headerStyle = wb.createCellStyle();
+            headerStyle.setFont(bold);
+
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < HEADERS.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(HEADERS[i]);
+                cell.setCellStyle(headerStyle);
+            }
+            Row sample = sheet.createRow(1);
+            sample.createCell(0).setCellValue("OBJ-01");
+            sample.createCell(1).setCellValue("Understand core Java concepts");
+            sample.createCell(2).setCellValue("Student can explain OOP, collections, and exception handling");
+
+            sheet.autoSizeColumn(0);
+            sheet.autoSizeColumn(1);
+            sheet.autoSizeColumn(2);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            wb.write(out);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=objectives_template.xlsx")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(out.toByteArray());
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate objectives template", e);
+        }
+    }
+
+    // ─── IMPORT ──────────────────────────────────────────────────────────────
+
+    @Override
+    public void importObjectives(UUID courseId, MultipartFile file) {
+
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+
+        if (course.getStatus() == CourseStatus.ACTIVE) {
+            throw new RuntimeException("Course is not editable");
         }
 
-        private String getCellStr(Row row, int idx) {
-                Cell cell = row.getCell(idx);
-                if (cell == null)
-                        return null;
-                return switch (cell.getCellType()) {
-                        case STRING -> cell.getStringCellValue().trim();
-                        case NUMERIC -> String.valueOf((long) cell.getNumericCellValue());
-                        default -> null;
-                };
+        try (InputStream is = file.getInputStream();
+             Workbook wb = new XSSFWorkbook(is)) {
+
+            Sheet sheet = wb.getSheetAt(0);
+            Iterator<Row> rows = sheet.iterator();
+
+            if (!rows.hasNext()) {
+                return; // empty file
+            }
+
+            rows.next(); // skip header row
+
+            while (rows.hasNext()) {
+                Row row = rows.next();
+
+                String code = getCellStr(row, 0);
+                String name = getCellStr(row, 1);
+                String description = getCellStr(row, 2);
+
+                // Validate required fields
+                if (code == null || code.isBlank()) continue;
+                if (name == null || name.isBlank()) continue;
+
+                // Skip duplicate code
+                if (repository.existsByCourseIdAndCode(courseId, code)) continue;
+
+                // Skip duplicate name
+                if (repository.existsByCourseIdAndName(courseId, name)) continue;
+
+                CourseObjective obj = new CourseObjective();
+                obj.setCode(code);
+                obj.setName(name);
+                obj.setDescription(description);
+                obj.setCourse(course);
+
+                repository.save(obj);
+            }
+
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to import objectives", e);
         }
+    }
+
+    private String getCellStr(Row row, int idx) {
+        Cell cell = row.getCell(idx);
+        if (cell == null)
+            return null;
+        return switch (cell.getCellType()) {
+            case STRING -> cell.getStringCellValue().trim();
+            case NUMERIC -> String.valueOf((long) cell.getNumericCellValue());
+            default -> null;
+        };
+    }
 }

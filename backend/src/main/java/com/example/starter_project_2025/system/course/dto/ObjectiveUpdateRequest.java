@@ -6,6 +6,11 @@ import lombok.Data;
 
 @Data
 public class ObjectiveUpdateRequest {
+
+    @NotBlank(message = "Code is required")
+    @Size(max = 50)
+    private String code;
+
     @NotBlank(message = "Name is required")
     @Size(max = 100)
     private String name;

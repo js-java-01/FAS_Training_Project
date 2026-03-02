@@ -12,6 +12,7 @@ public class CourseObjectiveMapper {
             CourseObjectiveCreateRequest req) {
 
         return CourseObjective.builder()
+                .code(req.getCode())
                 .name(req.getName())
                 .description(req.getDescription())
                 .build();
@@ -22,6 +23,7 @@ public class CourseObjectiveMapper {
 
         return CourseObjectiveResponse.builder()
                 .id(entity.getId())
+                .code(entity.getCode())
                 .name(entity.getName())
                 .description(entity.getDescription())
                 .createdDate(entity.getCreatedDate())

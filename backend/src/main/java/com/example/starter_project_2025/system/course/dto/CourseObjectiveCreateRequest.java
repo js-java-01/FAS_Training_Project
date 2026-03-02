@@ -5,6 +5,10 @@ import lombok.Data;
 
 @Data
 public class CourseObjectiveCreateRequest {
+
+    @NotBlank
+    private String code;
+
     @NotBlank
     private String name;
 

@@ -19,7 +19,7 @@ import ImportExportModal from "@/components/modal/import-export/ImportExportModa
 
 import { courseApi } from "@/api/courseApi";
 import type { CourseObjective } from "@/types/courseObjective";
-import { SideFormPanel } from "./SideFormPanel";
+import { ObjectiveForm } from "@/components/ui/ObjectiveForm";
 
 // ─── Types ─────────────────────────────────────────────────
 interface Props {
@@ -27,11 +27,12 @@ interface Props {
 }
 
 type FormState = {
+  code: string;
   name: string;
   description: string;
 };
 
-const EMPTY_FORM: FormState = { name: "", description: "" };
+const EMPTY_FORM: FormState = { code: "", name: "", description: "" };
 
 // ─── Component ─────────────────────────────────────────────
 const CourseObjectivesTab = ({ courseId }: Props) => {
@@ -83,7 +84,7 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
 
   const openEdit = (obj: CourseObjective) => {
     setPanelMode("edit");
-    setForm({ name: obj.name, description: obj.description ?? "" });
+    setForm({ code: obj.code, name: obj.name, description: obj.description ?? "" });
     setEditingId(obj.id);
     setPanelOpen(true);
   };
@@ -105,17 +106,24 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
       return;
     }
 
+    if (!form.code.trim()) {
+      toast.error("Objective code is required");
+      return;
+    }
+
     try {
       setSaving(true);
       if (panelMode === "edit" && editingId) {
         await courseApi.updateObjective(courseId, editingId, {
           name: form.name,
+          code: form.code,
           description: form.description,
         });
         toast.success("Objective updated successfully");
       } else {
         await courseApi.createObjective(courseId, {
           name: form.name,
+          code: form.code,
           description: form.description,
         });
         toast.success("Objective created successfully");
@@ -151,6 +159,7 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
 
   // ─── Columns ─────────────────────────────────────────────
   const columns: ColumnDef<CourseObjective>[] = [
+    { accessorKey: "code", header: "Code" },
     { accessorKey: "name", header: "Name" },
     { accessorKey: "description", header: "Description" },
     {
@@ -262,45 +271,6 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
         searchPlaceholder="name"
       />
 
-      {/* ── Add / Edit Side Panel ── */}
-      <SideFormPanel
-        open={panelOpen}
-        onOpenChange={setPanelOpen}
-        title={
-          panelMode === "edit"
-            ? "Edit Course Objective"
-            : "Add Course Objective"
-        }
-        saving={saving}
-        onSave={handleSave}
-        saveText={panelMode === "edit" ? "Update" : "Save"}
-      >
-        <div className="grid gap-2">
-          <Label htmlFor="obj-name">
-            Name <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="obj-name"
-            value={form.name}
-            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-            placeholder="Objective name"
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="obj-desc">Description</Label>
-          <textarea
-            id="obj-desc"
-            value={form.description}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, description: e.target.value }))
-            }
-            placeholder="Objective description"
-            rows={4}
-            className="min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          />
-        </div>
-      </SideFormPanel>
-
       {/* ── View Detail Sheet ── */}
       <Sheet open={viewOpen} onOpenChange={setViewOpen}>
         <SheetContent className="p-0 sm:max-w-md" side="right">
@@ -309,6 +279,10 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
           </SheetHeader>
           {viewObj && (
             <div className="p-4 space-y-4">
+              <div>
+                <Label className="text-muted-foreground text-xs">Code</Label>
+                <p className="text-sm font-medium">{viewObj.code}</p>
+              </div>
               <div>
                 <Label className="text-muted-foreground text-xs">Name</Label>
                 <p className="text-sm font-medium">{viewObj.name}</p>
@@ -349,6 +323,46 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
         onImport={handleImport}
         onExport={handleExport}
         onDownloadTemplate={handleDownloadTemplate}
+      />
+
+      <ObjectiveForm
+        open={panelOpen}
+        onClose={() => setPanelOpen(false)}
+        loading={saving}
+        initialData={
+          panelMode === "edit"
+            ? {
+              code: form.code,
+              name: form.name,
+              description: form.description,
+            }
+            : null
+        }
+        onSubmit={async (data) => {
+          try {
+            setSaving(true);
+
+            if (panelMode === "edit" && editingId) {
+              await courseApi.updateObjective(courseId, editingId, data);
+              toast.success("Objective updated successfully");
+            } else {
+              await courseApi.createObjective(courseId, data);
+              toast.success("Objective created successfully");
+            }
+
+            setPanelOpen(false);
+            fetchObjectives();
+          } catch (err: any) {
+            toast.error(
+              err?.response?.data?.message ||
+              (panelMode === "edit"
+                ? "Failed to update objective"
+                : "Failed to create objective")
+            );
+          } finally {
+            setSaving(false);
+          }
+        }}
       />
     </>
   );
