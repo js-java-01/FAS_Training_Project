@@ -90,6 +90,8 @@ public class DataInitializer implements CommandLineRunner
             linkQuestionsToAssessments();
             initializeUserRoles();
             initializeTags();
+            initializeProgrammingLanguages();
+            initializeCourses();
 
             log.info("Database initialization completed successfully!");
         } else

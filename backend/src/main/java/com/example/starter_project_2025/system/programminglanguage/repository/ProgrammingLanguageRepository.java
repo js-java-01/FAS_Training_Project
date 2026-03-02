@@ -1,17 +1,19 @@
 package com.example.starter_project_2025.system.programminglanguage.repository;
 
+import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
+@Repository
 public interface ProgrammingLanguageRepository
-        extends JpaRepository<ProgrammingLanguage, UUID>,
-                JpaSpecificationExecutor<ProgrammingLanguage> {
+        extends BaseCrudRepository<ProgrammingLanguage, UUID> {
 
-    boolean existsByNameIgnoreCase(String name);
-    Page<ProgrammingLanguage> findByNameContainingIgnoreCase(String name, Pageable pageable);
+    Optional<ProgrammingLanguage> findByName(String name);
+
+    boolean existsByName(String name);
+
+    Long countByIsSupported(Boolean isSupported);
 }

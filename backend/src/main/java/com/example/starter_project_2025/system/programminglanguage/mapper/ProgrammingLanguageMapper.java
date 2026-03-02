@@ -1,25 +1,28 @@
 package com.example.starter_project_2025.system.programminglanguage.mapper;
 
-import com.example.starter_project_2025.system.programminglanguage.dto.ProgrammingLanguageCreateRequest;
-import com.example.starter_project_2025.system.programminglanguage.dto.ProgrammingLanguageResponse;
-import com.example.starter_project_2025.system.programminglanguage.dto.ProgrammingLanguageUpdateRequest;
+import com.example.starter_project_2025.base.mapper.BaseCrudMapper;
+import com.example.starter_project_2025.system.programminglanguage.dto.ProgrammingLanguageDTO;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
-public interface ProgrammingLanguageMapper {
+public interface ProgrammingLanguageMapper extends BaseCrudMapper<ProgrammingLanguage, ProgrammingLanguageDTO> {
 
-    // Entity → Response (GET)
-    ProgrammingLanguageResponse toResponse(ProgrammingLanguage entity);
+    @Override
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "courseProgrammingLanguages", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    ProgrammingLanguage toEntity(ProgrammingLanguageDTO dto);
 
-    // Create → Entity (POST)
-    ProgrammingLanguage toEntity(ProgrammingLanguageCreateRequest request);
+    @Override
+    @Mapping(source = "supported", target = "supported")
+    ProgrammingLanguageDTO toResponse(ProgrammingLanguage entity);
 
-    // Update → Entity (PUT, partial update)
-    void updateEntityFromRequest(
-            ProgrammingLanguageUpdateRequest request,
-            @MappingTarget ProgrammingLanguage entity
-    );
+    @Override
+    @Mapping(target = "courseProgrammingLanguages", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void update(@MappingTarget ProgrammingLanguage entity, ProgrammingLanguageDTO dto);
 }
