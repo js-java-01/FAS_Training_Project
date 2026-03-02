@@ -50,19 +50,29 @@ export const topicMarkApi = {
     columnId: string
     score: number
     reason: string
-  }) =>
-    axiosInstance.put(
+  }) => {
+    const payload = {
+      entries: [
+        {
+          columnId,
+          score,
+        },
+      ],
+      columnId,
+      score,
+      reason,
+    }
+
+    console.log("[topicMarkApi.updateGrade] request", {
+      url: `/course-classes/${courseClassId}/topic-marks/${userId}`,
+      payload,
+    })
+
+    return axiosInstance.put(
       `/course-classes/${courseClassId}/topic-marks/${userId}`,
-      {
-        entries: [
-          {
-            columnId,
-            score,
-          },
-        ],
-        reason,
-      }
-    ),
+      payload
+    )
+  },
 
     exportTopicMark: async (id: string): Promise<Blob> => {
       const res = await axiosInstance.get(`/course-classes/${id}/topic-marks/export`, {

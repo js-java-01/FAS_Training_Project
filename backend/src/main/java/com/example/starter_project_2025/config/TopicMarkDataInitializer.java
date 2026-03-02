@@ -146,10 +146,20 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
         }
 
         TrainingClass tc02 = findOrCreateTrainingClassByCode("TC-DEMO-02", "Demo Training Class 02", semester, admin);
-        if (javaCourse != null)
-            findOrCreateCourseClass(javaCourse, tc02, admin);
-        if (reactCourse != null)
-            findOrCreateCourseClass(reactCourse, tc02, admin);
+        CourseClass courseClass02Java = null;
+        CourseClass courseClass02React = null;
+        if (javaCourse != null) {
+            findOrCreateWeight(javaCourse, quizType, 0.30, GradingMethod.HIGHEST);
+            findOrCreateWeight(javaCourse, midtermType, 0.50, GradingMethod.LATEST);
+            findOrCreateWeight(javaCourse, finalType, 0.20, GradingMethod.AVERAGE);
+            courseClass02Java = findOrCreateCourseClass(javaCourse, tc02, admin);
+        }
+        if (reactCourse != null) {
+            findOrCreateWeight(reactCourse, quizType, 0.30, GradingMethod.HIGHEST);
+            findOrCreateWeight(reactCourse, midtermType, 0.50, GradingMethod.LATEST);
+            findOrCreateWeight(reactCourse, finalType, 0.20, GradingMethod.AVERAGE);
+            courseClass02React = findOrCreateCourseClass(reactCourse, tc02, admin);
+        }
 
         TrainingClass tc03 = findOrCreateTrainingClassByCode("TC-DEMO-03", "Demo Training Class 03", semester, admin);
         if (javaCourse != null)
@@ -172,9 +182,16 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
 
         for (User s : List.of(john, alice, bob, carol, david, eva)) {
             findOrCreateEnrollment(s, courseClass.getClassInfo());
+            findOrCreateEnrollment(s, tc02);
             findOrCreateEnrollment(s, courseClass04.getClassInfo());
         }
-        log.info("6 students enrolled in TC-DEMO-01 and TC-DEMO-04");
+        log.info("6 students enrolled in TC-DEMO-01, TC-DEMO-02 and TC-DEMO-04");
+
+        List<User> tc02Students = List.of(john, alice, bob, carol, david, eva);
+        seedCourseClassWithoutScores(courseClass02Java, quizType, midtermType, finalType, admin, tc02Students,
+            "TC-DEMO-02 (JBM-01)");
+        seedCourseClassWithoutScores(courseClass02React, quizType, midtermType, finalType, admin, tc02Students,
+            "TC-DEMO-02 (RFP-01)");
 
         double minGpa = course.getMinGpaToPass() != null ? course.getMinGpaToPass() : 6.0;
         record SD(User user, double q1, double q2, double mid, double fin, double total) {
@@ -458,6 +475,57 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                 .reason("Initial seed data")
                 .updatedBy(seeder)
                 .build());
+    }
+
+    private void seedCourseClassWithoutScores(CourseClass courseClass,
+            AssessmentType quizType,
+            AssessmentType midtermType,
+            AssessmentType finalType,
+            User createdBy,
+            List<User> students,
+            String seedLabel) {
+        if (courseClass == null) {
+            return;
+        }
+
+        if (!columnRepository.findActiveByCourseClassId(courseClass.getId()).isEmpty()) {
+            log.info("{} columns already exist - skipped", seedLabel);
+            return;
+        }
+
+        TopicMarkColumn quizCol1 = createColumn(courseClass, quizType, "Quiz Chapter 1", 1, createdBy);
+        TopicMarkColumn quizCol2 = createColumn(courseClass, quizType, "Quiz Chapter 2", 2, createdBy);
+        TopicMarkColumn midtermCol = createColumn(courseClass, midtermType, "Midterm Exam", 1, createdBy);
+        TopicMarkColumn finalCol = createColumn(courseClass, finalType, "Final Exam", 1, createdBy);
+
+        for (User student : students) {
+            entryRepository.save(TopicMarkEntry.builder()
+                    .topicMarkColumn(quizCol1)
+                    .user(student)
+                    .courseClass(courseClass)
+                    .score(null)
+                    .build());
+            entryRepository.save(TopicMarkEntry.builder()
+                    .topicMarkColumn(quizCol2)
+                    .user(student)
+                    .courseClass(courseClass)
+                    .score(null)
+                    .build());
+            entryRepository.save(TopicMarkEntry.builder()
+                    .topicMarkColumn(midtermCol)
+                    .user(student)
+                    .courseClass(courseClass)
+                    .score(null)
+                    .build());
+            entryRepository.save(TopicMarkEntry.builder()
+                    .topicMarkColumn(finalCol)
+                    .user(student)
+                    .courseClass(courseClass)
+                    .score(null)
+                    .build());
+        }
+
+        log.info("{} seeded with {} students and null scores", seedLabel, students.size());
     }
 
     private void upsertTopicMark(CourseClass courseClass, User user, double finalScore, double minGpa) {

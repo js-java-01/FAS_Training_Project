@@ -7,7 +7,6 @@ import com.example.starter_project_2025.system.topic_mark.service.TopicMarkServi
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -179,7 +178,7 @@ public class TopicMarkController {
                           "- Column 1 (hidden): user UUID for matching\n" +
                           "- Blank cells = keep existing score, filled cells = update\n" +
                   "- Final scores are auto-recomputed after import",
-            requestBody = @RequestBody(
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                 required = true,
                 content = @Content(
                     mediaType = "multipart/form-data",

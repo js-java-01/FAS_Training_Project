@@ -95,6 +95,25 @@ export const buildGradebookColumns = (
         cell: (info) => {
           const value = info.getValue()
 
+          if (
+            col.weight != null &&
+            isEditing &&
+            value !== true &&
+            value !== false
+          ) {
+            const rowData = info.row.original
+
+            return (
+              <EditableGradeCell
+                value={value ?? null}
+                courseClassId={rowData.courseClassId}
+                userId={rowData.userId}
+                columnId={col.key}
+                isTableEditing={isEditing}
+              />
+            )
+          }
+
           if (value == null)
             return (
               <span className="text-muted-foreground flex items-center justify-center">
@@ -113,25 +132,6 @@ export const buildGradebookColumns = (
               >
                 {value ? "Pass" : "Fail"}
               </Badge>
-            )
-          }
-
-          // NUMBER → editable
-          if (
-            typeof value === "number" &&
-            col.weight != null &&
-            isEditing
-          ) {
-            const rowData = info.row.original
-
-            return (
-              <EditableGradeCell
-                value={value}
-                courseClassId={rowData.courseClassId}
-                userId={rowData.userId}
-                columnId={col.key}
-                isTableEditing={isEditing}
-              />
             )
           }
 
