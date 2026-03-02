@@ -30,6 +30,51 @@ export interface UpdateTopicSkillRequest {
   skills: { skillId: string; required: boolean }[];
 }
 
+/* ─── Assessment Scheme types ────────────────────────────── */
+export type AssessmentComponentType =
+  | "QUIZ"
+  | "ASSIGNMENT"
+  | "FINAL_EXAM"
+  | "LAB"
+  | "PROJECT";
+
+export const ASSESSMENT_TYPES: AssessmentComponentType[] = [
+  "QUIZ",
+  "ASSIGNMENT",
+  "FINAL_EXAM",
+  "LAB",
+  "PROJECT",
+];
+
+export interface AssessmentSchemeConfig {
+  minGpaToPass: number;
+  minAttendance: number;
+  allowFinalRetake: boolean;
+}
+
+export interface AssessmentComponentRequest {
+  name: string;
+  type: AssessmentComponentType;
+  count: number;
+  weight: number;
+  duration?: number | null;
+  displayOrder: number;
+  isGraded: boolean;
+  note?: string | null;
+}
+
+export interface AssessmentComponentResponse {
+  id: string;
+  name: string;
+  type: AssessmentComponentType;
+  count: number;
+  weight: number;
+  duration?: number | null;
+  displayOrder: number;
+  isGraded: boolean;
+  note?: string | null;
+}
+
 /* ─── Delivery Principle types ───────────────────────────── */
 export interface TopicDeliveryPrinciple {
   id?: string;
@@ -40,6 +85,18 @@ export interface TopicDeliveryPrinciple {
   markingPolicy?: string | null;
   waiverNotes?: string | null;
   otherNotes?: string | null;
+}
+
+/* ─── Time Allocation types ──────────────────────────────── */
+export interface TopicTimeAllocation {
+  trainingHours?: number | null;
+  practiceHours?: number | null;
+  selfStudyHours?: number | null;
+  coachingHours?: number | null;
+  notes?: string | null;
+  // read-only computed
+  assessmentHours?: number;
+  totalHours?: number;
 }
 
 /* ─── Topic types ─────────────────────────────────────────── */
@@ -181,6 +238,52 @@ export const topicApi = {
 
   saveDeliveryPrinciple: async (topicId: string, payload: TopicDeliveryPrinciple): Promise<TopicDeliveryPrinciple> => {
     const res = await axiosInstance.put(`/topics/${topicId}/delivery-principle`, payload);
+    return res.data;
+  },
+
+  /* ─── Assessment Scheme ─── */
+  getSchemeConfig: async (topicId: string): Promise<AssessmentSchemeConfig> => {
+    const res = await axiosInstance.get(`/topics/${topicId}/assessment-scheme/config`);
+    return res.data;
+  },
+
+  updateSchemeConfig: async (topicId: string, payload: AssessmentSchemeConfig): Promise<AssessmentSchemeConfig> => {
+    const res = await axiosInstance.put(`/topics/${topicId}/assessment-scheme/config`, payload);
+    return res.data;
+  },
+
+  getComponents: async (topicId: string): Promise<AssessmentComponentResponse[]> => {
+    const res = await axiosInstance.get(`/topics/${topicId}/assessment-scheme/components`);
+    return res.data;
+  },
+
+  addComponent: async (topicId: string, payload: AssessmentComponentRequest): Promise<AssessmentComponentResponse> => {
+    const res = await axiosInstance.post(`/topics/${topicId}/assessment-scheme/components`, payload);
+    return res.data;
+  },
+
+  updateComponents: async (topicId: string, payload: AssessmentComponentRequest[]): Promise<AssessmentComponentResponse[]> => {
+    const res = await axiosInstance.put(`/topics/${topicId}/assessment-scheme/components`, payload);
+    return res.data;
+  },
+
+  deleteComponent: async (topicId: string, componentId: string): Promise<void> => {
+    await axiosInstance.delete(`/topics/${topicId}/assessment-scheme/components/${componentId}`);
+  },
+
+  getTotalWeight: async (topicId: string): Promise<number> => {
+    const res = await axiosInstance.get(`/topics/${topicId}/assessment-scheme/total-weight`);
+    return res.data;
+  },
+
+  /* ─── Time Allocation ─── */
+  getTimeAllocation: async (topicId: string): Promise<TopicTimeAllocation> => {
+    const res = await axiosInstance.get(`/topics/${topicId}/time-allocation`);
+    return res.data;
+  },
+
+  saveTimeAllocation: async (topicId: string, payload: TopicTimeAllocation): Promise<TopicTimeAllocation> => {
+    const res = await axiosInstance.put(`/topics/${topicId}/time-allocation`, payload);
     return res.data;
   },
 };

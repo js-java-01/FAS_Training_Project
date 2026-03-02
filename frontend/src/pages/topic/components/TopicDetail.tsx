@@ -15,6 +15,8 @@ import {
 } from "react-icons/fi";
 import { TopicSkillsTab } from "./TopicSkillsTab";
 import { TopicDeliveryPrinciplesTab } from "./TopicDeliveryPrinciplesTab";
+import { TopicAssessmentSchemeTab } from "./TopicAssessmentSchemeTab";
+import { TopicTimeAllocationTab } from "./TopicTimeAllocationTab";
 
 const tabs = [
   "Overview",
@@ -68,7 +70,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Topic Details</h1>
           <p className="text-sm text-gray-500">
-            View and manage topic knowledge base
+            Topic Details management and configuration
           </p>
         </div>
         <button
@@ -265,10 +267,22 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
         <TopicDeliveryPrinciplesTab topicId={topic.id} />
       )}
 
+      {/* ASSESSMENT SCHEME TAB */}
+      {activeTab === "Assessment Scheme" && (
+        <TopicAssessmentSchemeTab topicId={topic.id} />
+      )}
+
+      {/* TIME ALLOCATION TAB */}
+      {activeTab === "Time Allocation" && (
+        <TopicTimeAllocationTab topicId={topic.id} />
+      )}
+
       {/* OTHER TABS PLACEHOLDER */}
       {activeTab !== "Overview" &&
         activeTab !== "Skills" &&
-        activeTab !== "Delivery Principles" && (
+        activeTab !== "Delivery Principles" &&
+        activeTab !== "Assessment Scheme" &&
+        activeTab !== "Time Allocation" && (
           <div className="py-20 text-center border-2 border-dashed rounded-xl bg-gray-50 text-gray-400">
             <FiLayers size={40} className="mx-auto mb-2 opacity-20" />
             <p>Content for {activeTab} is being updated by the content team.</p>

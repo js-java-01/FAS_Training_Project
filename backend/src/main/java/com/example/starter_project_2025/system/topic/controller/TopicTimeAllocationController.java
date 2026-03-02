@@ -1,0 +1,31 @@
+package com.example.starter_project_2025.system.topic.controller;
+
+import com.example.starter_project_2025.system.topic.dto.TopicTimeAllocationDTO;
+import com.example.starter_project_2025.system.topic.service.TopicTimeAllocationService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/topics/{topicId}/time-allocation")
+@RequiredArgsConstructor
+public class TopicTimeAllocationController {
+
+    private final TopicTimeAllocationService service;
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PROGRAM_MANAGER')")
+    public TopicTimeAllocationDTO get(@PathVariable UUID topicId) {
+        return service.get(topicId);
+    }
+
+    @PutMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PROGRAM_MANAGER')")
+    public TopicTimeAllocationDTO save(
+            @PathVariable UUID topicId,
+            @RequestBody TopicTimeAllocationDTO dto) {
+        return service.save(topicId, dto);
+    }
+}
