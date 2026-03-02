@@ -7,8 +7,7 @@ import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import java.util.List;
 import java.util.UUID;
 
-public interface EnrollmentService
-{
+public interface EnrollmentService {
 
     TrainingClassSemesterResponse enroll(EnrollmentRequest request);
 

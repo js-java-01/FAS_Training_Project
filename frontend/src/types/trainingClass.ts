@@ -36,3 +36,9 @@ export interface Semester {
   startDate: string;
   endDate: string;
 }
+
+export interface TrainingClassSemesterResponse {
+  semesterId: string;
+  semesterName: string;
+  classes: TrainingClass[];
+}

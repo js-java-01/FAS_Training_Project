@@ -19,15 +19,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class ClassDetailsServiceImpl implements ClassDetailsService
-{
+public class ClassDetailsServiceImpl implements ClassDetailsService {
     private final EnrollmentRepository enrollmentRepository;
     private final CourseClassRepository courseClassRepository;
     private final ClassDetailsMapper classDetailsMapper;
 
     @Override
-    public Page<TraineeDetailsResponse> getTraineesOfClass(UUID classId, String keyword, Pageable pageable)
-    {
+    public Page<TraineeDetailsResponse> getTraineesOfClass(UUID classId, String keyword, Pageable pageable) {
         Specification<Enrollment> spec = ClassDetailsSpecification.searchTrainees(classId, keyword);
 
         return enrollmentRepository.findAll(spec, pageable)
@@ -35,8 +33,7 @@ public class ClassDetailsServiceImpl implements ClassDetailsService
     }
 
     @Override
-    public Page<CourseDetailsResponse> getCoursesOfClass(UUID classId, CourseSearchRequest request, Pageable pageable)
-    {
+    public Page<CourseDetailsResponse> getCoursesOfClass(UUID classId, CourseSearchRequest request, Pageable pageable) {
         Specification<CourseClass> spec = ClassDetailsSpecification.searchCourses(classId, request);
 
         return courseClassRepository.findAll(spec, pageable)
