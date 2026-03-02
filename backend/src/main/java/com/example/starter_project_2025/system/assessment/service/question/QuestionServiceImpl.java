@@ -104,13 +104,12 @@ public class QuestionServiceImpl
         }
 
         if (request.getOptions() != null) {
-            entity.getOptions().clear();
 
             String type = request.getQuestionType() != null
                     ? request.getQuestionType()
                     : entity.getQuestionType();
 
-            setOptions(entity, request.getOptions(), type);
+            updateOptions(entity, request.getOptions(), type);
         }
     }
 
@@ -146,7 +145,8 @@ public class QuestionServiceImpl
             throw new RuntimeException("Question must have options");
         }
 
-        List<QuestionOption> newOptions = new ArrayList<>();
+        List<QuestionOption> existingOptions = question.getOptions();
+        existingOptions.clear();
 
         for (QuestionOptionDTO dto : options) {
 
@@ -156,12 +156,10 @@ public class QuestionServiceImpl
             option.setOrderIndex(dto.getOrderIndex());
             option.setQuestion(question);
 
-            newOptions.add(option);
+            existingOptions.add(option);
         }
 
-        validateOptions(questionType, newOptions);
-
-        question.setOptions(newOptions);
+        validateOptions(questionType, existingOptions);
     }
 
     private void validateOptions(String questionType,
@@ -178,5 +176,30 @@ public class QuestionServiceImpl
         if ("MULTIPLE".equalsIgnoreCase(questionType) && correctCount < 2) {
             throw new RuntimeException("MULTIPLE question must have at least 2 correct answers");
         }
+    }
+
+    private void updateOptions(Question question,
+                               List<QuestionOptionDTO> optionDTOs,
+                               String questionType) {
+
+        if (optionDTOs == null || optionDTOs.isEmpty()) {
+            throw new RuntimeException("Question must have options");
+        }
+
+        List<QuestionOption> existingOptions = question.getOptions();
+        existingOptions.clear();
+
+        for (QuestionOptionDTO dto : optionDTOs) {
+
+            QuestionOption option = new QuestionOption();
+            option.setContent(dto.getContent());
+            option.setCorrect(Boolean.TRUE.equals(dto.getCorrect()));
+            option.setOrderIndex(dto.getOrderIndex());
+            option.setQuestion(question);
+
+            existingOptions.add(option);
+        }
+
+        validateOptions(questionType, existingOptions);
     }
 }
