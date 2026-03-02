@@ -7,7 +7,9 @@ export type TrainingClassStatusPresentation = {
 };
 
 export function getTrainingClassStatusPresentation(trainingClass: TrainingClass): TrainingClassStatusPresentation {
-    if (trainingClass.status === "PENDING_APPROVAL") {
+    const rawStatus = String(trainingClass.status ?? "").toUpperCase();
+
+    if (rawStatus === "PENDING_APPROVAL") {
         return {
             value: "PENDING_APPROVAL",
             label: "Pending",
@@ -15,7 +17,7 @@ export function getTrainingClassStatusPresentation(trainingClass: TrainingClass)
         };
     }
 
-    if (trainingClass.status === "REJECTED") {
+    if (rawStatus === "REJECTED") {
         return {
             value: "REJECTED",
             label: "Rejected",
@@ -23,7 +25,7 @@ export function getTrainingClassStatusPresentation(trainingClass: TrainingClass)
         };
     }
 
-    if (trainingClass.status === "APPROVED") {
+    if (rawStatus === "APPROVED") {
         if (trainingClass.isActive) {
             return {
                 value: "APPROVED_ACTIVE",
@@ -34,14 +36,44 @@ export function getTrainingClassStatusPresentation(trainingClass: TrainingClass)
 
         return {
             value: "APPROVED",
-            label: "Approved (Inactive)",
+            label: "Inactive",
             badgeClassName: "bg-blue-100 text-blue-700 border-blue-200 shadow-none",
         };
     }
 
+    if (rawStatus === "ACTIVE" || rawStatus === "APPROVED_ACTIVE") {
+        return {
+            value: "APPROVED_ACTIVE",
+            label: "Active",
+            badgeClassName: "bg-green-100 text-green-700 border-green-200 shadow-none",
+        };
+    }
+
+    if (rawStatus === "INACTIVE" || rawStatus === "APPROVED_INACTIVE") {
+        return {
+            value: "APPROVED",
+            label: "Inactive",
+            badgeClassName: "bg-blue-100 text-blue-700 border-blue-200 shadow-none",
+        };
+    }
+
+    if (!rawStatus) {
+        return trainingClass.isActive
+            ? {
+                  value: "APPROVED_ACTIVE",
+                  label: "Active",
+                  badgeClassName: "bg-green-100 text-green-700 border-green-200 shadow-none",
+              }
+            : {
+                  value: "APPROVED",
+                  label: "Inactive",
+                  badgeClassName: "bg-blue-100 text-blue-700 border-blue-200 shadow-none",
+              };
+    }
+
     return {
-        value: trainingClass.status,
-        label: trainingClass.status,
+        value: rawStatus,
+        label: rawStatus,
         badgeClassName: "bg-gray-100 text-gray-700 border-gray-200 shadow-none",
     };
 }

@@ -181,7 +181,7 @@ const SelectField = ({
 const STATUS_OPTIONS = [
     { value: "PENDING_APPROVAL", label: "Pending" },
     { value: "APPROVED_ACTIVE", label: "Active" },
-    { value: "APPROVED", label: "Approved (Inactive)" },
+    { value: "APPROVED", label: "Inactive" },
     { value: "REJECTED", label: "Rejected" },
 ];
 
@@ -208,14 +208,6 @@ const StatusSelector = ({ current }: { current: string }) => (
                     </div>
                 );
             })}
-        </div>
-        <div className="text-xs text-muted-foreground mt-1">
-            Selected:{" "}
-            <Badge variant="outline" className="text-blue-600 border-blue-300 bg-blue-50">
-                {STATUS_OPTIONS.find(
-                    (s) => s.value === current,
-                )?.label ?? current}
-            </Badge>
         </div>
     </div>
 );
@@ -294,28 +286,28 @@ export default function ClassInfoTab({
                     />
                 </div>
 
-                {/* Row 2: BU Request + Training Program */}
+                {/* Row 2: BU Request + Training Program
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <SelectField label="BU Request (Optional)" value={null} />
                     <SelectField label="Training Program" value={null} required />
-                </div>
+                </div> */}
 
                 {/* Row 3: Master Trainer / Admin / Location */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <SelectField label="Master Trainer" value={trainingClass.creatorName} />
                     <SelectField label="Admin" value={trainingClass.approverName} />
-                    <SelectField label="Location" value={null} required />
+                    {/* <SelectField label="Location" value={null} required /> */}
                 </div>
 
                 {/* Row 4: Format / Delivery / Subject / Scope / Trainee / Technical */}
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-5">
+                {/* <div className="grid grid-cols-2 md:grid-cols-6 gap-5">
                     <SelectField label="Format Type" value={null} />
                     <SelectField label="Delivery Type" value={null} />
                     <SelectField label="Subject Type" value={null} />
                     <SelectField label="Scope" value={null} />
                     <SelectField label="Trainee Type" value={null} required />
                     <SelectField label="Technical Group" value={null} required />
-                </div>
+                </div> */}
 
                 {/* Status */}
                 <StatusSelector current={statusPresentation.value} />
@@ -336,7 +328,7 @@ export default function ClassInfoTab({
                         selectedValue={formData?.semesterId}
                         loading={loadingSemesters}
                     />
-                    <Field
+                    {/* <Field
                         label="Description"
                         value={
                             isEditing
@@ -346,7 +338,7 @@ export default function ClassInfoTab({
                         isEditing={isEditing}
                         onChange={onFieldChange}
                         name="description"
-                    />
+                    /> */}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
