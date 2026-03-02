@@ -16,7 +16,7 @@ public class CreateClassRequest {
 
     @NotBlank(message = "Class name is required")
     @Pattern(
-            regexp = "^(?=.*[a-zA-Z])[a-zA-Z0-9 _-]+$",
+            regexp = "^(?=.*\\p{L})[\\p{L}\\p{N} _-]+$",
             message = "Class name must contain at least one letter and only letters, numbers, spaces, '-' or '_' are allowed"
     )
     @Schema(example = "HCM_Java_24")
