@@ -20,8 +20,8 @@ public class QuestionCategoryService {
 
     public QuestionCategory create(QuestionCategoryResponse dto) {
         QuestionCategory entity = new QuestionCategory();
-        entity.setName(dto.getName());
-        entity.setDescription(dto.getDescription());
+        entity.setName(dto.name());
+        entity.setDescription(dto.description());
         return repository.save(entity);
     }
 

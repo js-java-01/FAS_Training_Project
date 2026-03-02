@@ -5,15 +5,14 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class AssessmentTypeResponse {
-    String id;
-    String name;
-    String description;
-    LocalDate createdAt;
-    LocalDate updatedAt;
+
+@Builder
+public record AssessmentTypeResponse(
+    String id,
+    String name,
+    String description,
+    LocalDate createdAt,
+    LocalDate updatedAt
+){
+
 }
