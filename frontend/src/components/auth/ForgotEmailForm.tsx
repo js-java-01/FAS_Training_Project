@@ -1,9 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Mail, Loader2, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import type { ForgotPasswordEmailRequest } from '@/types/auth';
 
@@ -23,39 +21,39 @@ export const ForgotEmailForm = ({ onSubmit, loading }: ForgotEmailFormProps) => 
     });
 
     return (
-        <div className="p-10 space-y-7">
-            <div className="text-center space-y-3">
-                <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Forgot Password?</h1>
-                <p className="text-lg text-gray-500">Enter your email to receive a reset link</p>
-            </div>
+        <Form {...form}>
+            <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", padding: "1rem 0" }}
+            >
+                <h2 className="text-3xl font-semibold mb-1" style={{ color: "#2c5f5d" }}>
+                    Forgot Password?
+                </h2>
+                <p className="text-sm mb-4" style={{ color: "#6b8585" }}>
+                    Enter your email to receive a reset link
+                </p>
 
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                            <FormItem>
-                                <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={22} />
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            placeholder="Email Address"
-                                            className="pl-12 h-14 text-lg rounded-2xl"
-                                        />
-                                    </FormControl>
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem style={{ width: "85%" }}>
+                            <FormControl>
+                                <div className="auth-field-container" style={{ width: "100%" }}>
+                                    <i className="fas fa-envelope" />
+                                    <input {...field} type="email" placeholder="Email Address" />
+                                    <span />
                                 </div>
-                                <FormMessage className="ml-2" />
-                            </FormItem>
-                        )}
-                    />
+                            </FormControl>
+                            <FormMessage className="text-xs pl-2" />
+                        </FormItem>
+                    )}
+                />
 
-                    <Button type="submit" disabled={loading} className="w-full h-13 text-xl font-bold rounded-2xl shadow-lg">
-                        {loading ? <Loader2 className="animate-spin" /> : <>Send Reset Link <ArrowRight className="ml-2" size={22} /></>}
-                    </Button>
-                </form>
-            </Form>
-        </div>
+                <button type="submit" className="auth-action-button" disabled={loading} style={{ marginTop: "10px" }}>
+                    {loading ? <Loader2 className="animate-spin" style={{ margin: "0 auto" }} /> : "Send Link"}
+                </button>
+            </form>
+        </Form>
     );
 };
