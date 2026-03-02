@@ -22,7 +22,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 @Data
 @Entity
-@ExportEntity
+@ExportEntity(fileName = "prog_lang")
 @ImportEntity("programming-language")
 @NoArgsConstructor
 @AllArgsConstructor

@@ -613,8 +613,8 @@ public class DataInitializer implements CommandLineRunner
 
         Module examModule = createModule(
                 assessmentGroup,
-                "Take Exam",
-                "/exam",
+                "Take Assessment",
+                "/assessments",
                 "pencil",
                 5,
                 "ASSESSMENT_SUBMIT",
