@@ -12,11 +12,10 @@ import type { ClassInfoFormData } from "./components/ClassInfoTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft,FileBarChartIcon,Pencil, Save, X } from "lucide-react";
+import { ArrowLeft,Pencil, Save, X } from "lucide-react";
 import ClassInfoTab from "./components/ClassInfoTab";
 import { getTrainingClassStatusPresentation } from "./utils/statusPresentation";
 import { decodeRouteId } from "@/utils/routeIdCodec";
-import TopicMarkModal from "../topic-mark/TopicMarkManagement";
 import ClassTraineesTable from "../classes/component/ClassTraineesTable";
 import type { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
@@ -75,7 +74,6 @@ export default function ClassDetailPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const queryClient = useQueryClient();
-    const [openTopicMark, setOpenTopicMark] = useState(false);
     const { role } = useSelector((state: RootState) => state.auth);
 
     /* Data passed from the table via navigate state */
@@ -286,11 +284,10 @@ export default function ClassDetailPage() {
 
                         {/* Placeholder tabs */}
                         <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1 h-full flex">
-                            <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button>
                             <ClassTraineesTable classId={trainingClass.id} trainingClass={trainingClass} />
                         </TabsContent>
-                        
-                        <TabsContent value="course-list" className="pt-6 overflow-y-auto flex-1">    
+
+                        <TabsContent value="course-list" className="pt-6 overflow-y-auto flex-1">
                             <ClassCoursesTable classId={trainingClass.id} />
                         </TabsContent>
                         <TabsContent value="calendar" className="pt-6 overflow-y-auto flex-1">
@@ -309,13 +306,6 @@ export default function ClassDetailPage() {
                 </div>
         )}
 
-            {trainingClass && (
-              <TopicMarkModal
-                open={openTopicMark}
-                onOpenChange={setOpenTopicMark}
-                trainingClass={trainingClass}
-              />
-            )}
         </MainLayout>
     );
 }
