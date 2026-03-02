@@ -81,6 +81,9 @@ public class QuestionServiceImpl
 
     @Override
     protected void beforeCreate(Question entity, QuestionDTO request) {
+        if (request.getQuestionType() == null) {
+            throw new RuntimeException("Question type is required");
+        }
 
         setCategory(entity, request.getCategoryId());
         setTags(entity, request.getTagIds());
@@ -158,7 +161,7 @@ public class QuestionServiceImpl
 
         validateOptions(questionType, newOptions);
 
-        question.getOptions().addAll(newOptions);
+        question.setOptions(newOptions);
     }
 
     private void validateOptions(String questionType,

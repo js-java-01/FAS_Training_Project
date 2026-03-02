@@ -35,6 +35,12 @@ public interface QuestionMapper extends BaseCrudMapper<Question, QuestionDTO> {
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "tags", ignore = true)
     @Mapping(target = "options", ignore = true)
+    Question toEntity(QuestionDTO dto);
+
+    @Override
+    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "options", ignore = true)
     void update(@MappingTarget Question entity, QuestionDTO dto);
 
 //    @Mapping(target = "category", source = "category")
