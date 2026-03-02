@@ -771,13 +771,13 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             result.setErrors(errors);
 
             if (totalRows == 0) {
-                result.setMessage("File không có dữ liệu học viên để import.");
+                result.setMessage("Null file. Please check again.");
                 result.setFailedCount(Math.max(result.getFailedCount(), 1));
                 return result;
             }
 
             if (updatedUserIds.isEmpty()) {
-                result.setMessage("Không có điểm nào được cập nhật. Vui lòng nhập ít nhất 1 ô điểm hợp lệ.");
+                result.setMessage("File is invalid. Please check again.");
                 result.setFailedCount(Math.max(result.getFailedCount(), 1));
                 return result;
             }
@@ -947,8 +947,8 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
             // Header row
             Row headerRow = sheet.createRow(0);
-            putCell(headerRow, 0, "STT", headerStyle);
-            putCell(headerRow, 1, "Họ và tên", headerStyle);
+            putCell(headerRow, 0, "No", headerStyle);
+            putCell(headerRow, 1, "Full Name", headerStyle);
             putCell(headerRow, 2, "Email", headerStyle);
             for (int i = 0; i < columns.size(); i++) {
                 putCell(headerRow, SCORE_COL_START + i, columns.get(i).getColumnLabel(), headerStyle);
