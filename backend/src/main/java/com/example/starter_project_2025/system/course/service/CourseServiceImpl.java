@@ -70,6 +70,9 @@ public class CourseServiceImpl implements CourseService {
         if (req.getTrainerId() != null) {
             // course.setTrainer(userRepository.findById(req.getTrainerId()).orElseThrow());
         }
+        if (req.getTopicId() != null) {
+            course.setTopicId(req.getTopicId());
+        }
         course.setUpdater(userService.getCurrentUser());
         return mapper.toResponse(courseRepository.save(course));
     }

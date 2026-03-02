@@ -35,4 +35,6 @@ public class CourseCreateRequest {
     private Boolean allowFinalRetake;
 
     private UUID trainerId;
+
+    private UUID topicId;
 }

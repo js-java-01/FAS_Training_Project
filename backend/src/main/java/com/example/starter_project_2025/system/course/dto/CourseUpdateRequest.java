@@ -20,4 +20,6 @@ public class CourseUpdateRequest {
     private String note;
     private String description;
     private UUID trainerId;
+
+    private UUID topicId;
 }

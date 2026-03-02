@@ -4,6 +4,8 @@ import com.example.starter_project_2025.system.course.dto.CourseCreateRequest;
 import com.example.starter_project_2025.system.course.dto.CourseResponse;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.enums.CourseStatus;
+import com.example.starter_project_2025.system.topic.entity.Topic;
+import com.example.starter_project_2025.system.topic.repository.TopicRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -11,6 +13,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CourseMapper {
+
+        private final TopicRepository topicRepo;
 
         // CREATE → ENTITY
         public Course toEntity(CourseCreateRequest req) {
@@ -27,6 +31,7 @@ public class CourseMapper {
                                 .minGpaToPass(req.getMinGpaToPass())
                                 .minAttendancePercent(req.getMinAttendancePercent())
                                 .allowFinalRetake(req.getAllowFinalRetake())
+                                .topicId(req.getTopicId())
                                 .status(CourseStatus.DRAFT) // default workflow
                                 .build();
         }
@@ -61,6 +66,14 @@ public class CourseMapper {
                                 .allowFinalRetake(c.getAllowFinalRetake())
 
                                 // TRAINER
+
+                                // TOPIC
+                                .topicId(c.getTopicId())
+                                .topicName(c.getTopicId() != null
+                                                ? topicRepo.findById(c.getTopicId())
+                                                                .map(Topic::getTopicName)
+                                                                .orElse(null)
+                                                : null)
 
                                 // CREATOR
                                 .createdBy(

@@ -4,11 +4,12 @@ import { courseApi } from "@/api/courseApi";
 import { userApi } from "@/api/userApi";
 import type { User } from "@/types/auth";
 import { toast } from "sonner";
-import { CohortTab } from "./CohortTab";
+
 import { OutlineTab } from "./OutlineTab";
 import CourseObjectivesTab from "./CourseObjectivesTab";
 import { TimeAllocationTab } from "./TimeAllocationTab";
 import { MaterialTab } from "./material/MaterialTab";
+import { CourseAssessmentSchemeTab } from "./CourseAssessmentSchemeTab";
 import {
   FiEdit,
   FiBookOpen,
@@ -54,7 +55,6 @@ function formatDate(value?: string) {
 
 const tabs = [
   "Overview",
-  "Cohort",
   "Assessment Scheme",
   "Outline",
   "Objectives",
@@ -419,7 +419,12 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
         </form>
       )}
 
-      {activeTab === "Cohort" && <CohortTab courseId={course.id} />}
+      {activeTab === "Assessment Scheme" && (
+        <CourseAssessmentSchemeTab
+          courseId={course.id}
+          topicId={course.topicId ?? null}
+        />
+      )}
 
       {activeTab === "Outline" && (
         <OutlineTab courseId={course.id} course={course} />
@@ -437,7 +442,7 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
       {![
         "Overview",
-        "Cohort",
+        "Assessment Scheme",
         "Outline",
         "Objectives",
         "Materials",
@@ -465,85 +470,108 @@ function OverviewTab({ course }: any) {
   return (
     <div className="space-y-5">
       {/* Identity card */}
-      <div className="rounded-xl border border-gray-200 p-6">
-        <div className="flex items-start justify-between gap-6">
-          <div className="flex items-start gap-4 flex-1 min-w-0">
-            {course.thumbnailUrl ? (
-              <img
-                src={course.thumbnailUrl}
-                alt="thumbnail"
-                className="w-16 h-16 object-cover rounded-xl border border-gray-200 shrink-0"
-              />
-            ) : (
-              <div className="w-14 h-14 rounded-xl border border-gray-200 flex items-center justify-center shrink-0">
-                <FiBookOpen size={22} className="text-gray-400" />
-              </div>
-            )}
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
-                  {course.courseCode}
-                </span>
-                {course.topic && (
-                  <>
-                    <span className="text-gray-200">|</span>
-                    <span className="text-xs text-gray-500">
-                      {course.topic}
-                    </span>
-                  </>
-                )}
-                {course.level && (
-                  <span className="text-xs text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full">
-                    {course.level}
-                  </span>
-                )}
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 leading-tight">
-                {course.courseName}
-              </h2>
-              {course.description && (
-                <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                  {course.description}
-                </p>
+      <div className="rounded-xl border border-gray-200 overflow-hidden">
+        {/* Thumbnail banner */}
+        {course.thumbnailUrl ? (
+          <div className="relative w-full h-44 bg-gray-100 overflow-hidden">
+            <img
+              src={course.thumbnailUrl}
+              alt="thumbnail"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
+            <span
+              className={`absolute top-3 right-3 text-xs font-semibold px-3 py-1.5 rounded-full border bg-white/90 backdrop-blur-sm ${badgeClass}`}
+            >
+              {course.status}
+            </span>
+          </div>
+        ) : (
+          <div className="relative w-full h-28 bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+            <FiBookOpen size={36} className="text-gray-300" />
+            <span
+              className={`absolute top-3 right-3 text-xs font-semibold px-3 py-1.5 rounded-full border bg-white ${badgeClass}`}
+            >
+              {course.status}
+            </span>
+          </div>
+        )}
+
+        <div className="p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4 flex-1 min-w-0">
+              {course.thumbnailUrl ? (
+                <img
+                  src={course.thumbnailUrl}
+                  alt="thumbnail"
+                  className="w-16 h-16 object-cover rounded-xl border border-gray-200 shrink-0"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-xl border border-gray-200 flex items-center justify-center shrink-0">
+                  <FiBookOpen size={22} className="text-gray-400" />
+                </div>
               )}
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
+                    {course.courseCode}
+                  </span>
+                  {course.topic && (
+                    <>
+                      <span className="text-gray-200">|</span>
+                      <span className="text-xs text-gray-500">
+                        {course.topic}
+                      </span>
+                    </>
+                  )}
+                  {course.level && (
+                    <span className="text-xs text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full">
+                      {course.level}
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 leading-tight">
+                  {course.courseName}
+                </h2>
+                {course.description && (
+                  <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                    {course.description}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-          <span
-            className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${badgeClass}`}
-          >
-            {course.status}
-          </span>
-        </div>
 
-        {/* Stats row */}
-        <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-3 divide-x divide-gray-100">
-          <div className="text-center pr-4">
-            <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
-              Price
-            </p>
-            <p className="font-semibold text-gray-900 mt-1">
-              {course.price != null
-                ? `${Number(course.price).toLocaleString()} VND`
-                : "—"}
-            </p>
-          </div>
-          <div className="text-center px-4">
-            <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
-              Discount
-            </p>
-            <p className="font-semibold text-gray-900 mt-1">
-              {course.discount != null ? `${course.discount}%` : "0%"}
-            </p>
-          </div>
-          <div className="text-center pl-4">
-            <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
-              Duration
-            </p>
-            <p className="font-semibold text-gray-900 mt-1">
-              {course.estimatedTime != null
-                ? `${course.estimatedTime} min`
-                : "—"}
-            </p>
+          {/* Stats row */}
+          <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-3 divide-x divide-gray-100">
+            <div className="text-center pr-4">
+              <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
+                Price
+              </p>
+              <p className="font-semibold text-gray-900 mt-1">
+                {course.price != null
+                  ? `${Number(course.price).toLocaleString()} VND`
+                  : "—"}
+              </p>
+            </div>
+            <div className="text-center px-4">
+              <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
+                Discount
+              </p>
+              <p className="font-semibold text-gray-900 mt-1">
+                {course.discount != null ? `${course.discount}%` : "0%"}
+              </p>
+            </div>
+            <div className="text-center pl-4">
+              <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
+                Duration
+              </p>
+              <p className="font-semibold text-gray-900 mt-1">
+                {course.estimatedTime != null
+                  ? `${course.estimatedTime} min`
+                  : "—"}
+              </p>
+            </div>
           </div>
         </div>
       </div>

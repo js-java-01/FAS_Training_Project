@@ -18,6 +18,10 @@ export interface Course {
   allowFinalRetake?: boolean;
   trainerId?: string;
   trainerName?: string;
+  topicId?: string;
+  topicName?: string;
+  /** @deprecated use topicName */
+  topic?: string;
   createdBy?: string;
   createdByName?: string;
   createdDate?: string;
@@ -39,6 +43,7 @@ export interface CreateCourseRequest {
   minAttendancePercent?: number;
   allowFinalRetake?: boolean;
   trainerId?: string;
+  topicId?: string;
 }
 
 export type UpdateCourseRequest = Partial<CreateCourseRequest>;

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { courseApi } from "@/api/courseApi";
 import { userApi } from "@/api/userApi";
+import { topicApi, type Topic } from "@/api/topicApi";
 import type { User } from "@/types/auth";
 import type { Course } from "@/types/course";
 import {
@@ -16,6 +17,7 @@ import {
   FiUser,
   FiUpload,
   FiImage,
+  FiTag,
 } from "react-icons/fi";
 
 type FormValues = {
@@ -28,6 +30,7 @@ type FormValues = {
   description?: string;
   note?: string;
   trainerId?: string;
+  topicId?: string;
 };
 
 interface Props {
@@ -42,6 +45,7 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
   const isEdit = !!course;
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,6 +66,14 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
       .catch(() => {});
   }, []);
 
+  // Fetch topics once
+  useEffect(() => {
+    topicApi
+      .getTopics({ size: 200 })
+      .then((res) => setTopics(res.items))
+      .catch(() => {});
+  }, []);
+
   // Pre-fill form whenever the target course changes
   useEffect(() => {
     if (course) {
@@ -75,6 +87,7 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
         description: course.description ?? "",
         note: course.note ?? "",
         trainerId: course.trainerId ?? "",
+        topicId: course.topicId ?? "",
       });
       setThumbnailPreview(course.thumbnailUrl ?? null);
     } else {
@@ -116,6 +129,7 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
       if (data.description) payload.description = data.description;
       if (data.note) payload.note = data.note;
       if (data.trainerId) payload.trainerId = data.trainerId;
+      if (data.topicId) payload.topicId = data.topicId;
 
       if (isEdit) {
         await courseApi.updateCourse(course!.id, payload);
@@ -218,6 +232,14 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
             {users.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.email}
+              </option>
+            ))}
+          </Select>
+
+          <Select icon={<FiTag />} label="Topic" {...register("topicId")}>
+            {topics.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.topicCode} – {t.topicName}
               </option>
             ))}
           </Select>

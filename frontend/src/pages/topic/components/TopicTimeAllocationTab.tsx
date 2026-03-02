@@ -132,33 +132,33 @@ export function TopicTimeAllocationTab({ topicId }: Props) {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* ── TOP SUMMARY ── */}
-      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <SummaryCard
-          icon={<FiBook />}
+          icon={<FiBook size={20} />}
           label="Training"
           value={trainingH}
           colour={categoryColour.training}
         />
         <SummaryCard
-          icon={<FiZap />}
+          icon={<FiZap size={20} />}
           label="Practice"
           value={practiceH}
           colour={categoryColour.practice}
         />
         <SummaryCard
-          icon={<FiUser />}
+          icon={<FiUser size={20} />}
           label="Self-Study"
           value={selfStudyH}
           colour={categoryColour.selfStudy}
         />
         <SummaryCard
-          icon={<FiHeadphones />}
+          icon={<FiHeadphones size={20} />}
           label="Coaching"
           value={coachingH}
           colour={categoryColour.coaching}
         />
         <SummaryCard
-          icon={<FiCheckCircle />}
+          icon={<FiCheckCircle size={20} />}
           label="Assessment"
           value={assessmentHours}
           colour={categoryColour.assessment}
@@ -474,22 +474,24 @@ function SummaryCard({
   readonly?: boolean;
 }) {
   return (
-    <div className="border rounded-xl p-4 bg-white relative overflow-hidden">
+    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm flex items-center gap-3">
       <div
-        className="absolute inset-x-0 bottom-0 h-1"
-        style={{ background: colour }}
-      />
-      <div className="flex items-center gap-2 text-gray-500 text-xs mb-2">
-        <span style={{ color: colour }}>{icon}</span>
-        {label}
-        {readonly && (
-          <span className="ml-auto text-[10px] bg-gray-100 text-gray-400 rounded px-1">
-            auto
-          </span>
-        )}
+        className="rounded-lg p-2 shrink-0"
+        style={{ backgroundColor: `${colour}18`, color: colour }}
+      >
+        {icon}
       </div>
-      <p className="text-2xl font-bold text-gray-900">{value.toFixed(1)}</p>
-      <p className="text-xs text-gray-400 mt-0.5">hours</p>
+      <div className="min-w-0">
+        <p className="text-xs text-gray-500 flex items-center gap-1">
+          {label}
+          {readonly && (
+            <span className="text-[10px] bg-gray-100 text-gray-400 rounded px-1">
+              auto
+            </span>
+          )}
+        </p>
+        <p className="text-lg font-bold text-gray-800">{value.toFixed(1)} h</p>
+      </div>
     </div>
   );
 }

@@ -38,6 +38,9 @@ public class CourseResponse {
     private UUID trainerId;
     private String trainerName;
 
+    private UUID topicId;
+    private String topicName;
+
     private UUID createdBy;
     private String createdByName;
     private LocalDateTime createdDate;

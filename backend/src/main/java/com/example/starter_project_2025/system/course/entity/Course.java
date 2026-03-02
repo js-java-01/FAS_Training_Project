@@ -40,8 +40,7 @@ public class Course {
     @Column(nullable = false, unique = true)
     private String courseCode;
 
-    // TEMP: team Topic chưa xong → chỉ lưu ID
-    private Long topicId;
+    private UUID topicId;
 
     private BigDecimal price;
     private Double discount;
