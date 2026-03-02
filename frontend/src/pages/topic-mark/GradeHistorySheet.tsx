@@ -152,7 +152,6 @@ export default function GradeHistorySheet({
     overscan: 5,
   })
 
-  // 🔥 QUAN TRỌNG: re-measure khi sheet mở
   useEffect(() => {
     if (open) {
       const t = setTimeout(() => {
@@ -193,7 +192,7 @@ export default function GradeHistorySheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-[720px] p-0 flex flex-col"
+        className=" p-0 flex flex-col"
       >
         <SheetHeader className="p-6 border-b">
           <SheetTitle className="text-xl font-semibold flex items-center">

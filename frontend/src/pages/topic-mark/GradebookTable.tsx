@@ -5,7 +5,7 @@ import { DataTable } from "@/components/data_table/DataTable"
 import { FacetedFilter } from "@/components/FacedFilter"
 import { buildGradebookColumns } from "./columns"
 import {
-  useGetCourseByClassId,
+  useGetCoursesByClassId,
   useGetGradebookTable,
 } from "./services/queries"
 import type { GradebookRow } from "@/types/topicMark"
@@ -15,6 +15,9 @@ import { Button } from "@/components/ui/button"
 import { DatabaseBackup, Edit, HistoryIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import GradeHistorySheet from "./GradeHistorySheet"
+import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn"
+import { useExportTemplate, useExportTopicMarks, useImportTopicMarks } from "./services/mutations"
+import { useDownloadTemplate } from "../modules/module/services/mutations"
 
 interface Props {
   classId: string
@@ -39,7 +42,7 @@ export default function GradebookTable({ classId }: Props) {
   /* ================= COURSE CLASS ================= */
 
   const { data: courseClasses = [] } =
-    useGetCourseByClassId(classId)
+    useGetCoursesByClassId(classId)
 
   useEffect(() => {
     if (!selectedCourseClassId && courseClasses.length) {
@@ -172,10 +175,14 @@ export default function GradebookTable({ classId }: Props) {
                   View History
                 </Button>
 
-                <Button variant="outline" size="sm">
-                  <DatabaseBackup className="mr-1 h-4 w-4" />
-                  Import / Export
-                </Button>
+                <EntityImportExportButton
+                  title="Topic Marks"
+                  useImportHook={useImportTopicMarks}
+                  useExportHook={() =>
+                    useExportTopicMarks({ id: selectedCourseClassId })
+                  }
+                  useTemplateHook={() => useExportTemplate({ id: selectedCourseClassId })}
+                />
               </div>
             </div>
 

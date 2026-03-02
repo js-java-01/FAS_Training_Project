@@ -31,3 +31,39 @@ export const useUpdateGrade = () => {
     },
   })
 }
+
+export const useExportTopicMarks = ({ id }: { id: string }) => {
+    return useMutation({
+        mutationFn: async () => {
+            return await topicMarkApi.exportTopicMark(id); // Blob
+        },
+    });
+};
+
+export const useExportTemplate = ({ id }: { id: string }) => {
+    return useMutation({
+        mutationFn: async () => {
+            return await topicMarkApi.exportTemplate(id); // Blob
+        },
+    });
+};
+
+export const useImportTopicMarks = () => {
+  const queryClient = useQueryClient();
+  const invalidateAll = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["gradebook-table"] }), // update table
+    ]);
+  };
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await topicMarkApi.importTopicMark(formData);
+      console.log(res.data)
+      return res.data;
+    },
+    onSuccess: invalidateAll,
+  });
+};

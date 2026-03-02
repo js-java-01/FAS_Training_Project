@@ -1036,13 +1036,6 @@ public class DataInitializer implements CommandLineRunner {
                 }
         }
 
-//        private CourseClass buildCourseClass(Course course, TrainingClass classInfo, User trainer) {
-//                CourseClass cc = new CourseClass();
-//                cc.setCourse(course);
-//                cc.setClassInfo(classInfo);
-//                cc.setTrainer(trainer);
-//                return cc;
-//        }
 
         private void initializeEnrollments()
         {
@@ -1293,6 +1286,15 @@ public class DataInitializer implements CommandLineRunner {
                 courseClassRepository.saveAll(validCourseClasses);
 
                 log.info("Initialized {} Course Classes with diverse Trainers and Courses.", validCourseClasses.size());
+        }
+
+        private CourseClass buildCourseClass(Course course, TrainingClass classInfo, User trainer)
+        {
+                CourseClass cc = new CourseClass();
+                cc.setCourse(course);
+                cc.setClassInfo(classInfo);
+                cc.setTrainer(trainer);
+                return cc;
         }
 
         private TrainingClass buildTrainingClass(String name, String code, User creator, Semester semester,
