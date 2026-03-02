@@ -33,22 +33,22 @@ export function VerifyForm({ onSubmit, loading, email, onBack }: VerifyFormProps
             >
                 <div
                     style={{
-                        background: "rgba(78,205,196,0.12)",
+                        background: "rgba(30,41,59,0.08)",
                         padding: "16px",
                         borderRadius: "50%",
                         marginBottom: "12px",
-                        color: "#4ecdc4",
+                        color: "#1e293b",
                     }}
                 >
                     <ShieldCheck size={48} />
                 </div>
 
-                <h2 className="text-2xl font-semibold mb-1" style={{ color: "#2c5f5d" }}>
+                <h2 className="text-2xl font-semibold mb-1" style={{ color: "#1e293b" }}>
                     Verify OTP
                 </h2>
-                <p className="text-sm mb-4 text-center" style={{ color: "#6b8585" }}>
+                <p className="text-sm mb-4 text-center" style={{ color: "#64748b" }}>
                     We sent a code to{" "}
-                    <span style={{ color: "#2c5f5d", fontWeight: 600 }}>{email}</span>
+                    <span style={{ color: "#1e293b", fontWeight: 600 }}>{email}</span>
                 </p>
 
                 <FormField
@@ -85,7 +85,7 @@ export function VerifyForm({ onSubmit, loading, email, onBack }: VerifyFormProps
                 <button
                     type="button"
                     onClick={onBack}
-                    style={{ marginTop: "8px", fontSize: "13px", color: "#6b8585", background: "none", border: "none", cursor: "pointer" }}
+                    style={{ marginTop: "8px", fontSize: "13px", color: "#64748b", background: "none", border: "none", cursor: "pointer" }}
                 >
                     ← Back to Registration
                 </button>
