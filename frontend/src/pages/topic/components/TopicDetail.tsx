@@ -1,23 +1,25 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { topicApi } from "@/api/topicApi";
+import { PermissionGate } from "@/components/PermissionGate";
 import { toast } from "sonner";
 import {
   FiEdit,
   FiBookOpen,
   FiHash,
   FiCalendar,
-  FiBarChart2,
   FiUser,
   FiX,
   FiSave,
   FiFileText,
   FiLayers,
 } from "react-icons/fi";
-import TopicObjectivesPage from "@/pages/topic/components/TopicObjectivesPage";import { TopicSkillsTab } from "./TopicSkillsTab";
+import TopicObjectivesPage from "@/pages/topic/components/TopicObjectivesPage";
+import { TopicSkillsTab } from "./TopicSkillsTab";
 import { TopicDeliveryPrinciplesTab } from "./TopicDeliveryPrinciplesTab";
 import { TopicAssessmentSchemeTab } from "./TopicAssessmentSchemeTab";
 import { TopicTimeAllocationTab } from "./TopicTimeAllocationTab";
+import { TopicOutlineTab } from "./TopicOutlineTab";
 
 const tabs = [
   "Overview",
@@ -36,6 +38,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
   const [activeTab, setActiveTab] = useState("Overview");
   const [isEditing, setIsEditing] = useState(false);
   const [skillsEditing, setSkillsEditing] = useState(false);
+  const [outlineEditing, setOutlineEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, reset } = useForm<any>();
 
@@ -130,6 +133,26 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
           >
             Done
           </button>
+        )}
+        {activeTab === "Outline & Schedule" && !outlineEditing && (
+          <PermissionGate permission="TOPIC_UPDATE">
+            <button
+              onClick={() => setOutlineEditing(true)}
+              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <FiEdit /> Edit
+            </button>
+          </PermissionGate>
+        )}
+        {activeTab === "Outline & Schedule" && outlineEditing && (
+          <PermissionGate permission="TOPIC_UPDATE">
+            <button
+              onClick={() => setOutlineEditing(false)}
+              className="flex items-center text-sm gap-2 mb-2 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              Done
+            </button>
+          </PermissionGate>
         )}
       </div>
 
@@ -277,6 +300,14 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
         <TopicTimeAllocationTab topicId={topic.id} />
       )}
 
+      {/* OUTLINE & SCHEDULE TAB */}
+      {activeTab === "Outline & Schedule" && (
+        <TopicOutlineTab
+          topicId={topic.id}
+          isEditMode={outlineEditing}
+        />
+      )}
+
       {activeTab === "Objectives" && (
         <TopicObjectivesPage topicId={topic.id} />
       )}
@@ -286,6 +317,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
         activeTab !== "Skills" &&
         activeTab !== "Delivery Principles" &&
         activeTab !== "Assessment Scheme" &&
+        activeTab !== "Outline & Schedule" &&
         activeTab !== "Time Allocation" && (
           <div className="py-20 text-center border-2 border-dashed rounded-xl bg-gray-50 text-gray-400">
             <FiLayers size={40} className="mx-auto mb-2 opacity-20" />
