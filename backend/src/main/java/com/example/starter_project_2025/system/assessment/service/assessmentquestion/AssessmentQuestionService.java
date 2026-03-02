@@ -1,6 +1,11 @@
 package com.example.starter_project_2025.system.assessment.service.assessmentquestion;
 
+import com.example.starter_project_2025.base.service.CrudService;
 import com.example.starter_project_2025.system.assessment.dto.assessmentquestion.AddQuestionToExamDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessmentquestion.AssessmentQuestionDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessmentquestion.AssessmentQuestionFilter;
+import com.example.starter_project_2025.system.assessment.dto.question_option.QuestionOptionDTO;
+import com.example.starter_project_2025.system.assessment.dto.question_option.QuestionOptionFilter;
 import com.example.starter_project_2025.system.assessment.entity.Assessment;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentQuestion;
 import com.example.starter_project_2025.system.assessment.entity.Question;
@@ -14,51 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
-@Service
-@RequiredArgsConstructor
-public class AssessmentQuestionService {
 
-    private final AssessmentQuestionRepository repo;
-    private final AssessmentRepository assessmentRepo;
-    private final QuestionRepository questionRepo;
-
-    @Transactional
-    public AssessmentQuestion addQuestionToExam(AddQuestionToExamDTO dto) {
-        Assessment assessment = assessmentRepo.findById(dto.getAssessmentId())
-                .orElseThrow(() -> new RuntimeException("Assessment not found"));
-
-        Question question = questionRepo.findById(dto.getQuestionId())
-                .orElseThrow(() -> new RuntimeException("Question not found"));
-
-        AssessmentQuestion aq = new AssessmentQuestion();
-        aq.setAssessment(assessment);
-        aq.setQuestion(question);
-        aq.setScore(dto.getScore());
-        aq.setOrderIndex(dto.getOrderIndex());
-
-        AssessmentQuestion saved = repo.save(aq);
-
-        // Force initialization of lazy-loaded relationships to avoid serialization
-        // issues
-        saved.getQuestion().getCategory().getName();
-        saved.getQuestion().getOptions().size();
-
-        return saved;
-    }
-
-    public List<AssessmentQuestion> getAll() {
-        return repo.findAll();
-    }
-
-    public void deleteById(UUID id) {
-        repo.deleteById(id);
-    }
-
-    public AssessmentQuestion getById(UUID id) {
-        return repo.findById(id).orElseThrow(() -> new RuntimeException("AssessmentQuestion not found"));
-    }
-
-    public List<AssessmentQuestion> getByAssessmentId(Long assessmentId) {
-        return repo.findByAssessmentId(assessmentId);
-    }
+public interface AssessmentQuestionService extends CrudService<UUID, AssessmentQuestionDTO, AssessmentQuestionFilter> {
 }

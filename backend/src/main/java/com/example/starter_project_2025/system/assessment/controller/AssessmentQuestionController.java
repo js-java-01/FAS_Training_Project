@@ -1,11 +1,24 @@
 package com.example.starter_project_2025.system.assessment.controller;
 
+import com.example.starter_project_2025.base.controller.BaseCrudDataIoController;
+import com.example.starter_project_2025.base.repository.BaseCrudRepository;
+import com.example.starter_project_2025.base.service.CrudService;
 import com.example.starter_project_2025.system.assessment.dto.assessmentquestion.AddQuestionToExamDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessmentquestion.AssessmentQuestionDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessmentquestion.AssessmentQuestionFilter;
+import com.example.starter_project_2025.system.assessment.dto.category.QuestionCategoryDTO;
+import com.example.starter_project_2025.system.assessment.dto.category.QuestionCategoryFilter;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentQuestion;
+import com.example.starter_project_2025.system.assessment.entity.QuestionCategory;
+import com.example.starter_project_2025.system.assessment.repository.AssessmentQuestionRepository;
 import com.example.starter_project_2025.system.assessment.service.assessmentquestion.AssessmentQuestionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,39 +26,28 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/assessment-questions")
 @RequiredArgsConstructor
-@Tag(name = "Assessment Question", description = "CRUD APIs for assessment questions")
-public class AssessmentQuestionController {
+@RequestMapping("/api/assessment-questions")
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Tag(name = "assessment-question", description = "APIs for managing Assessment Question")
+public class AssessmentQuestionController
+            extends BaseCrudDataIoController<AssessmentQuestion, UUID, AssessmentQuestionDTO, AssessmentQuestionFilter> {
 
-    private final AssessmentQuestionService service;
+    AssessmentQuestionService assessmentQuestionService;
+    AssessmentQuestionRepository assessmentQuestionRepository;
 
-    @PostMapping
-    public ResponseEntity<AssessmentQuestion> addQuestionToAssessment(
-            @RequestBody AddQuestionToExamDTO dto
-    ) {
-        return ResponseEntity.ok(service.addQuestionToExam(dto));
+    @Override
+    protected CrudService<UUID, AssessmentQuestionDTO, AssessmentQuestionFilter> getService() {
+        return assessmentQuestionService;
     }
 
-    @GetMapping("/assessment/{assessmentId}")
-    public ResponseEntity<List<AssessmentQuestion>> getByAssessmentId(
-            @PathVariable Long assessmentId
-    ) {
-        return ResponseEntity.ok(service.getByAssessmentId(assessmentId));
+    @Override
+    protected BaseCrudRepository<AssessmentQuestion, UUID> getRepository() {
+        return assessmentQuestionRepository;
     }
 
-    @GetMapping
-    public ResponseEntity<List<AssessmentQuestion>> getAll() {
-        return ResponseEntity.ok(service.getAll());
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        service.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(service.getById(id));
+    @Override
+    protected Class<AssessmentQuestion> getEntityClass() {
+        return AssessmentQuestion.class;
     }
 }

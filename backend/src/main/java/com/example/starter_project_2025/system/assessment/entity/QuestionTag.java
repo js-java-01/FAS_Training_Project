@@ -22,7 +22,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "question_tags")
+@Table(name = "tag")
 @ImportEntity("question_tags")
 @ExportEntity(fileName = "question_tags", sheetName = "tags")
 public class QuestionTag {
