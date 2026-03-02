@@ -8,14 +8,18 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import ImportTab, { type ImportResult } from "./ImportTab";
 import ExportTab from "./ExportTab";
+
+type Mode = "all" | "import" | "export";
 
 type Props = {
   title?: string;
   open: boolean;
   setOpen: (open: boolean) => void;
+
+  mode?: Mode;
 
   onImport?: (file: File) => Promise<ImportResult | void>;
   onExport?: () => Promise<void>;
@@ -26,52 +30,59 @@ export default function ImportExportModal({
   title,
   open,
   setOpen,
+  mode = "all",
   onImport,
   onExport,
   onDownloadTemplate,
 }: Props) {
-  const hasImport = !!onImport;
-  const hasExport = !!onExport;
+  const hasImport = mode !== "export" && !!onImport;
+  const hasExport = mode !== "import" && !!onExport;
 
-  const [tab, setTab] = useState<"import" | "export">(
-    hasImport ? "import" : "export"
-  );
+  const defaultTab: "import" | "export" = useMemo(() => {
+    if (mode === "import") return "import";
+    if (mode === "export") return "export";
+    return hasImport ? "import" : "export";
+  }, [mode, hasImport]);
 
-  // Nếu quyền thay đổi thì reset tab
+  const [tab, setTab] = useState<"import" | "export">(defaultTab);
+
+  // Reset tab khi mode thay đổi
   useEffect(() => {
-    if (!hasImport && hasExport) setTab("export");
-    if (hasImport && !hasExport) setTab("import");
-  }, [hasImport, hasExport]);
+    setTab(defaultTab);
+  }, [defaultTab]);
+
+  const dialogTitle = useMemo(() => {
+    if (mode === "import") return `Import Data ${title ?? ""}`;
+    if (mode === "export") return `Export Data ${title ?? ""}`;
+    return `Import & Export Data ${title ?? ""}`;
+  }, [mode, title]);
+
+  const dialogDescription = useMemo(() => {
+    if (mode === "import")
+      return "Upload a file to bulk import your data into the system.";
+    if (mode === "export")
+      return "Export your data for backup or analysis purposes.";
+    return "Bulk import data or export your records for backup and analysis.";
+  }, [mode]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
         {/* Header */}
         <DialogHeader className="px-6 pt-6">
-          <DialogTitle>Import & Export Data {title}</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription>
-            Bulk import data or export your records for backup and analysis
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
 
-        {/* Tabs */}
-        {(hasImport || hasExport) && (
+        {/* Tabs chỉ hiện khi BOTH tồn tại */}
+        {hasImport && hasExport && (
           <div className="px-6 mt-4">
             <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-              <TabsList
-                className={`grid w-full ${
-                  hasImport && hasExport
-                    ? "grid-cols-2"
-                    : "grid-cols-1"
-                }`}
-              >
-                {hasImport && (
-                  <TabsTrigger value="import">Import</TabsTrigger>
-                )}
-
-                {hasExport && (
-                  <TabsTrigger value="export">Export</TabsTrigger>
-                )}
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="import">Import</TabsTrigger>
+                <TabsTrigger value="export">Export</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>

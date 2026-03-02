@@ -25,7 +25,7 @@ import {
   useImportUsers,
   useDownloadUserTemplate,
 } from "./services/mutations";
-import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 
 /* ===================== MAIN ===================== */

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import ConfirmDialog from "@/components/ui/confirmdialog";
 import { FacetedFilter } from "@/components/FacedFilter";
-import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 
 import { locationApi } from "@/api/locationApi";
 import type {
