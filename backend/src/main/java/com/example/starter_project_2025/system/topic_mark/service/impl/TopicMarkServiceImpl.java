@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.topic_mark.service.impl;
 
+import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
@@ -608,26 +609,19 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         List<ImportErrorDetail> errors = new ArrayList<>();
 
         if (file == null || file.isEmpty()) {
-            result.setMessage("File import is empty.");
-            result.setTotalRows(0);
-            result.setSuccessCount(0);
-            result.setFailedCount(1);
-            result.setErrors(List.of(new ImportErrorDetail(0, "File", "File is empty")));
-            return result;
+            throw new BadRequestException("File import is empty.");
         }
 
         try (Workbook wb = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = wb.getSheetAt(0);
             if (sheet == null) {
-                result.setMessage("Empty workbook");
-                return result;
+                throw new BadRequestException("File import is empty.");
             }
 
             // 1. Parse meta row (row 0) to build colIndex -> columnUUID mapping
             Row metaRow = sheet.getRow(0);
             if (metaRow == null || !"#META".equals(getCellString(metaRow.getCell(0)))) {
-                result.setMessage("Invalid template: missing #META row");
-                return result;
+                throw new BadRequestException("Invalid template: wrong format.");
             }
 
             final int SCORE_COL_START = 4;
@@ -644,8 +638,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             }
 
             if (colIndexToColumnId.isEmpty()) {
-                result.setMessage("No column UUIDs found in meta row");
-                return result;
+                throw new BadRequestException("Invalid template: no score columns found in meta row.");
             }
 
             // Pre-load valid columns for this courseClass
@@ -653,13 +646,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                     .stream().map(TopicMarkColumn::getId).collect(Collectors.toSet());
 
             if (!colIndexToColumnId.values().containsAll(validColumnIds)) {
-                result.setMessage("File chưa fill hết data: thiếu cột điểm trong file import. Vui lòng export template mới và điền đầy đủ cột điểm.");
-                result.setTotalRows(0);
-                result.setSuccessCount(0);
-                result.setFailedCount(1);
-                result.setErrors(List.of(new ImportErrorDetail(0, "Columns",
-                        "Missing score columns in import file")));
-                return result;
+                throw new BadRequestException("File is not filled. Download template, fill mark and try again.");
             }
 
             // 2. Parse data rows (row 2+), skip header (row 1)
@@ -782,6 +769,19 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             result.setSuccessCount(successCount);
             result.setFailedCount(errors.size());
             result.setErrors(errors);
+
+            if (totalRows == 0) {
+                result.setMessage("File không có dữ liệu học viên để import.");
+                result.setFailedCount(Math.max(result.getFailedCount(), 1));
+                return result;
+            }
+
+            if (updatedUserIds.isEmpty()) {
+                result.setMessage("Không có điểm nào được cập nhật. Vui lòng nhập ít nhất 1 ô điểm hợp lệ.");
+                result.setFailedCount(Math.max(result.getFailedCount(), 1));
+                return result;
+            }
+
             return result;
 
         } catch (IOException e) {
