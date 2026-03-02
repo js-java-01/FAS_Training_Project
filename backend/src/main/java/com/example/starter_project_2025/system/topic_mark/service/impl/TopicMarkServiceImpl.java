@@ -147,9 +147,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         columnDefs.add(new TopicMarkGradebookResponse.Column("FINAL_SCORE", "Final Score"));
         columnDefs.add(new TopicMarkGradebookResponse.Column("IS_PASSED", "Passed"));
 
-        // List<Enrollment> enrollments = enrollmentRepository
-        // .findByCourseIdAndStatus(courseClass.getCourse().getId(),
-        // EnrollmentStatus.ACTIVE);
+        List<Enrollment> enrollments = enrollmentRepository.findByTrainingClassId(courseClass.getClassInfo().getId());
 
         List<TopicMarkEntry> allEntries = topicMarkEntryRepository.findByCourseClassId(courseClassId);
         Map<UUID, Map<UUID, Double>> scoresByUser = new HashMap<>();
@@ -162,35 +160,31 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         Map<UUID, TopicMark> marksByUser = topicMarkRepository.findAllByCourseClassId(courseClassId)
                 .stream().collect(Collectors.toMap(m -> m.getUser().getId(), m -> m));
 
-        // List<TopicMarkGradebookResponse.Row> rows =
-        // enrollments.stream().map(enrollment -> {
-        // User user = enrollment.getUser();
-        // Map<String, Object> values = new LinkedHashMap<>();
+        List<TopicMarkGradebookResponse.Row> rows = enrollments.stream().map(enrollment -> {
+            User user = enrollment.getUser();
+            Map<String, Object> values = new LinkedHashMap<>();
 
-        // Map<UUID, Double> userScores = scoresByUser.getOrDefault(user.getId(),
-        // Collections.emptyMap());
-        // for (TopicMarkColumn col : columns) {
-        // values.put(col.getId().toString(), userScores.getOrDefault(col.getId(),
-        // null));
-        // }
+            Map<UUID, Double> userScores = scoresByUser.getOrDefault(user.getId(), Collections.emptyMap());
+            for (TopicMarkColumn col : columns) {
+            values.put(col.getId().toString(), userScores.getOrDefault(col.getId(), null));
+            }
 
-        // TopicMark mark = marksByUser.get(user.getId());
-        // values.put("FINAL_SCORE", mark != null ? mark.getFinalScore() : null);
-        // values.put("IS_PASSED", mark != null ? mark.getIsPassed() : false);
+            TopicMark mark = marksByUser.get(user.getId());
+            values.put("FINAL_SCORE", mark != null ? mark.getFinalScore() : null);
+            values.put("IS_PASSED", mark != null ? mark.getIsPassed() : false);
 
-        // return TopicMarkGradebookResponse.Row.builder()
-        // .userId(user.getId())
-        // .fullName(user.getFirstName() + " " + user.getLastName())
-        // .email(user.getEmail())
-        // .values(values)
-        // .build();
-        // }).collect(Collectors.toList());
-        return null;
+            return TopicMarkGradebookResponse.Row.builder()
+                .userId(user.getId())
+                .fullName(user.getFirstName() + " " + user.getLastName())
+                .email(user.getEmail())
+                .values(values)
+                .build();
+        }).collect(Collectors.toList());
 
-        // return TopicMarkGradebookResponse.builder()
-        // .columns(columnDefs)
-        // .rows(rows)
-        // .build();
+        return TopicMarkGradebookResponse.builder()
+            .columns(columnDefs)
+            .rows(rows)
+            .build();
     }
 
     @Override
@@ -524,8 +518,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     }
 
     private void createNullEntriesForColumn(TopicMarkColumn column, CourseClass courseClass) {
-        List<Enrollment> enrollments = new ArrayList<>();// enrollmentRepository.findByCourseIdAndStatus(
-        // courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
+        List<Enrollment> enrollments = enrollmentRepository.findByTrainingClassId(courseClass.getClassInfo().getId());
         for (Enrollment enrollment : enrollments) {
             User student = enrollment.getUser();
             topicMarkEntryRepository.findByTopicMarkColumnIdAndUserId(column.getId(), student.getId())
