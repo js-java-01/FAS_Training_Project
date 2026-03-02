@@ -37,7 +37,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         }
         var enrollment = new Enrollment();
         enrollment.setUser(user);
-        // enrollment.setTrainingClass(classes);
+        enrollment.setTrainingClass(classes);
         enrollmentRepository.save(enrollment);
         return "Enrollment successful";
     }

@@ -55,15 +55,7 @@ function getRoleMeta(name: string) {
       dot: "text-purple-500",
     },
     MANAGER: {
-      title: "Department Manager",
-      bg: "bg-orange-50",
-      text: "text-orange-700",
-      border: "border-orange-200",
-      hover: "hover:bg-orange-100",
-      dot: "text-orange-500",
-    },
-    DEPARTMENT_MANAGER: {
-      title: "Department Manager",
+      title: "Manager",
       bg: "bg-orange-50",
       text: "text-orange-700",
       border: "border-orange-200",

@@ -12,7 +12,7 @@ import type { ClassInfoFormData } from "./components/ClassInfoTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileBarChartIcon, Pencil, Save, X } from "lucide-react";
+import { ArrowLeft,Pencil, Save, X } from "lucide-react";
 import ClassInfoTab from "./components/ClassInfoTab";
 import { getTrainingClassStatusPresentation } from "./utils/statusPresentation";
 import { decodeRouteId } from "@/utils/routeIdCodec";
@@ -282,9 +282,9 @@ export default function ClassDetailPage() {
                         </TabsContent>
 
                         {/* Placeholder tabs */}
-                  <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1">
-                     <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button>
-                            <ClassTraineesTable classId={trainingClass.id} />
+                  <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1 h-full flex">
+                      <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button>
+                            <ClassTraineesTable classId={trainingClass.id} trainingClass={trainingClass} />
 
                         </TabsContent>
                         <TabsContent value="calendar" className="pt-6 overflow-y-auto flex-1">
