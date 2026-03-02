@@ -253,6 +253,15 @@ export const Login: React.FC = () => {
                 <b>ADMIN:</b> admin@example.com / password123
               </p>
               <p style={{ color: "#2d4a4a" }}>
+                <b>MANAGER:</b> manager2@example.com / password123
+              </p>
+              <p style={{ color: "#2d4a4a" }}>
+                <b>TRAINER:</b> trainer1@example.com / password123
+              </p>
+              <p style={{ color: "#2d4a4a" }}>
+                <b>SUPER_ADMIN:</b> super.admin@example.com / password123
+              </p>
+              <p style={{ color: "#2d4a4a" }}>
                 <b>STUDENT:</b> student@example.com / password123
               </p>
             </div>
