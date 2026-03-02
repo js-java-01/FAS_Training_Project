@@ -30,6 +30,20 @@ export interface UpdateTopicSkillRequest {
   skills: { skillId: string; required: boolean }[];
 }
 
+/* ─── Outline / Lesson types ─────────────────────────────── */
+export interface TopicLesson {
+  id: string;
+  lessonName: string;
+  description?: string;
+  topicId: string;
+  lessonOrder?: number;
+}
+
+export interface CreateTopicLessonRequest {
+  lessonName: string;
+  description?: string;
+}
+
 /* ─── Delivery Principle types ───────────────────────────── */
 export interface TopicDeliveryPrinciple {
   id?: string;
@@ -182,5 +196,25 @@ export const topicApi = {
   saveDeliveryPrinciple: async (topicId: string, payload: TopicDeliveryPrinciple): Promise<TopicDeliveryPrinciple> => {
     const res = await axiosInstance.put(`/topics/${topicId}/delivery-principle`, payload);
     return res.data;
+  },
+
+  /* ─── Outline (Lessons) ─── */
+  getLessonsByTopicId: async (topicId: string): Promise<TopicLesson[]> => {
+    const res = await axiosInstance.get(`/topics/${topicId}/lessons`);
+    return res.data;
+  },
+
+  createLesson: async (topicId: string, payload: CreateTopicLessonRequest): Promise<TopicLesson> => {
+    const res = await axiosInstance.post(`/topics/${topicId}/lessons`, payload);
+    return res.data;
+  },
+
+  updateLesson: async (topicId: string, lessonId: string, payload: Partial<CreateTopicLessonRequest>): Promise<TopicLesson> => {
+    const res = await axiosInstance.put(`/topics/${topicId}/lessons/${lessonId}`, payload);
+    return res.data;
+  },
+
+  deleteLesson: async (topicId: string, lessonId: string): Promise<void> => {
+    await axiosInstance.delete(`/topics/${topicId}/lessons/${lessonId}`);
   },
 };

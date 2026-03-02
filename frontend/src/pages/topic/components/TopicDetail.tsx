@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { topicApi } from "@/api/topicApi";
+import { PermissionGate } from "@/components/PermissionGate";
 import { toast } from "sonner";
 import {
   FiEdit,
@@ -15,6 +16,7 @@ import {
 } from "react-icons/fi";
 import { TopicSkillsTab } from "./TopicSkillsTab";
 import { TopicDeliveryPrinciplesTab } from "./TopicDeliveryPrinciplesTab";
+import { TopicOutlineTab } from "./TopicOutlineTab";
 
 const tabs = [
   "Overview",
@@ -33,6 +35,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
   const [activeTab, setActiveTab] = useState("Overview");
   const [isEditing, setIsEditing] = useState(false);
   const [skillsEditing, setSkillsEditing] = useState(false);
+  const [outlineEditing, setOutlineEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, reset } = useForm<any>();
 
@@ -128,6 +131,26 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
           >
             Done
           </button>
+        )}
+        {activeTab === "Outline & Schedule" && !outlineEditing && (
+          <PermissionGate permission="TOPIC_UPDATE">
+            <button
+              onClick={() => setOutlineEditing(true)}
+              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <FiEdit /> Edit
+            </button>
+          </PermissionGate>
+        )}
+        {activeTab === "Outline & Schedule" && outlineEditing && (
+          <PermissionGate permission="TOPIC_UPDATE">
+            <button
+              onClick={() => setOutlineEditing(false)}
+              className="flex items-center text-sm gap-2 mb-2 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              Done
+            </button>
+          </PermissionGate>
         )}
       </div>
 
@@ -265,10 +288,19 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
         <TopicDeliveryPrinciplesTab topicId={topic.id} />
       )}
 
+      {/* OUTLINE & SCHEDULE TAB */}
+      {activeTab === "Outline & Schedule" && (
+        <TopicOutlineTab
+          topicId={topic.id}
+          isEditMode={outlineEditing}
+        />
+      )}
+
       {/* OTHER TABS PLACEHOLDER */}
       {activeTab !== "Overview" &&
         activeTab !== "Skills" &&
-        activeTab !== "Delivery Principles" && (
+        activeTab !== "Delivery Principles" &&
+        activeTab !== "Outline & Schedule" && (
           <div className="py-20 text-center border-2 border-dashed rounded-xl bg-gray-50 text-gray-400">
             <FiLayers size={40} className="mx-auto mb-2 opacity-20" />
             <p>Content for {activeTab} is being updated by the content team.</p>
