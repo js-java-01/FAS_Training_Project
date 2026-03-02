@@ -7,8 +7,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -19,6 +22,7 @@ import java.util.UUID;
 @JsonIgnoreProperties({ "handler", "hibernateLazyInitializer" })
 @Table(name = "question_categories")
 public class QuestionCategory {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
@@ -28,17 +32,10 @@ public class QuestionCategory {
 
     String description;
 
-    LocalDate createdAt;
-    LocalDate updatedAt;
+    @CreationTimestamp
+    @Column(updatable = false)
+    LocalDateTime createdAt;
 
-    @PrePersist
-    void prePersist() {
-        this.createdAt = LocalDate.now();
-        this.updatedAt = LocalDate.now();
-    }
-
-    @PreUpdate
-    void preUpdate() {
-        this.updatedAt = LocalDate.now();
-    }
+    @UpdateTimestamp
+    LocalDateTime updatedAt;
 }

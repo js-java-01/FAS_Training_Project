@@ -6,7 +6,6 @@ export * from "./features/assessment/programming-language.api";
 export * from "./features/assessment/question-category.api";
 export * from "./features/assessment/question-option.api";
 export * from "./features/assessment/question-tag.api";
-export * from "./features/assessment/question.api";
 export * from "./features/user/user.api";
 export * from "./features/auth/role.api";
 export * from "./features/auth/permission.api";

@@ -1,5 +1,6 @@
 export interface PageResponse<T> {
-  items: T[];
+  content: T[];  // Backend returns 'content' (Spring Boot Page)
+  items: T[];    // Alias for compatibility
   page: number;
   size: number;
   totalPages: number;

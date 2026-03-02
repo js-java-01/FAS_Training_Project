@@ -1,13 +1,7 @@
-import axiosInstance from "@/api/axiosInstance";
-import { createBaseApiService } from "@/api/base-service.api";
-import { Url } from "@/api/url";
-import type { ProgrammingLanguage, ProgrammingLanguageRequest } from "@/types";
+import type { ProgrammingLangDTO, ProgrammingLangFilter } from "@/types";
+import { createBaseApiService } from "../../base-service.api";
+import { Url } from "../../url";
 
-const base = createBaseApiService<
-  ProgrammingLanguage,
-  null,
-  ProgrammingLanguageRequest,
-  ProgrammingLanguageRequest
->(axiosInstance, Url.PROGRAMMING_LANGUAGE);
+const base = createBaseApiService<ProgrammingLangDTO, ProgrammingLangFilter>({ path: Url.PROGRAMMING_LANGUAGE });
 
 export const programmingLanguageApi = Object.assign({}, base, {});

@@ -10,8 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import ActionBtn from '@/components/data_table/ActionBtn';
 import { useToast } from '@/hooks/useToast';
 import { questionApi } from '@/api/questionApi';
-import { questionCategoryApi } from '@/api';
-import type { QuestionCategory } from '@/types';
+import { questionCategoryApi, questionTagApi } from '@/api';
+import type { QuestionCategoryDTO, QuestionTagDTO } from '@/types';
 import type { QuestionListItem } from '@/types/question';
 
 export default function QuestionManagementPage() {
@@ -38,7 +38,32 @@ export default function QuestionManagementPage() {
         queryFn: () => questionCategoryApi.getPage({ page: 0, size: 1000 })
     });
 
-    const categories = useMemo(() => categoriesResponse?.items ?? [], [categoriesResponse]);
+    const categories = useMemo(() => categoriesResponse?.content ?? [], [categoriesResponse]);
+
+    // Fetch all tags for lookup
+    const { data: tagsResponse } = useQuery({
+        queryKey: ['question-tags'],
+        queryFn: () => questionTagApi.getPage({ page: 0, size: 1000 })
+    });
+
+    // Create tag lookup map
+    const tagLookup = useMemo(() => {
+        const tags = tagsResponse?.content ?? [];
+        const map = new Map<number, QuestionTagDTO>();
+        tags.forEach(tag => {
+            if (tag.id) map.set(tag.id, tag);
+        });
+        return map;
+    }, [tagsResponse]);
+
+    // Create category lookup map
+    const categoryLookup = useMemo(() => {
+        const map = new Map<string, QuestionCategoryDTO>();
+        categories.forEach(category => {
+            if (category.id) map.set(category.id, category);
+        });
+        return map;
+    }, [categories]);
 
     // Fetch questions with tags - using new getAllContent API
     const { data: allQuestions = [], isLoading: questionsLoading } = useQuery({
@@ -46,10 +71,15 @@ export default function QuestionManagementPage() {
         queryFn: () => questionApi.getAllContent()
     });
 
+    console.log('🔍 All Questions:', allQuestions);
+    console.log('🔍 First Question:', allQuestions[0]);
+    console.log('🔍 First Question tagIds:', allQuestions[0]?.tagIds);
+    console.log('🔍 First Question categoryId:', allQuestions[0]?.categoryId);
+
     // Filter categories by search
     const filteredCategories = useMemo(() => {
         if (!categorySearch) return categories;
-        return categories.filter((c: QuestionCategory) =>
+        return categories.filter((c: QuestionCategoryDTO) =>
             c.name.toLowerCase().includes(categorySearch.toLowerCase())
         );
     }, [categories, categorySearch]);
@@ -59,20 +89,23 @@ export default function QuestionManagementPage() {
         let questionsInCategory = allQuestions;
 
         if (selectedCategoryId) {
-            questionsInCategory = allQuestions.filter(q => q.category?.id === selectedCategoryId);
+            questionsInCategory = allQuestions.filter(q => q.categoryId === selectedCategoryId);
         }
 
         const tagCounts = new Map<string, number>();
         questionsInCategory.forEach(q => {
-            q.tags?.forEach(tag => {
-                tagCounts.set(tag.name, (tagCounts.get(tag.name) || 0) + 1);
+            q.tagIds?.forEach(tagId => {
+                const tag = tagLookup.get(tagId);
+                if (tag && tag.name) {
+                    tagCounts.set(tag.name, (tagCounts.get(tag.name) || 0) + 1);
+                }
             });
         });
 
         return Array.from(tagCounts.entries())
             .map(([tag, count]) => ({ tag, count }))
             .sort((a, b) => b.count - a.count);
-    }, [allQuestions, selectedCategoryId]);
+    }, [allQuestions, selectedCategoryId, tagLookup]);
 
     // Pagination for categories
     const totalCategoryPages = Math.ceil(filteredCategories.length / categoryPageSize);
@@ -90,27 +123,34 @@ export default function QuestionManagementPage() {
 
         // Filter by category
         if (selectedCategoryId) {
-            filtered = filtered.filter(q => q.category?.id === selectedCategoryId);
+            filtered = filtered.filter(q => q.categoryId === selectedCategoryId);
         }
 
         // Filter by tags (OR logic: question must have at least one selected tag)
         if (selectedTags.length > 0) {
             filtered = filtered.filter(q =>
-                q.tags?.some(tag => selectedTags.includes(tag.name))
+                q.tagIds?.some(tagId => {
+                    const tag = tagLookup.get(tagId);
+                    return tag && tag.name && selectedTags.includes(tag.name);
+                })
             );
         }
 
         // Filter by search
         if (questionSearch) {
-            filtered = filtered.filter(q =>
-                q.content.toLowerCase().includes(questionSearch.toLowerCase()) ||
-                q.category?.name.toLowerCase().includes(questionSearch.toLowerCase()) ||
-                q.tags?.some(tag => tag.name.toLowerCase().includes(questionSearch.toLowerCase()))
-            );
+            filtered = filtered.filter(q => {
+                const category = q.categoryId ? categoryLookup.get(q.categoryId) : null;
+                return q.content.toLowerCase().includes(questionSearch.toLowerCase()) ||
+                    (category?.name && category.name.toLowerCase().includes(questionSearch.toLowerCase())) ||
+                    q.tagIds?.some(tagId => {
+                        const tag = tagLookup.get(tagId);
+                        return tag && tag.name && tag.name.toLowerCase().includes(questionSearch.toLowerCase());
+                    });
+            });
         }
 
         return filtered;
-    }, [allQuestions, selectedCategoryId, selectedTags, questionSearch]);
+    }, [allQuestions, selectedCategoryId, selectedTags, questionSearch, tagLookup, categoryLookup]);
 
     // Pagination
     const totalPages = Math.ceil(filteredQuestions.length / pageSize);
@@ -189,7 +229,7 @@ export default function QuestionManagementPage() {
     };
 
     return (
-        <MainLayout pathName={{ questions: "Question Bank" }}>
+        <MainLayout >
             <div className="h-full flex flex-col overflow-hidden gap-6 p-6">
                 {/* Header Section */}
                 <div className="flex items-center justify-between">
@@ -205,27 +245,6 @@ export default function QuestionManagementPage() {
                     </PermissionGate>
                 </div>
 
-                {/* Stats Cards */}
-                {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white rounded-lg p-4 border">
-                        <p className="text-sm text-gray-600">Total Questions</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">{allQuestions.length}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 border">
-                        <p className="text-sm text-gray-600">Active</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">
-                            {allQuestions.filter(q => q.isActive).length}
-                        </p>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 border">
-                        <p className="text-sm text-gray-600">Categories</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">{categories.length}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 border">
-                        <p className="text-sm text-gray-600">Filtered</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">{filteredQuestions.length}</p>
-                    </div>
-                </div> */}
 
                 <div className="flex-1 flex gap-6 overflow-hidden">
                     {/* Left Sidebar - Categories */}
@@ -271,8 +290,8 @@ export default function QuestionManagementPage() {
                                             </span>
                                         </div>
                                     </button>
-                                    {paginatedCategories.map((category: QuestionCategory) => {
-                                        const count = allQuestions.filter(q => q.category?.id === category.id).length;
+                                    {paginatedCategories.map((category: QuestionCategoryDTO) => {
+                                        const count = allQuestions.filter(q => q.categoryId === category.id).length;
                                         const isSelected = selectedCategoryId === category.id;
                                         return (
                                             <button
@@ -333,7 +352,7 @@ export default function QuestionManagementPage() {
                                 <div>
                                     <h3 className="font-semibold text-gray-900">
                                         {selectedCategoryId
-                                            ? categories.find((c: QuestionCategory) => c.id === selectedCategoryId)?.name
+                                            ? categories.find((c: QuestionCategoryDTO) => c.id === selectedCategoryId)?.name
                                             : 'All Questions'}
                                     </h3>
                                     <p className="text-xs text-gray-600 mt-1">
@@ -492,25 +511,31 @@ export default function QuestionManagementPage() {
                                                     </p>
 
                                                     {/* Question Tags */}
-                                                    {question.tags && question.tags.length > 0 && (
+                                                    {question.tagIds && question.tagIds.length > 0 && (
                                                         <div className="flex flex-wrap gap-1.5 mb-2">
-                                                            {question.tags.map(tag => (
-                                                                <button
-                                                                    key={tag.id}
-                                                                    onClick={() => handleTagToggle(tag.name)}
-                                                                    className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${selectedTags.includes(tag.name)
-                                                                        ? 'bg-blue-600 text-white'
-                                                                        : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
-                                                                        }`}
-                                                                >
-                                                                    #{tag.name}
-                                                                </button>
-                                                            ))}
+                                                            {question.tagIds.map(tagId => {
+                                                                const tag = tagLookup.get(tagId);
+                                                                if (!tag || !tag.name) return null;
+                                                                return (
+                                                                    <button
+                                                                        key={tagId}
+                                                                        onClick={() => handleTagToggle(tag.name!)}
+                                                                        className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${selectedTags.includes(tag.name!)
+                                                                            ? 'bg-blue-600 text-white'
+                                                                            : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+                                                                            }`}
+                                                                    >
+                                                                        #{tag.name}
+                                                                    </button>
+                                                                );
+                                                            })}
                                                         </div>
                                                     )}
 
                                                     <div className="flex items-center gap-3 text-xs text-gray-500">
-                                                        <span className="text-purple-600 font-medium">{question.category?.name || 'Uncategorized'}</span>
+                                                        <span className="text-purple-600 font-medium">
+                                                            {question.categoryId ? (categoryLookup.get(question.categoryId)?.name || 'Uncategorized') : 'Uncategorized'}
+                                                        </span>
                                                         <span>·</span>
                                                         <span>{question.options.length} options</span>
                                                         <span>·</span>

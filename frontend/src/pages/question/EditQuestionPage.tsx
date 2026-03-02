@@ -22,8 +22,8 @@ export default function EditQuestionPage() {
         isActive: true,
         categoryId: '',
         options: [
-            { content: '', correct: false, orderIndex: 0, questionId: '' },
-            { content: '', correct: false, orderIndex: 1, questionId: '' },
+            { content: '', correct: false, orderIndex: 0 },
+            { content: '', correct: false, orderIndex: 1 },
         ],
         tagIds: []
     });
@@ -43,7 +43,7 @@ export default function EditQuestionPage() {
                 content: question.content,
                 questionType: question.questionType,
                 isActive: question.isActive,
-                categoryId: question.category.id,
+                categoryId: question.categoryId || '',
                 options: question.options.map(opt => ({
                     id: opt.id,
                     content: opt.content,
@@ -51,7 +51,7 @@ export default function EditQuestionPage() {
                     orderIndex: opt.orderIndex,
                     questionId: question.id, // Use parent question ID
                 })),
-                tagIds: question.tags?.map(tag => tag.id) || []
+                tagIds: question.tagIds || []
             });
         }
     }, [question]);
@@ -127,7 +127,7 @@ export default function EditQuestionPage() {
 
     if (isLoading) {
         return (
-            <MainLayout pathName={{ questions: "Question Bank", edit: "Edit Question" }}>
+            <MainLayout>
                 <div className="h-full flex items-center justify-center bg-gray-50">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
@@ -141,7 +141,7 @@ export default function EditQuestionPage() {
 
     if (!question) {
         return (
-            <MainLayout pathName={{ questions: "Question Bank", edit: "Edit Question" }}>
+            <MainLayout>
                 <div className="h-full flex items-center justify-center bg-gray-50">
                     <div className="text-center bg-white p-8 rounded-xl shadow-lg border-2 border-red-200">
                         <div className="h-20 w-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -163,16 +163,13 @@ export default function EditQuestionPage() {
     }
 
     return (
-        <MainLayout pathName={{ questions: "Question Bank", edit: "Edit Question" }}>
+        <MainLayout>
             <div className="h-full flex-1 flex flex-col gap-6 p-6">
                 {/* Header Section */}
                 <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
                     <div className="flex items-center justify-between">
                         <div>
-                            {/* <MainHeader
-                                title="✏️ Edit Question"
-                                description="Update question details and options"
-                            /> */}
+                    
                             <div className="mt-3 flex items-center gap-4">
                                 <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg">
                                     {Object.keys(errors).length === 0 ? (

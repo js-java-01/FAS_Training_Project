@@ -7,10 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Getter
@@ -41,16 +38,20 @@ public class Question {
     QuestionCategory category;
 
     // Quan trọng: Cái này để lưu luôn Option khi tạo câu hỏi
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    List<QuestionOption> options;
+    @OneToMany(
+            mappedBy = "question",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER
+    )
+    List<QuestionOption> options = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
-            name = "tag",
+            name = "question_tags", // bảng trung gian
             joinColumns = @JoinColumn(name = "question_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
-    @JsonIgnoreProperties({"questions"})
     Set<QuestionTag> tags = new HashSet<>();
 
     @PrePersist

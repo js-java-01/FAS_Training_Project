@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.assessment.repository;
 
+import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentQuestion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface AssessmentQuestionRepository extends JpaRepository<AssessmentQuestion, UUID> {
+public interface AssessmentQuestionRepository extends BaseCrudRepository<AssessmentQuestion, UUID> {
     // Sau này cần tìm câu hỏi trong 1 đề thi thì viết hàm findByAssessmentId ở đây
 
     @Query("""

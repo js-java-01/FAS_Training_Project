@@ -1,6 +1,8 @@
 package com.example.starter_project_2025.system.assessment.repository;
 
+import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.system.assessment.entity.Question;
+import com.example.starter_project_2025.system.assessment.entity.QuestionTag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSpecificationExecutor<Question> {
+public interface QuestionRepository extends BaseCrudRepository<Question, UUID> {
     @Query("""
        SELECT q
        FROM Question q

@@ -7,18 +7,13 @@ import axiosInstance from "../../axiosInstance";
 import { Url } from "@/api/url";
 import { createBaseApiService } from "@/api/base-service.api";
 
-const base = createBaseApiService<
-  AssessmentQuestion,
-  null,
-  AssessmentQuestionCreateRequest,
-  AssessmentQuestionUpdateRequest
->(axiosInstance, Url.ASSESSMENT_QUESTION);
+const base = createBaseApiService<AssessmentQuestion, null>({ path: Url.ASSESSMENT_QUESTION });
 
 export const assessmentQuestionApi = Object.assign({}, base, {
   getByAssessmentId: async (assessmentId: number): Promise<AssessmentQuestion[]> => {
     try {
       const response = await axiosInstance.get<AssessmentQuestion[]>(
-        `${Url.ASSESSMENT_QUESTION}/assessment/${assessmentId}`,
+        `${Url.ASSESSMENT_QUESTION}/${assessmentId}`,
         {
           responseType: 'json',
           transformResponse: [(data) => {
@@ -79,7 +74,7 @@ export const assessmentQuestionApi = Object.assign({}, base, {
     questionOrders: { id: string; orderIndex: number }[],
   ): Promise<void> => {
     await axiosInstance.put(
-      `${Url.ASSESSMENT_QUESTION}/assessment/${assessmentId}/reorder`,
+      `${Url.ASSESSMENT_QUESTION}/${assessmentId}/reorder`,
       questionOrders,
     );
   },

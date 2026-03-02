@@ -25,7 +25,7 @@ import { CreateQuestionPage, EditQuestionPage } from "@/pages/question";
 import UserManagement from "@/pages/user/management";
 import { AttemptHistoryPage, QuizPage, ResultPage, SelectAssessmentPage } from "@/pages/assessment";
 import { RoleManagementPage } from "@/pages/role";
-import ProgrammingLanguageManagement from "@/pages/programming-language/ProgrammingLanguageManagement";
+import ProgrammingLanguageManagement from "@/pages/programming-language";
 import AssessmentTypeManagementPage from "@/pages/assessment-type/management";
 
 // ── Route Configuration Types ─────────────────────────────────────────────────

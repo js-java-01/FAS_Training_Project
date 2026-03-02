@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.assessment.entity;
 
+
 import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportEntity;
 import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportField;
 import com.example.starter_project_2025.system.dataio.importer.annotation.ImportField;
@@ -21,7 +22,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "question_tags")
+@Table(name = "tag")
 @ImportEntity("question_tags")
 @ExportEntity(fileName = "question_tags", sheetName = "tags")
 public class QuestionTag {
