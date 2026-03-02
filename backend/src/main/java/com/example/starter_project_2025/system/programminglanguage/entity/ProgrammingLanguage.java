@@ -1,15 +1,14 @@
 package com.example.starter_project_2025.system.programminglanguage.entity;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import com.example.starter_project_2025.system.course_programing_language.entity.CourseProgrammingLanguage;
-import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportEntity;
-import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportField;
-import com.example.starter_project_2025.system.dataio.core.importer.annotation.ImportField;
-import com.example.starter_project_2025.system.dataio.core.template.annotation.ImportEntity;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportEntity;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportField;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportField;
+import com.example.starter_project_2025.system.dataio.template.annotation.ImportEntity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;

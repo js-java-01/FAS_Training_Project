@@ -42,12 +42,11 @@ export const createBaseApiService = <DTO = any, Filter = any>({
       return response.data;
     },
 
-    export: async (format: FileFormat): Promise<Blob> => {
-      const res = await instance.get(`${path}/export`, {
+    export: async (format: FileFormat) => {
+      return instance.get(`${path}/export`, {
         params: { format },
         responseType: "blob",
       });
-      return res.data;
     },
 
     getPage: async (

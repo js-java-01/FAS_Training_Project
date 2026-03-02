@@ -3,20 +3,17 @@ package com.example.starter_project_2025.system.user.entity;
 import com.example.starter_project_2025.system.assessment.entity.Submission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
-import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportField;
-import com.example.starter_project_2025.system.dataio.core.exporter.annotation.ExportEntity;
-import com.example.starter_project_2025.system.dataio.mapping.user.RoleNamesExtractor;
-import com.example.starter_project_2025.system.dataio.core.template.annotation.ImportEntity;
-import com.example.starter_project_2025.system.dataio.core.importer.annotation.ImportField;
-import com.example.starter_project_2025.system.dataio.core.importer.annotation.ImportDefault;
-import com.example.starter_project_2025.system.dataio.core.importer.annotation.ImportHash;
-import com.example.starter_project_2025.system.dataio.mapping.user.RoleLookupResolver;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportEntity;
+import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportField;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportDefault;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportField;
+import com.example.starter_project_2025.system.dataio.importer.annotation.ImportHash;
+import com.example.starter_project_2025.system.dataio.template.annotation.ImportEntity;
 import com.example.starter_project_2025.system.trainer_course.entity.TrainerCourse;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -24,7 +21,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -61,8 +57,8 @@ public class User {
     String lastName;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @ImportField(name = "Roles",  required = true, resolver = RoleLookupResolver.class)
-    @ExportField(name = "Roles", extractor = RoleNamesExtractor.class)
+    @ImportField(name = "Roles", relation = true, lookupEntity = Role.class, lookupField = "name")
+    @ExportField(name = "Roles", relation = true, path = "role.name")
     Set<UserRole> userRoles;
 
     @OneToMany(mappedBy = "trainer")

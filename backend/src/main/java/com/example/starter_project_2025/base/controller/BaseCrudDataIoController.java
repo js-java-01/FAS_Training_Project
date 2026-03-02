@@ -1,10 +1,10 @@
 package com.example.starter_project_2025.base.controller;
 
 import com.example.starter_project_2025.base.repository.BaseCrudRepository;
-import com.example.starter_project_2025.system.dataio.core.common.FileFormat;
-import com.example.starter_project_2025.system.dataio.core.exporter.service.ExportService;
-import com.example.starter_project_2025.system.dataio.core.importer.result.ImportResult;
-import com.example.starter_project_2025.system.dataio.core.importer.service.ImportService;
+import com.example.starter_project_2025.system.dataio.common.FileFormat;
+import com.example.starter_project_2025.system.dataio.exporter.service.ExportService;
+import com.example.starter_project_2025.system.dataio.importer.result.ImportResult;
+import com.example.starter_project_2025.system.dataio.importer.service.ImportService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
