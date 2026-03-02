@@ -6,12 +6,13 @@ import {
   FiPlus,
   FiTrash2,
   FiClipboard,
-  FiCheckCircle,
-  FiDownload,
 } from "react-icons/fi";
+import { DatabaseBackup } from "lucide-react";
+import dayjs from "dayjs";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { ImportModal } from "@/components/ImportModal";
+import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
+import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import {
   topicApi,
   ASSESSMENT_TYPES,
@@ -20,11 +21,6 @@ import {
   type AssessmentComponentRequest,
   type AssessmentComponentType,
 } from "@/api/topicApi";
-
-interface ImportResult {
-  configUpdated: boolean;
-  componentsAdded: number;
-}
 
 /* ─── helpers ─── */
 const typeLabel: Record<AssessmentComponentType, string> = {
@@ -43,6 +39,10 @@ interface EditableComponent extends AssessmentComponentResponse {
   _localId: string; // temp id for new rows
 }
 
+type ComponentFieldError = Partial<
+  Record<"type" | "name" | "count" | "weight" | "duration" | "displayOrder", string>
+>;
+
 /* ─── Main Tab ──────────────────────────────────────────────── */
 interface Props {
   topicId: string;
@@ -60,6 +60,7 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
     reset: resetCfg,
     watch: watchCfg,
     setValue: setCfgVal,
+    formState: { errors: configErrors },
   } = useForm<AssessmentSchemeConfig>();
 
   const allowRetake = watchCfg("allowFinalRetake");
@@ -69,10 +70,14 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
   const [compLoading, setCompLoading] = useState(true);
   const [compSaving, setCompSaving] = useState(false);
   const [hasCompChanges, setHasCompChanges] = useState(false);
+  const [componentErrors, setComponentErrors] = useState<
+    Record<string, ComponentFieldError>
+  >({});
+  const [deleteTarget, setDeleteTarget] = useState<EditableComponent | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   /* ── import/export state ── */
-  const [importOpen, setImportOpen] = useState(false);
-  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [importExportOpen, setImportExportOpen] = useState(false);
 
   /* ── load ── */
   const loadConfig = useCallback(async () => {
@@ -101,6 +106,7 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
       const data = await topicApi.getComponents(topicId);
       setComponents(data.map((c) => ({ ...c, _localId: c.id })));
       setHasCompChanges(false);
+      setComponentErrors({});
     } catch {
       toast.error("Failed to load assessment components");
     } finally {
@@ -139,14 +145,75 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
   );
   const weightOk = Math.abs(totalWeight - 100) < 0.01;
 
+  const validateOneComponent = (comp: EditableComponent): ComponentFieldError => {
+    const errors: ComponentFieldError = {};
+
+    if (!comp.type) {
+      errors.type = "Type is required";
+    }
+    if (!comp.name?.trim()) {
+      errors.name = "Name is required";
+    }
+    if (!Number.isInteger(Number(comp.count)) || Number(comp.count) <= 0) {
+      errors.count = "Count must be a positive integer";
+    }
+    if (!Number.isFinite(Number(comp.weight))) {
+      errors.weight = "Weight must be a valid number";
+    }
+    if (
+      comp.duration !== null &&
+      comp.duration !== undefined &&
+      (!Number.isInteger(Number(comp.duration)) || Number(comp.duration) < 0)
+    ) {
+      errors.duration = "Duration must be a non-negative integer or empty";
+    }
+    if (
+      !Number.isInteger(Number(comp.displayOrder)) ||
+      Number(comp.displayOrder) <= 0
+    ) {
+      errors.displayOrder = "Order must be a positive integer";
+    }
+
+    return errors;
+  };
+
+  const validateComponents = (
+    items: EditableComponent[],
+  ): Record<string, ComponentFieldError> => {
+    const nextErrors: Record<string, ComponentFieldError> = {};
+    for (const item of items) {
+      const rowErrors = validateOneComponent(item);
+      if (Object.keys(rowErrors).length > 0) {
+        nextErrors[item._localId] = rowErrors;
+      }
+    }
+    return nextErrors;
+  };
+
   const updateComp = (
     localId: string,
     field: keyof EditableComponent,
     value: unknown,
   ) => {
-    setComponents((prev) =>
-      prev.map((c) => (c._localId === localId ? { ...c, [field]: value } : c)),
-    );
+    setComponents((prev) => {
+      const next = prev.map((c) =>
+        c._localId === localId ? { ...c, [field]: value } : c,
+      );
+
+      const updated = next.find((c) => c._localId === localId);
+      if (updated) {
+        const rowErrors = validateOneComponent(updated);
+        setComponentErrors((prevErrors) => {
+          if (Object.keys(rowErrors).length === 0) {
+            const { [localId]: _removed, ...rest } = prevErrors;
+            return rest;
+          }
+          return { ...prevErrors, [localId]: rowErrors };
+        });
+      }
+
+      return next;
+    });
     setHasCompChanges(true);
   };
 
@@ -165,12 +232,42 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
       isGraded: true,
     };
     setComponents((prev) => [...prev, newComp]);
+    setComponentErrors((prev) => ({
+      ...prev,
+      [newComp._localId]: validateOneComponent(newComp),
+    }));
     setHasCompChanges(true);
   };
 
-  const removeComponent = (comp: EditableComponent) => {
+  const removeLocalComponent = (comp: EditableComponent) => {
     setComponents((prev) => prev.filter((c) => c._localId !== comp._localId));
+    setComponentErrors((prev) => {
+      const { [comp._localId]: _removed, ...rest } = prev;
+      return rest;
+    });
     setHasCompChanges(true);
+  };
+
+  const confirmDeleteComponent = async () => {
+    if (!deleteTarget) return;
+
+    if (deleteTarget._isNew || !deleteTarget.id) {
+      removeLocalComponent(deleteTarget);
+      setDeleteTarget(null);
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      await topicApi.deleteComponent(topicId, deleteTarget.id);
+      toast.success("Assessment component deleted");
+      setDeleteTarget(null);
+      await loadComponents();
+    } catch {
+      toast.error("Failed to delete assessment component");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const onCancelComponents = () => {
@@ -178,21 +275,34 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
   };
 
   const onSaveComponents = async () => {
+    const validationErrors = validateComponents(components);
+    setComponentErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      toast.error("Please fix invalid component fields before saving");
+      return;
+    }
+
     if (!weightOk) {
       toast.error("Total weight must equal 100%");
       return;
     }
+
     try {
       setCompSaving(true);
-      // 1. Fetch ALL backend components and delete them
-      const backendComponents = await topicApi.getComponents(topicId);
-      for (const c of backendComponents) {
-        await topicApi.deleteComponent(topicId, c.id);
+      const existingComponents = components.filter((c) => !c._isNew && c.id);
+      const newComponents = components.filter((c) => c._isNew || !c.id);
+
+      if (existingComponents.length > 0) {
+        await topicApi.updateComponents(
+          topicId,
+          existingComponents.map((c) => buildRequest(c)),
+        );
       }
-      // 2. Re-add every component currently in the local table
-      for (const c of components) {
+
+      for (const c of newComponents) {
         await topicApi.addComponent(topicId, buildRequest(c));
       }
+
       toast.success("Assessment components saved");
       await loadComponents();
     } catch {
@@ -203,124 +313,52 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
   };
 
   /* ── import / export ── */
-  const handleExport = () => {
-    const payload = {
-      schemeConfig: config,
-      components: components.map(
-        ({
-          name,
-          type,
-          count,
-          weight,
-          duration,
-          displayOrder,
-          isGraded,
-          note,
-        }) => ({
-          name,
-          type,
-          count,
-          weight,
-          duration,
-          displayOrder,
-          isGraded,
-          note,
-        }),
-      ),
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: "application/json",
-    });
+  const downloadBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `assessment-scheme-${topicId}.json`;
-    a.click();
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
     URL.revokeObjectURL(url);
+  };
+
+  const handleExport = async () => {
+    const blob = await topicApi.exportAssessmentComponents(topicId);
+    downloadBlob(
+      blob,
+      `assessment-components-${dayjs().format("DD-MM-YYYY_HH-mm-ss")}.xlsx`,
+    );
   };
 
   /** Called by ImportModal "Download Template" button */
-  const handleDownloadTemplate = () => {
-    const template = {
-      schemeConfig: {
-        minGpaToPass: 6,
-        minAttendance: 80,
-        allowFinalRetake: false,
-      },
-      components: [
-        {
-          name: "Quiz",
-          type: "QUIZ",
-          count: 1,
-          weight: 30,
-          duration: null,
-          displayOrder: 1,
-          isGraded: true,
-        },
-        {
-          name: "Assignment",
-          type: "ASSIGNMENT",
-          count: 1,
-          weight: 30,
-          duration: null,
-          displayOrder: 2,
-          isGraded: true,
-        },
-        {
-          name: "Final Exam",
-          type: "FINAL_EXAM",
-          count: 1,
-          weight: 40,
-          duration: 90,
-          displayOrder: 3,
-          isGraded: true,
-        },
-      ],
-    };
-    const blob = new Blob([JSON.stringify(template, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "assessment-scheme-template.json";
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleDownloadTemplate = async () => {
+    const blob = await topicApi.downloadAssessmentComponentsTemplate(topicId);
+    downloadBlob(
+      blob,
+      `assessment-components-template-${dayjs().format("DD-MM-YYYY_HH-mm-ss")}.xlsx`,
+    );
   };
 
   /** Called by ImportModal after user picks file and clicks Import */
-  const handleImport = async (file: File): Promise<void> => {
-    const text = await file.text();
-    let parsed: any;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      throw new Error("Invalid JSON file. Please check the file format.");
+  const handleImport = async (file: File) => {
+    const res = await topicApi.importAssessmentComponents(topicId, file);
+    await loadComponents();
+    return res;
+  };
+
+  const validateImportFile = (file: File): string | null => {
+    if (!file.name.match(/\.json$/i)) {
+      return "Invalid file format. Only JSON files (.json) are allowed.";
     }
 
-    let configUpdated = false;
-    let componentsAdded = 0;
-
-    if (parsed.schemeConfig) {
-      await topicApi.updateSchemeConfig(topicId, parsed.schemeConfig);
-      await loadConfig();
-      configUpdated = true;
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return "File size exceeds 10MB limit.";
     }
 
-    if (Array.isArray(parsed.components) && parsed.components.length > 0) {
-      // Delete all current saved components, then add from file
-      const current = await topicApi.getComponents(topicId);
-      for (const c of current) {
-        await topicApi.deleteComponent(topicId, c.id);
-      }
-      for (const c of parsed.components as AssessmentComponentRequest[]) {
-        await topicApi.addComponent(topicId, c);
-      }
-      componentsAdded = parsed.components.length;
-      await loadComponents();
-    }
-
-    setImportResult({ configUpdated, componentsAdded });
+    return null;
   };
 
   /* ── render ── */
@@ -363,9 +401,22 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
                 step="0.1"
                 min={0}
                 max={10}
-                {...regCfg("minGpaToPass", { valueAsNumber: true })}
+                {...regCfg("minGpaToPass", {
+                  valueAsNumber: true,
+                  required: "Min GPA is required",
+                  min: { value: 0, message: "Min GPA must be between 0 and 10" },
+                  max: {
+                    value: 10,
+                    message: "Min GPA must be between 0 and 10",
+                  },
+                })}
                 className={inputCls}
               />
+              {configErrors.minGpaToPass && (
+                <p className="text-xs text-red-500 mt-1">
+                  {configErrors.minGpaToPass.message}
+                </p>
+              )}
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium text-gray-500">
@@ -375,9 +426,25 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
                 type="number"
                 min={0}
                 max={100}
-                {...regCfg("minAttendance", { valueAsNumber: true })}
+                {...regCfg("minAttendance", {
+                  valueAsNumber: true,
+                  required: "Min attendance is required",
+                  min: {
+                    value: 0,
+                    message: "Min attendance must be between 0 and 100",
+                  },
+                  max: {
+                    value: 100,
+                    message: "Min attendance must be between 0 and 100",
+                  },
+                })}
                 className={inputCls}
               />
+              {configErrors.minAttendance && (
+                <p className="text-xs text-red-500 mt-1">
+                  {configErrors.minAttendance.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -409,26 +476,21 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
                 {totalWeight.toFixed(2)}%
               </span>
             </span>
+            {!weightOk && (
+              <span className="text-xs text-red-500">
+                Total weight must equal 100% before saving.
+              </span>
+            )}
 
             {/* import / export */}
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
-              onClick={() => {
-                setImportResult(null);
-                setImportOpen(true);
-              }}
-              className="text-xs"
+              onClick={() => setImportExportOpen(true)}
+              className="gap-2"
             >
-              <FiDownload className="mr-1.5 rotate-180" /> Import
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExport}
-              className="text-xs"
-            >
-              <FiDownload className="mr-1.5" /> Export
+              <DatabaseBackup className="h-4 w-4" />
+              Import / Export
             </Button>
 
             {/* cancel / save */}
@@ -488,7 +550,8 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
                     key={comp._localId}
                     comp={comp}
                     onChange={updateComp}
-                    onDelete={removeComponent}
+                    errors={componentErrors[comp._localId]}
+                    onDelete={(selected) => setDeleteTarget(selected)}
                   />
                 ))
               )}
@@ -507,50 +570,25 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
         </div>
       </div>
 
-      {/* ─── IMPORT RESULT BANNER ── */}
-      {importResult && (
-        <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-5 py-4">
-          <FiCheckCircle className="text-green-600 shrink-0 mt-0.5" size={18} />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-green-800 mb-1">
-              Import successful
-            </p>
-            <ul className="text-xs text-green-700 space-y-0.5">
-              {importResult.configUpdated && (
-                <li>
-                  ✓ Scheme configuration updated (Min GPA, Min Attendance, Allow
-                  Retake)
-                </li>
-              )}
-              {importResult.componentsAdded > 0 && (
-                <li>
-                  ✓ {importResult.componentsAdded} assessment component
-                  {importResult.componentsAdded > 1 ? "s" : ""} imported
-                </li>
-              )}
-              {!importResult.configUpdated &&
-                importResult.componentsAdded === 0 && (
-                  <li>No changes — file had no recognisable content.</li>
-                )}
-            </ul>
-          </div>
-          <button
-            onClick={() => setImportResult(null)}
-            className="text-green-400 hover:text-green-600 shrink-0 text-base leading-none"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
-      {/* ─── IMPORT MODAL ── */}
-      <ImportModal
-        isOpen={importOpen}
-        onClose={() => setImportOpen(false)}
-        title="Import Assessment Scheme"
-        onDownloadTemplate={handleDownloadTemplate}
+      <ImportExportModal
+        title="Assessment Components"
+        open={importExportOpen}
+        setOpen={setImportExportOpen}
         onImport={handleImport}
-        acceptedFileTypes=".json"
+        onExport={handleExport}
+        onDownloadTemplate={handleDownloadTemplate}
+      />
+
+      <ConfirmDeleteModal
+        open={!!deleteTarget}
+        title="Confirm delete"
+        message="Are you sure you want to delete this assessment component? This action cannot be undone."
+        confirmText={deleting ? "Deleting..." : "Delete"}
+        cancelText="Cancel"
+        onCancel={() => {
+          if (!deleting) setDeleteTarget(null);
+        }}
+        onConfirm={confirmDeleteComponent}
       />
     </div>
   );
@@ -560,6 +598,7 @@ export function TopicAssessmentSchemeTab({ topicId }: Props) {
 function ComponentRow({
   comp,
   onChange,
+  errors,
   onDelete,
 }: {
   comp: EditableComponent;
@@ -568,6 +607,7 @@ function ComponentRow({
     field: keyof EditableComponent,
     value: unknown,
   ) => void;
+  errors?: ComponentFieldError;
   onDelete: (c: EditableComponent) => void;
 }) {
   const id = comp._localId;
@@ -581,7 +621,9 @@ function ComponentRow({
           onChange={(e) =>
             onChange(id, "type", e.target.value as AssessmentComponentType)
           }
-          className={`w-40 border rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white font-medium`}
+          className={`w-40 border rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white font-medium ${
+            errors?.type ? "border-red-500" : ""
+          }`}
         >
           {ASSESSMENT_TYPES.map((t) => (
             <option key={t} value={t}>
@@ -589,6 +631,7 @@ function ComponentRow({
             </option>
           ))}
         </select>
+        {errors?.type && <p className="text-[11px] text-red-500 mt-1">{errors.type}</p>}
       </td>
 
       {/* name */}
@@ -597,8 +640,11 @@ function ComponentRow({
           value={comp.name}
           onChange={(e) => onChange(id, "name", e.target.value)}
           placeholder="Component name"
-          className={`w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white`}
+          className={`w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white ${
+            errors?.name ? "border-red-500" : ""
+          }`}
         />
+        {errors?.name && <p className="text-[11px] text-red-500 mt-1">{errors.name}</p>}
       </td>
 
       {/* count */}
@@ -608,8 +654,11 @@ function ComponentRow({
           min={1}
           value={comp.count}
           onChange={(e) => onChange(id, "count", Number(e.target.value))}
-          className="w-16 border rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+          className={`w-16 border rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white ${
+            errors?.count ? "border-red-500" : ""
+          }`}
         />
+        {errors?.count && <p className="text-[11px] text-red-500 mt-1">{errors.count}</p>}
       </td>
 
       {/* weight */}
@@ -621,8 +670,11 @@ function ComponentRow({
           step={0.01}
           value={comp.weight}
           onChange={(e) => onChange(id, "weight", Number(e.target.value))}
-          className="w-20 border rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+          className={`w-20 border rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white ${
+            errors?.weight ? "border-red-500" : ""
+          }`}
         />
+        {errors?.weight && <p className="text-[11px] text-red-500 mt-1">{errors.weight}</p>}
       </td>
 
       {/* duration */}
@@ -639,8 +691,11 @@ function ComponentRow({
               e.target.value ? Number(e.target.value) : null,
             )
           }
-          className="w-20 border rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+          className={`w-20 border rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white ${
+            errors?.duration ? "border-red-500" : ""
+          }`}
         />
+        {errors?.duration && <p className="text-[11px] text-red-500 mt-1">{errors.duration}</p>}
       </td>
 
       {/* order */}
@@ -650,8 +705,13 @@ function ComponentRow({
           min={1}
           value={comp.displayOrder}
           onChange={(e) => onChange(id, "displayOrder", Number(e.target.value))}
-          className="w-16 border rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+          className={`w-16 border rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white ${
+            errors?.displayOrder ? "border-red-500" : ""
+          }`}
         />
+        {errors?.displayOrder && (
+          <p className="text-[11px] text-red-500 mt-1">{errors.displayOrder}</p>
+        )}
       </td>
 
       {/* graded */}

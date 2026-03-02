@@ -27,11 +27,15 @@ export interface ImportResult {
 interface Props {
   onImport?: (file: File) => Promise<ImportResult | void>;
   onDownloadTemplate?: () => Promise<void>;
+  acceptedFileTypes?: string;
+  validateFile?: (file: File) => string | null;
 }
 
 export default function ImportTab({
   onImport,
   onDownloadTemplate,
+  acceptedFileTypes = ".xlsx, .xls",
+  validateFile,
 }: Props) {
   /* ================= STATE ================= */
 
@@ -54,15 +58,23 @@ export default function ImportTab({
 
   /* ================= VALIDATE FILE ================= */
 
-  const validateFile = (selected: File): boolean => {
-    if (!selected.name.match(/\.(xlsx|xls)$/i)) {
-      setError("Invalid file format. Only Excel files (.xlsx, .xls) allowed.");
-      return false;
-    }
+  const validateSelectedFile = (selected: File): boolean => {
+    if (validateFile) {
+      const errorMessage = validateFile(selected);
+      if (errorMessage) {
+        setError(errorMessage);
+        return false;
+      }
+    } else {
+      if (!selected.name.match(/\.(xlsx|xls)$/i)) {
+        setError("Invalid file format. Only Excel files (.xlsx, .xls) allowed.");
+        return false;
+      }
 
-    if (selected.size > MAX_FILE_SIZE) {
-      setError("File size exceeds 50MB limit.");
-      return false;
+      if (selected.size > MAX_FILE_SIZE) {
+        setError("File size exceeds 50MB limit.");
+        return false;
+      }
     }
 
     return true;
@@ -74,7 +86,7 @@ export default function ImportTab({
     setError(null);
     setResult(null);
 
-    if (!validateFile(selected)) return;
+    if (!validateSelectedFile(selected)) return;
 
     setFile(selected);
   };
@@ -196,7 +208,7 @@ export default function ImportTab({
                 Click or drag & drop file
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Supported: .xlsx, .xls
+                Supported: {acceptedFileTypes.replace(/,/g, ", ")}
               </p>
             </>
           ) : (
@@ -206,7 +218,7 @@ export default function ImportTab({
               </div>
 
               <div className="text-left">
-                <p className="text-sm font-semibold truncate max-w-[220px]">
+                <p className="text-sm font-semibold truncate max-w-55">
                   {file.name}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -219,7 +231,7 @@ export default function ImportTab({
           <Input
             ref={fileInputRef}
             type="file"
-            accept=".xlsx,.xls"
+            accept={acceptedFileTypes}
             className="hidden"
             onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
           />

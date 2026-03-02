@@ -16,13 +16,13 @@ public class TopicTimeAllocationController {
     private final TopicTimeAllocationService service;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PROGRAM_MANAGER')")
+    @PreAuthorize("hasAuthority('TOPIC_READ')")
     public TopicTimeAllocationDTO get(@PathVariable UUID topicId) {
         return service.get(topicId);
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PROGRAM_MANAGER')")
+    @PreAuthorize("hasAuthority('TOPIC_UPDATE')")
     public TopicTimeAllocationDTO save(
             @PathVariable UUID topicId,
             @RequestBody TopicTimeAllocationDTO dto) {

@@ -1,4 +1,5 @@
 import axiosInstance from './axiosInstance';
+import type { ImportResult } from '@/components/modal/import-export/ImportTab';
 
 /* ─── Skill types ─────────────────────────────────────────── */
 export interface TopicSkillResponse {
@@ -273,6 +274,38 @@ export const topicApi = {
 
   getTotalWeight: async (topicId: string): Promise<number> => {
     const res = await axiosInstance.get(`/topics/${topicId}/assessment-scheme/total-weight`);
+    return res.data;
+  },
+
+  exportAssessmentComponents: async (topicId: string): Promise<Blob> => {
+    const res = await axiosInstance.get(
+      `/topics/${topicId}/assessment-scheme/components/export`,
+      { responseType: 'blob' },
+    );
+    return res.data;
+  },
+
+  importAssessmentComponents: async (
+    topicId: string,
+    file: File,
+  ): Promise<ImportResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await axiosInstance.post<ImportResult>(
+      `/topics/${topicId}/assessment-scheme/components/import`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    );
+
+    return res.data;
+  },
+
+  downloadAssessmentComponentsTemplate: async (topicId: string): Promise<Blob> => {
+    const res = await axiosInstance.get(
+      `/topics/${topicId}/assessment-scheme/components/template`,
+      { responseType: 'blob' },
+    );
     return res.data;
   },
 
