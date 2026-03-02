@@ -1,11 +1,20 @@
 package com.example.starter_project_2025.system.assessment.controller;
 
+import com.example.starter_project_2025.base.controller.BaseCrudDataIoController;
+import com.example.starter_project_2025.base.repository.BaseCrudRepository;
+import com.example.starter_project_2025.base.service.CrudService;
 import com.example.starter_project_2025.system.assessment.dto.category.QuestionCategoryDTO;
+import com.example.starter_project_2025.system.assessment.dto.category.QuestionCategoryFilter;
 import com.example.starter_project_2025.system.assessment.dto.question_tag.response.TagCountResponse;
 import com.example.starter_project_2025.system.assessment.entity.QuestionCategory;
+import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
 import com.example.starter_project_2025.system.assessment.service.category.QuestionCategoryService;
+import com.example.starter_project_2025.system.assessment.service.category.QuestionCategoryServiceImpl;
 import com.example.starter_project_2025.system.assessment.service.question_tag.QuestionTagService;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,40 +22,37 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/question-categories")
 @RequiredArgsConstructor
-public class QuestionCategoryController {
+@RequestMapping("/api/question-categories")
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Tag(name = "Question Category Management", description = "APIs for managing question categories")
+public class QuestionCategoryController
+        extends BaseCrudDataIoController<QuestionCategory, UUID, QuestionCategoryDTO, QuestionCategoryFilter> {
 
-    private final QuestionCategoryService categoryService;
-    private final QuestionTagService tagService;
+    QuestionCategoryService questionCategoryService;
+    QuestionCategoryRepository questionCategoryRepository;
+    QuestionTagService questionTagService;
 
-    // 1. Lấy tất cả danh mục
-    @GetMapping
-    public ResponseEntity<List<QuestionCategory>> getAll() {
-        return ResponseEntity.ok(categoryService.getAll());
+    @Override
+    protected CrudService<UUID, QuestionCategoryDTO, QuestionCategoryFilter> getService() {
+        return questionCategoryService;
     }
 
-    // 2. Tạo danh mục mới
-    @PostMapping
-    public ResponseEntity<QuestionCategory> create(@RequestBody QuestionCategoryDTO dto) {
-        return ResponseEntity.ok(categoryService.create(dto));
+    @Override
+    protected BaseCrudRepository<QuestionCategory, UUID> getRepository() {
+        return questionCategoryRepository;
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteById(@PathVariable UUID id) {
-        categoryService.deleteById(id);
-        return ResponseEntity.noContent().build();
+    @Override
+    protected Class<QuestionCategory> getEntityClass() {
+        return QuestionCategory.class;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(categoryService.getById(id));
-    }
 
-//    @GetMapping("/{categoryId}/tags")
-//    public ResponseEntity<List<TagCountResponse>> getTagsByCategory(
-//            @PathVariable UUID categoryId
-//    ) {
-//        return ResponseEntity.ok(tagService.getTagsByCategory(categoryId));
-//    }
+    @GetMapping("/{categoryId}/tags")
+    public ResponseEntity<List<TagCountResponse>> getTagsByCategory(
+            @PathVariable UUID categoryId
+    ) {
+        return ResponseEntity.ok(questionTagService.getTagsByCategory(categoryId));
+    }
 }
