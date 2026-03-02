@@ -69,13 +69,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -156,9 +149,9 @@ public class DataInitializer implements CommandLineRunner {
 
         private void initializePermissions() {
                 List<Permission> permissions = Arrays.asList(
-                        createPermission("DASHBOARD_READ", "AHIHI", "DASHBOARD",
-                                "READ"),
-                        createPermission("SIDEBAR_READ", "View Sidebar", "SIDEBAR", "READ"),
+                                createPermission("DASHBOARD_READ", "AHIHI", "DASHBOARD",
+                                                "READ"),
+                                createPermission("SIDEBAR_READ", "View Sidebar", "SIDEBAR", "READ"),
 
                                 /* ================= MODULE GROUP ================= */
                                 createPermission("MODULE_GROUP_CREATE", "Create new module groups", "MODULE_GROUP",
@@ -285,20 +278,20 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("SEMESTER_DELETE", "Delete semesters", "SEMESTER", "DELETE"),
                                 createPermission("SWITCH_ROLE", "Switch to another role view", "ROLE", "SWITCH"),
 
-                        /* ================= PERMISSION ================= */
-                        createPermission("PERMISSION_CREATE", "Create new permissions", "PERMISSION", "CREATE"),
-                        createPermission("PERMISSION_READ", "View permissions", "PERMISSION", "READ"),
-                        createPermission("PERMISSION_UPDATE", "Update existing permissions", "PERMISSION",
-                                "UPDATE"),
-                        createPermission("PERMISSION_DELETE", "Delete permissions", "PERMISSION", "DELETE"),
-                        createPermission("PERMISSION_IMPORT", "Import permissions", "PERMISSION", "IMPORT"),
-                        createPermission("PERMISSION_EXPORT", "Export permissions", "PERMISSION", "EXPORT"),
-                        createPermission("TOPIC_CREATE", "Create new topics", "TOPIC", "CREATE"),
-                        createPermission("TOPIC_READ", "View topics", "TOPIC", "READ"),
-                        createPermission("TOPIC_UPDATE", "Update existing topics", "TOPIC", "UPDATE"),
-                        createPermission("TOPIC_DELETE", "Delete topics", "TOPIC", "DELETE"),
-                        createPermission("TOPIC_IMPORT", "Import topics from Excel", "TOPIC", "IMPORT"),
-                        createPermission("TOPIC_EXPORT", "Export topics to Excel", "TOPIC", "EXPORT"));
+                                /* ================= PERMISSION ================= */
+                                createPermission("PERMISSION_CREATE", "Create new permissions", "PERMISSION", "CREATE"),
+                                createPermission("PERMISSION_READ", "View permissions", "PERMISSION", "READ"),
+                                createPermission("PERMISSION_UPDATE", "Update existing permissions", "PERMISSION",
+                                                "UPDATE"),
+                                createPermission("PERMISSION_DELETE", "Delete permissions", "PERMISSION", "DELETE"),
+                                createPermission("PERMISSION_IMPORT", "Import permissions", "PERMISSION", "IMPORT"),
+                                createPermission("PERMISSION_EXPORT", "Export permissions", "PERMISSION", "EXPORT"),
+                                createPermission("TOPIC_CREATE", "Create new topics", "TOPIC", "CREATE"),
+                                createPermission("TOPIC_READ", "View topics", "TOPIC", "READ"),
+                                createPermission("TOPIC_UPDATE", "Update existing topics", "TOPIC", "UPDATE"),
+                                createPermission("TOPIC_DELETE", "Delete topics", "TOPIC", "DELETE"),
+                                createPermission("TOPIC_IMPORT", "Import topics from Excel", "TOPIC", "IMPORT"),
+                                createPermission("TOPIC_EXPORT", "Export topics to Excel", "TOPIC", "EXPORT"));
                 permissionRepository.saveAll(permissions);
                 log.info("Initialized {} permissions", permissions.size());
         }
@@ -321,27 +314,25 @@ public class DataInitializer implements CommandLineRunner {
                 List<Permission> allPermissions = permissionRepository.findAll();
 
                 Set<Permission> trainerPermissions = allPermissions.stream()
-                        .filter(p ->
-                                ("READ".equals(p.getAction())
-                                        && Arrays.asList("SIDEBAR", "CLASS", "COURSE", "SEMESTER", "STUDENT", "MODULE", "DASHBOARD")
-                                        .contains(p.getResource()))
-                        )
-                        .collect(Collectors.toSet());
+                                .filter(p -> ("READ".equals(p.getAction())
+                                                && Arrays.asList("SIDEBAR", "CLASS", "COURSE", "SEMESTER", "STUDENT",
+                                                                "MODULE", "DASHBOARD")
+                                                                .contains(p.getResource())))
+                                .collect(Collectors.toSet());
 
                 List<String> extraPermissionNames = Arrays.asList(
-                        "LESSON_CREATE", "LESSON_UPDATE", "LESSON_DELETE",
-                        "SESSION_CREATE", "SESSION_UPDATE", "SESSION_DELETE",
-                        "COURSE_OUTLINE_EDIT",
-                        "ASSESSMENT_CREATE", "ASSESSMENT_UPDATE", "ASSESSMENT_DELETE",
-                        "ASSESSMENT_ASSIGN", "ASSESSMENT_PUBLISH", "ASSESSMENT_SUBMIT",
-                        "QUESTION_CREATE", "QUESTION_UPDATE", "QUESTION_DELETE",
-                        "QUESTION_CATEGORY_CREATE", "QUESTION_CATEGORY_UPDATE", "QUESTION_CATEGORY_DELETE",
-                        "ENROLL_COURSE"
-                );
+                                "LESSON_CREATE", "LESSON_UPDATE", "LESSON_DELETE",
+                                "SESSION_CREATE", "SESSION_UPDATE", "SESSION_DELETE",
+                                "COURSE_OUTLINE_EDIT",
+                                "ASSESSMENT_CREATE", "ASSESSMENT_UPDATE", "ASSESSMENT_DELETE",
+                                "ASSESSMENT_ASSIGN", "ASSESSMENT_PUBLISH", "ASSESSMENT_SUBMIT",
+                                "QUESTION_CREATE", "QUESTION_UPDATE", "QUESTION_DELETE",
+                                "QUESTION_CATEGORY_CREATE", "QUESTION_CATEGORY_UPDATE", "QUESTION_CATEGORY_DELETE",
+                                "ENROLL_COURSE");
 
                 for (String name : extraPermissionNames) {
                         permissionRepository.findByName(name)
-                                .ifPresent(trainerPermissions::add);
+                                        .ifPresent(trainerPermissions::add);
                 }
 
                 Role trainerRole = new Role();
@@ -357,20 +348,19 @@ public class DataInitializer implements CommandLineRunner {
 
         private void initializeRoles() {
 
-
                 // ADMIN
                 Role adminRole = new Role();
                 adminRole.setName("ADMIN");
                 adminRole.setDescription("Administrator with full system access");
                 adminRole.setHierarchyLevel(2);
                 List<String> excludedPermissions = List.of(
-                        "MODULE_GROUP_CREATE",
-                        "MODULE_CREATE");
+                                "MODULE_GROUP_CREATE",
+                                "MODULE_CREATE");
 
                 List<Permission> adminPermissions = permissionRepository.findAll()
-                        .stream()
-                        .filter(p -> !excludedPermissions.contains(p.getName()))
-                        .toList();
+                                .stream()
+                                .filter(p -> !excludedPermissions.contains(p.getName()))
+                                .toList();
 
                 adminRole.setPermissions(new HashSet<>(adminPermissions));
                 roleRepository.save(adminRole);
@@ -402,7 +392,6 @@ public class DataInitializer implements CommandLineRunner {
                 // TRAINER
                 initializeTrainerRole();
 
-
                 // SUPER_ADMIN
                 Role superAdminRole = new Role();
                 superAdminRole.setName("SUPER_ADMIN");
@@ -413,26 +402,21 @@ public class DataInitializer implements CommandLineRunner {
 
                 log.info("Initialized 4 roles: ADMIN, MANAGER, STUDENT, TRAINER, SUPER_ADMIN");
 
-
                 List<Permission> allPermissions = permissionRepository.findAll();
 
                 Set<Permission> managerPermissions = allPermissions.stream()
-                        .filter(p -> "UPDATE".equals(p.getAction())
-                                && Arrays.asList("STUDENT").contains(p.getResource())
-                                || "READ".equals(p.getAction()) && Arrays.asList("MENU", "SEMESTER")
-                                .contains(p.getResource())
-                                || "CLASS".equals(p.getResource())
-                                || "COURSE".equals(p.getResource())
-                                || "SEMESTER".equals(p.getResource()))
-                        .collect(Collectors.toSet());
+                                .filter(p -> "UPDATE".equals(p.getAction())
+                                                && Arrays.asList("STUDENT").contains(p.getResource())
+                                                || "READ".equals(p.getAction()) && Arrays.asList("MENU", "SEMESTER")
+                                                                .contains(p.getResource())
+                                                || "CLASS".equals(p.getResource())
+                                                || "COURSE".equals(p.getResource())
+                                                || "SEMESTER".equals(p.getResource()))
+                                .collect(Collectors.toSet());
                 createRoleIfNotFound("MANAGER", "Manager with class and course management permissions",
-                        managerPermissions);
-
-
+                                managerPermissions);
 
         }
-
-
 
         private void initializeUsers() {
                 User admin = new User();
@@ -459,8 +443,6 @@ public class DataInitializer implements CommandLineRunner {
                 trainer.setIsActive(true);
                 userRepository.save(trainer);
 
-
-
                 User student1 = new User();
                 student1.setEmail("student@example.com");
                 student1.setPasswordHash(passwordEncoder.encode("password123"));
@@ -483,8 +465,6 @@ public class DataInitializer implements CommandLineRunner {
                 createUserIfNotFound("trainer1@example.com", "Bob", "Teacher");
                 createUserIfNotFound("trainer2@example.com", "Michael", "Trainer");
                 createUserIfNotFound("trainer3@example.com", "Sarah", "Instructor");
-
-
 
                 log.info("Initialized 5 users: admin, superadmin, trainer, student, jane.smith");
         }
@@ -515,11 +495,9 @@ public class DataInitializer implements CommandLineRunner {
                 User manager1 = userRepository.findByEmail("manager1@example.com").orElseThrow();
                 User manager2 = userRepository.findByEmail("manager2@example.com").orElseThrow();
 
-
                 User trainer1 = userRepository.findByEmail("trainer1@example.com").orElseThrow();
                 User trainer2 = userRepository.findByEmail("trainer2@example.com").orElseThrow();
                 User trainer3 = userRepository.findByEmail("trainer3@example.com").orElseThrow();
-
 
                 User adminUser = userRepository.findByEmail("admin@example.com")
                                 .orElseThrow(() -> new RuntimeException("Admin user not found"));
@@ -731,14 +709,14 @@ public class DataInitializer implements CommandLineRunner {
                                                 "USER_READ",
                                                 "Manage system users"),
 
-                        createModule(systemGroup, "Roles", "/roles", "shield", 4,
-                                "ROLE_READ",
-                                "Manage roles and permissions"),
+                                createModule(systemGroup, "Roles", "/roles", "shield", 4,
+                                                "ROLE_READ",
+                                                "Manage roles and permissions"),
 
-                        createModule(systemGroup, "Permissions", "/permissions", "key", 5,
-                                "PERMISSION_READ",
-                                "Manage system permissions"),
-                        createModule(systemGroup, "Locations", "/locations", "map-pin", 5,
+                                createModule(systemGroup, "Permissions", "/permissions", "key", 5,
+                                                "PERMISSION_READ",
+                                                "Manage system permissions"),
+                                createModule(systemGroup, "Locations", "/locations", "map-pin", 5,
                                                 "LOCATION_READ",
                                                 "Manage office locations"),
 
@@ -780,9 +758,7 @@ public class DataInitializer implements CommandLineRunner {
                                 createModule(trainingGroup, "Classes", "/classes", "people", 6,
                                                 "CLASS_USER_READ",
                                                 "User search and view classes"),
-                                createModule(trainingGroup, "My Classes", "/my-classes", "user-round", 6,
-                                                "CLASS_VIEW_OWN_CLASSES_READ",
-                                                "View and manage personal profile"),
+
                                 createModule(
                                                 trainingGroup,
                                                 "Trainer Semesters",
@@ -792,9 +768,11 @@ public class DataInitializer implements CommandLineRunner {
                                                 "SEMESTER_READ",
                                                 "Manage academic semesters")));
 
-                   /* =======================================================
-       MODULE GROUP: Assessment
-    ======================================================= */
+                /*
+                 * =======================================================
+                 * MODULE GROUP: Assessment
+                 * =======================================================
+                 */
                 ModuleGroups assessmentGroup = new ModuleGroups();
                 assessmentGroup.setName("Assessment");
                 assessmentGroup.setDescription("Manage assessments and related permissions");
@@ -803,16 +781,14 @@ public class DataInitializer implements CommandLineRunner {
                 assessmentGroup = moduleGroupsRepository.save(assessmentGroup);
 
                 moduleRepository.save(
-                        createModule(
-                                assessmentGroup,
-                                "Assessment Type",
-                                "/assessment-type",
-                                "shield",
-                                1,
-                                "ASSESSMENTTYPE_READ",
-                                "Manage assessment types"
-                        )
-                );
+                                createModule(
+                                                assessmentGroup,
+                                                "Assessment Type",
+                                                "/assessment-type",
+                                                "shield",
+                                                1,
+                                                "ASSESSMENTTYPE_READ",
+                                                "Manage assessment types"));
 
                 log.info("Initialized module groups and modules successfully.");
         }
@@ -1129,14 +1105,21 @@ public class DataInitializer implements CommandLineRunner {
                         return;
                 }
 
-                Semester spring2026 = new Semester();
-                spring2026.setName("Spring 2026");
-                spring2026.setStartDate(LocalDate.of(2026, 1, 5));
-                spring2026.setEndDate(LocalDate.of(2026, 4, 30));
+                List<Semester> semesters = List.of(
+                                buildSemester("Fall 2025", LocalDate.of(2025, 9, 1), LocalDate.of(2025, 12, 31)),
+                                buildSemester("Spring 2026", LocalDate.of(2026, 1, 5), LocalDate.of(2026, 4, 30)),
+                                buildSemester("Summer 2026", LocalDate.of(2026, 5, 5), LocalDate.of(2026, 8, 30)),
+                                buildSemester("Fall 2026", LocalDate.of(2026, 9, 1), LocalDate.of(2026, 12, 31)));
+                semesterRepository.saveAll(semesters);
+                log.info("Initialized {} Semesters successfully.", semesters.size());
+        }
 
-                semesterRepository.save(spring2026);
-
-                log.info("Initialized Semester: Spring 2026");
+        private Semester buildSemester(String name, LocalDate start, LocalDate end) {
+                Semester s = new Semester();
+                s.setName(name);
+                s.setStartDate(start);
+                s.setEndDate(end);
+                return s;
         }
 
         // -----------------------------------------------------------------------
@@ -1336,15 +1319,25 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         private TrainingClass buildTrainingClass(String name, String code, User creator, Semester semester,
-                        LocalDate start, LocalDate end) {
+                        LocalDate start, LocalDate end, User approvedBy) {
+                Random random = new Random();
                 TrainingClass tc = new TrainingClass();
                 tc.setClassName(name);
                 tc.setClassCode(code);
-                tc.setIsActive(true);
+
                 tc.setCreator(creator);
                 tc.setSemester(semester);
                 tc.setStartDate(start);
                 tc.setEndDate(end);
+                tc.setApprover(approvedBy);
+                if (random.nextBoolean()) {
+                        tc.setEnrollmentKey("abc");
+                        tc.setIsActive(true);
+                } else {
+
+                        tc.setIsActive(false);
+                }
+
                 return tc;
         }
 
@@ -1368,33 +1361,33 @@ public class DataInitializer implements CommandLineRunner {
                 }
 
                 List<TrainingClass> classes = List.of(
-                                buildTrainingClass("Kỹ sư phần mềm - Khóa 1", "SE-K1-01", admin,
+                                buildTrainingClass("Kỹ sư phần mềm - Khóa 1", "SE-K1-01", manager,
                                                 semesterMap.get("Fall 2025"), LocalDate.of(2025, 9, 10),
-                                                LocalDate.of(2025, 12, 20)),
+                                                LocalDate.of(2025, 12, 20), admin),
                                 buildTrainingClass("Hệ thống thông tin - Khóa 1", "IS-K1-01", manager,
                                                 semesterMap.get("Fall 2025"), LocalDate.of(2025, 9, 15),
-                                                LocalDate.of(2025, 12, 25)),
+                                                LocalDate.of(2025, 12, 25), admin),
 
-                                buildTrainingClass("Kỹ sư phần mềm - Khóa 2", "SE-K2-01", admin,
+                                buildTrainingClass("Kỹ sư phần mềm - Khóa 2", "SE-K2-01", manager,
                                                 semesterMap.get("Spring 2026"), LocalDate.of(2026, 1, 10),
-                                                LocalDate.of(2026, 4, 20)),
-                                buildTrainingClass("Khoa học dữ liệu - Khóa 1", "DS-K1-01", admin,
+                                                LocalDate.of(2026, 4, 20), admin),
+                                buildTrainingClass("Khoa học dữ liệu - Khóa 1", "DS-K1-01", manager,
                                                 semesterMap.get("Spring 2026"), LocalDate.of(2026, 1, 15),
-                                                LocalDate.of(2026, 4, 25)),
+                                                LocalDate.of(2026, 4, 25), admin),
 
                                 buildTrainingClass("Trí tuệ nhân tạo - Khóa 1", "AI-K1-01", manager,
                                                 semesterMap.get("Summer 2026"), LocalDate.of(2026, 5, 10),
-                                                LocalDate.of(2026, 8, 20)),
-                                buildTrainingClass("An toàn thông tin - Khóa 1", "CS-K1-01", admin,
+                                                LocalDate.of(2026, 8, 20), admin),
+                                buildTrainingClass("An toàn thông tin - Khóa 1", "CS-K1-01", manager,
                                                 semesterMap.get("Summer 2026"), LocalDate.of(2026, 5, 15),
-                                                LocalDate.of(2026, 8, 25)),
+                                                LocalDate.of(2026, 8, 25), admin),
 
                                 buildTrainingClass("Kỹ sư phần mềm - Khóa 3", "SE-K3-01", manager,
                                                 semesterMap.get("Fall 2026"), LocalDate.of(2026, 9, 10),
-                                                LocalDate.of(2026, 12, 20)),
-                                buildTrainingClass("Thiết kế đồ họa - Khóa 1", "GD-K1-01", admin,
+                                                LocalDate.of(2026, 12, 20), admin),
+                                buildTrainingClass("Thiết kế đồ họa - Khóa 1", "GD-K1-01", manager,
                                                 semesterMap.get("Fall 2026"), LocalDate.of(2026, 9, 15),
-                                                LocalDate.of(2026, 12, 25)));
+                                                LocalDate.of(2026, 12, 25), admin));
 
                 List<TrainingClass> validClasses = classes.stream()
                                 .filter(c -> c.getSemester() != null)

@@ -16,6 +16,7 @@ export interface TrainingClass {
   startDate: string;
   endDate: string;
   status: ClassStatusType;
+  trainerNames?: string[];
 }
 
 export interface CreateTrainingClassRequest {
