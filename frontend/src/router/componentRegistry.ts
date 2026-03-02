@@ -22,7 +22,6 @@ export const componentRegistry: Record<string, ComponentType> = {
   "/notFoundPage": NotFoundPage,
   "/roles": RoleManagement,
   "/classes": ClassesComponent,
-  "/my-classes": OwnClassPage,
   "/trainer-semesters": TrainerClassesManagement,
   "/locations": LocationsManagement,
   "/permissions": PermissionsManagement,

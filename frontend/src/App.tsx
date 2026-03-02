@@ -30,7 +30,6 @@ import AssessmentManagement from "./pages/AssessmentManagement";
 import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
-import ClassDetailManagement from "./pages/classes/ClassDetailManagement";
 import { RoleManagement } from "./pages/role/RoleManagement";
 import PermissionsManagement from "./pages/permissions/PermissionsManagement";
 import MfaSettings from "./pages/MfaSettings";
@@ -93,9 +92,6 @@ function App() {
                 );
               }),
             )}
-            <Route path="*" element={<NotFoundRedirect />} />
-            {/* <Route
-              path="/training-classes"
             <Route
               path="/classes/:id"
               element={
@@ -103,7 +99,8 @@ function App() {
                   <ClassesDetailComponent />
                 </ProtectedRoute>
               }
-            /> */}
+            />
+            <Route path="*" element={<NotFoundRedirect />} />
             <Route
               path="/assessment-type"
               element={

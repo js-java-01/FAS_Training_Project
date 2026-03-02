@@ -21,10 +21,11 @@ interface EnrollModalProps {
     className: string;
     isOpen: boolean;
     onClose: () => void;
+    onEnrollSuccess: () => void;
 
 }
 
-export const EnrollModal = ({ classId, className, isOpen, onClose }: EnrollModalProps) => {
+export const EnrollModal = ({ classId, className, isOpen, onClose, onEnrollSuccess }: EnrollModalProps) => {
     const [enrollKey, setEnrollKey] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
@@ -37,7 +38,7 @@ export const EnrollModal = ({ classId, className, isOpen, onClose }: EnrollModal
             await enrollmentApi.enroll(enrollKey, classId);
             toast.success("Đăng ký thành công! Chuyển đến trang lớp học của bạn...");
             queryClient.invalidateQueries({ queryKey: ["my-classes"] });
-            navigate('/my-classes');
+            onEnrollSuccess();
             setEnrollKey("");
             onClose();
         } catch (error) {

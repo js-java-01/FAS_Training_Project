@@ -2,9 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { semesterApi } from "@/api/semesterApi";
 import { trainingClassKeys } from "../../../training-classes/keys";
 import type { GetSemestersParams } from "../../dto/GetSemesterParams";
+import type { PagedData } from "@/types/response";
+import type { SemesterResponse } from "@/types/trainingClass";
 
 export const useGetAllSemesters = (params: GetSemestersParams, role: string) => {
-  return useQuery({
+  return useQuery<PagedData<SemesterResponse>>({
     queryKey: [...trainingClassKeys.semesters(params), role],
     queryFn: async () => {
       if (role === "ADMIN") {

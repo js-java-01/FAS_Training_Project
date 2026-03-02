@@ -4,9 +4,14 @@ import { DataTable } from "@/components/data_table/DataTable";
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
 import type { TraineeDetailsResponse } from "@/types/trainerClass";
 import { useGetClassTrainees } from "@/pages/training-classes/trainer/services/queries";
+import { Button } from "@/components/ui/button";
+import { FileBarChartIcon } from "lucide-react";
+import TopicMarkModal from "@/pages/topic-mark/TopicMarkManagement";
+import type { TrainingClass } from "@/types/trainingClass";
 
 interface Props {
   classId: string;
+  trainingClass:  TrainingClass| null;
 }
 
 const EMPTY_DATA: TraineeDetailsResponse[] = [];
@@ -33,7 +38,8 @@ const columns = [
   }),
 ];
 
-export default function ClassTraineesTable({ classId }: Props) {
+export default function ClassTraineesTable({ classId, trainingClass }: Props) {
+     const [openTopicMark, setOpenTopicMark] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
 
@@ -77,7 +83,19 @@ export default function ClassTraineesTable({ classId }: Props) {
         isSearch={true}
         searchPlaceholder="tên hoặc email..."
         onSearchChange={handleSearchChange}
+
+        headerActions={
+            <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button>
+        }
       />
+
+      {trainingClass && (
+        <TopicMarkModal
+          open={openTopicMark}
+          onOpenChange={setOpenTopicMark}
+          trainingClass={trainingClass}
+        />
+      )}
     </div>
   );
 }

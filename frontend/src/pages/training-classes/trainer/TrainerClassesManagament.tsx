@@ -19,6 +19,7 @@ export default function TrainerClassesManagement() {
           <div className="flex flex-col gap-4 h-full flex-1">
             <TrainingClassesTable
               role={role}
+              mode="semester"
               semesterId={selectedSemesterId}
               onSelectSemester={setSelectedSemesterId}
               permissions={permissions}
