@@ -10,4 +10,5 @@ export const Url = {
   SUBMISSION: "/submissions",
   USER: "/users",
   ROLE: "/roles",
+  PERMISSION: "/permissions",
 };

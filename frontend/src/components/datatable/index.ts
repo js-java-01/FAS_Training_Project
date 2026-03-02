@@ -1,1 +1,0 @@
-export { ProTable } from "./ProTable";

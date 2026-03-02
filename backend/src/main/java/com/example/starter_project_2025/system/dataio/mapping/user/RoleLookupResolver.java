@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.system.dataio.mapping.user;
 
 import com.example.starter_project_2025.system.auth.entity.Role;
-import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.system.auth.repository.RoleCrudRepository;
 import com.example.starter_project_2025.system.dataio.core.importer.resolver.LookupResolver;
 import com.example.starter_project_2025.system.user.entity.UserRole;
 import org.springframework.context.ApplicationContext;
@@ -16,7 +16,7 @@ public class RoleLookupResolver implements LookupResolver {
     @Override
     public Object resolve(String value, ApplicationContext ctx) {
 
-        RoleRepository roleRepo = ctx.getBean(RoleRepository.class);
+        RoleCrudRepository roleRepo = ctx.getBean(RoleCrudRepository.class);
 
         String[] roleNames = value.split(",");
 

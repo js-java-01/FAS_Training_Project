@@ -74,6 +74,10 @@ export function ToolbarActions({ table, headerActions }: ToolbarActionsProps) {
         open={resultOpen}
         onOpenChange={setResultOpen}
         result={importResult}
+        onBackToImport={() => {
+          setResultOpen(false);
+          setDataIOOpen(true);
+        }}
       />
 
       <ConfirmDeleteModal

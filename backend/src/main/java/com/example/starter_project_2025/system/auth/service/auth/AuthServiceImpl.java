@@ -10,7 +10,7 @@ import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateD
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.mapper.AuthMapper;
 import com.example.starter_project_2025.system.auth.mapper.UserAuthMapper;
-import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.system.auth.repository.RoleCrudRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
 import com.example.starter_project_2025.system.auth.service.email.EmailService;
 import com.example.starter_project_2025.system.auth.service.otp.OtpService;
@@ -45,7 +45,7 @@ public class AuthServiceImpl implements AuthService
     private final UserRepository userRepository;
     private final TemplateEngine templateEngine;
     private final UserAuthMapper userAuthMapper;
-    private final RoleRepository roleRepository;
+    private final RoleCrudRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtils;

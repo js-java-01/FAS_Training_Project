@@ -1,4 +1,4 @@
-import { roleApi } from "@/api/features/auth/role.api";
+import { permissionApi, roleApi } from "@/api";
 import { ProTable } from "@/components/datatable/ProTable";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useProTable } from "@/hooks/useProTable";
@@ -13,6 +13,7 @@ const roleSchema: EntitySchema = {
       label: "Name",
       type: "text",
       sortable: true,
+      bold: true,
     },
     {
       name: "description",
@@ -32,6 +33,20 @@ const roleSchema: EntitySchema = {
       },
       filterable: true,
       filterType: "boolean",
+    },
+    {
+      name: "permissionIds",
+      label: "Permissions",
+      type: "relation",
+      editable: true,
+      relation: {
+        api: permissionApi,
+        valueField: "id",
+        labelField: "name",
+        multiple: true,
+      },
+      filterable: true,
+      filterType: "select",
     },
     {
       name: "createdAt",

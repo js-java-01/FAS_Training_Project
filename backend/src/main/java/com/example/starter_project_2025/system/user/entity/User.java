@@ -89,12 +89,6 @@ public class User {
     @UpdateTimestamp
     LocalDateTime updatedAt;
 
-    public Set<Role> getRoles() {
-        return userRoles.stream()
-                .map(UserRole::getRole)
-                .collect(Collectors.toSet());
-    }
-
     public void addRole(Role role) {
         if (userRoles == null) userRoles = new HashSet<>();
 

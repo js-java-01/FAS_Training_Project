@@ -1,6 +1,6 @@
 import { GripVertical } from "lucide-react";
-import { TooltipWrapper } from "../../TooltipWrapper";
-import { Button } from "../../ui/button";
+import { TooltipWrapper } from "@/components/TooltipWrapper";
+import { Button } from "@/components/ui/button";
 
 interface ActionButtonProps {
   onClick: () => void;

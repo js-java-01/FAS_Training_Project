@@ -1,8 +1,10 @@
 import { TableHead } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { ArrowDown, ArrowUp, ArrowUpDown, GripVertical } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, CalendarClock, GripVertical } from "lucide-react";
 import type { FieldSchema } from "@/types/common/datatable";
 import type { SortEntry } from "@/types";
+import { DATE_FORMAT_LABELS, type DateFormatKey } from "./cell/CellRenderer";
+import { TooltipWrapper } from "@/components/TooltipWrapper";
 
 interface SortableHeaderProps {
   field: FieldSchema;
@@ -10,10 +12,13 @@ interface SortableHeaderProps {
   onToggleSort: (fieldName: string) => void;
   width?: number;
   onResizeStart?: (e: React.MouseEvent) => void;
+  dateFormat?: DateFormatKey;
+  onDateFormatCycle?: (fieldName: string) => void;
 }
 
-export function SortableHeader({ field, sortState, onToggleSort, width, onResizeStart }: SortableHeaderProps) {
+export function SortableHeader({ field, sortState, onToggleSort, width, onResizeStart, dateFormat, onDateFormatCycle }: SortableHeaderProps) {
   const isSortable = field.sortable === true;
+  const isDate = field.type === "date";
   const sortIndex = sortState.findIndex((s) => s.field === field.name);
   const entry = sortIndex !== -1 ? sortState[sortIndex] : null;
 
@@ -23,6 +28,8 @@ export function SortableHeader({ field, sortState, onToggleSort, width, onResize
       : entry?.direction === "desc"
         ? ArrowDown
         : ArrowUpDown;
+
+  const currentFormatLabel = DATE_FORMAT_LABELS[dateFormat ?? "datetime"];
 
   return (
     <TableHead
@@ -51,6 +58,20 @@ export function SortableHeader({ field, sortState, onToggleSort, width, onResize
               </span>
             )}
           </span>
+        )}
+        {isDate && onDateFormatCycle && (
+          <TooltipWrapper content={`Định dạng: ${currentFormatLabel} — Click để đổi`}>
+            <button
+              type="button"
+              className="inline-flex items-center shrink-0 rounded p-0.5 text-muted-foreground/50 opacity-0 group-hover/header:opacity-100 hover:text-foreground hover:bg-muted transition-all"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDateFormatCycle(field.name);
+              }}
+            >
+              <CalendarClock className="h-3.5 w-3.5" />
+            </button>
+          </TooltipWrapper>
         )}
       </div>
       {onResizeStart && (

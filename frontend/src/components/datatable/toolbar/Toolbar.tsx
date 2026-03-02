@@ -1,5 +1,5 @@
 import { ColumnToggle } from "./ColumnToggle";
-import { FilterPopover } from "./FilterPopover";
+import { FilterPopover } from "./filter/FilterPopover";
 import { SearchInput } from "./SearchInput";
 import { ToolbarActions } from "./ToolbarActions";
 import ActionButton from "../common/ActionButton";

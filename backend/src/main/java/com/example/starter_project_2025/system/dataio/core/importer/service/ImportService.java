@@ -10,10 +10,10 @@ import java.util.UUID;
 
 public interface ImportService {
 
-    <T> ImportResult importFile(
+    <T, ID> ImportResult importFile(
             MultipartFile file,
             Class<T> entityClass,
-            JpaRepository<T, UUID> repository
+            JpaRepository<T, ID> repository
     );
 
 }

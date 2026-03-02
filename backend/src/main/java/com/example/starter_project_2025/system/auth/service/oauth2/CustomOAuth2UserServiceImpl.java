@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.system.auth.service.oauth2;
 
 import com.example.starter_project_2025.constant.ErrorMessage;
-import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.system.auth.repository.RoleCrudRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
@@ -21,7 +21,7 @@ import java.util.UUID;
 public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService
 {
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final RoleCrudRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserRoleRepository userRoleRepository;
 
