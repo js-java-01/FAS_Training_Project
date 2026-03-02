@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface PermissionCrudRepository extends BaseCrudRepository<Permission, UUID> {
+public interface PermissionRepository extends BaseCrudRepository<Permission, UUID> {
 
     Optional<Permission> findByName(String name);
 

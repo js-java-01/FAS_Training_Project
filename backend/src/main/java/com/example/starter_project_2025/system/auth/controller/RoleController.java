@@ -6,7 +6,7 @@ import com.example.starter_project_2025.base.service.CrudService;
 import com.example.starter_project_2025.system.auth.dto.role.RoleDTO;
 import com.example.starter_project_2025.system.auth.dto.role.RoleFilter;
 import com.example.starter_project_2025.system.auth.entity.Role;
-import com.example.starter_project_2025.system.auth.repository.RoleCrudRepository;
+import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.service.role.RoleService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
@@ -26,7 +26,7 @@ public class RoleController
         extends BaseCrudDataIoController<Role, UUID, RoleDTO, RoleFilter> {
 
     RoleService roleService;
-    RoleCrudRepository roleRepository;
+    RoleRepository roleRepository;
 
     @Override
     protected CrudService<UUID, RoleDTO, RoleFilter> getService() {

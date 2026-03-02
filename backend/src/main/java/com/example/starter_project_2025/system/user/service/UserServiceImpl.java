@@ -7,7 +7,7 @@ import com.example.starter_project_2025.constant.ErrorMessage;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.auth.entity.Role;
-import com.example.starter_project_2025.system.auth.repository.RoleCrudRepository;
+import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.common.error.ErrorUtil;
 import com.example.starter_project_2025.system.user.dto.UserDTO;
 import com.example.starter_project_2025.system.user.dto.UserFilter;
@@ -38,7 +38,7 @@ public class UserServiceImpl
 
     UserMapper userMapper;
     UserRepository userRepository;
-    RoleCrudRepository roleRepository;
+    RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
 
     @Override

@@ -13,7 +13,7 @@ public @interface ImportField {
 
     boolean required() default false;
 
-    boolean relation() default false;
+    String relationPath() default "";
 
     Class<?> lookupEntity() default Void.class;
 

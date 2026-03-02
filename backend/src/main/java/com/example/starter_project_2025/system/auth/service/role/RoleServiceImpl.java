@@ -8,8 +8,8 @@ import com.example.starter_project_2025.system.auth.dto.role.RoleFilter;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.mapper.RoleMapper;
-import com.example.starter_project_2025.system.auth.repository.PermissionCrudRepository;
-import com.example.starter_project_2025.system.auth.repository.RoleCrudRepository;
+import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
+import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.common.error.ErrorUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +31,8 @@ public class RoleServiceImpl
         implements RoleService {
 
     RoleMapper roleMapper;
-    RoleCrudRepository roleRepository;
-    PermissionCrudRepository permissionRepository;
+    RoleRepository roleRepository;
+    PermissionRepository permissionRepository;
 
     @Override
     protected BaseCrudRepository<Role, UUID> getRepository() {

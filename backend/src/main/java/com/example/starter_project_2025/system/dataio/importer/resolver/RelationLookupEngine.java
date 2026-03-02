@@ -10,9 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -21,57 +19,64 @@ public class RelationLookupEngine {
 
     ApplicationContext ctx;
 
+    public Object resolveSingle(String value, Class<?> entity, String field) {
+
+        JpaRepository repo = getRepository(entity);
+
+        return findEntity(repo, field, value);
+    }
+
     public Object resolve(String raw, Field field, ImportField meta) {
 
-        if (raw == null || raw.isBlank())
-            return null;
+        if (raw == null || raw.isBlank()) return null;
 
         JpaRepository repo = getRepository(meta.lookupEntity());
 
         if (Collection.class.isAssignableFrom(field.getType())) {
 
-            List<Object> result = new ArrayList<>();
+            Collection<Object> result =
+                    Set.class.isAssignableFrom(field.getType())
+                            ? new HashSet<>()
+                            : new ArrayList<>();
 
             for (String val : raw.split(meta.separator())) {
-
-                Object entity = findEntity(repo, meta.lookupField(), val.trim());
-
-                result.add(entity);
+                result.add(findEntity(repo, meta.lookupField(), val.trim()));
             }
 
             return result;
         }
 
-        // Single relation
         return findEntity(repo, meta.lookupField(), raw.trim());
     }
 
     private Object findEntity(JpaRepository repo, String field, String value) {
 
         try {
-            String methodName =
-                    "findBy" + capitalize(field);
+            String method = "findBy" + capitalize(field);
 
-            Method method = repo.getClass()
-                    .getMethod(methodName, String.class);
+            Method m = repo.getClass().getMethod(method, String.class);
 
-            Object result = method.invoke(repo, value);
+            Object result = m.invoke(repo, value);
+
+            if (result instanceof Optional<?> opt)
+                return opt.orElseThrow(() ->
+                        new RuntimeException("Not found: " + value));
 
             if (result == null)
-                throw new RuntimeException("Entity not found: " + value);
+                throw new RuntimeException("Not found: " + value);
 
             return result;
 
         } catch (Exception e) {
-            throw new RuntimeException("Lookup failed for value: " + value, e);
+            throw new RuntimeException("Lookup failed: " + value, e);
         }
     }
 
-    private JpaRepository getRepository(Class<?> entityClass) {
+    private JpaRepository getRepository(Class<?> entity) {
 
         String beanName =
-                Character.toLowerCase(entityClass.getSimpleName().charAt(0))
-                        + entityClass.getSimpleName().substring(1)
+                Character.toLowerCase(entity.getSimpleName().charAt(0))
+                        + entity.getSimpleName().substring(1)
                         + "Repository";
 
         return ctx.getBean(beanName, JpaRepository.class);

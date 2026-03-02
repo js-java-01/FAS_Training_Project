@@ -8,6 +8,7 @@ import com.example.starter_project_2025.system.dataio.exporter.annotation.Export
 import com.example.starter_project_2025.system.dataio.importer.annotation.ImportDefault;
 import com.example.starter_project_2025.system.dataio.importer.annotation.ImportField;
 import com.example.starter_project_2025.system.dataio.importer.annotation.ImportHash;
+import com.example.starter_project_2025.system.dataio.importer.annotation.PostImport;
 import com.example.starter_project_2025.system.dataio.template.annotation.ImportEntity;
 import com.example.starter_project_2025.system.trainer_course.entity.TrainerCourse;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -57,9 +58,8 @@ public class User {
     String lastName;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @ImportField(name = "Roles", relation = true, lookupEntity = Role.class, lookupField = "name")
     @ExportField(name = "Roles", relation = true, path = "role.name")
-    Set<UserRole> userRoles;
+    Set<UserRole> userRoles = new HashSet<>();
 
     @OneToMany(mappedBy = "trainer")
     @JsonManagedReference
@@ -102,5 +102,20 @@ public class User {
     public void replaceRoles(Set<Role> newRoles) {
         userRoles.clear();
         newRoles.forEach(this::addRole);
+    }
+
+    @Transient
+    @ImportField(
+            name = "Roles",
+            lookupEntity = Role.class,
+            lookupField = "name"
+    )
+    Set<Role> importedRoles;
+
+    @PostImport
+    public void buildRelations() {
+        if (importedRoles != null) {
+            replaceRoles(importedRoles);
+        }
     }
 }

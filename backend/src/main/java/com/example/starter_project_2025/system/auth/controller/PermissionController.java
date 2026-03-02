@@ -6,7 +6,7 @@ import com.example.starter_project_2025.base.service.CrudService;
 import com.example.starter_project_2025.system.auth.dto.permission.PermissionDTO;
 import com.example.starter_project_2025.system.auth.dto.permission.PermissionFilter;
 import com.example.starter_project_2025.system.auth.entity.Permission;
-import com.example.starter_project_2025.system.auth.repository.PermissionCrudRepository;
+import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.service.permission.PermissionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
@@ -26,7 +26,7 @@ public class PermissionController
         extends BaseCrudDataIoController<Permission, UUID, PermissionDTO, PermissionFilter> {
 
     PermissionService permissionService;
-    PermissionCrudRepository permissionRepository;
+    PermissionRepository permissionRepository;
 
     @Override
     protected CrudService<UUID, PermissionDTO, PermissionFilter> getService() {

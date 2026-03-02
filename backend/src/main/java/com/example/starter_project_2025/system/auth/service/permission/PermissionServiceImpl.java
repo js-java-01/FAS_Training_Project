@@ -8,7 +8,7 @@ import com.example.starter_project_2025.system.auth.dto.permission.PermissionDTO
 import com.example.starter_project_2025.system.auth.dto.permission.PermissionFilter;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.mapper.PermissionMapper;
-import com.example.starter_project_2025.system.auth.repository.PermissionCrudRepository;
+import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -28,7 +28,7 @@ public class PermissionServiceImpl
         implements PermissionService {
 
     PermissionMapper permissionMapper;
-    PermissionCrudRepository permissionRepository;
+    PermissionRepository permissionRepository;
 
     @Override
     protected BaseCrudRepository<Permission, UUID> getRepository() {

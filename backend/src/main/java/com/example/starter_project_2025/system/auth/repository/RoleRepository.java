@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface RoleCrudRepository extends BaseCrudRepository<Role, UUID> {
+public interface RoleRepository extends BaseCrudRepository<Role, UUID> {
 
     Optional<Role> findByName(String name);
 

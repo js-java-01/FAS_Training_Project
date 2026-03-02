@@ -53,8 +53,13 @@ public class Role {
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
-    @ImportField(name = "Permissions", relation = true, lookupEntity = Permission.class, lookupField = "name")
-    @ExportField(name = "Permissions", relation = true, path = "permission.name")
+    @ExportField(name = "Permissions", relation = true, path = "name")
+    @ImportField(
+            name = "Permissions",
+            lookupEntity = Permission.class,
+            lookupField = "name",
+            separator = ","
+    )
     Set<Permission> permissions = new HashSet<>();
 
     @CreationTimestamp
