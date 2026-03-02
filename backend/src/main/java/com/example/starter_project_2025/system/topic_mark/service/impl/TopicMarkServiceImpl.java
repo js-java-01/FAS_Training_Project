@@ -9,7 +9,6 @@ import com.example.starter_project_2025.system.course_assessment_type_weight.Cou
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
-import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.topic_mark.dto.*;
 import com.example.starter_project_2025.system.topic_mark.entity.*;
@@ -815,87 +814,79 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> exportGradebookTemplate(UUID courseClassId) {
-        return null;
-        // CourseClass courseClass = loadCourseClass(courseClassId);
-        // List<TopicMarkColumn> columns =
-        // topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
+        CourseClass courseClass = loadCourseClass(courseClassId);
+        List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
+        List<Enrollment> enrollments = enrollmentRepository.findByTrainingClassId(courseClass.getClassInfo().getId());
 
-        // List<Enrollment> enrollments = new ArrayList<>();// enrollmentRepository
-        // // .findByCourseIdAndStatus(courseClass.getCourse().getId(),
-        // // EnrollmentStatus.ACTIVE);
-        // // String rawName = courseClass.getCourse().getCourseCode()
-        // // + " - " + courseClass.getClassInfo().getClassCode();
-        // // Sheet sheet = wb.createSheet(rawName.length() > 31 ? rawName.substring(0,
-        // 31) : rawName);
+        try (Workbook wb = new XSSFWorkbook()) {
+            String rawName = courseClass.getCourse().getCourseCode() + " - " + courseClass.getClassInfo().getClassCode();
+            Sheet sheet = wb.createSheet(rawName.length() > 31 ? rawName.substring(0, 31) : rawName);
 
-        // // CellStyle metaStyle = buildMetaStyle(wb);
-        // // CellStyle headerStyle = buildHeaderStyle(wb);
-        // // CellStyle lockedStyle = buildLockedStyle(wb);
-        // // CellStyle inputStyle = buildInputStyle(wb);
+            CellStyle metaStyle = buildMetaStyle(wb);
+            CellStyle headerStyle = buildHeaderStyle(wb);
+            CellStyle lockedStyle = buildLockedStyle(wb);
+            CellStyle inputStyle = buildInputStyle(wb);
 
-        // final int SCORE_COL_START = 4;
+            final int SCORE_COL_START = 4;
 
-        // Row metaRow = sheet.createRow(0);
-        // metaRow.setHeight((short) 300);
-        // putCell(metaRow, 0, "#META", metaStyle);
-        // putCell(metaRow, 1, "USER_ID", metaStyle);
-        // putCell(metaRow, 2, "", metaStyle);
-        // putCell(metaRow, 3, "", metaStyle);
-        // for (int i = 0; i < columns.size(); i++) {
-        // putCell(metaRow, SCORE_COL_START + i, columns.get(i).getId().toString(),
-        // metaStyle);
-        // }
+            Row metaRow = sheet.createRow(0);
+            metaRow.setHeight((short) 300);
+            metaRow.setZeroHeight(true);
+            putCell(metaRow, 0, "#META", metaStyle);
+            putCell(metaRow, 1, "USER_ID", metaStyle);
+            putCell(metaRow, 2, "", metaStyle);
+            putCell(metaRow, 3, "", metaStyle);
+            for (int i = 0; i < columns.size(); i++) {
+                putCell(metaRow, SCORE_COL_START + i, columns.get(i).getId().toString(), metaStyle);
+            }
 
-        // Row headerRow = sheet.createRow(1);
-        // putCell(headerRow, 0, "STT", headerStyle);
-        // putCell(headerRow, 1, "User ID", headerStyle);
-        // putCell(headerRow, 2, "Họ và tên", headerStyle);
-        // putCell(headerRow, 3, "Email", headerStyle);
-        // for (int i = 0; i < columns.size(); i++) {
-        // putCell(headerRow, SCORE_COL_START + i, columns.get(i).getColumnLabel(),
-        // headerStyle);
-        // }
+            Row headerRow = sheet.createRow(1);
+            putCell(headerRow, 0, "STT", headerStyle);
+            putCell(headerRow, 1, "User ID", headerStyle);
+            putCell(headerRow, 2, "Họ và tên", headerStyle);
+            putCell(headerRow, 3, "Email", headerStyle);
+            for (int i = 0; i < columns.size(); i++) {
+                putCell(headerRow, SCORE_COL_START + i, columns.get(i).getColumnLabel(), headerStyle);
+            }
 
-        // int stt = 1;
-        // for (Enrollment enrollment : enrollments) {
-        // User student = enrollment.getUser();
-        // Row row = sheet.createRow(1 + stt);
-        // putCell(row, 0, stt, lockedStyle);
-        // putCell(row, 1, student.getId().toString(), lockedStyle);
-        // putCell(row, 2, student.getFirstName() + " " + student.getLastName(),
-        // lockedStyle);
-        // putCell(row, 3, student.getEmail(), lockedStyle);
-        // for (int i = 0; i < columns.size(); i++) {
-        // row.createCell(SCORE_COL_START + i).setCellStyle(inputStyle); // blank –
-        // teacher fills in
-        // }
-        // stt++;
-        // }
+            int stt = 1;
+            for (Enrollment enrollment : enrollments) {
+                User student = enrollment.getUser();
+                Row row = sheet.createRow(1 + stt);
+                putCell(row, 0, stt, lockedStyle);
+                putCell(row, 1, student.getId().toString(), lockedStyle);
+                String firstName = student.getFirstName() != null ? student.getFirstName() : "";
+                String lastName = student.getLastName() != null ? student.getLastName() : "";
+                putCell(row, 2, (firstName + " " + lastName).trim(), lockedStyle);
+                putCell(row, 3, student.getEmail(), lockedStyle);
+                for (int i = 0; i < columns.size(); i++) {
+                    row.createCell(SCORE_COL_START + i).setCellStyle(inputStyle);
+                }
+                stt++;
+            }
 
-        // sheet.setColumnWidth(0, 1500); // STT
-        // sheet.setColumnHidden(1, true); // USER_ID hidden
-        // sheet.setColumnWidth(2, 7000); // Họ và tên
-        // sheet.setColumnWidth(3, 8000); // Email
-        // for (int i = 0; i < columns.size(); i++) {
-        // sheet.setColumnWidth(SCORE_COL_START + i, 4500);
-        // }
+            sheet.setColumnWidth(0, 1500);
+            sheet.setColumnHidden(1, true);
+            sheet.setColumnWidth(2, 7000);
+            sheet.setColumnWidth(3, 8000);
+            for (int i = 0; i < columns.size(); i++) {
+                sheet.setColumnWidth(SCORE_COL_START + i, 4500);
+            }
 
-        // sheet.createFreezePane(0, 2);
+            sheet.createFreezePane(0, 2);
 
-        // ByteArrayOutputStream out = new ByteArrayOutputStream();
-        // wb.write(out);
-        // String filename = "gradebook-template-" + courseClassId + ".xlsx";
-        // return ResponseEntity.ok()
-        // .header(HttpHeaders.CONTENT_DISPOSITION,
-        // "attachment; filename=\"" + filename + "\"")
-        // .contentType(MediaType.APPLICATION_OCTET_STREAM)
-        // .body(out.toByteArray());
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            wb.write(out);
+            String filename = "gradebook-template-" + courseClassId + ".xlsx";
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(out.toByteArray());
 
-        // }catch( IOException e)
-        // {
-        // throw new RuntimeException("Error generating gradebook template: " +
-        // e.getMessage(), e);
-        // }
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating gradebook template: " + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -903,10 +894,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     public ResponseEntity<byte[]> exportGradebook(UUID courseClassId) {
         CourseClass courseClass = loadCourseClass(courseClassId);
         List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
-        // List<Enrollment> enrollments = enrollmentRepository
-        // .findByCourseIdAndStatus(courseClass.getCourse().getId(),
-        // EnrollmentStatus.ACTIVE);
-        List<Enrollment> enrollments = new ArrayList<>();
+        List<Enrollment> enrollments = enrollmentRepository.findByTrainingClassId(courseClass.getClassInfo().getId());
         // Build score lookup: userId -> columnId -> score
         Map<UUID, Map<UUID, Double>> scoreMap = new HashMap<>();
         topicMarkEntryRepository.findByCourseClassId(courseClassId).forEach(entry -> {

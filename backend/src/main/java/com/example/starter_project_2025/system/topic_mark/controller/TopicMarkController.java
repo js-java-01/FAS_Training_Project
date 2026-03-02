@@ -6,6 +6,7 @@ import com.example.starter_project_2025.system.topic_mark.service.TopicMarkServi
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -53,6 +54,12 @@ import java.util.UUID;
 public class TopicMarkController {
 
     private final TopicMarkService topicMarkService;
+
+    @Schema(name = "TopicMarkImportRequest", description = "Multipart payload for gradebook import")
+    static class TopicMarkImportRequest {
+        @Schema(description = "Excel file (.xlsx)", type = "string", format = "binary", requiredMode = Schema.RequiredMode.REQUIRED)
+        public MultipartFile file;
+    }
     private final UserRepository userRepository;
 
     @GetMapping("/api/course-classes/{courseClassId}/topic-marks")
@@ -170,7 +177,12 @@ public class TopicMarkController {
                           "- Row 0 (meta): column UUIDs for matching\n" +
                           "- Column 1 (hidden): user UUID for matching\n" +
                           "- Blank cells = keep existing score, filled cells = update\n" +
-                          "- Final scores are auto-recomputed after import")
+                  "- Final scores are auto-recomputed after import",
+            requestBody = @RequestBody(
+                required = true,
+                content = @Content(
+                    mediaType = "multipart/form-data",
+                    schema = @Schema(implementation = TopicMarkImportRequest.class))))
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Import completed (all rows succeeded)"),
         @ApiResponse(responseCode = "400", description = "Import completed with some failures"),
@@ -178,6 +190,7 @@ public class TopicMarkController {
     })
     public ResponseEntity<ImportResultResponse> importGradebook(
             @Parameter(description = "Course class ID", required = true) @PathVariable UUID courseClassId,
+            @Parameter(description = "Excel file (.xlsx)", required = true) 
             @RequestParam("file") MultipartFile file,
             Authentication authentication) {
         UUID editorId = resolveCurrentUserId(authentication);
