@@ -26,10 +26,10 @@ export const ForgotEmailForm = ({ onSubmit, loading }: ForgotEmailFormProps) => 
                 onSubmit={form.handleSubmit(onSubmit)}
                 style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", padding: "1rem 0" }}
             >
-                <h2 className="text-3xl font-semibold mb-1" style={{ color: "#2c5f5d" }}>
+                <h2 className="text-3xl font-semibold mb-1" style={{ color: "#1e293b" }}>
                     Forgot Password?
                 </h2>
-                <p className="text-sm mb-4" style={{ color: "#6b8585" }}>
+                <p className="text-sm mb-4" style={{ color: "#64748b" }}>
                     Enter your email to receive a reset link
                 </p>
 
