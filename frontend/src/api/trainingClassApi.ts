@@ -18,11 +18,17 @@ export const trainingClassApi = {
     isActive?: boolean;
     semesterId?: string;
     trainerId?: string;
+    classStatus?: string;
   }) => {
     const res = await axiosInstance.get<ApiResponse<PagedData<TrainingClass>>>(
       "/classes",
       { params },
     );
+    return res.data.data;
+  },
+  // added
+  getTrainingClassById: async (id: string): Promise<TrainingClass> => {
+    const res = await axiosInstance.get<ApiResponse<TrainingClass>>(`/classes/${id}`);
     return res.data.data;
   },
   createTrainingClass: async (

@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useGetTrainingClassById } from "./services/queries";
-import { useGetAllSemesters } from "./services/queries/useSemesters";
+import { useGetAllSemesters } from "../semesters/services/queries/useSemesters";
 import { trainingClassApi } from "@/api/trainingClassApi";
 import { trainingClassKeys } from "./keys";
 import type { TrainingClass } from "@/types/trainingClass";
@@ -17,6 +17,9 @@ import ClassInfoTab from "./components/ClassInfoTab";
 import { getTrainingClassStatusPresentation } from "./utils/statusPresentation";
 import { decodeRouteId } from "@/utils/routeIdCodec";
 import TopicMarkModal from "../topic-mark/TopicMarkManagement";
+import ClassTraineesTable from "../classes/component/ClassTraineesTable";
+import type { RootState } from "@/store/store";
+import { useSelector } from "react-redux";
 
 const TABS = [
     { value: "class-info", label: "Class Info" },
@@ -71,6 +74,7 @@ export default function ClassDetailPage() {
     const location = useLocation();
     const queryClient = useQueryClient();
     const [openTopicMark, setOpenTopicMark] = useState(false);
+    const { role } = useSelector((state: RootState) => state.auth);
 
     /* Data passed from the table via navigate state */
     const stateClass = (location.state as { trainingClass?: TrainingClass })?.trainingClass ?? null;
@@ -95,7 +99,14 @@ export default function ClassDetailPage() {
     const [saving, setSaving] = useState(false);
 
     /* Semesters for edit mode */
-    const { data: semesters = [], isLoading: loadingSemesters } = useGetAllSemesters();
+    const { data: semesters = [], isLoading: loadingSemesters } = useGetAllSemesters(
+    {
+      page: 0,
+      size: 20,
+      unpaged: true,
+    },
+    role,
+  );
 
     const handleEdit = useCallback(() => {
         if (trainingClass) {
@@ -273,7 +284,7 @@ export default function ClassDetailPage() {
                         {/* Placeholder tabs */}
                   <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1">
                      <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button>
-                    <PlaceholderTab label="Trainee List" />
+                            <ClassTraineesTable classId={trainingClass.id} />
 
                         </TabsContent>
                         <TabsContent value="calendar" className="pt-6 overflow-y-auto flex-1">

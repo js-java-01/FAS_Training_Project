@@ -24,7 +24,7 @@ public class ClassSpecification {
         return (root, query, cb) -> {
             String keyword = request.getKeyword();
             Boolean isActive = request.getIsActive();
-            String semesterId = request.getSemesterId();
+            UUID semesterId = request.getSemesterId();
             ClassStatus classStatus = request.getClassStatus();
             if (query.getResultType() != Long.class) {
                 root.fetch("creator", JoinType.LEFT);
@@ -52,7 +52,7 @@ public class ClassSpecification {
             if (isActive != null) {
                 predicates.add(cb.equal(root.get("isActive"), isActive));
             }
-            if (semesterId != null && !semesterId.isBlank()) {
+            if (semesterId != null) {
                 predicates.add(cb.equal(root.get("semester").get("id"), semesterId));
             }
 

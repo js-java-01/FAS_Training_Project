@@ -39,7 +39,7 @@ export interface UpdateTrainingClassRequest {
    Semester Types
 ======================== */
 
-export interface Semester {
+export interface SemesterResponse {
   id: string;
   name: string;
   startDate: string;
