@@ -7,13 +7,14 @@ import {
   FiBookOpen,
   FiHash,
   FiCalendar,
+  FiBarChart2,
   FiUser,
   FiX,
   FiSave,
   FiFileText,
   FiLayers,
 } from "react-icons/fi";
-import { TopicSkillsTab } from "./TopicSkillsTab";
+import TopicObjectivesPage from "@/pages/topic/components/TopicObjectivesPage";import { TopicSkillsTab } from "./TopicSkillsTab";
 import { TopicDeliveryPrinciplesTab } from "./TopicDeliveryPrinciplesTab";
 import { TopicAssessmentSchemeTab } from "./TopicAssessmentSchemeTab";
 import { TopicTimeAllocationTab } from "./TopicTimeAllocationTab";
@@ -88,11 +89,10 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 text-sm transition-all ${
-                activeTab === tab
+              className={`pb-2 text-sm transition-all ${activeTab === tab
                   ? "border-b-2 border-blue-600 text-blue-600 font-medium"
                   : "text-gray-500 hover:text-gray-700"
-              }`}
+                }`}
             >
               {tab}
             </button>
@@ -277,8 +277,12 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
         <TopicTimeAllocationTab topicId={topic.id} />
       )}
 
+      {activeTab === "Objectives" && (
+        <TopicObjectivesPage topicId={topic.id} />
+      )}
+
       {/* OTHER TABS PLACEHOLDER */}
-      {activeTab !== "Overview" &&
+      {activeTab !== "Overview" && activeTab !== "Objectives" &&
         activeTab !== "Skills" &&
         activeTab !== "Delivery Principles" &&
         activeTab !== "Assessment Scheme" &&

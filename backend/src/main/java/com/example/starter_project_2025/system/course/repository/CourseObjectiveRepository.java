@@ -20,4 +20,6 @@ public interface CourseObjectiveRepository
             String name,
             UUID objectiveId
     );
+
+    List<CourseObjective> findByCourse_Id(UUID courseId);
 }
