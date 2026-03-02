@@ -46,12 +46,14 @@ interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   courseClassId: string
+  courseCode?: string
 }
 
 export default function GradeHistorySheet({
   open,
   onOpenChange,
   courseClassId,
+  courseCode,
 }: Props) {
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
@@ -195,9 +197,12 @@ export default function GradeHistorySheet({
         className=" p-0 flex flex-col"
       >
         <SheetHeader className="p-6 border-b">
-          <SheetTitle className="text-xl font-semibold flex items-center">
-            <HistoryIcon className="mr-2" />
-            Grade Change History
+          <SheetTitle className="text-xl font-semibold space-y-1">
+            <div className="flex gap-2 items-center">
+              <HistoryIcon />
+              Grade Change History
+            </div>
+            <Badge variant={"outline"}>{courseCode || 'Unknown'}</Badge>
           </SheetTitle>
           <SheetDescription>
             View all history change grade

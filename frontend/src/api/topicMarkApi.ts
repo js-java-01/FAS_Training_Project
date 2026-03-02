@@ -1,11 +1,17 @@
 import type { CourseClasses, GradebookTableResponse, GradeHistoryItem, GradeHistoryPageResponse } from "@/types/topicMark";
 import axiosInstance from "./axiosInstance";
-import type { useImportTopics } from "@/pages/topic/services/mutations";
 
 export const topicMarkApi = {
   getCoursesByClassId: async (id: string): Promise<CourseClasses[]> => {
     const response = await axiosInstance.get<CourseClasses[]>(
       `/course-classes/by-class/${id}`,
+    );
+    return response.data;
+  },
+
+  getClassCourseById: async (id: string): Promise<CourseClasses> => {
+    const response = await axiosInstance.get<CourseClasses>(
+      `/course-classes/${id}`,
     );
     return response.data;
   },
@@ -63,6 +69,11 @@ export const topicMarkApi = {
         responseType: "blob",
       });
 
+      if (res.status !== 200) {
+         const text = await res.data.text();
+         console.log("Error response:", text);
+      }
+
       return res.data;
   },
 
@@ -71,11 +82,16 @@ export const topicMarkApi = {
       responseType: "blob",
     });
 
+    if (res.status !== 200) {
+       const text = await res.data.text();
+       console.log("Error response:", text);
+    }
+
     return res.data;
   },
 
-  importTopicMark: async (formData: FormData) => {
-    return axiosInstance.post("/course-classes/topic-marks/import", formData, {
+  importTopicMark: async (formData: FormData, id: string) => {
+    return axiosInstance.post(`/course-classes/${id}/topic-marks/import`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

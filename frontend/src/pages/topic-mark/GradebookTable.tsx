@@ -5,6 +5,7 @@ import { DataTable } from "@/components/data_table/DataTable"
 import { FacetedFilter } from "@/components/FacedFilter"
 import { buildGradebookColumns } from "./columns"
 import {
+  useGetClassCourseById,
   useGetCoursesByClassId,
   useGetGradebookTable,
 } from "./services/queries"
@@ -40,6 +41,8 @@ export default function GradebookTable({ classId }: Props) {
     useState("")
 
   /* ================= COURSE CLASS ================= */
+
+  const { data: classCourse } = useGetClassCourseById(selectedCourseClassId)
 
   const { data: courseClasses = [] } =
     useGetCoursesByClassId(classId)
@@ -161,6 +164,7 @@ export default function GradebookTable({ classId }: Props) {
                   variant={isEditing ? "default" : "outline"}
                   size="sm"
                   onClick={() => setIsEditing((prev) => !prev)}
+                  className="bg-blue-600 text-white"
                 >
                   <Edit className="mr-1 h-4 w-4" />
                   {isEditing ? "Done" : "Edit"}
@@ -176,8 +180,8 @@ export default function GradebookTable({ classId }: Props) {
                 </Button>
 
                 <EntityImportExportButton
-                  title="Topic Marks"
-                  useImportHook={useImportTopicMarks}
+                  title={`Topic Marks [${classCourse?.course.courseCode || 'Unknown'}]`}
+                  useImportHook={() => useImportTopicMarks({ id: selectedCourseClassId })}
                   useExportHook={() =>
                     useExportTopicMarks({ id: selectedCourseClassId })
                   }
@@ -188,7 +192,7 @@ export default function GradebookTable({ classId }: Props) {
 
             {isEditing && (
               <p className="text-xs text-muted-foreground mt-3 font-semibold">
-                <Badge variant={"outline"} className='text-xs text-center'>Editing Mode</Badge> Enter: Save • Esc: Cancel
+                <Badge variant={"destructive"} className='text-xs text-center mr-1'>Editing Mode</Badge> Enter: Save • Esc: Cancel
               </p>
             )}
           </div>
@@ -210,6 +214,7 @@ export default function GradebookTable({ classId }: Props) {
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         courseClassId={selectedCourseClassId}
+        courseCode={classCourse?.course.courseCode || 'Unknown'}
       />
     </div>
   )

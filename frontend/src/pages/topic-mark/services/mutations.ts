@@ -33,22 +33,18 @@ export const useUpdateGrade = () => {
 }
 
 export const useExportTopicMarks = ({ id }: { id: string }) => {
-    return useMutation({
-        mutationFn: async () => {
-            return await topicMarkApi.exportTopicMark(id); // Blob
-        },
-    });
+  return useMutation<Blob, Error>({
+    mutationFn: () => topicMarkApi.exportTopicMark(id),
+  });
 };
 
 export const useExportTemplate = ({ id }: { id: string }) => {
-    return useMutation({
-        mutationFn: async () => {
-            return await topicMarkApi.exportTemplate(id); // Blob
-        },
-    });
+  return useMutation<Blob, Error>({
+    mutationFn: () => topicMarkApi.exportTemplate(id),
+  });
 };
 
-export const useImportTopicMarks = () => {
+export const useImportTopicMarks = ({ id }: { id: string }) => {
   const queryClient = useQueryClient();
   const invalidateAll = async () => {
     await Promise.all([
@@ -60,7 +56,7 @@ export const useImportTopicMarks = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await topicMarkApi.importTopicMark(formData);
+      const res = await topicMarkApi.importTopicMark(formData, id);
       console.log(res.data)
       return res.data;
     },

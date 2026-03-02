@@ -11,6 +11,16 @@ export const useGetCoursesByClassId = (id: string) => {
   })
 }
 
+export const useGetClassCourseById = (id: string) => {
+  return useQuery({
+    queryKey: ["course-by-class", id],
+    queryFn: () => topicMarkApi.getClassCourseById(id),
+    enabled: !!id,
+    placeholderData: (prev) => prev,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 interface GradebookParams {
   id: string
   page: number
