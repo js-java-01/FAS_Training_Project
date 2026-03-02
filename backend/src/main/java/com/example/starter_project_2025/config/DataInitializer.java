@@ -276,7 +276,6 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("CLASS_CREATE", "Create new classes", "CLASS", "CREATE"),
                                 createPermission("CLASS_READ", "View classes", "CLASS", "READ"),
                                 createPermission("CLASS_UPDATE", "Update existing classes", "CLASS", "UPDATE"),
-                                createPermission("CLASS_USER_READ", "User can view classes", "CLASS_USER", "READ"),
                                 createPermission("SEMESTER_CREATE", "Create new semesters", "SEMESTER", "CREATE"),
                                 createPermission("SEMESTER_READ", "View semesters", "SEMESTER", "READ"),
                                 createPermission("SEMESTER_UPDATE", "Update semesters", "SEMESTER", "UPDATE"),
@@ -395,10 +394,30 @@ public class DataInitializer implements CommandLineRunner {
                 studentRole.setName("STUDENT");
                 studentRole.setHierarchyLevel(5);
                 studentRole.setDescription("Student with limited access to educational resources");
-                List<Permission> studentPermissions = new java.util.ArrayList<>(
-                                permissionRepository.findByAction("READ"));
-                permissionRepository.findByName("ENROLL_COURSE").ifPresent(studentPermissions::add);
-                studentRole.setPermissions(new HashSet<>(studentPermissions));
+
+                List<Permission> studentPermissions = new ArrayList<>(
+                        permissionRepository.findByAction("READ")
+                );
+
+                permissionRepository.findByName("ENROLL_COURSE")
+                        .ifPresent(studentPermissions::add);
+
+                List<String> excludedStudentPermissions = List.of(
+                        "ROLE_READ",
+                        "USER_READ",
+                        "PERMISSION_READ",
+                        "SEMESTER_READ",
+                        "STUDENT_READ",
+                        "LOCATION_READ",
+                        "DEPARTMENT_READ"
+                );
+
+                Set<Permission> filteredPermissions = studentPermissions.stream()
+                        .filter(p -> !excludedStudentPermissions.contains(p.getName()))
+                        .collect(Collectors.toSet());
+
+                studentRole.setPermissions(filteredPermissions);
+
                 roleRepository.save(studentRole);
 
                 // TRAINER
@@ -744,7 +763,7 @@ public class DataInitializer implements CommandLineRunner {
                                                 "Manage students"),
 
                                 createModule(trainingGroup, "Classes", "/classes", "people", 6,
-                                                "CLASS_USER_READ",
+                                                "CLASS_READ",
                                                 "User search and view classes"),
                                 createModule(
                                                 trainingGroup,
