@@ -1,12 +1,9 @@
-import { Loader2, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from '../ui/form';
-import { Input } from '../ui/input';
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import type { ResetPasswordData } from '@/types/auth';
-import { Button } from '../ui/button';
 import { useState } from 'react';
 
 const resetSchema = z.object({
@@ -20,7 +17,6 @@ const resetSchema = z.object({
 interface ResetPasswordFormProps {
     onSubmit: (data: ResetPasswordData) => void;
     loading: boolean;
-
 }
 
 export const ResetPasswordForm = ({ onSubmit, loading }: ResetPasswordFormProps) => {
@@ -32,51 +28,66 @@ export const ResetPasswordForm = ({ onSubmit, loading }: ResetPasswordFormProps)
     });
 
     return (
-        <div className="p-10 space-y-7">
-            <div className="text-center space-y-3">
-                <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">New Password</h1>
-                <p className="text-lg text-gray-500">Please enter your new secure password</p>
-            </div>
+        <Form {...form}>
+            <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", padding: "1rem 0" }}
+            >
+                <h2 className="text-3xl font-semibold mb-1" style={{ color: "#2c5f5d" }}>
+                    New Password
+                </h2>
+                <p className="text-sm mb-4" style={{ color: "#6b8585" }}>
+                    Please enter your new secure password
+                </p>
 
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                            <FormItem>
-                                <div className="relative">
-                                    <FormControl>
-                                        <Input {...field} type={showPassword ? "text" : "password"} placeholder="Password" className="h-14 text-lg rounded-2xl" />
-                                    </FormControl>
-                                    <button className="absolute right-3 top-4" type="button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <Eye size={22}></Eye> : <EyeOff size={22}></EyeOff>}</button>
+                <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem style={{ width: "85%" }}>
+                            <FormControl>
+                                <div className="auth-field-container" style={{ width: "100%" }}>
+                                    <i className="fas fa-lock" />
+                                    <input {...field} type={showPassword ? "text" : "password"} placeholder="New Password" />
+                                    <span
+                                        style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#5fb3a9" }}
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </span>
                                 </div>
-                                <FormMessage />
+                            </FormControl>
+                            <FormMessage className="text-xs pl-2" />
+                        </FormItem>
+                    )}
+                />
 
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                            <FormItem>
-                                <div className="relative">
-                                    <FormControl>
-                                        <Input {...field} type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" className="h-14 text-lg rounded-2xl" />
-                                    </FormControl>
-                                    <button className="absolute right-3 top-4" type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>{showConfirmPassword ? <Eye size={22}></Eye> : <EyeOff size={22}></EyeOff>}</button>
+                <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                        <FormItem style={{ width: "85%" }}>
+                            <FormControl>
+                                <div className="auth-field-container" style={{ width: "100%" }}>
+                                    <i className="fas fa-lock" />
+                                    <input {...field} type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" />
+                                    <span
+                                        style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#5fb3a9" }}
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </span>
                                 </div>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                            </FormControl>
+                            <FormMessage className="text-xs pl-2" />
+                        </FormItem>
+                    )}
+                />
 
-                    <Button type="submit" disabled={loading} className="w-full h-13 text-xl font-bold rounded-2xl bg-green-600 hover:bg-green-700">
-                        {loading ? <Loader2 className="animate-spin" /> : <>Update Password <CheckCircle2 className="ml-2" size={22} /></>}
-                    </Button>
-                </form>
-            </Form>
-        </div>
+                <button type="submit" className="auth-action-button" disabled={loading} style={{ marginTop: "10px" }}>
+                    {loading ? <Loader2 className="animate-spin" style={{ margin: "0 auto" }} /> : "Update Password"}
+                </button>
+            </form>
+        </Form>
     );
 };
