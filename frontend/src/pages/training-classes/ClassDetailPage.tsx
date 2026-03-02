@@ -12,7 +12,7 @@ import type { ClassInfoFormData } from "./components/ClassInfoTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft,FileBarChartIcon,Pencil, Save, X } from "lucide-react";
+import { ArrowLeft, Pencil, Save, X } from "lucide-react";
 import ClassInfoTab from "./components/ClassInfoTab";
 import { getTrainingClassStatusPresentation } from "./utils/statusPresentation";
 import { decodeRouteId } from "@/utils/routeIdCodec";
@@ -77,6 +77,7 @@ export default function ClassDetailPage() {
     const queryClient = useQueryClient();
     const [openTopicMark, setOpenTopicMark] = useState(false);
     const { role } = useSelector((state: RootState) => state.auth);
+    const canEditClass = role !== "TRAINER";
 
     /* Data passed from the table via navigate state */
     const stateClass = (location.state as { trainingClass?: TrainingClass })?.trainingClass ?? null;
@@ -112,12 +113,13 @@ export default function ClassDetailPage() {
         const semesters = semestersData?.items ?? [];
 
     const handleEdit = useCallback(() => {
+        if (!canEditClass) return;
         if (trainingClass) {
             setFormData(buildFormData(trainingClass));
             setFormErrors({});
             setIsEditing(true);
         }
-    }, [trainingClass]);
+    }, [canEditClass, trainingClass]);
 
     const handleCancel = useCallback(() => {
         setIsEditing(false);
@@ -157,9 +159,24 @@ export default function ClassDetailPage() {
             await queryClient.invalidateQueries({ queryKey: ["training-classes"] });
             setIsEditing(false);
         } catch (err: unknown) {
+            const apiError = err as {
+                response?: {
+                    data?: {
+                        message?: string;
+                        errors?: Record<string, string>;
+                    };
+                };
+                message?: string;
+            };
+
+            const fieldErrors = apiError.response?.data?.errors;
+            if (fieldErrors && typeof fieldErrors === "object") {
+                setFormErrors((prev) => ({ ...prev, ...fieldErrors }));
+            }
+
             const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                (err as { message?: string })?.message ||
+                apiError.response?.data?.message ||
+                apiError.message ||
                 "Failed to update class";
             toast.error(msg);
         } finally {
@@ -233,14 +250,16 @@ export default function ClassDetailPage() {
                                         <ArrowLeft className="h-4 w-4" />
                                         Back to list
                                     </Button>
-                                    <Button
-                                        size="sm"
-                                        className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
-                                        onClick={handleEdit}
-                                    >
-                                        <Pencil className="h-4 w-4" />
-                                        Edit
-                                    </Button>
+                                    {canEditClass && (
+                                        <Button
+                                            size="sm"
+                                            className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                                            onClick={handleEdit}
+                                        >
+                                            <Pencil className="h-4 w-4" />
+                                            Edit
+                                        </Button>
+                                    )}
                                 </>
                             )}
                         </div>
@@ -286,7 +305,7 @@ export default function ClassDetailPage() {
 
                         {/* Placeholder tabs */}
                         <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1 h-full flex">
-                            <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button>
+                            {/* <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button> */}
                             <ClassTraineesTable classId={trainingClass.id} trainingClass={trainingClass} />
                         </TabsContent>
                         
