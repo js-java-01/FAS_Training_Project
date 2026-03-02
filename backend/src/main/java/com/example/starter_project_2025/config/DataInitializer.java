@@ -59,10 +59,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.Instant;
@@ -124,6 +127,8 @@ public class DataInitializer implements CommandLineRunner {
                         initializePermissions();
                         initializeRoles();
                         initializeUsers();
+
+//                        initializeLocationData();
 
                         initializeLocations();
                         initializeModuleGroups();
@@ -1390,6 +1395,34 @@ public class DataInitializer implements CommandLineRunner {
 
                         roleRepository.save(role);
                         log.info("Created role: {}", roleName);
+                }
+        }
+
+        private void initializeLocationData() {
+                if (provinceRepository.count() > 0 || communeRepository.count() > 0) {
+                        log.info("Location data already initialized, skipping location data import.");
+                        return;
+                }
+
+                try (InputStream inputStream = new ClassPathResource("LocationData.json").getInputStream()) {
+                        LocationDataJson locationData = objectMapper.readValue(inputStream, LocationDataJson.class);
+
+                        List<Province> provinces = locationData.province().stream()
+                                .map(p -> new Province(p.idProvince(), p.name()))
+                                .toList();
+                        provinceRepository.saveAll(provinces);
+
+                        Map<String, Province> provinceById = provinces.stream()
+                                .collect(Collectors.toMap(Province::getId, Function.identity()));
+
+                        List<Commune> communes = locationData.commune().stream()
+                                .map(c -> new Commune(c.idCommune(), c.name(), provinceById.get(c.idProvince())))
+                                .toList();
+                        communeRepository.saveAll(communes);
+
+                        log.info("Initialized {} provinces and {} communes", provinces.size(), communes.size());
+                } catch (IOException e) {
+                        log.error("Failed to import location data from LocationData.json", e);
                 }
         }
 }
