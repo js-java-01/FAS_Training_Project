@@ -280,7 +280,6 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("CLASS_CREATE", "Create new classes", "CLASS", "CREATE"),
                                 createPermission("CLASS_READ", "View classes", "CLASS", "READ"),
                                 createPermission("CLASS_UPDATE", "Update existing classes", "CLASS", "UPDATE"),
-                                createPermission("CLASS_USER_READ", "User can view classes", "CLASS_USER", "READ"),
                                 createPermission("SEMESTER_CREATE", "Create new semesters", "SEMESTER", "CREATE"),
                                 createPermission("SEMESTER_READ", "View semesters", "SEMESTER", "READ"),
                                 createPermission("SEMESTER_UPDATE", "Update semesters", "SEMESTER", "UPDATE"),
@@ -326,11 +325,15 @@ public class DataInitializer implements CommandLineRunner {
                         .filter(p ->
                                 ("READ".equals(p.getAction())
                                         && Arrays.asList("SIDEBAR", "CLASS", "COURSE", "SEMESTER", "STUDENT", "MODULE", "DASHBOARD")
-                                        .contains(p.getResource()))
+                                        .contains(p.getResource())
+                                        || "CREATE".equals(p.getAction()) && Arrays.asList("CLASS")
+                                        .contains(p.getResource())
+                                )
                         )
                         .collect(Collectors.toSet());
 
                 List<String> extraPermissionNames = Arrays.asList(
+                        "CLASS_CREATE",
                         "LESSON_CREATE", "LESSON_UPDATE", "LESSON_DELETE",
                         "SESSION_CREATE", "SESSION_UPDATE", "SESSION_DELETE",
                         "COURSE_OUTLINE_EDIT",
@@ -395,10 +398,30 @@ public class DataInitializer implements CommandLineRunner {
                 studentRole.setName("STUDENT");
                 studentRole.setHierarchyLevel(5);
                 studentRole.setDescription("Student with limited access to educational resources");
-                List<Permission> studentPermissions = new java.util.ArrayList<>(
-                                permissionRepository.findByAction("READ"));
-                permissionRepository.findByName("ENROLL_COURSE").ifPresent(studentPermissions::add);
-                studentRole.setPermissions(new HashSet<>(studentPermissions));
+
+                List<Permission> studentPermissions = new ArrayList<>(
+                        permissionRepository.findByAction("READ")
+                );
+
+                permissionRepository.findByName("ENROLL_COURSE")
+                        .ifPresent(studentPermissions::add);
+
+                List<String> excludedStudentPermissions = List.of(
+                        "ROLE_READ",
+                        "USER_READ",
+                        "PERMISSION_READ",
+                        "SEMESTER_READ",
+                        "STUDENT_READ",
+                        "LOCATION_READ",
+                        "DEPARTMENT_READ"
+                );
+
+                Set<Permission> filteredPermissions = studentPermissions.stream()
+                        .filter(p -> !excludedStudentPermissions.contains(p.getName()))
+                        .collect(Collectors.toSet());
+
+                studentRole.setPermissions(filteredPermissions);
+
                 roleRepository.save(studentRole);
 
                 // TRAINER
@@ -436,63 +459,35 @@ public class DataInitializer implements CommandLineRunner {
 
 
 
-        private void initializeUsers() {
-                User admin = new User();
-                admin.setEmail("admin@example.com");
-                admin.setPasswordHash(passwordEncoder.encode("password123"));
-                admin.setFirstName("Admin");
-                admin.setLastName("User");
-                admin.setIsActive(true);
-                userRepository.save(admin);
-
-                User superAdmin = new User();
-                superAdmin.setEmail("superadmin@example.com");
-                superAdmin.setPasswordHash(passwordEncoder.encode("password123"));
-                superAdmin.setFirstName("Super");
-                superAdmin.setLastName("Admin");
-                superAdmin.setIsActive(true);
-                userRepository.save(superAdmin);
-
-                User trainer = new User();
-                trainer.setEmail("trainer@example.com");
-                trainer.setPasswordHash(passwordEncoder.encode("password123"));
-                trainer.setFirstName("Trainer");
-                trainer.setLastName("User");
-                trainer.setIsActive(true);
-                userRepository.save(trainer);
-
-
-
-                User student1 = new User();
-                student1.setEmail("student@example.com");
-                student1.setPasswordHash(passwordEncoder.encode("password123"));
-                student1.setFirstName("John");
-                student1.setLastName("Doe");
-                student1.setIsActive(true);
-                userRepository.save(student1);
-
-                User student2 = new User();
-                student2.setEmail("jane.smith@example.com");
-                student2.setPasswordHash(passwordEncoder.encode("password123"));
-                student2.setFirstName("Jane");
-                student2.setLastName("Smith");
-                student2.setIsActive(true);
-                userRepository.save(student2);
+        private void initializeUsers()
+        {
+                // ADMIN (2)
+                createUserIfNotFound("admin@example.com", "Admin", "User");
+                createUserIfNotFound("super.admin@example.com", "Super", "Admin");
 
                 // MANAGER (2)
                 createUserIfNotFound("manager1@example.com", "Alice", "Manager");
                 createUserIfNotFound("manager2@example.com", "David", "Manager");
+
+                // TRAINER (3)
                 createUserIfNotFound("trainer1@example.com", "Bob", "Teacher");
                 createUserIfNotFound("trainer2@example.com", "Michael", "Trainer");
                 createUserIfNotFound("trainer3@example.com", "Sarah", "Instructor");
 
+                // STUDENT (5)
+                createUserIfNotFound("student1@example.com", "John", "Doe");
+                createUserIfNotFound("student2@example.com", "Jane", "Smith");
+                createUserIfNotFound("student3@example.com", "Peter", "Parker");
+                createUserIfNotFound("student4@example.com", "Tony", "Stark");
+                createUserIfNotFound("student5@example.com", "Bruce", "Wayne");
 
-
-                log.info("Initialized 5 users: admin, superadmin, trainer, student, jane.smith");
+                log.info("Initialized 12 users successfully across ADMIN, MANAGER, TRAINER, and STUDENT roles.");
         }
 
-        private void createUserIfNotFound(String email, String firstName, String lastName) {
-                if (!userRepository.existsByEmail(email)) {
+        private void createUserIfNotFound(String email, String firstName, String lastName)
+        {
+                if (!userRepository.existsByEmail(email))
+                {
                         User user = new User();
                         user.setEmail(email);
                         user.setPasswordHash(passwordEncoder.encode("password123"));
@@ -503,66 +498,68 @@ public class DataInitializer implements CommandLineRunner {
                 }
         }
 
-        private void initializeUserRoles() {
+        private void initializeUserRoles()
+        {
                 Role adminRole = roleRepository.findByName("ADMIN")
-                                .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
-                Role superAdminRole = roleRepository.findByName("SUPER_ADMIN")
-                                .orElseThrow(() -> new RuntimeException("Role SUPER_ADMIN not found"));
+                        .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
+                Role managerRole = roleRepository.findByName("MANAGER")
+                        .orElseThrow(() -> new RuntimeException("Role MANAGER not found"));
                 Role trainerRole = roleRepository.findByName("TRAINER")
-                                .orElseThrow(() -> new RuntimeException("Role TRAINER not found"));
-                Role departmentManagerRole = roleRepository.findByName("MANAGER")
-                                .orElseThrow(() -> new RuntimeException("Role MANAGER not found"));
+                        .orElseThrow(() -> new RuntimeException("Role TRAINER not found"));
                 Role studentRole = roleRepository.findByName("STUDENT")
-                                .orElseThrow(() -> new RuntimeException("Role STUDENT not found"));
+                        .orElseThrow(() -> new RuntimeException("Role STUDENT not found"));
+
+                User admin1 = userRepository.findByEmail("admin@example.com").orElseThrow();
+                User admin2 = userRepository.findByEmail("super.admin@example.com").orElseThrow();
+
                 User manager1 = userRepository.findByEmail("manager1@example.com").orElseThrow();
                 User manager2 = userRepository.findByEmail("manager2@example.com").orElseThrow();
-
 
                 User trainer1 = userRepository.findByEmail("trainer1@example.com").orElseThrow();
                 User trainer2 = userRepository.findByEmail("trainer2@example.com").orElseThrow();
                 User trainer3 = userRepository.findByEmail("trainer3@example.com").orElseThrow();
 
+                User student1 = userRepository.findByEmail("student1@example.com").orElseThrow();
+                User student2 = userRepository.findByEmail("student2@example.com").orElseThrow();
+                User student3 = userRepository.findByEmail("student3@example.com").orElseThrow();
+                User student4 = userRepository.findByEmail("student4@example.com").orElseThrow();
+                User student5 = userRepository.findByEmail("student5@example.com").orElseThrow();
 
-                User adminUser = userRepository.findByEmail("admin@example.com")
-                                .orElseThrow(() -> new RuntimeException("Admin user not found"));
-                User superAdminUser = userRepository.findByEmail("superadmin@example.com")
-                                .orElseThrow(() -> new RuntimeException("Super admin user not found"));
-                User trainerUser = userRepository.findByEmail("trainer@example.com")
-                                .orElseThrow(() -> new RuntimeException("Trainer user not found"));
-                User student1 = userRepository.findByEmail("student@example.com")
-                                .orElseThrow(() -> new RuntimeException("Student 1 not found"));
-                User student2 = userRepository.findByEmail("jane.smith@example.com")
-                                .orElseThrow(() -> new RuntimeException("Student 2 not found"));
 
-                // Admin user: all roles, ADMIN is default
-                saveUserRole(adminUser, adminRole, true);
-                saveUserRole(adminUser, superAdminRole, false);
-                saveUserRole(adminUser, trainerRole, false);
-                saveUserRole(adminUser, departmentManagerRole, false);
-                saveUserRole(adminUser, studentRole, false);
+                assignRoleIfNotFound(admin1, adminRole, true);
+                assignRoleIfNotFound(admin1, studentRole, false);
 
-                // Super Admin user: all roles, SUPER_ADMIN is default
-                saveUserRole(superAdminUser, superAdminRole, true);
-                saveUserRole(superAdminUser, adminRole, false);
-                saveUserRole(superAdminUser, trainerRole, false);
-                saveUserRole(superAdminUser, departmentManagerRole, false);
-                saveUserRole(superAdminUser, studentRole, false);
+                assignRoleIfNotFound(admin2, adminRole, true);
 
-                // Trainer user: only TRAINER
-                saveUserRole(trainerUser, trainerRole, true);
-                saveUserRole(trainer1, trainerRole, true);
-                saveUserRole(trainer2, trainerRole, true);
-                saveUserRole(trainer3, trainerRole, true);
+                assignRoleIfNotFound(manager1, managerRole, true);
+                assignRoleIfNotFound(manager1, trainerRole, false);
 
-                // Student users
-                saveUserRole(student1, studentRole, true);
-                saveUserRole(student2, studentRole, true);
+                assignRoleIfNotFound(manager2, managerRole, true);
 
-                // Manager
-                saveUserRole(manager1, departmentManagerRole, true);
-                saveUserRole(manager2, departmentManagerRole, true);
+                assignRoleIfNotFound(trainer1, trainerRole, true);
+                assignRoleIfNotFound(trainer1, studentRole, false);
+                assignRoleIfNotFound(trainer2, trainerRole, true);
+                assignRoleIfNotFound(trainer3, trainerRole, true);
 
-                log.info("Successfully assigned roles to users in UserRole table.");
+                assignRoleIfNotFound(student1, studentRole, true);
+                assignRoleIfNotFound(student2, studentRole, true);
+                assignRoleIfNotFound(student3, studentRole, true);
+                assignRoleIfNotFound(student4, studentRole, true);
+                assignRoleIfNotFound(student5, studentRole, true);
+
+                log.info("Successfully assigned roles to all 12 users in UserRole table.");
+        }
+
+        private void assignRoleIfNotFound(User user, Role role, boolean isDefault)
+        {
+                if (userRoleRepository.findByUserAndRole(user, role).isEmpty())
+                {
+                        UserRole userRole = new UserRole();
+                        userRole.setUser(user);
+                        userRole.setRole(role);
+                        userRole.setDefault(isDefault);
+                        userRoleRepository.save(userRole);
+                }
         }
 
         private void saveUserRole(User user, Role role, boolean isDefault) {
@@ -571,16 +568,6 @@ public class DataInitializer implements CommandLineRunner {
                 ur.setRole(role);
                 ur.setDefault(isDefault);
                 userRoleRepository.save(ur);
-        }
-
-        private void assignRoleIfNotFound(User user, Role role, boolean isDefault) {
-                if (userRoleRepository.findByUserAndRole(user, role).isEmpty()) {
-                        UserRole userRole = new UserRole();
-                        userRole.setUser(user);
-                        userRole.setRole(role);
-                        userRole.setDefault(isDefault);
-                        userRoleRepository.save(userRole);
-                }
         }
 
         private Module createModule(ModuleGroups group, String title, String url, String icon,
@@ -780,7 +767,7 @@ public class DataInitializer implements CommandLineRunner {
                                                 "Manage students"),
 
                                 createModule(trainingGroup, "Classes", "/classes", "people", 6,
-                                                "CLASS_USER_READ",
+                                                "CLASS_READ",
                                                 "User search and view classes"),
                                 createModule(
                                                 trainingGroup,
@@ -1052,8 +1039,10 @@ public class DataInitializer implements CommandLineRunner {
                 return cc;
         }
 
-        private void initializeEnrollments() {
-                if (enrollmentRepository.count() > 0) {
+        private void initializeEnrollments()
+        {
+                if (enrollmentRepository.count() > 0)
+                {
                         log.info("Enrollments already exist, skipping initialization");
                         return;
                 }
@@ -1066,7 +1055,8 @@ public class DataInitializer implements CommandLineRunner {
 
                 List<TrainingClass> classes = trainingClassRepository.findAll();
 
-                if (classes.isEmpty() || student1 == null) {
+                if (classes.isEmpty() || student1 == null)
+                {
                         log.warn("Missing Students or Training Classes! Please run their initializers first.");
                         return;
                 }
@@ -1075,38 +1065,46 @@ public class DataInitializer implements CommandLineRunner {
 
                 int totalClasses = classes.size();
 
-                if (totalClasses > 0) {
+                if (totalClasses > 0)
+                {
                         enrollments.add(buildEnrollment(student1, classes.get(0)));
                         enrollments.add(buildEnrollment(student2, classes.get(0)));
                         enrollments.add(buildEnrollment(student3, classes.get(0)));
                 }
 
-                if (totalClasses > 1) {
+                if (totalClasses > 1)
+                {
                         enrollments.add(buildEnrollment(student4, classes.get(1)));
                         enrollments.add(buildEnrollment(student5, classes.get(1)));
                 }
 
-                if (totalClasses > 2) {
+                if (totalClasses > 2)
+                {
                         enrollments.add(buildEnrollment(student1, classes.get(2)));
                         enrollments.add(buildEnrollment(student2, classes.get(2)));
                         enrollments.add(buildEnrollment(student4, classes.get(2)));
                         enrollments.add(buildEnrollment(student5, classes.get(2)));
                 }
 
-                if (totalClasses > 3) {
+                if (totalClasses > 3)
+                {
                         enrollments.add(buildEnrollment(student3, classes.get(3)));
                 }
 
-                if (totalClasses > 4) {
+                if (totalClasses > 4)
+                {
                         enrollments.add(buildEnrollment(student1, classes.get(4)));
                 }
-                if (totalClasses > 5) {
+                if (totalClasses > 5)
+                {
                         enrollments.add(buildEnrollment(student2, classes.get(5)));
                 }
-                if (totalClasses > 6) {
+                if (totalClasses > 6)
+                {
                         enrollments.add(buildEnrollment(student3, classes.get(6)));
                 }
-                if (totalClasses > 7) {
+                if (totalClasses > 7)
+                {
                         enrollments.add(buildEnrollment(student4, classes.get(7)));
                 }
 
@@ -1233,68 +1231,72 @@ public class DataInitializer implements CommandLineRunner {
                                 .build();
         }
 
-        private void initializeCourseClasses() {
-                if (courseClassRepository.count() > 0) {
+        private void initializeCourseClasses()
+        {
+                if (courseClassRepository.count() > 0)
+                {
                         log.info("Course classes already exist, skipping initialization");
                         return;
                 }
 
                 User trainer1 = userRepository.findByEmail("trainer1@example.com")
-                                .orElseThrow(() -> new RuntimeException("Trainer 1 not found"));
+                        .orElseThrow(() -> new RuntimeException("Trainer 1 not found"));
                 User trainer2 = userRepository.findByEmail("trainer2@example.com")
-                                .orElseThrow(() -> new RuntimeException("Trainer 2 not found"));
+                        .orElseThrow(() -> new RuntimeException("Trainer 2 not found"));
                 User trainer3 = userRepository.findByEmail("trainer3@example.com")
-                                .orElseThrow(() -> new RuntimeException("Trainer 3 not found"));
+                        .orElseThrow(() -> new RuntimeException("Trainer 3 not found"));
 
                 User manager1 = userRepository.findByEmail("manager1@example.com")
-                                .orElseThrow(() -> new RuntimeException("Manager 1 not found"));
+                        .orElseThrow(() -> new RuntimeException("Manager 1 not found"));
 
                 Map<String, Course> courseMap = courseRepository.findAll().stream()
-                                .collect(Collectors.toMap(Course::getCourseCode, c -> c));
+                        .collect(Collectors.toMap(Course::getCourseCode, c -> c));
 
-                if (courseMap.isEmpty()) {
+                if (courseMap.isEmpty())
+                {
                         log.warn("No courses found! Please run initializeCourses() first.");
                         return;
                 }
 
                 List<TrainingClass> trainingClasses = trainingClassRepository.findAll();
-                if (trainingClasses.isEmpty()) {
+                if (trainingClasses.isEmpty())
+                {
                         log.warn("No TrainingClasses found! Please initialize TrainingClasses before CourseClasses.");
                         return;
                 }
                 int classCount = trainingClasses.size();
 
                 List<CourseClass> courseClasses = List.of(
-                                buildCourseClass(courseMap.get("JBM-01"), trainingClasses.get(0 % classCount),
-                                                trainer1),
-                                buildCourseClass(courseMap.get("RFP-01"), trainingClasses.get(1 % classCount),
-                                                trainer2),
-                                buildCourseClass(courseMap.get("PDS-01"), trainingClasses.get(2 % classCount),
-                                                trainer3),
-                                buildCourseClass(courseMap.get("AWS-01"), trainingClasses.get(3 % classCount),
-                                                trainer1),
+                        buildCourseClass(courseMap.get("JBM-01"), trainingClasses.get(0 % classCount), trainer1),
+                        buildCourseClass(courseMap.get("RFP-01"), trainingClasses.get(1 % classCount), trainer2),
+                        buildCourseClass(courseMap.get("PDS-01"), trainingClasses.get(2 % classCount), trainer3),
+                        buildCourseClass(courseMap.get("AWS-01"), trainingClasses.get(3 % classCount), trainer1),
 
-                                buildCourseClass(courseMap.get("DVO-01"), trainingClasses.get(4 % classCount),
-                                                manager1),
-                                buildCourseClass(courseMap.get("FLT-01"), trainingClasses.get(5 % classCount),
-                                                trainer2),
-                                buildCourseClass(courseMap.get("UIX-01"), trainingClasses.get(6 % classCount),
-                                                trainer3),
+                        buildCourseClass(courseMap.get("DVO-01"), trainingClasses.get(4 % classCount), manager1),
+                        buildCourseClass(courseMap.get("FLT-01"), trainingClasses.get(5 % classCount), trainer2),
+                        buildCourseClass(courseMap.get("UIX-01"), trainingClasses.get(6 % classCount), trainer3),
 
-                                buildCourseClass(courseMap.get("NOD-01"), trainingClasses.get(7 % classCount),
-                                                trainer1),
-                                buildCourseClass(courseMap.get("SQL-01"), trainingClasses.get(8 % classCount),
-                                                trainer2),
-                                buildCourseClass(courseMap.get("CYB-01"), trainingClasses.get(9 % classCount),
-                                                manager1));
+                        buildCourseClass(courseMap.get("NOD-01"), trainingClasses.get(7 % classCount), trainer1),
+                        buildCourseClass(courseMap.get("SQL-01"), trainingClasses.get(8 % classCount), trainer2),
+                        buildCourseClass(courseMap.get("CYB-01"), trainingClasses.get(9 % classCount), manager1)
+                );
 
                 List<CourseClass> validCourseClasses = courseClasses.stream()
-                                .filter(cc -> cc.getCourse() != null)
-                                .toList();
+                        .filter(cc -> cc.getCourse() != null)
+                        .toList();
 
                 courseClassRepository.saveAll(validCourseClasses);
 
                 log.info("Initialized {} Course Classes with diverse Trainers and Courses.", validCourseClasses.size());
+        }
+
+        private CourseClass buildCourseClass(Course course, TrainingClass classInfo, User trainer)
+        {
+                CourseClass cc = new CourseClass();
+                cc.setCourse(course);
+                cc.setClassInfo(classInfo);
+                cc.setTrainer(trainer);
+                return cc;
         }
 
         private TrainingClass buildTrainingClass(String name, String code, User creator, Semester semester,
