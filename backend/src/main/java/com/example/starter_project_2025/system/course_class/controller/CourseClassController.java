@@ -2,7 +2,7 @@ package com.example.starter_project_2025.system.course_class.controller;
 
 import com.example.starter_project_2025.system.course_class.dto.CourseClassRequest;
 import com.example.starter_project_2025.system.course_class.dto.CourseClassResponse;
-import com.example.starter_project_2025.system.course_class.service.CourseClassService;
+import com.example.starter_project_2025.system.course_class.services.CourseClassService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
