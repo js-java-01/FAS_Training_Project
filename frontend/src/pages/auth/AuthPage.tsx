@@ -194,7 +194,7 @@ export const AuthPage: React.FC = () => {
                   style={{
                     marginTop: "8px",
                     fontSize: "13px",
-                    color: "#44a08d",
+                    color: "#475569",
                     background: "none",
                     border: "none",
                     cursor: "pointer",
@@ -207,10 +207,10 @@ export const AuthPage: React.FC = () => {
             ) : (
               /* Normal login form */
               <>
-                <h2 className="text-3xl font-semibold mb-2" style={{ color: "#2c5f5d" }}>
+                <h2 className="text-3xl font-semibold mb-2" style={{ color: "#1e293b" }}>
                   Welcome Back!
                 </h2>
-                <p className="text-sm mb-4" style={{ color: "#6b8585" }}>
+                <p className="text-sm mb-4" style={{ color: "#64748b" }}>
                   Sign in to your account
                 </p>
 
@@ -252,7 +252,7 @@ export const AuthPage: React.FC = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        color: "#5fb3a9",
+                        color: "#475569",
                       }}
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -267,7 +267,7 @@ export const AuthPage: React.FC = () => {
                       onChange={(e) => setIsRememberedMe(e.target.checked)}
                       style={{ marginRight: "8px", cursor: "pointer" }}
                     />
-                    <label htmlFor="rememberMe" style={{ fontSize: "14px", cursor: "pointer", color: "#2d4a4a" }}>
+                    <label htmlFor="rememberMe" style={{ fontSize: "14px", cursor: "pointer", color: "#334155" }}>
                       Remember me
                     </label>
                   </div>
@@ -277,11 +277,12 @@ export const AuthPage: React.FC = () => {
                     onClick={() => switchTo("forgot")}
                     style={{
                       fontSize: "14px",
-                      color: "#44a08d",
+                      color: "#475569",
                       background: "none",
                       border: "none",
                       cursor: "pointer",
                       marginBottom: "8px",
+                      textDecoration: "underline",
                     }}
                   >
                     Forgot Password?
@@ -301,7 +302,7 @@ export const AuthPage: React.FC = () => {
                   </button>
                 </form>
 
-                <p style={{ fontSize: "13px", color: "#6b8585", margin: "8px 0 4px" }}>or sign in with</p>
+                <p style={{ fontSize: "13px", color: "#64748b", margin: "8px 0 4px" }}>or sign in with</p>
                 <div style={{ display: "flex", gap: "12px", marginBottom: "8px" }}>
                   <button
                     onClick={handleGoogleLogin}
@@ -319,20 +320,20 @@ export const AuthPage: React.FC = () => {
                   style={{
                     marginTop: "12px",
                     padding: "10px 14px",
-                    background: "rgba(78,205,196,0.08)",
+                    background: "rgba(30,41,59,0.06)",
                     borderRadius: "10px",
-                    border: "1px solid rgba(78,205,196,0.2)",
+                    border: "1px solid rgba(30,41,59,0.12)",
                     width: "85%",
                     fontSize: "11px",
                   }}
                 >
-                  <p style={{ color: "#6b8585", fontWeight: 700, marginBottom: "4px", textTransform: "uppercase" }}>
+                  <p style={{ color: "#64748b", fontWeight: 700, marginBottom: "4px", textTransform: "uppercase" }}>
                     Test Only:
                   </p>
-                  <p style={{ color: "#2d4a4a" }}>
+                  <p style={{ color: "#334155" }}>
                     <b>ADMIN:</b> admin@example.com / password123
                   </p>
-                  <p style={{ color: "#2d4a4a" }}>
+                  <p style={{ color: "#334155" }}>
                     <b>STUDENT:</b> student@example.com / password123
                   </p>
                 </div>
@@ -352,12 +353,12 @@ export const AuthPage: React.FC = () => {
                 onBack={() => setIsVerifyStep(false)}
               />
             )}
-            <div className="text-center mb-4" style={{ fontSize: "13px", color: "#6b8585" }}>
+            <div className="text-center mb-4" style={{ fontSize: "13px", color: "#64748b" }}>
               Forgot Password?{" "}
               <button
                 type="button"
                 onClick={() => switchTo("forgot")}
-                style={{ color: "#44a08d", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", fontSize: "13px" }}
+                style={{ color: "#475569", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", fontSize: "13px" }}
               >
                 Reset here
               </button>
