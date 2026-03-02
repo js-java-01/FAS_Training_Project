@@ -7,18 +7,15 @@ import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.course_programing_language.entity.CourseProgrammingLanguage;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 import java.util.Set;
 import java.util.UUID;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "courses")
@@ -27,7 +24,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Course {
+public class Course
+{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -40,7 +38,6 @@ public class Course {
     @Column(nullable = false, unique = true)
     private String courseCode;
 
-    // TEMP: team Topic chưa xong → chỉ lưu ID
     private Long topicId;
 
     private BigDecimal price;

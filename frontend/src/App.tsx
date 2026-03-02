@@ -92,7 +92,6 @@ function App() {
                 );
               }),
             )}
-            <Route path="*" element={<NotFoundRedirect />} />
             <Route
               path="/classes/:id"
               element={
@@ -101,6 +100,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="*" element={<NotFoundRedirect />} />
             <Route
               path="/assessment-type"
               element={
@@ -150,8 +150,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/courses/:id" element={<CourseDetailPage />} />
-            {/* /my-courses redirects to /courses for backward compat */}
             <Route path="/courses/:id" element={<CourseDetailPage />} />
             <Route
               path="/my-courses"
@@ -313,10 +311,10 @@ function App() {
                 </ProtectedRoute>
               }
             />
-          </Routes>
-        </RoleSwitchProvider>
-      </AuthProvider>
-    </BrowserRouter>
+          </Routes >
+        </RoleSwitchProvider >
+      </AuthProvider >
+    </BrowserRouter >
   );
 }
 

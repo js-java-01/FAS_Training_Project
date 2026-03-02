@@ -1,16 +1,15 @@
-package com.example.starter_project_2025.system.course_class.service.impl;
+package com.example.starter_project_2025.system.course_class.services;
 
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
-import com.example.starter_project_2025.system.classes.repository.ClassRepository;
+import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.course.repository.CourseRepository;
 import com.example.starter_project_2025.system.course_class.dto.CourseClassRequest;
 import com.example.starter_project_2025.system.course_class.dto.CourseClassResponse;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
-import com.example.starter_project_2025.system.course_class.service.CourseClassService;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +21,19 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class CourseClassServiceImpl implements CourseClassService {
-
+public class CourseClassServiceImpl implements CourseClassService
+{
+    private final CourseClassRepository courseClassRepository;
     private final CourseRepository courseRepository;
-    private final ClassRepository classRepository;
+    private final TrainingClassRepository classRepository;
     private final UserRepository userRepository;
 
-    private final CourseClassRepository courseClassRepository;
+
+    @Override
+    public List<CourseClass> getByUser(User user)
+    {
+        return courseClassRepository.findByTrainer(user);
+    }
 
     @Override
     @Transactional

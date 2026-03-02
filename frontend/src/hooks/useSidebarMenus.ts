@@ -48,6 +48,7 @@ export function useSidebarMenus() {
               !module.parentId &&
               module.url !== "/my-courses" &&
               canAccessMenuItem(module.requiredPermission, hasPermission),
+
           )
           .sort((a, b) => a.displayOrder - b.displayOrder)
           .map((module) => {
