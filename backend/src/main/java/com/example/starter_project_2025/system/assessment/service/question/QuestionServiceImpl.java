@@ -87,22 +87,9 @@ public class QuestionServiceImpl
         setOptions(entity, request.getOptions(), request.getQuestionType());
     }
 
-    // ================= UPDATE =================
 
     @Override
     protected void beforeUpdate(Question entity, QuestionDTO request) {
-
-        if (request.getContent() != null) {
-            entity.setContent(request.getContent());
-        }
-
-        if (request.getQuestionType() != null) {
-            entity.setQuestionType(request.getQuestionType());
-        }
-
-        if (request.getIsActive() != null) {
-            entity.setIsActive(request.getIsActive());
-        }
 
         if (request.getCategoryId() != null) {
             setCategory(entity, request.getCategoryId());
