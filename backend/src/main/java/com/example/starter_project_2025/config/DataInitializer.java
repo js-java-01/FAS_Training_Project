@@ -281,7 +281,6 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("SEMESTER_CREATE", "Create new semesters", "SEMESTER", "CREATE"),
                                 createPermission("SEMESTER_READ", "View semesters", "SEMESTER", "READ"),
                                 createPermission("SEMESTER_UPDATE", "Update semesters", "SEMESTER", "UPDATE"),
-                                createPermission("CLASS_VIEW_OWN_CLASSES_READ", "View own classes", "CLASS", "READ"),
                                 createPermission("SEMESTER_DELETE", "Delete semesters", "SEMESTER", "DELETE"),
                                 createPermission("SWITCH_ROLE", "Switch to another role view", "ROLE", "SWITCH"),
 
@@ -363,13 +362,13 @@ public class DataInitializer implements CommandLineRunner {
                 adminRole.setName("ADMIN");
                 adminRole.setDescription("Administrator with full system access");
                 adminRole.setHierarchyLevel(2);
-                List<String> excludedPermissions = List.of(
+                List<String> excludedAdminPermissions = List.of(
                         "MODULE_GROUP_CREATE",
                         "MODULE_CREATE");
 
                 List<Permission> adminPermissions = permissionRepository.findAll()
                         .stream()
-                        .filter(p -> !excludedPermissions.contains(p.getName()))
+                        .filter(p -> !excludedAdminPermissions.contains(p.getName()))
                         .toList();
 
                 adminRole.setPermissions(new HashSet<>(adminPermissions));
@@ -780,9 +779,6 @@ public class DataInitializer implements CommandLineRunner {
                                 createModule(trainingGroup, "Classes", "/classes", "people", 6,
                                                 "CLASS_USER_READ",
                                                 "User search and view classes"),
-                                createModule(trainingGroup, "My Classes", "/my-classes", "user-round", 6,
-                                                "CLASS_VIEW_OWN_CLASSES_READ",
-                                                "View and manage personal profile"),
                                 createModule(
                                                 trainingGroup,
                                                 "Trainer Semesters",
@@ -793,8 +789,8 @@ public class DataInitializer implements CommandLineRunner {
                                                 "Manage academic semesters")));
 
                    /* =======================================================
-       MODULE GROUP: Assessment
-    ======================================================= */
+                                  MODULE GROUP: Assessment
+                      ======================================================= */
                 ModuleGroups assessmentGroup = new ModuleGroups();
                 assessmentGroup.setName("Assessment");
                 assessmentGroup.setDescription("Manage assessments and related permissions");
@@ -906,7 +902,7 @@ public class DataInitializer implements CommandLineRunner {
 
                 q1.setOptions(options);
 
-                questionRepository.save(q1); // 🔥 cascade save options
+                questionRepository.save(q1);
 
                 log.info("Initialized 1 question with options");
         }
@@ -1129,60 +1125,23 @@ public class DataInitializer implements CommandLineRunner {
                         return;
                 }
 
-                Semester spring2026 = new Semester();
-                spring2026.setName("Spring 2026");
-                spring2026.setStartDate(LocalDate.of(2026, 1, 5));
-                spring2026.setEndDate(LocalDate.of(2026, 4, 30));
-
-                semesterRepository.save(spring2026);
-
-                log.info("Initialized Semester: Spring 2026");
+                List<Semester> semesters = List.of(
+                        buildSemester("Fall 2025", LocalDate.of(2025, 9, 1), LocalDate.of(2025, 12, 31)),
+                        buildSemester("Spring 2026", LocalDate.of(2026, 1, 5), LocalDate.of(2026, 4, 30)),
+                        buildSemester("Summer 2026", LocalDate.of(2026, 5, 5), LocalDate.of(2026, 8, 30)),
+                        buildSemester("Fall 2026", LocalDate.of(2026, 9, 1), LocalDate.of(2026, 12, 31)));
+                semesterRepository.saveAll(semesters);
+                log.info("Initialized {} Semesters successfully.", semesters.size());
         }
 
-        // -----------------------------------------------------------------------
-        // initializeCohorts() - temporarily disabled, cohort feature not in use
-        // -----------------------------------------------------------------------
-        // private void initializeCohorts() {
-        // Course java01 = courseRepository.findAll().stream()
-        // .filter(c -> "JBM-01".equals(c.getCourseCode()))
-        // .findFirst().orElse(null);
-        // Course react01 = courseRepository.findAll().stream()
-        // .filter(c -> "RFP-01".equals(c.getCourseCode()))
-        // .findFirst().orElse(null);
-        //
-        // if (java01 != null) {
-        // CourseCohort jbm1 = CourseCohort.builder()
-        // .code("JBM-01-2026-C1")
-        // .startDate(java.time.LocalDate.of(2026, 3, 1))
-        // .endDate(java.time.LocalDate.of(2026, 5, 31))
-        // .capacity(30)
-        // .status(CohortStatus.OPEN)
-        // .course(java01)
-        // .build();
-        // CourseCohort jbm2 = CourseCohort.builder()
-        // .code("JBM-01-2026-C2")
-        // .startDate(java.time.LocalDate.of(2026, 6, 1))
-        // .endDate(java.time.LocalDate.of(2026, 8, 31))
-        // .capacity(25)
-        // .status(CohortStatus.DRAFT)
-        // .course(java01)
-        // .build();
-        // courseCohortRepository.saveAll(List.of(jbm1, jbm2));
-        // }
-        //
-        // if (react01 != null) {
-        // CourseCohort rfp1 = CourseCohort.builder()
-        // .code("RFP-01-2026-C1")
-        // .startDate(java.time.LocalDate.of(2026, 4, 1))
-        // .endDate(java.time.LocalDate.of(2026, 5, 31))
-        // .capacity(20)
-        // .status(CohortStatus.OPEN)
-        // .course(react01)
-        // .build();
-        // courseCohortRepository.save(rfp1);
-        // }
-        // log.info("Initialized cohorts for Java and React courses");
-        // }
+        private Semester buildSemester(String name, LocalDate start, LocalDate end) {
+                Semester s = new Semester();
+                s.setName(name);
+                s.setStartDate(start);
+                s.setEndDate(end);
+                return s;
+        }
+
         private void initializeLocations() {
                 if (locationRepository.count() > 0) {
                         log.info("Locations already exist, skipping initialization");
@@ -1336,15 +1295,25 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         private TrainingClass buildTrainingClass(String name, String code, User creator, Semester semester,
-                        LocalDate start, LocalDate end) {
+                                                 LocalDate start, LocalDate end, User approvedBy) {
+                Random random = new Random();
                 TrainingClass tc = new TrainingClass();
                 tc.setClassName(name);
                 tc.setClassCode(code);
-                tc.setIsActive(true);
+
                 tc.setCreator(creator);
                 tc.setSemester(semester);
                 tc.setStartDate(start);
                 tc.setEndDate(end);
+                tc.setApprover(approvedBy);
+                if (random.nextBoolean()) {
+                        tc.setEnrollmentKey("abc");
+                        tc.setIsActive(true);
+                } else {
+
+                        tc.setIsActive(false);
+                }
+
                 return tc;
         }
 
@@ -1355,12 +1324,12 @@ public class DataInitializer implements CommandLineRunner {
                 }
 
                 User admin = userRepository.findByEmail("admin@example.com")
-                                .orElseThrow(() -> new RuntimeException("Admin not found"));
+                        .orElseThrow(() -> new RuntimeException("Admin not found"));
                 User manager = userRepository.findByEmail("manager1@example.com")
-                                .orElseThrow(() -> new RuntimeException("Manager not found"));
+                        .orElseThrow(() -> new RuntimeException("Manager not found"));
 
                 Map<String, Semester> semesterMap = semesterRepository.findAll().stream()
-                                .collect(Collectors.toMap(Semester::getName, s -> s));
+                        .collect(Collectors.toMap(Semester::getName, s -> s));
 
                 if (semesterMap.isEmpty()) {
                         log.warn("No semesters found! Please run initializeSemester() first.");
@@ -1368,42 +1337,41 @@ public class DataInitializer implements CommandLineRunner {
                 }
 
                 List<TrainingClass> classes = List.of(
-                                buildTrainingClass("Kỹ sư phần mềm - Khóa 1", "SE-K1-01", admin,
-                                                semesterMap.get("Fall 2025"), LocalDate.of(2025, 9, 10),
-                                                LocalDate.of(2025, 12, 20)),
-                                buildTrainingClass("Hệ thống thông tin - Khóa 1", "IS-K1-01", manager,
-                                                semesterMap.get("Fall 2025"), LocalDate.of(2025, 9, 15),
-                                                LocalDate.of(2025, 12, 25)),
+                        buildTrainingClass("Kỹ sư phần mềm - Khóa 1", "SE-K1-01", manager,
+                                semesterMap.get("Fall 2025"), LocalDate.of(2025, 9, 10),
+                                LocalDate.of(2025, 12, 20), admin),
+                        buildTrainingClass("Hệ thống thông tin - Khóa 1", "IS-K1-01", manager,
+                                semesterMap.get("Fall 2025"), LocalDate.of(2025, 9, 15),
+                                LocalDate.of(2025, 12, 25), admin),
 
-                                buildTrainingClass("Kỹ sư phần mềm - Khóa 2", "SE-K2-01", admin,
-                                                semesterMap.get("Spring 2026"), LocalDate.of(2026, 1, 10),
-                                                LocalDate.of(2026, 4, 20)),
-                                buildTrainingClass("Khoa học dữ liệu - Khóa 1", "DS-K1-01", admin,
-                                                semesterMap.get("Spring 2026"), LocalDate.of(2026, 1, 15),
-                                                LocalDate.of(2026, 4, 25)),
+                        buildTrainingClass("Kỹ sư phần mềm - Khóa 2", "SE-K2-01", manager,
+                                semesterMap.get("Spring 2026"), LocalDate.of(2026, 1, 10),
+                                LocalDate.of(2026, 4, 20), admin),
+                        buildTrainingClass("Khoa học dữ liệu - Khóa 1", "DS-K1-01", manager,
+                                semesterMap.get("Spring 2026"), LocalDate.of(2026, 1, 15),
+                                LocalDate.of(2026, 4, 25), admin),
 
-                                buildTrainingClass("Trí tuệ nhân tạo - Khóa 1", "AI-K1-01", manager,
-                                                semesterMap.get("Summer 2026"), LocalDate.of(2026, 5, 10),
-                                                LocalDate.of(2026, 8, 20)),
-                                buildTrainingClass("An toàn thông tin - Khóa 1", "CS-K1-01", admin,
-                                                semesterMap.get("Summer 2026"), LocalDate.of(2026, 5, 15),
-                                                LocalDate.of(2026, 8, 25)),
+                        buildTrainingClass("Trí tuệ nhân tạo - Khóa 1", "AI-K1-01", manager,
+                                semesterMap.get("Summer 2026"), LocalDate.of(2026, 5, 10),
+                                LocalDate.of(2026, 8, 20), admin),
+                        buildTrainingClass("An toàn thông tin - Khóa 1", "CS-K1-01", manager,
+                                semesterMap.get("Summer 2026"), LocalDate.of(2026, 5, 15),
+                                LocalDate.of(2026, 8, 25), admin),
 
-                                buildTrainingClass("Kỹ sư phần mềm - Khóa 3", "SE-K3-01", manager,
-                                                semesterMap.get("Fall 2026"), LocalDate.of(2026, 9, 10),
-                                                LocalDate.of(2026, 12, 20)),
-                                buildTrainingClass("Thiết kế đồ họa - Khóa 1", "GD-K1-01", admin,
-                                                semesterMap.get("Fall 2026"), LocalDate.of(2026, 9, 15),
-                                                LocalDate.of(2026, 12, 25)));
+                        buildTrainingClass("Kỹ sư phần mềm - Khóa 3", "SE-K3-01", manager,
+                                semesterMap.get("Fall 2026"), LocalDate.of(2026, 9, 10),
+                                LocalDate.of(2026, 12, 20), admin),
+                        buildTrainingClass("Thiết kế đồ họa - Khóa 1", "GD-K1-01", manager,
+                                semesterMap.get("Fall 2026"), LocalDate.of(2026, 9, 15),
+                                LocalDate.of(2026, 12, 25), admin));
 
                 List<TrainingClass> validClasses = classes.stream()
-                                .filter(c -> c.getSemester() != null)
-                                .toList();
+                        .filter(c -> c.getSemester() != null)
+                        .toList();
 
                 trainingClassRepository.saveAll(validClasses);
                 log.info("Initialized {} Training Classes distributed across multiple Semesters.", validClasses.size());
         }
-
         private void createRoleIfNotFound(String roleName, String description, Set<Permission> permissions) {
                 if (roleRepository.findByName(roleName).isEmpty()) {
                         Role role = new Role();

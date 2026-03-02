@@ -12,6 +12,9 @@ export const useGetAllTrainingClasses = (params: {
     sort?: string;
     keyword?: string;
     isActive?: boolean;
+    semesterId?: string;
+    classStatus?: string;
+    enabled?: boolean;
 }) => {
     return useQuery<PagedData<TrainingClass>>({
         queryKey: trainingClassKeys.all(params),
@@ -22,7 +25,10 @@ export const useGetAllTrainingClasses = (params: {
                 sort: params.sort ?? "className,asc",
                 ...(params.keyword?.trim() ? { keyword: params.keyword.trim() } : {}),
                 ...(params.isActive !== undefined ? { isActive: params.isActive } : {}),
+                ...(params.semesterId ? { semesterId: params.semesterId } : {}),
+                ...(params.classStatus ? { classStatus: params.classStatus } : {}),
             }),
+        enabled: params.enabled ?? true,
         placeholderData: (prev?: PagedData<TrainingClass>) => prev,
         staleTime: 5 * 60 * 1000,
         retry: false,

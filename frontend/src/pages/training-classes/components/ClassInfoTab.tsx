@@ -1,8 +1,8 @@
-import type { TrainingClass } from "@/types/trainingClass";
-import type { Semester } from "@/types/trainingClass";
+import type { SemesterResponse, TrainingClass } from "@/types/trainingClass";
 import { Badge } from "@/components/ui/badge";
 import dayjs from "dayjs";
 import { getTrainingClassStatusPresentation } from "../utils/statusPresentation";
+import type { PagedData } from "@/types/response";
 
 /* ── editable form data ── */
 export interface ClassInfoFormData {
@@ -228,7 +228,7 @@ interface ClassInfoTabProps {
     formData?: ClassInfoFormData;
     onFieldChange?: (name: string, value: string) => void;
     errors?: Record<string, string>;
-    semesters?: Semester[];
+    semesters?: PagedData<SemesterResponse> | SemesterResponse[];
     loadingSemesters?: boolean;
 }
 
@@ -238,7 +238,7 @@ export default function ClassInfoTab({
     formData,
     onFieldChange,
     errors = {},
-    semesters = [],
+    semesters ,
     loadingSemesters = false,
 }: ClassInfoTabProps) {
     const statusPresentation = getTrainingClassStatusPresentation(trainingClass);
@@ -253,7 +253,14 @@ export default function ClassInfoTab({
     const nameLen = (displayName ?? "").length;
     const codeLen = (displayCode ?? "").length;
 
-    const semesterOptions = semesters.map((s) => ({ id: s.id, label: s.name }));
+    const semesterList = Array.isArray(semesters)
+        ? semesters
+        : (semesters?.items ?? []);
+
+    const semesterOptions = semesterList.map((semester) => ({
+        id: semester.id,
+        label: semester.name,
+    }));
 
     return (
         <div className="space-y-8 w-full">

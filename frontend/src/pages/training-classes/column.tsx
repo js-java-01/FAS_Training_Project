@@ -21,7 +21,7 @@ export type TablePermissions = {
   canDelete?: boolean;
 };
 
-export const getColumns = (role: string, permissions: TablePermissions, actions?: TableActions) => {
+export const getColumns = (role: string, _permissions: TablePermissions, actions?: TableActions) => {
   const columnHelper = createColumnHelper<TrainingClass>();
 
   const baseColumns = [

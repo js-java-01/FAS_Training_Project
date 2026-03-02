@@ -16,6 +16,7 @@ export interface TrainingClass {
   startDate: string;
   endDate: string;
   status: ClassStatusType;
+  trainerNames?: string[];
 }
 
 export interface CreateTrainingClassRequest {
@@ -39,7 +40,7 @@ export interface UpdateTrainingClassRequest {
    Semester Types
 ======================== */
 
-export interface Semester {
+export interface SemesterResponse {
   id: string;
   name: string;
   startDate: string;
