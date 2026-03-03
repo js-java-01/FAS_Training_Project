@@ -10,7 +10,8 @@ import java.util.UUID;
 @Table(
         name = "course_objectives",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"course_id", "name"})
+                @UniqueConstraint(columnNames = {"course_id", "name"}),
+                @UniqueConstraint(columnNames = {"course_id", "code"})
         }
 )
 @Getter
@@ -22,6 +23,9 @@ public class CourseObjective {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(nullable = false, length = 50)
+    private String code;
 
     @Column(nullable = false)
     private String name;

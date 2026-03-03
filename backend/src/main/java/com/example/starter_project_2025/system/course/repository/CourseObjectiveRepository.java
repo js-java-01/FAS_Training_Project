@@ -21,5 +21,13 @@ public interface CourseObjectiveRepository
             UUID objectiveId
     );
 
+    boolean existsByCourseIdAndCode(UUID courseId, String code);
+
+    boolean existsByCourseIdAndCodeAndIdNot(
+            UUID courseId,
+            String code,
+            UUID objectiveId
+    );
+
     List<CourseObjective> findByCourse_Id(UUID courseId);
 }
