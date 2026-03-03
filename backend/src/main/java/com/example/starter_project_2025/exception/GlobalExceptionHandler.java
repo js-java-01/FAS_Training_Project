@@ -99,15 +99,15 @@ public class GlobalExceptionHandler
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex)
-    {
-        ErrorResponse error = new ErrorResponse(
-                ex.getStatusCode().value(),
-                ex.getReason() != null ? ex.getReason() : ex.getMessage(),
-                LocalDateTime.now());
-        return new ResponseEntity<>(error, ex.getStatusCode());
-    }
+    // @ExceptionHandler(ResponseStatusException.class)
+    // public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex)
+    // {
+    //     ErrorResponse error = new ErrorResponse(
+    //             ex.getStatusCode().value(),
+    //             ex.getReason() != null ? ex.getReason() : ex.getMessage(),
+    //             LocalDateTime.now());
+    //     return new ResponseEntity<>(error, ex.getStatusCode();
+    // }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex)
