@@ -17,9 +17,16 @@ export interface Trainer {
   email: string
 }
 
+export interface ClassInfo {
+  id: string
+  className: string
+  classCode: string
+}
+
 export interface CourseClasses {
   id: string
   course: Course
+  classInfo: ClassInfo
   trainer: Trainer
   createdAt: string
   updatedAt: string

@@ -21,7 +21,7 @@ import {
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
-import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import { useSortParam } from "@/hooks/useSortParam";
 
 /* ======================================================= */

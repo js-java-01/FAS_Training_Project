@@ -5,22 +5,28 @@ import { DataTable } from "@/components/data_table/DataTable"
 import { FacetedFilter } from "@/components/FacedFilter"
 import { buildGradebookColumns } from "./columns"
 import {
-  useGetCourseByClassId,
+  useGetClassCourseById,
+  useGetCoursesByClassId,
   useGetGradebookTable,
 } from "./services/queries"
 import type { GradebookRow } from "@/types/topicMark"
 import { SearchableSelect } from "@/components/SearchableSelect"
 import { useSortParam } from "@/hooks/useSortParam"
 import { Button } from "@/components/ui/button"
-import { DatabaseBackup, Edit, HistoryIcon } from "lucide-react"
+import { Edit, HistoryIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import GradeHistorySheet from "./GradeHistorySheet"
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn"
+import { useExportTemplate, useExportTopicMarks, useImportTopicMarks } from "./services/mutations"
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext"
+import { ROLES } from "@/types/role"
 
 interface Props {
   classId: string
 }
 
 export default function GradebookTable({ classId }: Props) {
+  const { activeRole } = useRoleSwitch();
   /* ================= STATE ================= */
   const [isEditing, setIsEditing] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -38,8 +44,10 @@ export default function GradebookTable({ classId }: Props) {
 
   /* ================= COURSE CLASS ================= */
 
+  const { data: classCourse } = useGetClassCourseById(selectedCourseClassId)
+
   const { data: courseClasses = [] } =
-    useGetCourseByClassId(classId)
+    useGetCoursesByClassId(classId)
 
   useEffect(() => {
     if (!selectedCourseClassId && courseClasses.length) {
@@ -154,14 +162,18 @@ export default function GradebookTable({ classId }: Props) {
           <div>
             <div className="flex items-end justify-between">
               <div className="flex gap-2">
-                <Button
-                  variant={isEditing ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsEditing((prev) => !prev)}
-                >
-                  <Edit className="mr-1 h-4 w-4" />
-                  {isEditing ? "Done" : "Edit"}
-                </Button>
+                {activeRole?.name !== ROLES.SUPER_ADMIN &&
+                 activeRole?.name !== ROLES.STUDENT && (
+                  <Button
+                    variant={isEditing ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setIsEditing((prev) => !prev)}
+                    className="bg-blue-600 text-white"
+                  >
+                    <Edit className="mr-1 h-4 w-4" />
+                    {isEditing ? "Done" : "Edit"}
+                  </Button>
+                )}
 
                 <Button
                   variant="outline"
@@ -172,16 +184,21 @@ export default function GradebookTable({ classId }: Props) {
                   View History
                 </Button>
 
-                <Button variant="outline" size="sm">
-                  <DatabaseBackup className="mr-1 h-4 w-4" />
-                  Import / Export
-                </Button>
+                <EntityImportExportButton
+                  mode={activeRole?.name === ROLES.SUPER_ADMIN ? "export" : "all"}
+                  title={`Topic Marks [${classCourse?.course.courseCode || 'Unknown'}]`}
+                  useImportHook={() => useImportTopicMarks({ id: selectedCourseClassId })}
+                  useExportHook={() =>
+                    useExportTopicMarks({ id: selectedCourseClassId })
+                  }
+                  useTemplateHook={() => useExportTemplate({ id: selectedCourseClassId })}
+                />
               </div>
             </div>
 
             {isEditing && (
               <p className="text-xs text-muted-foreground mt-3 font-semibold">
-                <Badge variant={"outline"} className='text-xs text-center'>Editing Mode</Badge> Enter: Save • Esc: Cancel
+                <Badge variant={"destructive"} className='text-xs text-center mr-1'>Editing Mode</Badge> Enter: Save • Esc: Cancel
               </p>
             )}
           </div>
@@ -203,6 +220,7 @@ export default function GradebookTable({ classId }: Props) {
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         courseClassId={selectedCourseClassId}
+        courseCode={classCourse?.course.courseCode || 'Unknown'}
       />
     </div>
   )

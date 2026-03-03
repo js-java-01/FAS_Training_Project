@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -95,7 +96,7 @@ public class ModuleGroupsController {
     @Operation(summary = "Search module groups with pagination")
     @PreAuthorize("hasAuthority('MODULE_GROUP_READ')")
     public ResponseEntity<ApiResponse<PageResponse<ModuleGroupDetailResponse>>> searchModuleGroups(
-            @ModelAttribute SearchModuleGroupRequest request
+            @Valid @ParameterObject @ModelAttribute SearchModuleGroupRequest request
     ) {
 
         String sortField = request.getSort()[0];

@@ -26,10 +26,9 @@ public class ClassMapper {
                                 .id(entity.getId())
                                 .className(entity.getClassName())
                                 .classCode(entity.getClassCode())
+                                .enrollmentKey(entity.getEnrollmentKey())
                                 .isActive(entity.getIsActive())
-                                .status(entity.getClassStatus() != null ? entity.getClassStatus().name() : null)
-
-                                .creatorName(entity.getCreator() != null
+                        .status(entity.getClassStatus() != null ? entity.getClassStatus().name() : null)                                .creatorName(entity.getCreator() != null
                                                 ? entity.getCreator().getFirstName() + " "
                                                                 + entity.getCreator().getLastName()
                                                 : null)

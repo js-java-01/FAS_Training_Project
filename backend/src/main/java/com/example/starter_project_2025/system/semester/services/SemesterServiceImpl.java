@@ -63,12 +63,12 @@ public class SemesterServiceImpl implements SemesterService
     @Override
     public SemesterResponse updateSemester(SemesterUpdateDto data)
     {
-        var checkNameExist = semesterRepository.existsByNameIgnoreCase(data.getName());
-        if (checkNameExist)
+        var semester = semesterRepository.findById(data.getId()).orElseThrow(() -> new RuntimeException(ErrorMessage.SEMESTER_NOT_FOUND));
+        var checkNameExist = semesterRepository.findByNameIgnoreCase((data.getName()));
+        if (checkNameExist.getId() != semester.getId())
         {
             throw new RuntimeException(ErrorMessage.SEMESTER_NAME_EXISTED);
         }
-        var semester = semesterRepository.findById(data.getId()).orElseThrow(() -> new RuntimeException(ErrorMessage.SEMESTER_NOT_FOUND));
         semester.setName(data.getName());
         semester.setStartDate(data.getStartDate());
         semester.setEndDate(data.getEndDate());
@@ -87,7 +87,7 @@ public class SemesterServiceImpl implements SemesterService
     public Page<SemesterResponse> getAllSemesters(UUID userId, String role, String keyword, LocalDate startDate, LocalDate endDate, Pageable pageable)
     {
         Set<UUID> semesterIds = null;
-        if (userId != null)
+        if (userId != null && (role != "ADMIN" && role != "SUPER_ADMIN"))
         {
             semesterIds = new HashSet<>();
             var user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));

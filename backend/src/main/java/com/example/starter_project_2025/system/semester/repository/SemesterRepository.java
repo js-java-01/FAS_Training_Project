@@ -14,4 +14,6 @@ public interface SemesterRepository extends JpaRepository<Semester, UUID>, JpaSp
     List<SemesterOptionProjection> findAllForDropdown();
 
     boolean existsByNameIgnoreCase(String name);
+
+    Semester findByNameIgnoreCase(String name);
 }
