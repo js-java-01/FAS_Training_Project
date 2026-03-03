@@ -202,7 +202,7 @@ const getStatusActiveStyle = (value: string) => {
         };
     }
 
-    if ( value === "ACTIVE") {
+    if ( value === "ACTIVE" || value === "INACTIVE") {
         return {
             container: "border-blue-400 bg-blue-50 text-blue-700",
             dot: "bg-blue-500",
@@ -304,8 +304,8 @@ export default function ClassInfoTab({
         : (semesters?.items ?? []);
 
     const semesterOptions = semesterList.map((semester) => ({
-        id: semester.id,
-        label: semester.name,
+      id: semester.id,
+      label: semester.name,
     }));
 
     return (
