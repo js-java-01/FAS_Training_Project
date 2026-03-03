@@ -7,7 +7,8 @@ import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.example.starter_project_2025.system.program_courses.entity.ProgramCourse;
+import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
@@ -42,5 +43,10 @@ public class TrainingProgram {
 
     @OneToMany(mappedBy = "trainingProgram")
     @JsonManagedReference
-    private Set<ProgramCourse> programCourses;
+    private Set<TrainingProgramTopic> trainingProgramTopics;
+
+    @OneToMany(mappedBy = "trainingProgram")
+    @JsonManagedReference
+    private Set<TrainingClass> trainingClasses;
+
 }
