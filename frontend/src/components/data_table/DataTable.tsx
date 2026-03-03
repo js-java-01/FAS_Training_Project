@@ -77,6 +77,7 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void;
 }
 
+
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -256,7 +257,7 @@ export function DataTable<TData, TValue>({
         <div
           className={cn(
             "flex gap-2 w-full",
-             headerActions ? "flex-col" : "flex-col lg:flex-row items-center"
+            headerActions ? "flex-col" : "flex-col lg:flex-row items-center"
           )}
         >
           {/* Row 1: Columns + Search */}
@@ -338,9 +339,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                       {header.column.getCanResize() && (
                         <div
                           onMouseDown={header.getResizeHandler()}
