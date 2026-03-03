@@ -772,10 +772,6 @@ public class DataInitializer implements CommandLineRunner {
                                                 "PROGRAMMING_LANGUAGE_READ",
                                                 "Manage programming languages"),
 
-                                createModule(trainingGroup, "Students", "/v1/student", "person", 4,
-                                                "STUDENT_READ",
-                                                "Manage students"),
-
                                 createModule(trainingGroup, "Classes", "/classes", "people", 6,
                                                 "CLASS_READ",
                                                 "User search and view classes"),
