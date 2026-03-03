@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   ChevronRight,
+  ChevronDown,
   Eye,
   Loader2,
   BookOpen,
@@ -9,10 +10,15 @@ import {
   Pencil,
   Trash2,
   DatabaseBackup,
+  GripVertical,
 } from "lucide-react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { topicApi, type TopicLesson, type TopicObjective } from "@/api/topicApi";
 import { topicSessionApi } from "@/api/topicSessionApi";
+import {
+  topicBatchOutlineApi,
+  type TopicLessonBatchItem,
+} from "@/api/topicBatchOutlineApi";
 import {
   DELIVERY_TYPE_OPTIONS,
   TRAINING_FORMAT_OPTIONS,
@@ -105,6 +111,7 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
   const [deletingLesson, setDeletingLesson]   = useState<TopicLesson | null>(null);
   const [deletingSession, setDeletingSession] = useState<TopicSessionResponse | null>(null);
   const [lessonImportExportOpen, setLessonImportExportOpen] = useState(false);
+  const [batchModalOpen, setBatchModalOpen] = useState(false);
   const [sessionImportExportOpen, setSessionImportExportOpen] = useState(false);
   const [selectedSessionLessonId, setSelectedSessionLessonId] = useState<string | null>(null);
 
@@ -442,6 +449,14 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
         </div>
         {isEditMode && (
           <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setBatchModalOpen(true)}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 h-auto"
+            >
+              Create Batch
+            </Button>
             <Button
               variant="secondary"
               size="sm"
@@ -930,6 +945,442 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
         acceptedFileTypes=".xlsx,.xls"
         validateFile={validateImportFile}
       />
+
+      <BatchTopicOutlineModal
+        open={batchModalOpen}
+        topicId={topicId}
+        objectives={objectives}
+        onClose={() => setBatchModalOpen(false)}
+        onSuccess={async () => {
+          await fetchLessons();
+          setExpandedIds(new Set());
+          setSessionsMap({});
+        }}
+      />
+    </div>
+  );
+}
+
+type TopicBatchSessionFormItem = {
+  deliveryType: string;
+  trainingFormat: string;
+  duration: string;
+  learningObjectiveIds: string[];
+  content: string;
+  note: string;
+};
+
+type TopicBatchLessonFormItem = {
+  lessonName: string;
+  description: string;
+  sessions: TopicBatchSessionFormItem[];
+};
+
+function BatchTopicOutlineModal({
+  open,
+  topicId,
+  objectives,
+  onClose,
+  onSuccess,
+}: {
+  open: boolean;
+  topicId: string;
+  objectives: TopicObjective[];
+  onClose: () => void;
+  onSuccess: () => void | Promise<void>;
+}) {
+  const defaultSession = (): TopicBatchSessionFormItem => ({
+    deliveryType: "",
+    trainingFormat: "",
+    duration: "",
+    learningObjectiveIds: [],
+    content: "",
+    note: "",
+  });
+
+  const [lessons, setLessons] = useState<TopicBatchLessonFormItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
+  const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setLessons([
+      {
+        lessonName: "",
+        description: "",
+        sessions: [defaultSession()],
+      },
+    ]);
+    setCollapsed({});
+    setSubmitted(false);
+  }, [open]);
+
+  if (!open) return null;
+
+  const toggleCollapse = (idx: number) => {
+    setCollapsed((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  const addLesson = () => {
+    setLessons((prev) => [
+      ...prev,
+      {
+        lessonName: "",
+        description: "",
+        sessions: [defaultSession()],
+      },
+    ]);
+  };
+
+  const removeLesson = (idx: number) => {
+    setLessons((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const updateLesson = (
+    idx: number,
+    field: keyof Omit<TopicBatchLessonFormItem, "sessions">,
+    value: string,
+  ) => {
+    setLessons((prev) =>
+      prev.map((lesson, i) => (i === idx ? { ...lesson, [field]: value } : lesson)),
+    );
+  };
+
+  const addSession = (lessonIdx: number) => {
+    setLessons((prev) =>
+      prev.map((lesson, i) =>
+        i === lessonIdx
+          ? { ...lesson, sessions: [...lesson.sessions, defaultSession()] }
+          : lesson,
+      ),
+    );
+  };
+
+  const removeSession = (lessonIdx: number, sessionIdx: number) => {
+    setLessons((prev) =>
+      prev.map((lesson, i) =>
+        i === lessonIdx
+          ? {
+              ...lesson,
+              sessions: lesson.sessions.filter((_, si) => si !== sessionIdx),
+            }
+          : lesson,
+      ),
+    );
+  };
+
+  const updateSession = (
+    lessonIdx: number,
+    sessionIdx: number,
+    field: keyof TopicBatchSessionFormItem,
+    value: string | string[],
+  ) => {
+    setLessons((prev) =>
+      prev.map((lesson, i) =>
+        i === lessonIdx
+          ? {
+              ...lesson,
+              sessions: lesson.sessions.map((session, si) =>
+                si === sessionIdx ? { ...session, [field]: value } : session,
+              ),
+            }
+          : lesson,
+      ),
+    );
+  };
+
+  const isLessonInvalid = (lesson: TopicBatchLessonFormItem) =>
+    submitted && !lesson.lessonName.trim();
+
+  const isSessionInvalid = (session: TopicBatchSessionFormItem) =>
+    submitted && (!session.deliveryType || !session.duration || Number(session.duration) <= 0);
+
+  const handleSubmit = async () => {
+    setSubmitted(true);
+
+    if (lessons.length === 0) {
+      toast.error("At least one lesson is required.");
+      return;
+    }
+
+    for (const lesson of lessons) {
+      if (!lesson.lessonName.trim()) {
+        toast.error("Lesson Name is required for all lessons.");
+        return;
+      }
+      if (!lesson.sessions.length) {
+        toast.error("Each lesson must contain at least one session.");
+        return;
+      }
+      for (const session of lesson.sessions) {
+        if (!session.deliveryType) {
+          toast.error("Delivery type is required for each session.");
+          return;
+        }
+        if (!session.duration || Number(session.duration) <= 0) {
+          toast.error("Duration must be a positive number for each session.");
+          return;
+        }
+      }
+    }
+
+    const payloadLessons: TopicLessonBatchItem[] = lessons.map((lesson) => ({
+      lessonName: lesson.lessonName.trim(),
+      description: lesson.description.trim() || null,
+      sessions: lesson.sessions.map((session) => ({
+        deliveryType: session.deliveryType,
+        trainingFormat: session.trainingFormat || null,
+        duration: Number(session.duration),
+        learningObjectiveIds: session.learningObjectiveIds,
+        content: session.content.trim() || null,
+        note: session.note.trim() || null,
+      })),
+    }));
+
+    try {
+      setLoading(true);
+      await topicBatchOutlineApi.createBatch({
+        topicId,
+        lessons: payloadLessons,
+      });
+      toast.success("Batch lessons and sessions created successfully.");
+      await onSuccess();
+      onClose();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to create batch lessons and sessions.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-white">
+      <div className="flex items-center justify-between px-6 py-4 border-b bg-white shrink-0">
+        <div>
+          <h1 className="text-lg font-bold text-gray-900">Create Batch Lessons with Sessions</h1>
+          <p className="text-sm text-gray-400 mt-0.5">
+            Create multiple lessons and their sessions at once. Order numbers are calculated from existing data.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={addLesson} className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            Add Lesson
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
+          >
+            {loading ? "Creating..." : "Create Batch"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <div className="max-w-[1300px] mx-auto space-y-4">
+          {lessons.map((lesson, lessonIndex) => {
+            const isCollapsed = !!collapsed[lessonIndex];
+            const sessionCount = lesson.sessions.length;
+
+            return (
+              <div key={lessonIndex} className="border border-gray-200 rounded-xl bg-white shadow-sm">
+                <div className="px-5 py-4 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <button
+                      type="button"
+                      onClick={() => toggleCollapse(lessonIndex)}
+                      className="mt-1 text-gray-400 hover:text-gray-600 shrink-0"
+                    >
+                      {isCollapsed ? <ChevronRight size={18} /> : <ChevronDown size={18} />}
+                    </button>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <label className="text-xs font-medium text-gray-500 mb-1 block">Lesson Name *</label>
+                          <input
+                            value={lesson.lessonName}
+                            onChange={(e) => updateLesson(lessonIndex, "lessonName", e.target.value)}
+                            placeholder="Enter lesson name"
+                            className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                              isLessonInvalid(lesson) ? "border-red-500" : "border-gray-200"
+                            }`}
+                          />
+                        </div>
+                        <div className="text-center shrink-0">
+                          <label className="text-xs font-medium text-gray-500 mb-1 block">Sessions</label>
+                          <span className="inline-block text-sm font-semibold text-gray-700 py-2">
+                            {sessionCount} {sessionCount === 1 ? "session" : "sessions"}
+                          </span>
+                        </div>
+                        <div className="shrink-0 flex items-end pb-0.5 gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addSession(lessonIndex)}
+                            className="gap-1 h-9"
+                          >
+                            <Plus size={14} />
+                            Add Session
+                          </Button>
+                          {lessons.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeLesson(lessonIndex)}
+                              className="text-red-500 hover:text-red-600"
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {!isCollapsed && (
+                    <>
+                      <div className="pl-8">
+                        <label className="text-xs font-medium text-gray-500 mb-1 block">Description</label>
+                        <input
+                          value={lesson.description}
+                          onChange={(e) => updateLesson(lessonIndex, "description", e.target.value)}
+                          placeholder="Enter description (optional)"
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      {sessionCount > 0 && (
+                        <div className="pl-8">
+                          <div className="grid grid-cols-[28px_140px_140px_120px_220px_1fr_56px] gap-3 mb-2">
+                            <span />
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Delivery</span>
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Format</span>
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Duration</span>
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Objectives</span>
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Content</span>
+                            <span />
+                          </div>
+
+                          <div className="space-y-2">
+                            {lesson.sessions.map((session, sessionIndex) => (
+                              <div
+                                key={sessionIndex}
+                                className="grid grid-cols-[28px_140px_140px_120px_220px_1fr_56px] gap-3 items-start"
+                              >
+                                <div className="h-9 flex items-center justify-center text-gray-400" title="Drag to reorder">
+                                  <GripVertical size={14} />
+                                </div>
+
+                                <select
+                                  value={session.deliveryType}
+                                  onChange={(e) =>
+                                    updateSession(lessonIndex, sessionIndex, "deliveryType", e.target.value)
+                                  }
+                                  className={`border rounded-lg px-2.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                    isSessionInvalid(session) && !session.deliveryType ? "border-red-500" : "border-gray-200"
+                                  }`}
+                                >
+                                  <option value="">Select delivery</option>
+                                  {DELIVERY_TYPE_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+
+                                <select
+                                  value={session.trainingFormat}
+                                  onChange={(e) =>
+                                    updateSession(lessonIndex, sessionIndex, "trainingFormat", e.target.value)
+                                  }
+                                  className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="">Optional</option>
+                                  {TRAINING_FORMAT_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={session.duration}
+                                  onChange={(e) =>
+                                    updateSession(lessonIndex, sessionIndex, "duration", e.target.value)
+                                  }
+                                  placeholder="Minutes"
+                                  className={`border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                    isSessionInvalid(session) && (!session.duration || Number(session.duration) <= 0)
+                                      ? "border-red-500"
+                                      : "border-gray-200"
+                                  }`}
+                                />
+
+                                <select
+                                  multiple
+                                  value={session.learningObjectiveIds}
+                                  onChange={(e) => {
+                                    const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
+                                    updateSession(lessonIndex, sessionIndex, "learningObjectiveIds", selected);
+                                  }}
+                                  className="border border-gray-200 rounded-lg px-2 py-2 text-xs h-20 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                  {objectives.map((objective) => (
+                                    <option key={objective.id} value={objective.id}>
+                                      {objective.code} - {objective.name}
+                                    </option>
+                                  ))}
+                                </select>
+
+                                <div className="space-y-2">
+                                  <input
+                                    value={session.content}
+                                    onChange={(e) =>
+                                      updateSession(lessonIndex, sessionIndex, "content", e.target.value)
+                                    }
+                                    placeholder="Content"
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                  <input
+                                    value={session.note}
+                                    onChange={(e) =>
+                                      updateSession(lessonIndex, sessionIndex, "note", e.target.value)
+                                    }
+                                    placeholder="Note (optional)"
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => removeSession(lessonIndex, sessionIndex)}
+                                  className="h-9 inline-flex items-center justify-center rounded-lg border border-gray-200 text-red-500 hover:bg-red-50"
+                                  disabled={lesson.sessions.length === 1}
+                                  title="Delete session"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

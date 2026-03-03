@@ -177,7 +177,8 @@ public class TopicSessionServiceImpl implements TopicSessionService {
             sample.createCell(1).setCellValue("LIVE_SESSION");
             sample.createCell(2).setCellValue("ONLINE");
             sample.createCell(3).setCellValue(90);
-            sample.createCell(4).setCellValue("<objective-id-1>,<objective-id-2>");
+            // Leave objectives blank by default; users fill with valid UUIDs if needed
+            sample.createCell(4).setCellValue("");
             sample.createCell(5).setCellValue("Introduction and overview");
             sample.createCell(6).setCellValue("Optional note");
 
