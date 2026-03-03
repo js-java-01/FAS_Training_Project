@@ -1,9 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, ArrowRight, Mail, EyeOff, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import type { RegisterRequest } from '@/types/auth';
 import { useState } from "react";
@@ -35,20 +33,32 @@ export function RegisterForm({ onSubmit, loading }: RegisterFormProps) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="p-10 space-y-7">
-                <div className="text-center space-y-3">
-                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Create Account</h1>
-                    <p className="text-lg text-gray-500">Join our RBAC system today</p>
-                </div>
+            <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
+            >
+                <h2 className="text-3xl font-semibold mb-1" style={{ color: "#1e293b" }}>
+                    Create Account
+                </h2>
+                <p className="text-sm mb-3" style={{ color: "#64748b" }}>
+                    Join our system today
+                </p>
 
-                <div className="grid grid-cols-2 gap-4">
+                {/* First Name + Last Name row */}
+                <div style={{ width: "85%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "2px" }}>
                     <FormField
                         control={form.control}
                         name="firstName"
                         render={({ field }) => (
                             <FormItem>
-                                <FormControl><Input {...field} placeholder="First Name" className="h-14 text-lg rounded-2xl" /></FormControl>
-                                <FormMessage />
+                                <FormControl>
+                                    <div className="auth-field-container" style={{ width: "100%", margin: 0 }}>
+                                        <i className="fas fa-user" />
+                                        <input {...field} placeholder="First Name" />
+                                        <span />
+                                    </div>
+                                </FormControl>
+                                <FormMessage className="text-xs pl-2" />
                             </FormItem>
                         )}
                     />
@@ -57,8 +67,14 @@ export function RegisterForm({ onSubmit, loading }: RegisterFormProps) {
                         name="lastName"
                         render={({ field }) => (
                             <FormItem>
-                                <FormControl><Input {...field} placeholder="Last Name" className="h-14 text-lg rounded-2xl" /></FormControl>
-                                <FormMessage />
+                                <FormControl>
+                                    <div className="auth-field-container" style={{ width: "100%", margin: 0 }}>
+                                        <i className="fas fa-user" />
+                                        <input {...field} placeholder="Last Name" />
+                                        <span />
+                                    </div>
+                                </FormControl>
+                                <FormMessage className="text-xs pl-2" />
                             </FormItem>
                         )}
                     />
@@ -68,14 +84,15 @@ export function RegisterForm({ onSubmit, loading }: RegisterFormProps) {
                     control={form.control}
                     name="email"
                     render={({ field }) => (
-                        <FormItem>
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={22} />
-                                <FormControl>
-                                    <Input {...field} type="email" placeholder="Email Address" className="pl-12 h-14 text-lg rounded-2xl" />
-                                </FormControl>
-                            </div>
-                            <FormMessage />
+                        <FormItem style={{ width: "85%" }}>
+                            <FormControl>
+                                <div className="auth-field-container" style={{ width: "100%" }}>
+                                    <i className="fas fa-envelope" />
+                                    <input {...field} type="email" placeholder="Email" />
+                                    <span />
+                                </div>
+                            </FormControl>
+                            <FormMessage className="text-xs pl-2" />
                         </FormItem>
                     )}
                 />
@@ -84,37 +101,49 @@ export function RegisterForm({ onSubmit, loading }: RegisterFormProps) {
                     control={form.control}
                     name="password"
                     render={({ field }) => (
-                        <FormItem>
-                            <div className="relative">
-                                <FormControl>
-                                    <Input {...field} type={showPassword ? "text" : "password"} placeholder="Password" className="h-14 text-lg rounded-2xl" />
-                                </FormControl>
-                                <button className="absolute right-3 top-4" type="button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <Eye size={22}></Eye> : <EyeOff size={22}></EyeOff>}</button>
-                            </div>
-                            <FormMessage />
-
+                        <FormItem style={{ width: "85%" }}>
+                            <FormControl>
+                                <div className="auth-field-container" style={{ width: "100%" }}>
+                                    <i className="fas fa-lock" />
+                                    <input {...field} type={showPassword ? "text" : "password"} placeholder="Password" />
+                                    <span
+                                        style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#475569" }}
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </span>
+                                </div>
+                            </FormControl>
+                            <FormMessage className="text-xs pl-2" />
                         </FormItem>
                     )}
                 />
+
                 <FormField
                     control={form.control}
                     name="confirmPassword"
                     render={({ field }) => (
-                        <FormItem>
-                            <div className="relative">
-                                <FormControl>
-                                    <Input {...field} type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" className="h-14 text-lg rounded-2xl" />
-                                </FormControl>
-                                <button className="absolute right-3 top-4" type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>{showConfirmPassword ? <Eye size={22}></Eye> : <EyeOff size={22}></EyeOff>}</button>
-                            </div>
-                            <FormMessage />
+                        <FormItem style={{ width: "85%" }}>
+                            <FormControl>
+                                <div className="auth-field-container" style={{ width: "100%" }}>
+                                    <i className="fas fa-lock" />
+                                    <input {...field} type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" />
+                                    <span
+                                        style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#475569" }}
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </span>
+                                </div>
+                            </FormControl>
+                            <FormMessage className="text-xs pl-2" />
                         </FormItem>
                     )}
                 />
 
-                <Button type="submit" disabled={loading} className="w-full h-13 text-xl font-bold rounded-2xl shadow-lg">
-                    {loading ? <Loader2 className="animate-spin" /> : <>Get Started <ArrowRight className="ml-2" size={22} /></>}
-                </Button>
+                <button type="submit" className="auth-action-button" disabled={loading}>
+                    {loading ? <Loader2 className="animate-spin" style={{ margin: "0 auto" }} /> : "Sign Up"}
+                </button>
             </form>
         </Form>
     );

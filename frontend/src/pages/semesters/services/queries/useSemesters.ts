@@ -9,7 +9,7 @@ export const useGetAllSemesters = (params: GetSemestersParams, role: string) => 
   return useQuery<PagedData<SemesterResponse>>({
     queryKey: [...trainingClassKeys.semesters(params), role],
     queryFn: async () => {
-      if (role === "ADMIN") {
+      if (role === "ADMIN" || role === "SUPER_ADMIN") {
         const res = await semesterApi.getAllSemesters(params);
         return res.data;
       } else {
