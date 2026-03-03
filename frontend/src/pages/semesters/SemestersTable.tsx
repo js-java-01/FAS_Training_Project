@@ -47,6 +47,8 @@ export default function SemestersTable({ onSelectSemester, role }: SemestersTabl
   const [startDateFilter, setStartDateFilter] = useState<string | undefined>(undefined);
   const [endDateFilter, setEndDateFilter] = useState<string | undefined>(undefined);
 
+  const mode = role === "SUPER_ADMIN" || role === "ADMIN" ? "all" : "export";
+
   useEffect(() => {
     setPageIndex(0);
   }, [debouncedSearch, startDateFilter, endDateFilter]);
@@ -229,7 +231,7 @@ export default function SemestersTable({ onSelectSemester, role }: SemestersTabl
 
         {/* Actions */}
         <div className="flex items-center gap-2 w-full lg:w-auto justify-end">
-          <Button variant="outline" className="h-10" onClick={handleExport} disabled={isFetching}>
+          <Button variant="outline" className="h-10" onClick={() => setOpenBackupModal(true)} disabled={isFetching}>
             <Download className="w-4 h-4 mr-2" /> Export
           </Button>
           {(role === "SUPER_ADMIN" || role === "ADMIN") && (
@@ -304,6 +306,7 @@ export default function SemestersTable({ onSelectSemester, role }: SemestersTabl
         onImport={handleImport}
         onExport={handleExport}
         onDownloadTemplate={handleDownloadTemplate}
+        mode={mode}
       />
     </div>
   );
