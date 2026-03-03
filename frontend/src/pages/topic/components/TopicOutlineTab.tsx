@@ -1181,7 +1181,7 @@ function BatchTopicOutlineModal({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+      <div className="flex-1 p-6 bg-gray-50">
         <div className="max-w-[1300px] mx-auto space-y-4">
           {lessons.map((lesson, lessonIndex) => {
             const isCollapsed = !!collapsed[lessonIndex];
