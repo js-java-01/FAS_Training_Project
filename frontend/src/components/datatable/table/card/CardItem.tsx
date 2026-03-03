@@ -14,6 +14,7 @@ interface CardItemProps {
   relationOptions: Record<string, any[]>;
   onSelect: (id: any) => void;
   onRowClick?: (row: any) => void;
+  renderRowActions?: (row: any) => React.ReactNode;
   onView: (row: any) => void;
   onEdit: (row: any) => void;
   onDelete: (row: any) => void;
@@ -29,6 +30,7 @@ export function CardItem({
   relationOptions,
   onSelect,
   onRowClick,
+  renderRowActions,
   onView,
   onEdit,
   onDelete,
@@ -36,11 +38,31 @@ export function CardItem({
 }: CardItemProps) {
   const id = row[idField];
 
+  // Default row actions
+  const defaultActions = (
+    <>
+      <ActionButton
+        onClick={() => onView(row)}
+        tooltip="View detail"
+        icon={<Eye size={10} className="text-gray-500" />}
+      />
+      <ActionButton
+        onClick={() => onEdit(row)}
+        tooltip="Edit"
+        icon={<Pen size={10} className="text-gray-500" />}
+      />
+      <ActionButton
+        onClick={() => onDelete(row)}
+        tooltip="Delete"
+        icon={<Trash2 size={10} className="text-red-500" />}
+      />
+    </>
+  );
+
   return (
     <Card
-      className={`relative group cursor-pointer transition-all hover:shadow-md ${
-        isSelected ? "ring-2 ring-primary" : ""
-      }`}
+      className={`relative group cursor-pointer transition-all hover:shadow-md ${isSelected ? "ring-2 ring-primary" : ""
+        }`}
       onClick={(e) => {
         const target = e.target as HTMLElement | null;
         if (target?.closest("button, a, input, label, [role=switch]")) return;
@@ -58,23 +80,11 @@ export function CardItem({
             #{index + 1}
           </span>
         </div>
-        <div className="flex gap-1">
-          <ActionButton
-            onClick={() => onView(row)}
-            tooltip="View detail"
-            icon={<Eye size={10} className="text-gray-500" />}
-          />
-          <ActionButton
-            onClick={() => onEdit(row)}
-            tooltip="Edit"
-            icon={<Pen size={10} className="text-gray-500" />}
-          />
-          <ActionButton
-            onClick={() => onDelete(row)}
-            tooltip="Delete"
-            icon={<Trash2 size={10} className="text-red-500" />}
-          />
-        </div>
+        {(renderRowActions !== undefined || onView !== undefined || onEdit !== undefined || onDelete !== undefined) && (
+          <div className="flex gap-1">
+            {renderRowActions ? renderRowActions(row) : defaultActions}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="pt-0 space-y-2 overflow-hidden">
         {visibleFields

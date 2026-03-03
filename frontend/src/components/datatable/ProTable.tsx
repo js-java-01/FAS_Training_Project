@@ -23,21 +23,84 @@ import { SortableHeader } from "./table/SortableHeader";
 import { Toolbar } from "./toolbar/Toolbar";
 import type { ViewMode } from "./toolbar/Toolbar";
 
-interface ProTableProps {
+/**
+ * ProTable: Reusable data table component with sensible defaults
+ * 
+ * Architecture: Default + Override Pattern
+ * 
+ * Default behavior (zero config):
+ * - Internal modal CRUD system (create/edit/delete)
+ * - Default row actions (view, edit, delete)
+ * - Default create button
+ * 
+ * Optional overrides (for complex entities):
+ * - headerActions: Override default create button
+ * - renderRowActions: Complete override of row actions (full control)
+ * - onView/onEdit/onDelete: Individual action overrides (keeps other defaults)
+ * - renderFormModal: Override default form modal
+ * 
+ * Benefits:
+ * - Simple entities: zero config, just works
+ * - Complex entities: full control via overrides
+ * - Partial overrides: customize one action, keep others default
+ * - No prop explosion
+ * - Backward compatible
+ * - Separation of concerns
+ */
+interface ProTableProps<TData = any> {
+  /** Table instance from useTable hook */
   table: any;
+
+  /** Optional: Override default create button. If not provided, shows default "Create" button */
   headerActions?: React.ReactNode;
-  onRowClick?: (row: any) => void;
+
+  /** Optional: Complete override of row actions. If provided, you have full control */
+  renderRowActions?: (row: TData) => React.ReactNode;
+
+  /** Optional: Override default view action. If not provided, uses internal modal view */
+  onView?: (row: TData) => void;
+
+  /** Optional: Override default edit action. If not provided, uses internal modal edit */
+  onEdit?: (row: TData) => void;
+
+  /** Optional: Override default delete action. If not provided, uses internal modal delete */
+  onDelete?: (row: TData) => void;
+
+  /** Optional: Override default form modal. If not provided, uses internal FormModal */
+  renderFormModal?: (props: {
+    open: boolean;
+    onClose: (open: boolean) => void;
+    schema: any;
+    initial: TData | null;
+    onSubmit: (data: any) => void;
+  }) => React.ReactNode;
+
+  /** Optional: Handle row click */
+  onRowClick?: (row: TData) => void;
+
+  /** Enable/disable auto page size calculation */
   autoPageSize?: boolean;
+
+  /** Row height for auto page size calculation */
   rowHeight?: number;
+
+  /** Hide default actions completely (for display-only tables) */
+  hideActions?: boolean;
 }
 
-export function ProTable({
+export function ProTable<TData = any>({
   table,
   headerActions,
+  renderRowActions,
+  onView,
+  onEdit,
+  onDelete,
+  renderFormModal,
   onRowClick,
   autoPageSize = true,
   rowHeight = 49,
-}: ProTableProps) {
+  hideActions = false,
+}: ProTableProps<TData>) {
   const { schema } = table;
 
   const [isAutoSize, setIsAutoSize] = useState(autoPageSize);
@@ -47,9 +110,10 @@ export function ProTable({
     onSizeChange: isAutoSize ? table.setSize : undefined,
   });
 
-  const [deleteItem, setDeleteItem] = useState<any>(null);
+  // Internal modal state (used when overrides are not provided)
+  const [deleteItem, setDeleteItem] = useState<TData | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [detailRow, setDetailRow] = useState<any>(null);
+  const [detailRow, setDetailRow] = useState<TData | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
 
   // Date format cycling per date-type column
@@ -107,12 +171,28 @@ export function ProTable({
     if (!deleteItem) return;
     try {
       setDeleteLoading(true);
-      await table.remove(deleteItem[schema.idField]);
+      await table.remove((deleteItem as any)[schema.idField]);
       setDeleteItem(null);
     } finally {
       setDeleteLoading(false);
     }
   };
+
+  // Determine if we should show actions column
+  const showActionsColumn = !hideActions;
+
+  // Default row actions renderer (uses internal modal system or custom overrides)
+  const defaultRenderRowActions = (row: TData) => (
+    <RowActions
+      row={row}
+      onView={onView || setDetailRow}
+      onEdit={onEdit || table.openEdit}
+      onDelete={onDelete || setDeleteItem}
+    />
+  );
+
+  // Use provided renderer or default (with individual overrides support)
+  const finalRenderRowActions = renderRowActions || defaultRenderRowActions;
 
   return (
     <div className="grid gap-4 h-full font-inter grid-rows-[auto_1fr_auto]">
@@ -136,7 +216,7 @@ export function ProTable({
                 {table.visibleFields.map((f: any) => (
                   <col key={f.name} style={{ width: columnWidths[f.name] || 150 }} />
                 ))}
-                <col style={{ width: 120 }} />
+                {showActionsColumn && <col style={{ width: 120 }} />}
               </colgroup>
               <TableHeader className="bg-background z-10 sticky top-0 shadow-xs">
                 <TableRow>
@@ -158,7 +238,7 @@ export function ProTable({
                       onDateFormatCycle={f.type === "date" ? cycleDateFormat : undefined}
                     />
                   ))}
-                  <TableHead style={{ width: 120 }}>Actions</TableHead>
+                  {showActionsColumn && <TableHead style={{ width: 120 }}>Actions</TableHead>}
                 </TableRow>
               </TableHeader>
 
@@ -203,14 +283,11 @@ export function ProTable({
                           />
                         ))}
 
-                        <TableCell className="flex gap-1">
-                          <RowActions
-                            row={row}
-                            onView={setDetailRow}
-                            onEdit={table.openEdit}
-                            onDelete={setDeleteItem}
-                          />
-                        </TableCell>
+                        {showActionsColumn && (
+                          <TableCell className="flex gap-1">
+                            {finalRenderRowActions(row)}
+                          </TableCell>
+                        )}
                       </TableRow>
                     );
                   })}
@@ -230,9 +307,10 @@ export function ProTable({
               <CardView
                 table={table}
                 onRowClick={onRowClick}
-                onView={setDetailRow}
-                onEdit={table.openEdit}
-                onDelete={setDeleteItem}
+                renderRowActions={showActionsColumn ? finalRenderRowActions : undefined}
+                onView={onView || setDetailRow}
+                onEdit={onEdit || table.openEdit}
+                onDelete={onDelete || setDeleteItem}
                 onBooleanToggle={(id, fieldName, newValue) => {
                   table.patchField(id, fieldName, newValue);
                 }}
@@ -262,25 +340,48 @@ export function ProTable({
         }}
       />
 
-      <FormModal
-        open={table.isFormOpen}
-        onClose={(open) => {
-          if (!open) table.setFieldErrors({});
-          table.setFormOpen(open);
-        }}
-        schema={schema}
-        initial={table.editingRow}
-        title={table.editingRow ? "Edit" : "Create"}
-        isSubmitting={table.isSubmitting}
-        relationOptions={table.relationOptions}
-        fieldErrors={table.fieldErrors}
-        onSubmit={(data) => {
-          table.editingRow
-            ? table.update({ id: table.editingRow[schema.idField], data })
-            : table.create(data);
-        }}
-      />
+      {/* Form Modal: Use custom renderer if provided, otherwise use default */}
+      {renderFormModal ? (
+        renderFormModal({
+          open: table.isFormOpen,
+          onClose: (open) => {
+            if (!open) table.setFieldErrors({});
+            table.setFormOpen(open);
+          },
+          schema,
+          initial: table.editingRow,
+          onSubmit: (data) => {
+            if (table.editingRow) {
+              table.update({ id: table.editingRow[schema.idField], data });
+            } else {
+              table.create(data);
+            }
+          },
+        })
+      ) : (
+        <FormModal
+          open={table.isFormOpen}
+          onClose={(open) => {
+            if (!open) table.setFieldErrors({});
+            table.setFormOpen(open);
+          }}
+          schema={schema}
+          initial={table.editingRow}
+          title={table.editingRow ? "Edit" : "Create"}
+          isSubmitting={table.isSubmitting}
+          relationOptions={table.relationOptions}
+          fieldErrors={table.fieldErrors}
+          onSubmit={(data) => {
+            if (table.editingRow) {
+              table.update({ id: table.editingRow[schema.idField], data });
+            } else {
+              table.create(data);
+            }
+          }}
+        />
+      )}
 
+      {/* Delete Confirmation Modal: Always use internal system */}
       <ConfirmDeleteModal
         open={!!deleteItem}
         onOpenChange={(open) => !open && setDeleteItem(null)}
@@ -288,6 +389,7 @@ export function ProTable({
         loading={deleteLoading}
       />
 
+      {/* Detail View Modal: Always use internal system */}
       <DetailModal
         open={!!detailRow}
         onClose={(open) => !open && setDetailRow(null)}

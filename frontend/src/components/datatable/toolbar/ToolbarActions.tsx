@@ -35,8 +35,6 @@ export function ToolbarActions({ table, headerActions }: ToolbarActionsProps) {
 
   return (
     <div className="flex flex-col lg:flex-row justify-end items-center gap-2">
-      {headerActions}
-
       {table.selected?.length > 0 && (
         <ActionButton
           onClick={() => setBulkDeleteOpen(true)}
@@ -55,13 +53,16 @@ export function ToolbarActions({ table, headerActions }: ToolbarActionsProps) {
         icon={<DatabaseBackup size={16} />}
       />
 
-      <ActionButton
-        onClick={() => table.openCreate()}
-        tooltip="Create new data"
-        title="Create"
-        variant="default"
-        icon={<Plus size={16} />}
-      />
+      {/* Show custom header actions if provided, otherwise show default Create button */}
+      {headerActions || (
+        <ActionButton
+          onClick={() => table.openCreate()}
+          tooltip="Create new data"
+          title="Create"
+          variant="default"
+          icon={<Plus size={16} />}
+        />
+      )}
 
       <DataIOModal
         open={dataIOOpen}

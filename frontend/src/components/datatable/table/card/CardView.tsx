@@ -5,6 +5,7 @@ import { CardSelectAllBar } from "./CardSelectAllBar";
 interface CardViewProps {
   table: any;
   onRowClick?: (row: any) => void;
+  renderRowActions?: (row: any) => React.ReactNode;
   onView: (row: any) => void;
   onEdit: (row: any) => void;
   onDelete: (row: any) => void;
@@ -14,6 +15,7 @@ interface CardViewProps {
 export function CardView({
   table,
   onRowClick,
+  renderRowActions,
   onView,
   onEdit,
   onDelete,
@@ -58,9 +60,8 @@ export function CardView({
       />
 
       <div
-        className={`grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-3 overflow-y-auto flex-1 transition-opacity ${
-          table.isFetching ? "opacity-50" : ""
-        }`}
+        className={`grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-3 overflow-y-auto flex-1 transition-opacity ${table.isFetching ? "opacity-50" : ""
+          }`}
       >
         {table.data?.map((row: any, idx: number) => {
           const id = row[schema.idField];
@@ -75,6 +76,7 @@ export function CardView({
               relationOptions={table.relationOptions}
               onSelect={toggleSelect}
               onRowClick={onRowClick}
+              renderRowActions={renderRowActions}
               onView={onView}
               onEdit={onEdit}
               onDelete={onDelete}

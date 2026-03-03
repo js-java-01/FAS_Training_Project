@@ -1,8 +1,10 @@
 import { questionTagApi } from "@/api";
 import { ProTable } from "@/components/datatable/ProTable";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { Button } from "@/components/ui/button";
 import { useProTable } from "@/hooks/useProTable";
 import type { EntitySchema } from "@/types/common/datatable";
+import { useNavigate } from "react-router";
 
 const questionTagSchema: EntitySchema = {
     entityName: "questionTag",
@@ -45,11 +47,16 @@ const questionTagSchema: EntitySchema = {
 };
 
 const QuestionTagManagementPage = () => {
+    const navigate = useNavigate();
     const table = useProTable(questionTagApi, questionTagSchema);
 
     return (
         <MainLayout pathName={{ "question-tag": "Question Tag Management" }}>
-            <ProTable table={table} />
+            <ProTable
+                table={table}
+                // headerActions={<Button onClick={() => navigate("/teacher-assessment/create")}>Create</Button>}
+                // onEdit={(row) => navigate(`/questions/${row.id}/edit`)}        
+            />
         </MainLayout>
     );
 };
