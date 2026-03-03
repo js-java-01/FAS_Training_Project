@@ -10,10 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.Set;
-
-import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Data
@@ -32,10 +28,6 @@ public class AssessmentType {
 
     @Size(min = 10, max = 250, message = "description must be at most 1000 characters")
     private String description;
-
-    @OneToMany(mappedBy = "assessmentType")
-    @JsonManagedReference
-    private Set<CourseAssessmentTypeWeight> courseAssessmentTypeWeights;
 
     private LocalDate createdAt;
     private LocalDate updatedAt;

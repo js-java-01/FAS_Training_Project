@@ -9,11 +9,9 @@ import { Button } from "@/components/ui/button";
 import type { TrainingClass } from "@/types/trainingClass";
 import { getColumns, type TablePermissions } from "./column";
 import { TrainingClassForm } from "./form";
-import { ReviewActionModal } from "@/components/ReviewActionModal";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ClassStatus } from "./enum/ClassStatus";
 import { useGetAllTrainingClasses } from "./services/queries";
-import { trainingClassApi } from "@/api/trainingClassApi";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -46,9 +44,6 @@ export default function TrainingClassesTable({
   /* ===================== STATE ===================== */
 
   const [openForm, setOpenForm] = useState(false);
-  const [reviewType, setReviewType] = useState<"approve" | "reject" | null>(null);
-  const [reviewingClass, setReviewingClass] = useState<TrainingClass | null>(null);
-  const [isReviewing, setIsReviewing] = useState(false);
   const navigate = useNavigate();
 
   /* ---------- faceted filter ---------- */
@@ -70,7 +65,6 @@ export default function TrainingClassesTable({
 
   const semesterMode = mode === "semester";
   const canCreate = permissions.includes("CLASS_CREATE");
-  const canReview = permissions.includes("CLASS_UPDATE");
 
   /* ===================== DATA ===================== */
   const {
@@ -93,8 +87,6 @@ export default function TrainingClassesTable({
   /* ===================== COLUMNS ===================== */
   const tablePermissions: TablePermissions = {
     canUpdate: permissions.includes("CLASS_UPDATE"),
-    canApprove: canReview,
-    canReject: canReview,
     canDelete: permissions.includes("CLASS_DELETE"),
   };
 
@@ -106,20 +98,8 @@ export default function TrainingClassesTable({
             state: { trainingClass },
           });
         },
-        onApprove: canReview
-          ? (trainingClass) => {
-            setReviewType("approve");
-            setReviewingClass(trainingClass);
-          }
-          : undefined,
-        onReject: canReview
-          ? (trainingClass) => {
-            setReviewType("reject");
-            setReviewingClass(trainingClass);
-          }
-          : undefined,
       }),
-    [canReview, navigate, role, tablePermissions],
+    [navigate, role, tablePermissions],
   );
 
   /* ===================== HANDLERS ===================== */
@@ -131,39 +111,6 @@ export default function TrainingClassesTable({
     toast.success("Class request submitted successfully");
     await invalidateAll();
     setOpenForm(false);
-  };
-
-  const handleCloseReviewModal = () => {
-    if (isReviewing) return;
-    setReviewType(null);
-    setReviewingClass(null);
-  };
-
-  const handleConfirmReview = async (reason: string) => {
-    if (!reviewType || !reviewingClass) return;
-
-    setIsReviewing(true);
-    try {
-      if (reviewType === "approve") {
-        await trainingClassApi.approveClass(reviewingClass.id, reason?.trim() || undefined);
-        toast.success("Class approved successfully");
-      } else {
-        await trainingClassApi.rejectClass(reviewingClass.id, reason.trim());
-        toast.success("Class rejected successfully");
-      }
-
-      await invalidateAll();
-      setReviewType(null);
-      setReviewingClass(null);
-    } catch (error: unknown) {
-      const message =
-        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        (error as { message?: string })?.message ||
-        "Action failed. Please try again.";
-      toast.error(message);
-    } finally {
-      setIsReviewing(false);
-    }
   };
 
   /* ===================== RENDER ===================== */
@@ -260,25 +207,6 @@ export default function TrainingClassesTable({
       )}
 
       <TrainingClassForm role={role} open={openForm} onClose={() => setOpenForm(false)} onSaved={handleSaved} />
-
-      <ReviewActionModal
-        open={!!reviewType && !!reviewingClass}
-        title={reviewType === "approve" ? "Approve class request" : "Reject class request"}
-        description={
-          reviewType === "approve"
-            ? "Provide an optional note for this approval."
-            : "Please provide a reason for rejecting this class request."
-        }
-        label={reviewType === "approve" ? "Approval note" : "Rejection reason"}
-        placeholder={reviewType === "approve" ? "Optional note..." : "Enter rejection reason..."}
-        confirmText={reviewType === "approve" ? "Approve" : "Reject"}
-        cancelText="Cancel"
-        variant={reviewType === "approve" ? "approve" : "destructive"}
-        loading={isReviewing}
-        requireReason={reviewType === "reject"}
-        onConfirm={handleConfirmReview}
-        onCancel={handleCloseReviewModal}
-      />
     </div>
   );
 }

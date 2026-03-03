@@ -3,6 +3,7 @@ package com.example.starter_project_2025.system.classes.entity;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.semester.entity.Semester;
+import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -39,10 +40,12 @@ public class TrainingClass {
     @JsonManagedReference
     private List<Enrollment> enrollments;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "training_program_id", nullable = false)
+    private TrainingProgram trainingProgram;
+
     @Column(name = "class_code", unique = true)
     private String classCode;
-    @Column(name = "enrollment_key", length = 100)
-    private String enrollmentKey;
 
     @Enumerated(EnumType.STRING)
     private ClassStatus classStatus;

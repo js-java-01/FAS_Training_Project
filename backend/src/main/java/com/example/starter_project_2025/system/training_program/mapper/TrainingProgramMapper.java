@@ -11,24 +11,28 @@ import java.util.stream.Collectors;
 public class TrainingProgramMapper {
 
     public TrainingProgramResponse toResponse(TrainingProgram entity) {
-
-        return TrainingProgramResponse.builder()
-                .id(entity.getId())
-                .name(entity.getName())
-                .version(entity.getVersion())
-                .description(entity.getDescription())
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
-                .programCourseIds(
-                        entity.getProgramCourses() == null ? null :
-                                entity.getProgramCourses()
-                                        .stream()
-                                        .map(ProgramCourse::getId)
-                                        .collect(Collectors.toSet())
-                )
-                .build();
+        return null;
+        // return new TrainingProgramResponse(
+        // entity.getId(),
+        // entity.getName(),
+        // entity.getDescription(),
+        // entity.getVersion(),
+        // entity.getCreatedAt(),
+        // entity.getUpdatedAt(),
+        // entity.getTrainingProgramTopics() == null ? null
+        // : entity.getTrainingProgramTopics().stream()
+        // .map(tpt -> tpt.getTopic().getName())
+        // .collect(Collectors.toSet()));
+        // return new TrainingProgramResponse(
+        // entity.getId(),
+        // entity.getName(),
+        // entity.getDescription(),
+        // entity.getCreatedAt(),
+        // entity.getUpdatedAt(),
+        // entity.getTrainingProgramTopics() == null ? null
+        // : entity.getTrainingProgramTopics().stream()
+        // .map(tpt -> tpt.getTopic().getName())
+        // .collect(Collectors.toSet()));
     }
-
-
 
 }

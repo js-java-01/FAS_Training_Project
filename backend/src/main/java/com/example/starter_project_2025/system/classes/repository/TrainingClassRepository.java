@@ -22,6 +22,7 @@ public interface TrainingClassRepository
               JpaSpecificationExecutor<TrainingClass> {
 
        boolean existsByClassNameIgnoreCase(String className);
+
        boolean existsByClassCodeIgnoreCase(String classCode);
 
        @Query("""
@@ -55,6 +56,5 @@ public interface TrainingClassRepository
                      ClassStatus status,
                      LocalDate date);
 
-       List<TrainingClass> findAllByEnrollmentKey(String key);
-       boolean existsByEnrollmentKey(String enrollmentKey);
+       // List<TrainingClass> findAllByEnrollmentKey(String key);
 }
