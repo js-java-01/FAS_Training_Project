@@ -141,8 +141,8 @@ public class DataInitializer implements CommandLineRunner {
                         initializeRoles();
                         initializeUsers();
                         // initializeMenus();
-//                        initializeLocationData();
-                        initializeLocations();
+                        // initializeLocationData();
+                        // initializeLocations();
                         initializeModuleGroups();
                         initializeAssessmentType();
                         initializeAssessments();

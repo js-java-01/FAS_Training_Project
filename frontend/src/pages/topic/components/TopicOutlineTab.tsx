@@ -1,18 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   ChevronRight,
   ChevronDown,
-  Eye,
+  GripVertical,
   Loader2,
-  BookOpen,
   Plus,
   Trash2,
   DatabaseBackup,
   Layers,
   Sparkles,
 } from "lucide-react";
-import { FiTrash2 } from "react-icons/fi";
+import { FiEdit, FiEye, FiTrash2 } from "react-icons/fi";
+import ActionBtn from "@/components/data_table/ActionBtn";
 import {
   topicApi,
   type TopicLesson,
@@ -65,7 +65,7 @@ const inputCls =
 
 interface Props {
   topicId: string;
-  isEditMode: boolean;
+  isEditMode?: boolean;
 }
 
 type DrawerMode =
@@ -472,11 +472,10 @@ function TopicBatchOutlineModal({
 /*  Main Component                                               */
 /* ──────────────────────────────────────────────────────────── */
 
-export function TopicOutlineTab({ topicId, isEditMode }: Props) {
+export function TopicOutlineTab({ topicId }: Props) {
   /* ── lesson list ── */
   const [lessons, setLessons] = useState<TopicLesson[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   /* ── sessions per lesson ── */
@@ -532,15 +531,24 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
     string | null
   >(null);
 
+  /* ── Drag-and-drop ── */
+  const lessonDragIdx = useRef<number | null>(null);
+  const [lessonDragOverIdx, setLessonDragOverIdx] = useState<number | null>(
+    null,
+  );
+  const sessionDragIdx = useRef<number | null>(null);
+  const [sessionDragOverByLesson, setSessionDragOverByLesson] = useState<
+    Record<string, number | null>
+  >({});
+
   /* ─── Fetch lessons ──────────────────────────────────────── */
   const fetchLessons = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const data = await topicApi.getLessonsByTopicId(topicId);
       setLessons(data);
     } catch {
-      setError("Failed to load outline. Please try again.");
+      toast.error("Failed to load outline. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -891,6 +899,38 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
     }
   };
 
+  /* ─── Drag handlers ──────────────────────────────────────── */
+  const handleLessonDrop = (targetIdx: number) => {
+    const fromIdx = lessonDragIdx.current;
+    if (fromIdx === null || fromIdx === targetIdx) {
+      lessonDragIdx.current = null;
+      setLessonDragOverIdx(null);
+      return;
+    }
+    const next = [...lessons];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(targetIdx, 0, moved);
+    setLessons(next);
+    lessonDragIdx.current = null;
+    setLessonDragOverIdx(null);
+  };
+
+  const handleSessionDrop = (lessonId: string, targetIdx: number) => {
+    const fromIdx = sessionDragIdx.current;
+    if (fromIdx === null || fromIdx === targetIdx) {
+      sessionDragIdx.current = null;
+      setSessionDragOverByLesson((p) => ({ ...p, [lessonId]: null }));
+      return;
+    }
+    const prev = sessionsMap[lessonId] ?? [];
+    const next = [...prev];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(targetIdx, 0, moved);
+    setSessionsMap((p) => ({ ...p, [lessonId]: next }));
+    sessionDragIdx.current = null;
+    setSessionDragOverByLesson((p) => ({ ...p, [lessonId]: null }));
+  };
+
   /* ─── Derived ────────────────────────────────────────────── */
   const isLessonDrawer =
     drawerMode === "create-lesson" || drawerMode === "edit-lesson";
@@ -899,94 +939,55 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
 
   /* ─── Render ─────────────────────────────────────────────── */
   return (
-    <div className="animate-in fade-in duration-300">
-      {/* ── Section header ── */}
-      <div className="flex items-center justify-between mb-4">
+    <div className="space-y-4">
+      {/* ── Top bar ── */}
+      <div className="flex items-center justify-between">
+        <span className="text-md font-semibold text-gray-800">
+          Topic Outlines
+        </span>
         <div className="flex items-center gap-2">
-          <BookOpen size={16} className="text-gray-500" />
-          <h3 className="text-sm font-semibold text-gray-700">
-            Topic Outlines
-          </h3>
+          <Button
+            variant="secondary"
+            onClick={() => setBatchImportExportOpen(true)}
+            className="gap-2"
+          >
+            <DatabaseBackup className="h-4 w-4" />
+            Import / Export
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setBatchCreateOpen(true)}
+            className="gap-2"
+          >
+            <Layers className="h-4 w-4" />
+            Batch Create
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setAiPreviewOpen(true)}
+            className="gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+          >
+            <Sparkles className="h-4 w-4" />
+            AI Preview
+          </Button>
+          <Button
+            onClick={openCreateLesson}
+            className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Lesson
+          </Button>
         </div>
-        {isEditMode && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setAiPreviewOpen(true)}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 h-auto text-blue-600 border-blue-200 hover:bg-blue-50"
-            >
-              <Sparkles size={14} /> AI Preview
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setBatchCreateOpen(true)}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 h-auto"
-            >
-              <Layers size={14} /> Batch Outline
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setBatchImportExportOpen(true)}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 h-auto"
-            >
-              <DatabaseBackup size={14} /> Import / Export
-            </Button>
-            <Button
-              size="sm"
-              onClick={openCreateLesson}
-              className="flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-xs px-3 py-1.5 h-auto"
-            >
-              <Plus size={14} /> Add Lesson
-            </Button>
-          </div>
-        )}
       </div>
 
       {/* ── Loading ── */}
-      {loading && (
-        <div className="flex items-center justify-center py-20 text-gray-400">
-          <Loader2 size={24} className="animate-spin mr-2" />
-          <span className="text-sm">Loading outlines…</span>
+      {loading ? (
+        <div className="text-sm text-gray-400 p-4">Loading lessons...</div>
+      ) : lessons.length === 0 ? (
+        <div className="text-sm text-gray-400 p-4 border border-dashed border-gray-200 rounded-xl text-center">
+          No lessons yet. Click "+ Add Lesson" to create the first one.
         </div>
-      )}
-
-      {/* ── Error ── */}
-      {!loading && error && (
-        <div className="flex flex-col items-center justify-center py-20 text-red-400 gap-3">
-          <span className="text-sm">{error}</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchLessons}
-            className="text-xs"
-          >
-            Retry
-          </Button>
-        </div>
-      )}
-
-      {/* ── Empty ── */}
-      {!loading && !error && lessons.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-xl bg-gray-50 text-gray-400 gap-3">
-          <BookOpen size={40} className="opacity-20" />
-          <p className="text-sm">No outline configured for this topic yet.</p>
-          {isEditMode && (
-            <Button
-              size="sm"
-              onClick={openCreateLesson}
-              className="bg-blue-600 text-white hover:bg-blue-700 text-xs"
-            >
-              <Plus size={14} className="mr-1" /> Add First Lesson
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* ── Lesson list ── */}
-      {!loading && !error && lessons.length > 0 && (
+      ) : (
         <div className="space-y-2">
           {lessons.map((lesson, idx) => {
             const isExpanded = expandedIds.has(lesson.id);
@@ -996,23 +997,49 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
             return (
               <div
                 key={lesson.id}
-                className="border border-gray-200 rounded-xl overflow-hidden"
+                draggable
+                onDragStart={() => {
+                  lessonDragIdx.current = idx;
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setLessonDragOverIdx(idx);
+                }}
+                onDragEnd={() => {
+                  lessonDragIdx.current = null;
+                  setLessonDragOverIdx(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleLessonDrop(idx);
+                }}
+                className={`border rounded-xl overflow-hidden transition-colors
+                  ${lessonDragOverIdx === idx ? "border-blue-400 shadow-md" : "border-gray-200"}`}
               >
                 {/* ── Lesson header ── */}
                 <div
-                  className={`flex items-center gap-3 px-4 py-3 cursor-pointer select-none transition-colors group
+                  className={`flex items-center gap-3 px-4 py-3 cursor-pointer select-none
                     ${isExpanded ? "bg-blue-50 border-b border-blue-100" : "bg-white hover:bg-gray-50"}`}
                   onClick={() => toggleExpand(lesson.id)}
                 >
-                  <span
-                    className="text-gray-400 shrink-0 transition-transform duration-200"
-                    style={{
-                      display: "inline-block",
-                      transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                  <GripVertical
+                    size={16}
+                    className="text-gray-300 cursor-grab shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <button
+                    className="text-gray-400 hover:text-gray-600 shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleExpand(lesson.id);
                     }}
                   >
-                    <ChevronRight size={16} />
-                  </span>
+                    {isExpanded ? (
+                      <ChevronDown size={16} />
+                    ) : (
+                      <ChevronRight size={16} />
+                    )}
+                  </button>
 
                   <span className="text-xs text-gray-400 shrink-0 w-5">
                     {idx + 1}.
@@ -1021,29 +1048,25 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
                     {lesson.lessonName}
                   </span>
 
-                  {/* Action icons — visible on hover */}
                   <div
-                    className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="flex items-center gap-1 shrink-0"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <button
+                    <ActionBtn
+                      icon={<FiEye size={13} />}
+                      tooltipText="View"
+                      onClick={() => {}}
+                    />
+                    <ActionBtn
+                      icon={<FiEdit size={13} />}
+                      tooltipText="Edit"
                       onClick={() => openEditLesson(lesson)}
-                      className="p-1.5 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
-                      title="View / Edit"
-                    >
-                      <Eye size={14} />
-                    </button>
-                    {isEditMode && (
-                      <>
-                        <button
-                          onClick={() => setDeletingLesson(lesson)}
-                          className="p-1.5 rounded hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </>
-                    )}
+                    />
+                    <ActionBtn
+                      icon={<FiTrash2 size={13} />}
+                      tooltipText="Delete"
+                      onClick={() => setDeletingLesson(lesson)}
+                    />
                   </div>
                 </div>
 
@@ -1055,23 +1078,24 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
                         Sessions
                       </span>
                       <div className="flex items-center gap-2">
-                        <button
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           onClick={() => {
                             setSelectedSessionLessonId(lesson.id);
                             setSessionImportExportOpen(true);
                           }}
-                          className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                          className="h-7 text-xs gap-1.5"
                         >
-                          <DatabaseBackup size={12} /> Import / Export
+                          <DatabaseBackup className="h-3.5 w-3.5" />
+                          Import / Export
+                        </Button>
+                        <button
+                          onClick={() => openCreateSession(lesson.id)}
+                          className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                        >
+                          <Plus size={12} /> Add Session
                         </button>
-                        {isEditMode && (
-                          <button
-                            onClick={() => openCreateSession(lesson.id)}
-                            className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
-                          >
-                            <Plus size={12} /> Add Session
-                          </button>
-                        )}
                       </div>
                     </div>
 
@@ -1081,29 +1105,17 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
                         sessions…
                       </div>
                     ) : sessions.length === 0 ? (
-                      <div className="text-xs text-gray-400 py-4 text-center border border-dashed border-gray-200 rounded-lg">
-                        No sessions yet.
-                        {isEditMode ? ' Click "+ Add Session" to start.' : ""}
+                      <div className="text-xs text-gray-400 py-3 text-center border border-dashed border-gray-200 rounded-lg">
+                        No sessions yet. Click "+ Add Session" to start.
                       </div>
                     ) : (
-                      <div className="overflow-hidden rounded-lg border border-gray-100">
-                        {/* Table header */}
-                        <div
-                          className={`grid bg-gray-50 border-b border-gray-100 px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide ${isEditMode ? "grid-cols-[56px_1fr_148px_88px]" : "grid-cols-[56px_1fr_148px]"}`}
-                        >
-                          <span>Session</span>
-                          <span>Content</span>
-                          <span>Type</span>
-                          {isEditMode && (
-                            <span className="text-right">Actions</span>
-                          )}
-                        </div>
+                      <div className="space-y-1.5">
                         {[...sessions]
                           .sort(
                             (a, b) =>
                               (a.sessionOrder ?? 0) - (b.sessionOrder ?? 0),
                           )
-                          .map((session) => {
+                          .map((session, si) => {
                             const typeLabel = session.deliveryType
                               ? (typeLabelMap.get(session.deliveryType) ??
                                 session.deliveryType)
@@ -1112,53 +1124,68 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
                               ? (TYPE_COLORS[session.deliveryType] ??
                                 "bg-gray-100 text-gray-600")
                               : "";
+                            const isSessionDragOver =
+                              sessionDragOverByLesson[lesson.id] === si;
                             return (
                               <div
                                 key={session.id}
-                                className={`grid items-center px-3 py-2.5 border-b border-gray-50 last:border-0 hover:bg-gray-50 text-sm ${isEditMode ? "grid-cols-[56px_1fr_148px_88px]" : "grid-cols-[56px_1fr_148px]"}`}
+                                draggable
+                                onDragStart={() => {
+                                  sessionDragIdx.current = si;
+                                }}
+                                onDragOver={(e) => {
+                                  e.preventDefault();
+                                  setSessionDragOverByLesson((p) => ({
+                                    ...p,
+                                    [lesson.id]: si,
+                                  }));
+                                }}
+                                onDragEnd={() => {
+                                  sessionDragIdx.current = null;
+                                  setSessionDragOverByLesson((p) => ({
+                                    ...p,
+                                    [lesson.id]: null,
+                                  }));
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  handleSessionDrop(lesson.id, si);
+                                }}
+                                className={`flex items-center gap-3 px-3 py-2 rounded-lg border text-sm transition-colors select-none
+                                  ${isSessionDragOver ? "border-blue-400 bg-blue-50" : "border-gray-100 bg-white hover:bg-gray-50"}`}
                               >
-                                <span className="text-center text-xs font-medium text-gray-400">
-                                  {session.sessionOrder}
+                                <GripVertical
+                                  size={14}
+                                  className="text-gray-300 cursor-grab shrink-0"
+                                />
+                                <span className="w-6 text-center text-xs font-medium text-gray-400 shrink-0">
+                                  {session.sessionOrder ?? si + 1}
                                 </span>
-                                <span
-                                  className="truncate text-gray-800 pr-3"
-                                  title={session.content ?? ""}
-                                >
+                                <span className="flex-1 truncate text-gray-800">
                                   {session.content || "—"}
                                 </span>
-                                <span>
-                                  {typeLabel ? (
-                                    <span
-                                      className={`px-2 py-0.5 rounded text-xs font-medium ${typeColor}`}
-                                    >
-                                      {typeLabel}
-                                    </span>
-                                  ) : (
-                                    <span className="text-gray-300 text-xs">
-                                      —
-                                    </span>
-                                  )}
-                                </span>
-                                {isEditMode && (
-                                  <div className="flex items-center justify-end gap-1">
-                                    <button
-                                      onClick={() => openEditSession(session)}
-                                      className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-                                      title="View / Edit session"
-                                    >
-                                      <Eye size={12} />
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        setDeletingSession(session)
-                                      }
-                                      className="p-1.5 rounded hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors"
-                                      title="Delete session"
-                                    >
-                                      <FiTrash2 size={12} />
-                                    </button>
-                                  </div>
+                                {typeLabel && (
+                                  <span
+                                    className={`px-2 py-0.5 rounded text-xs font-medium shrink-0 ${typeColor}`}
+                                  >
+                                    {typeLabel}
+                                  </span>
                                 )}
+                                <div
+                                  className="flex items-center gap-1 shrink-0"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <ActionBtn
+                                    icon={<FiEdit size={12} />}
+                                    tooltipText="Edit"
+                                    onClick={() => openEditSession(session)}
+                                  />
+                                  <ActionBtn
+                                    icon={<FiTrash2 size={12} />}
+                                    tooltipText="Delete"
+                                    onClick={() => setDeletingSession(session)}
+                                  />
+                                </div>
                               </div>
                             );
                           })}
@@ -1173,96 +1200,92 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
       )}
 
       {/* ════════════════════════════════════════════ */}
-      {/* Lesson Drawer (Create / Edit)                */}
+      {/* Lesson Modal (Create / Edit)                 */}
       {/* ════════════════════════════════════════════ */}
-      <Sheet
-        open={isLessonDrawer}
-        onOpenChange={(open) => !open && closeDrawer()}
-      >
-        <SheetContent
-          side="right"
-          className="w-[480px] sm:w-[540px] flex flex-col p-0"
+      {isLessonDrawer && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={closeDrawer}
         >
-          <SheetHeader className="border-b px-6 py-4 shrink-0">
-            <div className="flex items-center justify-between">
+          <div
+            className="bg-white w-full max-w-md rounded-xl shadow-xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-lg font-bold">
+                {drawerMode === "edit-lesson" ? "Edit Lesson" : "Add Lesson"}
+              </h2>
+              <button
+                onClick={closeDrawer}
+                className="text-gray-400 hover:text-gray-600 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-4">
               <div>
-                <SheetTitle className="text-base font-semibold">
-                  {drawerMode === "edit-lesson"
-                    ? "Edit Lesson"
-                    : "Create Lesson"}
-                </SheetTitle>
-                <SheetDescription className="text-xs text-gray-400 mt-0.5">
-                  {drawerMode === "edit-lesson"
-                    ? "Update lesson information"
-                    : "Add a new lesson to this topic"}
-                </SheetDescription>
+                <label className="text-xs text-gray-500 mb-1 block">
+                  Lesson Name *
+                </label>
+                <input
+                  value={lessonForm.lessonName}
+                  onChange={(e) => {
+                    setLessonForm((p) => ({
+                      ...p,
+                      lessonName: e.target.value,
+                    }));
+                    if (lessonFormError) setLessonFormError(null);
+                  }}
+                  placeholder="e.g. Introduction to Programming"
+                  className={inputCls}
+                />
+                {lessonFormError && (
+                  <p className="text-xs text-red-500 mt-1">{lessonFormError}</p>
+                )}
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">
+                  Description
+                </label>
+                <textarea
+                  value={lessonForm.description}
+                  onChange={(e) =>
+                    setLessonForm((p) => ({
+                      ...p,
+                      description: e.target.value,
+                    }))
+                  }
+                  placeholder="Brief description of the lesson"
+                  rows={3}
+                  className={inputCls + " resize-none"}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
                   onClick={closeDrawer}
                   disabled={lessonSaving}
-                  className="text-xs"
+                  className="px-4 py-2 text-sm border rounded-md hover:bg-gray-50 disabled:opacity-50"
                 >
                   Cancel
-                </Button>
-                <Button
-                  size="sm"
+                </button>
+                <button
+                  type="button"
                   onClick={handleSaveLesson}
                   disabled={lessonSaving}
-                  className="bg-blue-600 text-white hover:bg-blue-700 text-xs"
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {lessonSaving ? (
-                    <>
-                      <Loader2 size={13} className="animate-spin mr-1.5" />
-                      Saving…
-                    </>
-                  ) : (
-                    "Save"
-                  )}
-                </Button>
+                  {lessonSaving
+                    ? "Saving..."
+                    : drawerMode === "edit-lesson"
+                      ? "Update"
+                      : "Create"}
+                </button>
               </div>
             </div>
-          </SheetHeader>
-
-          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Lesson Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={lessonForm.lessonName}
-                onChange={(e) => {
-                  setLessonForm((p) => ({ ...p, lessonName: e.target.value }));
-                  if (lessonFormError) setLessonFormError(null);
-                }}
-                placeholder="Enter lesson name"
-                className={inputCls}
-              />
-              {lessonFormError && (
-                <p className="text-xs text-red-500">{lessonFormError}</p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <textarea
-                rows={6}
-                value={lessonForm.description}
-                onChange={(e) =>
-                  setLessonForm((p) => ({ ...p, description: e.target.value }))
-                }
-                placeholder="Enter description (optional)"
-                className={inputCls + " resize-none"}
-              />
-            </div>
           </div>
-        </SheetContent>
-      </Sheet>
+        </div>
+      )}
 
       {/* ════════════════════════════════════════════ */}
       {/* Session Drawer (Create / Edit)               */}
