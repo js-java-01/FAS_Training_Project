@@ -47,6 +47,8 @@ export default function SemestersTable({ onSelectSemester, role }: SemestersTabl
   const [startDateFilter, setStartDateFilter] = useState<string | undefined>(undefined);
   const [endDateFilter, setEndDateFilter] = useState<string | undefined>(undefined);
 
+  const mode = role === "SUPER_ADMIN" || role === "ADMIN" ? "all" : "export";
+
   useEffect(() => {
     setPageIndex(0);
   }, [debouncedSearch, startDateFilter, endDateFilter]);
@@ -304,6 +306,7 @@ export default function SemestersTable({ onSelectSemester, role }: SemestersTabl
         onImport={handleImport}
         onExport={handleExport}
         onDownloadTemplate={handleDownloadTemplate}
+        mode={mode}
       />
     </div>
   );
