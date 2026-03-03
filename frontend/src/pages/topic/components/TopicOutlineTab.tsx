@@ -8,6 +8,7 @@ import {
   Plus,
   Pencil,
   Trash2,
+  DatabaseBackup,
 } from "lucide-react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { topicApi, type TopicLesson, type TopicObjective } from "@/api/topicApi";
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
+import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 
 /* ──────────────────────────────────────────────────────────── */
 /*  Constants                                                    */
@@ -102,6 +104,9 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
   /* ── delete confirms ── */
   const [deletingLesson, setDeletingLesson]   = useState<TopicLesson | null>(null);
   const [deletingSession, setDeletingSession] = useState<TopicSessionResponse | null>(null);
+  const [lessonImportExportOpen, setLessonImportExportOpen] = useState(false);
+  const [sessionImportExportOpen, setSessionImportExportOpen] = useState(false);
+  const [selectedSessionLessonId, setSelectedSessionLessonId] = useState<string | null>(null);
 
   /* ─── Fetch lessons ──────────────────────────────────────── */
   const fetchLessons = useCallback(async () => {
@@ -339,6 +344,88 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
     }
   };
 
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleSessionImport = async (file: File) => {
+    if (!selectedSessionLessonId) {
+      throw new Error("Please select a lesson before importing sessions.");
+    }
+    const result = await topicSessionApi.importSessions(selectedSessionLessonId, file);
+    await fetchSessions(selectedSessionLessonId);
+    return result;
+  };
+
+  const handleSessionExport = async () => {
+    if (!selectedSessionLessonId) {
+      toast.error("Please select a lesson before exporting sessions.");
+      return;
+    }
+
+    try {
+      const blob = await topicSessionApi.exportSessions(selectedSessionLessonId);
+      downloadBlob(blob, `topic-sessions-${selectedSessionLessonId}.xlsx`);
+      toast.success("Sessions exported");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to export sessions");
+    }
+  };
+
+  const handleSessionTemplate = async () => {
+    try {
+      const blob = await topicSessionApi.downloadSessionTemplate();
+      downloadBlob(blob, "topic-sessions-template.xlsx");
+    } catch {
+      toast.error("Failed to download template");
+    }
+  };
+
+  const validateImportFile = (file: File): string | null => {
+    if (!file.name.match(/\.(xlsx|xls)$/i)) {
+      return "Invalid file format. Only Excel files (.xlsx, .xls) are allowed.";
+    }
+
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return "File size exceeds 50MB limit.";
+    }
+
+    return null;
+  };
+
+  const handleLessonImport = async (file: File) => {
+    const result = await topicApi.importLessons(topicId, file);
+    await fetchLessons();
+    return result;
+  };
+
+  const handleLessonExport = async () => {
+    try {
+      const blob = await topicApi.exportLessons(topicId);
+      downloadBlob(blob, `topic-lessons-${topicId}.xlsx`);
+      toast.success("Lessons exported");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to export lessons");
+    }
+  };
+
+  const handleLessonTemplate = async () => {
+    try {
+      const blob = await topicApi.downloadLessonTemplate(topicId);
+      downloadBlob(blob, "topic-lessons-template.xlsx");
+    } catch {
+      toast.error("Failed to download lesson template");
+    }
+  };
+
   /* ─── Derived ────────────────────────────────────────────── */
   const isLessonDrawer  = drawerMode === "create-lesson" || drawerMode === "edit-lesson";
   const isSessionDrawer = drawerMode === "create-session" || drawerMode === "edit-session";
@@ -354,13 +441,23 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
           <h3 className="text-sm font-semibold text-gray-700">Topic Outlines</h3>
         </div>
         {isEditMode && (
-          <Button
-            size="sm"
-            onClick={openCreateLesson}
-            className="flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-xs px-3 py-1.5 h-auto"
-          >
-            <Plus size={14} /> Add Lesson
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setLessonImportExportOpen(true)}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 h-auto"
+            >
+              <DatabaseBackup size={14} /> Import / Export
+            </Button>
+            <Button
+              size="sm"
+              onClick={openCreateLesson}
+              className="flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-xs px-3 py-1.5 h-auto"
+            >
+              <Plus size={14} /> Add Lesson
+            </Button>
+          </div>
         )}
       </div>
 
@@ -462,14 +559,25 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
                   <div className="bg-white px-4 pt-3 pb-4">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-semibold text-gray-600 tracking-wide">Sessions</span>
-                      {isEditMode && (
+                      <div className="flex items-center gap-2">
                         <button
-                          onClick={() => openCreateSession(lesson.id)}
-                          className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                          onClick={() => {
+                            setSelectedSessionLessonId(lesson.id);
+                            setSessionImportExportOpen(true);
+                          }}
+                          className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                         >
-                          <Plus size={12} /> Add Session
+                          <DatabaseBackup size={12} /> Import / Export
                         </button>
-                      )}
+                        {isEditMode && (
+                          <button
+                            onClick={() => openCreateSession(lesson.id)}
+                            className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                          >
+                            <Plus size={12} /> Add Session
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {sessionsLoading ? (
@@ -799,6 +907,28 @@ export function TopicOutlineTab({ topicId, isEditMode }: Props) {
         message="Are you sure you want to delete this session? This action cannot be undone."
         onCancel={() => setDeletingSession(null)}
         onConfirm={handleDeleteSession}
+      />
+
+      <ImportExportModal
+        title="Topic Lessons"
+        open={lessonImportExportOpen}
+        setOpen={setLessonImportExportOpen}
+        onImport={handleLessonImport}
+        onExport={handleLessonExport}
+        onDownloadTemplate={handleLessonTemplate}
+        acceptedFileTypes=".xlsx,.xls"
+        validateFile={validateImportFile}
+      />
+
+      <ImportExportModal
+        title="Topic Sessions"
+        open={sessionImportExportOpen}
+        setOpen={setSessionImportExportOpen}
+        onImport={handleSessionImport}
+        onExport={handleSessionExport}
+        onDownloadTemplate={handleSessionTemplate}
+        acceptedFileTypes=".xlsx,.xls"
+        validateFile={validateImportFile}
       />
     </div>
   );
