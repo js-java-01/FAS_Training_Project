@@ -1,7 +1,5 @@
 import type { SemesterResponse, TrainingClass } from "@/types/trainingClass";
-import { Badge } from "@/components/ui/badge";
 import dayjs from "dayjs";
-import { getTrainingClassStatusPresentation } from "../utils/statusPresentation";
 import type { PagedData } from "@/types/response";
 
 /* ── editable form data ── */
@@ -178,44 +176,84 @@ const SelectField = ({
 );
 
 /* ── status pill ── */
-const STATUS_OPTIONS = [
+const CLASS_STATUS_OPTIONS = [
+    { value: "ACTIVE", label: "Active" },
+    { value: "INACTIVE", label: "Inactive" },
+];
+
+const REQUEST_STATUS_OPTIONS = [
     { value: "PENDING_APPROVAL", label: "Pending" },
-    { value: "APPROVED_ACTIVE", label: "Active" },
-    { value: "APPROVED", label: "Approved (Inactive)" },
+    { value: "APPROVED", label: "Approved" },
     { value: "REJECTED", label: "Rejected" },
 ];
 
-const StatusSelector = ({ current }: { current: string }) => (
+const getStatusActiveStyle = (value: string) => {
+    if (value === "PENDING_APPROVAL") {
+        return {
+            container: "border-yellow-400 bg-yellow-50 text-yellow-700",
+            dot: "bg-yellow-500",
+        };
+    }
+
+    if (value === "APPROVED") {
+        return {
+            container: "border-green-400 bg-green-50 text-green-700",
+            dot: "bg-green-500",
+        };
+    }
+
+    if ( value === "ACTIVE" || value === "INACTIVE") {
+        return {
+            container: "border-blue-400 bg-blue-50 text-blue-700",
+            dot: "bg-blue-500",
+        };
+    }
+
+    if (value === "REJECTED") {
+        return {
+            container: "border-red-400 bg-red-50 text-red-700",
+            dot: "bg-red-500",
+        };
+    }
+
+    return {
+        container: "border-border bg-muted text-foreground",
+        dot: "bg-muted-foreground/60",
+    };
+};
+
+const StatusSelector = ({
+    label,
+    current,
+    options,
+}: {
+    label: string;
+    current: string;
+    options: { value: string; label: string }[];
+}) => (
     <div className="space-y-2">
         <label className="text-sm font-medium text-muted-foreground">
-            Status<span className="text-red-500 ml-0.5">*</span>
+            {label}<span className="text-red-500 ml-0.5">*</span>
         </label>
         <div className="flex flex-wrap gap-2">
-            {STATUS_OPTIONS.map((s) => {
+            {options.map((s) => {
                 const isActive = s.value === current;
+                const activeStyle = getStatusActiveStyle(s.value);
                 return (
                     <div
                         key={s.value}
                         className={`
                             inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium cursor-default transition
-                            ${isActive ? "border-blue-400 bg-blue-50 text-blue-700" : "border-border bg-background text-muted-foreground"}
+                            ${isActive ? activeStyle.container : "border-border bg-background text-muted-foreground"}
                         `}
                     >
                         <span
-                            className={`h-2 w-2 rounded-full ${isActive ? "bg-blue-500" : "bg-muted-foreground/40"}`}
+                            className={`h-2 w-2 rounded-full ${isActive ? activeStyle.dot : "bg-muted-foreground/40"}`}
                         />
                         {s.label}
                     </div>
                 );
             })}
-        </div>
-        <div className="text-xs text-muted-foreground mt-1">
-            Selected:{" "}
-            <Badge variant="outline" className="text-blue-600 border-blue-300 bg-blue-50">
-                {STATUS_OPTIONS.find(
-                    (s) => s.value === current,
-                )?.label ?? current}
-            </Badge>
         </div>
     </div>
 );
@@ -230,6 +268,7 @@ interface ClassInfoTabProps {
     errors?: Record<string, string>;
     semesters?: PagedData<SemesterResponse> | SemesterResponse[];
     loadingSemesters?: boolean;
+    enrollmentKey?: string;
 }
 
 export default function ClassInfoTab({
@@ -240,8 +279,15 @@ export default function ClassInfoTab({
     errors = {},
     semesters ,
     loadingSemesters = false,
+    enrollmentKey,
 }: ClassInfoTabProps) {
-    const statusPresentation = getTrainingClassStatusPresentation(trainingClass);
+    const rawRequestStatus = String(trainingClass.status ?? "").toUpperCase();
+    const requestStatusValue = rawRequestStatus === "PENDING_APPROVAL"
+        ? "PENDING_APPROVAL"
+        : rawRequestStatus === "REJECTED"
+            ? "REJECTED"
+            : "APPROVED";
+    const classStatusValue = trainingClass.isActive ? "ACTIVE" : "INACTIVE";
     const todayString = dayjs().format("YYYY-MM-DD");
     const minEndDate = formData?.startDate
         ? dayjs(formData.startDate).add(1, "day").isBefore(dayjs(todayString))
@@ -258,8 +304,8 @@ export default function ClassInfoTab({
         : (semesters?.items ?? []);
 
     const semesterOptions = semesterList.map((semester) => ({
-        id: semester.id,
-        label: semester.name,
+      id: semester.id,
+      label: semester.name,
     }));
 
     return (
@@ -294,31 +340,43 @@ export default function ClassInfoTab({
                     />
                 </div>
 
-                {/* Row 2: BU Request + Training Program */}
+                {/* Row 2: BU Request + Training Program
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <SelectField label="BU Request (Optional)" value={null} />
                     <SelectField label="Training Program" value={null} required />
-                </div>
+                </div> */}
 
                 {/* Row 3: Master Trainer / Admin / Location */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <SelectField label="Master Trainer" value={trainingClass.creatorName} />
                     <SelectField label="Admin" value={trainingClass.approverName} />
-                    <SelectField label="Location" value={null} required />
+                    <Field label="Enrollment Key" value={enrollmentKey ?? trainingClass.enrollmentKey} />
+                    {/* <SelectField label="Location" value={null} required /> */}
                 </div>
 
                 {/* Row 4: Format / Delivery / Subject / Scope / Trainee / Technical */}
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-5">
+                {/* <div className="grid grid-cols-2 md:grid-cols-6 gap-5">
                     <SelectField label="Format Type" value={null} />
                     <SelectField label="Delivery Type" value={null} />
                     <SelectField label="Subject Type" value={null} />
                     <SelectField label="Scope" value={null} />
                     <SelectField label="Trainee Type" value={null} required />
                     <SelectField label="Technical Group" value={null} required />
-                </div>
+                </div> */}
 
                 {/* Status */}
-                <StatusSelector current={statusPresentation.value} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <StatusSelector
+                        label="Class Status"
+                        current={classStatusValue}
+                        options={CLASS_STATUS_OPTIONS}
+                    />
+                    <StatusSelector
+                        label="Request Status"
+                        current={requestStatusValue}
+                        options={REQUEST_STATUS_OPTIONS}
+                    />
+                </div>
             </section>
 
             {/* ── Additional Details ── */}
@@ -336,7 +394,7 @@ export default function ClassInfoTab({
                         selectedValue={formData?.semesterId}
                         loading={loadingSemesters}
                     />
-                    <Field
+                    {/* <Field
                         label="Description"
                         value={
                             isEditing
@@ -346,7 +404,7 @@ export default function ClassInfoTab({
                         isEditing={isEditing}
                         onChange={onFieldChange}
                         name="description"
-                    />
+                    /> */}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

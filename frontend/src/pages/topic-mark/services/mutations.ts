@@ -48,7 +48,8 @@ export const useImportTopicMarks = ({ id }: { id: string }) => {
   const queryClient = useQueryClient();
   const invalidateAll = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["gradebook-table"] }), // update table
+      queryClient.invalidateQueries({ queryKey: ["gradebook-table"] }),
+     queryClient.invalidateQueries({ queryKey: ["grade-history"] }) // update table
     ]);
   };
   return useMutation({

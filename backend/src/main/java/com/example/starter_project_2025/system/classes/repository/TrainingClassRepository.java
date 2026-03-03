@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -53,4 +54,7 @@ public interface TrainingClassRepository
        List<TrainingClass> findByClassStatusAndStartDateLessThanEqual(
                      ClassStatus status,
                      LocalDate date);
+
+       List<TrainingClass> findAllByEnrollmentKey(String key);
+       boolean existsByEnrollmentKey(String enrollmentKey);
 }

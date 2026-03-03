@@ -10,6 +10,7 @@ import com.example.starter_project_2025.system.training_program.service.Training
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,8 @@ public class TrainingProgramController {
     @GetMapping(params = "page")
     @Operation(summary = "Search training programs with pagination")
     public ResponseEntity<ApiResponse<PageResponse<TrainingProgramResponse>>> searchTrainingPrograms(
-            @ModelAttribute SearchTrainingProgramRequest request
+
+            @Valid @ParameterObject  @ModelAttribute SearchTrainingProgramRequest request
     ) {
 
         String sortField = request.getSort()[0];

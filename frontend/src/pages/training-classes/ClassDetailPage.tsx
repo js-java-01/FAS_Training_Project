@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft,Pencil, Save, X } from "lucide-react";
 import ClassInfoTab from "./components/ClassInfoTab";
-import { getTrainingClassStatusPresentation } from "./utils/statusPresentation";
 import { decodeRouteId } from "@/utils/routeIdCodec";
 import ClassTraineesTable from "../classes/component/ClassTraineesTable";
 import type { RootState } from "@/store/store";
@@ -75,6 +74,7 @@ export default function ClassDetailPage() {
     const location = useLocation();
     const queryClient = useQueryClient();
     const { role } = useSelector((state: RootState) => state.auth);
+    const canEditClass = role !== "TRAINER";
 
     /* Data passed from the table via navigate state */
     const stateClass = (location.state as { trainingClass?: TrainingClass })?.trainingClass ?? null;
@@ -84,12 +84,21 @@ export default function ClassDetailPage() {
 
     /* Prefer fetched data, fall back to route state */
     const trainingClass = fetchedClass ?? stateClass;
-    const statusPresentation = trainingClass
-        ? getTrainingClassStatusPresentation(trainingClass)
-        : null;
+    const classStatus = trainingClass
+        ? (trainingClass.isActive ? "Active" : "Inactive")
+        : "";
+    const requestStatus = trainingClass
+        ? (() => {
+              const raw = String(trainingClass.status ?? "").toUpperCase();
+              if (raw === "PENDING_APPROVAL") return "Pending";
+              if (raw === "REJECTED") return "Rejected";
+              return "Approved";
+          })()
+        : "";
 
     /* ── Edit mode state ── */
     const [isEditing, setIsEditing] = useState(false);
+    const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["value"]>("class-info");
     const [formData, setFormData] = useState<ClassInfoFormData>(() =>
         trainingClass ? buildFormData(trainingClass) : {
             className: "", classCode: "", description: "", startDate: "", endDate: "", semesterId: "",
@@ -110,18 +119,27 @@ export default function ClassDetailPage() {
         const semesters = semestersData?.items ?? [];
 
     const handleEdit = useCallback(() => {
+        if (!canEditClass) return;
         if (trainingClass) {
             setFormData(buildFormData(trainingClass));
             setFormErrors({});
             setIsEditing(true);
         }
-    }, [trainingClass]);
+    }, [canEditClass, trainingClass]);
 
     const handleCancel = useCallback(() => {
         setIsEditing(false);
         setFormErrors({});
         if (trainingClass) setFormData(buildFormData(trainingClass));
     }, [trainingClass]);
+
+    const handleTabChange = useCallback((value: string) => {
+        const nextTab = value as (typeof TABS)[number]["value"];
+        if (nextTab !== "class-info" && isEditing) {
+            handleCancel();
+        }
+        setActiveTab(nextTab);
+    }, [handleCancel, isEditing]);
 
     const handleFieldChange = useCallback((name: string, value: string) => {
         setFormData((prev) => ({ ...prev, [name]: value }));
@@ -155,9 +173,24 @@ export default function ClassDetailPage() {
             await queryClient.invalidateQueries({ queryKey: ["training-classes"] });
             setIsEditing(false);
         } catch (err: unknown) {
+            const apiError = err as {
+                response?: {
+                    data?: {
+                        message?: string;
+                        errors?: Record<string, string>;
+                    };
+                };
+                message?: string;
+            };
+
+            const fieldErrors = apiError.response?.data?.errors;
+            if (fieldErrors && typeof fieldErrors === "object") {
+                setFormErrors((prev) => ({ ...prev, ...fieldErrors }));
+            }
+
             const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                (err as { message?: string })?.message ||
+                apiError.response?.data?.message ||
+                apiError.message ||
                 "Failed to update class";
             toast.error(msg);
         } finally {
@@ -198,48 +231,50 @@ export default function ClassDetailPage() {
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                            {isEditing ? (
-                                <>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-1.5"
-                                        onClick={handleCancel}
-                                        disabled={saving}
-                                    >
-                                        <X className="h-4 w-4" />
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
-                                        onClick={handleSave}
-                                        disabled={saving}
-                                    >
-                                        <Save className="h-4 w-4" />
-                                        {saving ? "Saving..." : "Save"}
-                                    </Button>
-                                </>
-                            ) : (
-                                <>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="gap-1.5"
-                                        onClick={() => navigate("/classes")}
-                                    >
-                                        <ArrowLeft className="h-4 w-4" />
-                                        Back to list
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
-                                        onClick={handleEdit}
-                                    >
-                                        <Pencil className="h-4 w-4" />
-                                        Edit
-                                    </Button>
-                                </>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="gap-1.5"
+                                onClick={() => navigate("/classes")}
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                                Back to list
+                            </Button>
+                            {activeTab === "class-info" && (
+                                isEditing ? (
+                                    <>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-1.5"
+                                            onClick={handleCancel}
+                                            disabled={saving}
+                                        >
+                                            <X className="h-4 w-4" />
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                                            onClick={handleSave}
+                                            disabled={saving}
+                                        >
+                                            <Save className="h-4 w-4" />
+                                            {saving ? "Saving..." : "Save"}
+                                        </Button>
+                                    </>
+                                ) : (
+                                    canEditClass && (
+                                        <Button
+                                            size="sm"
+                                            className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                                            onClick={handleEdit}
+                                        >
+                                            <Pencil className="h-4 w-4" />
+                                            Edit
+                                        </Button>
+                                    )
+                                )
                             )}
                         </div>
                     </div>
@@ -252,15 +287,12 @@ export default function ClassDetailPage() {
                         <span className="font-mono text-sm text-muted-foreground">
                             {trainingClass.classCode}
                         </span>
-                        <Badge
-                            className={statusPresentation?.badgeClassName}
-                        >
-                            {statusPresentation?.label}
-                        </Badge>
+                        <Badge variant="secondary">Class: {classStatus}</Badge>
+                        <Badge variant="secondary">Request: {requestStatus}</Badge>
                     </div>
 
                     {/* ── Tabs ── */}
-                    <Tabs defaultValue="class-info" className="flex-1 flex flex-col min-h-0">
+                    <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0">
                         <TabsList variant="line" className="border-b w-full justify-start">
                             {TABS.map((tab) => (
                                 <TabsTrigger key={tab.value} value={tab.value}>
@@ -279,11 +311,13 @@ export default function ClassDetailPage() {
                                 errors={formErrors}
                                 semesters={semesters}
                                 loadingSemesters={loadingSemesters}
+                                enrollmentKey={trainingClass.enrollmentKey}
                             />
                         </TabsContent>
 
                         {/* Placeholder tabs */}
                         <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1 h-full flex">
+                            {/* <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button> */}
                             <ClassTraineesTable classId={trainingClass.id} trainingClass={trainingClass} />
                         </TabsContent>
 

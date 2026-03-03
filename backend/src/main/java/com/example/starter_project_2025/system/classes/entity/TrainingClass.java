@@ -41,7 +41,7 @@ public class TrainingClass {
 
     @Column(name = "class_code", unique = true)
     private String classCode;
-    @Column(name = "enrollment_key", length = 500)
+    @Column(name = "enrollment_key", length = 100)
     private String enrollmentKey;
 
     @Enumerated(EnumType.STRING)

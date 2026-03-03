@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/data_table/DataTable";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 
 import { topicApi, type Topic } from "@/api/topicApi";
 import { getColumns } from "./components/columns";

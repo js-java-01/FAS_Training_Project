@@ -5,9 +5,7 @@ import { useActiveModuleGroups } from "./hooks/useSidebarMenus";
 import NotFoundPage from "./pages/NotFoundPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { OAuth2RedirectHandler } from "./components/auth/OAuth2RedirectHandler";
-import { Login } from "./pages/auth/Login";
-import RegisterPage from "./pages/auth/RegisterPage";
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import { AuthPage } from "./pages/auth/AuthPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import DepartmentManagement from "@/pages/department/DepartmentManagement";
@@ -34,13 +32,13 @@ import { RoleManagement } from "./pages/role/RoleManagement";
 import PermissionsManagement from "./pages/permissions/PermissionsManagement";
 import MfaSettings from "./pages/MfaSettings";
 import { MfaGateProvider } from "./components/MfaGateProvider";
-import ClassesDetailComponent from "./pages/classes/ClassesDetailManagement";
 import Unauthorized from "./pages/Unauthorized";
 import { TopicManagement } from "./pages/topic/TopicManagement";
 import TopicDetailPage from "./pages/topic/TopicDetailPage";
 import ProgramManagement from "./pages/programs/ProgramManagement";
 import ProgramCreatePage from "./pages/programs/ProgramCreatePage";
 import ProgramDetailPage from "./pages/programs/ProgramDetailPage";
+import ClassesDetailComponent from "@/pages/classes/ClassesDetailManagement.tsx";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -67,12 +65,11 @@ function App() {
               path="/oauth2/redirect"
               element={<OAuth2RedirectHandler />}
             />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<AuthPage />} />
             <Route path="/logout" element={<Logout />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/register" element={<AuthPage />} />
+            <Route path="/forgot-password" element={<AuthPage />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             {moduleGroups.flatMap((group) =>
               group.modules.map((m) => {

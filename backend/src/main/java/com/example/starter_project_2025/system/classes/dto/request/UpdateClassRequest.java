@@ -13,7 +13,7 @@ import java.util.UUID;
 public class UpdateClassRequest {
 
     @Pattern(
-            regexp = "^(?=.*[a-zA-Z])[a-zA-Z0-9 _-]+$",
+            regexp = "^(?=.*\\p{L})[\\p{L}\\p{N} _-]+$",
             message = "Class name must contain at least one letter and only letters, numbers, spaces, '-' or '_' are allowed"
     )
     @Schema(example = "HCM_Java_24")
@@ -24,6 +24,8 @@ public class UpdateClassRequest {
 
     @Schema(example = "9ad6df34-212b-4808-ac2f-5af79299ea8d")
     private UUID semesterId;
+
+    private String enrollmentKey;
 
     @Schema(example = "2026-03-16")
     private LocalDate startDate;
