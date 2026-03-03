@@ -206,6 +206,10 @@ export const courseApi = {
     );
   },
 
+  cloneObjectivesFromTopic: async (courseId: string, topicId: string): Promise<void> => {
+    await axiosInstance.post(`/courses/${courseId}/objectives/clone-from-topic/${topicId}`);
+  },
+
   // =============================
   // COURSE ASSESSMENT SCHEME
   // =============================

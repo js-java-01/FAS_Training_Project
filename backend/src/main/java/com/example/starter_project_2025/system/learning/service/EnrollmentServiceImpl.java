@@ -1,9 +1,8 @@
 package com.example.starter_project_2025.system.learning.service;
 
-import com.example.starter_project_2025.system.course.dto.CourseResponse;
-import com.example.starter_project_2025.system.course.entity.Course;
-import com.example.starter_project_2025.system.course.mapper.CourseMapper;
-import com.example.starter_project_2025.system.course.repository.CourseRepository;
+import com.example.starter_project_2025.system.course_online.entity.Course;
+import com.example.starter_project_2025.system.course_online.mapper.CourseMapper;
+import com.example.starter_project_2025.system.course_online.repository.CourseRepository;
 import com.example.starter_project_2025.system.learning.dto.EnrolledCourseResponse;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentResponse;
@@ -11,12 +10,10 @@ import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
 import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
-import com.example.starter_project_2025.system.topic.dto.TopicResponse;
 import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -24,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

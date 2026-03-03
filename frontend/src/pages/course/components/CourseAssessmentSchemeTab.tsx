@@ -6,7 +6,6 @@ import {
   FiPlus,
   FiTrash2,
   FiClipboard,
-  FiCopy,
   FiEdit,
   FiX,
 } from "react-icons/fi";
@@ -23,7 +22,6 @@ import {
   type CourseAssessmentComponentRequest,
   type CourseAssessmentComponentType,
 } from "@/api/courseApi";
-import { topicApi, type Topic } from "@/api/topicApi";
 
 /* ─── helpers ─── */
 const typeLabel: Record<CourseAssessmentComponentType, string> = {
@@ -45,10 +43,9 @@ interface EditableComponent extends CourseAssessmentComponentResponse {
 /* ─── Main Tab ──────────────────────────────────────────────── */
 interface Props {
   courseId: string;
-  topicId?: string | null;
 }
 
-export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
+export function CourseAssessmentSchemeTab({ courseId }: Props) {
   /* ── config state ── */
   const [configLoading, setConfigLoading] = useState(true);
   const [configSaving, setConfigSaving] = useState(false);
@@ -69,11 +66,6 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
   const [compLoading, setCompLoading] = useState(true);
   const [compSaving, setCompSaving] = useState(false);
   const [hasCompChanges, setHasCompChanges] = useState(false);
-
-  /* ── clone state ── */
-  const [cloning, setCloning] = useState(false);
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [selectedTopicId, setSelectedTopicId] = useState<string>(topicId ?? "");
 
   /* ── load ── */
   const loadConfig = useCallback(async () => {
@@ -111,14 +103,6 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
     loadComponents();
   }, [loadConfig, loadComponents]);
 
-  /* load topics for clone selector */
-  useEffect(() => {
-    topicApi
-      .getTopics({ size: 200, status: "ACTIVE" })
-      .then((res) => setTopics(res.items))
-      .catch(() => {});
-  }, []);
-
   /* ── config save ── */
   const onSaveConfig = async (form: CourseAssessmentSchemeConfig) => {
     try {
@@ -141,25 +125,6 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
   const onCancelConfig = () => {
     setConfigEditing(false);
     loadConfig();
-  };
-
-  /* ── clone from topic ── */
-  const onCloneFromTopic = async () => {
-    if (!selectedTopicId) {
-      toast.error("Please select a topic to clone from");
-      return;
-    }
-    try {
-      setCloning(true);
-      await courseApi.cloneSchemeFromTopic(courseId, selectedTopicId);
-      toast.success("Assessment scheme cloned from topic");
-      await loadConfig();
-      await loadComponents();
-    } catch {
-      toast.error("Failed to clone assessment scheme");
-    } finally {
-      setCloning(false);
-    }
   };
 
   /* ── component helpers ── */
@@ -279,43 +244,6 @@ export function CourseAssessmentSchemeTab({ courseId, topicId }: Props) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      {/* ─── CLONE FROM TOPIC BANNER ─────────────────────── */}
-      <div className="border rounded-xl bg-white overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-3 border-b bg-gray-50/60">
-          <div className="flex items-center gap-2 text-gray-700 font-semibold text-sm">
-            <FiCopy className="text-blue-500" />
-            Clone Assessment Scheme from Topic
-          </div>
-        </div>
-        <div className="px-5 py-4 flex items-center gap-3 flex-wrap">
-          <select
-            value={selectedTopicId}
-            onChange={(e) => setSelectedTopicId(e.target.value)}
-            className="border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white flex-1 min-w-50"
-          >
-            <option value="">-- Select topic --</option>
-            {topics.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.topicCode} – {t.topicName}
-              </option>
-            ))}
-          </select>
-          <Button
-            size="sm"
-            onClick={onCloneFromTopic}
-            disabled={cloning || !selectedTopicId}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs shrink-0"
-          >
-            <FiCopy className="mr-1.5" />
-            {cloning ? "Cloning…" : "Clone from Topic"}
-          </Button>
-          <p className="text-xs text-gray-400 w-full">
-            ⚠ This will overwrite the current assessment scheme configuration
-            and components.
-          </p>
-        </div>
-      </div>
-
       {/* ─── SECTION 1 – SCHEME CONFIG ──────────────────────── */}
       <div className="border rounded-xl bg-white overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3 border-b bg-gray-50/60">

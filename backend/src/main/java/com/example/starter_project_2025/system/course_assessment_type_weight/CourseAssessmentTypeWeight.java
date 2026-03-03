@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
-import com.example.starter_project_2025.system.course.entity.Course;
+import com.example.starter_project_2025.system.course_online.entity.Course;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;

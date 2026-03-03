@@ -74,4 +74,8 @@ export const batchOutlineApi = {
   applyAiPreview: async (courseId: string, request: ApplyAiPreviewRequest): Promise<void> => {
     await axiosInstance.post(`/batch-outline/${courseId}/outline/apply-ai-preview`, request);
   },
+
+  cloneOutlineFromTopic: async (courseId: string, topicId: string): Promise<void> => {
+    await axiosInstance.post(`/batch-outline/${courseId}/clone-from-topic/${topicId}`);
+  },
 };

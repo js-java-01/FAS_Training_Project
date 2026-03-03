@@ -16,6 +16,7 @@ public interface TopicObjectiveRepository extends JpaRepository<TopicObjective, 
 
     boolean existsByTopicIdAndCode(UUID topicId, String code);
 
-
     Page<TopicObjective> findByTopicId(UUID topicId, Pageable pageable);
+
+    List<TopicObjective> findByTopicId(UUID topicId);
 }

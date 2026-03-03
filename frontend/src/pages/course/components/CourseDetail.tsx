@@ -425,10 +425,7 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
       )}
 
       {activeTab === "Assessment Scheme" && (
-        <CourseAssessmentSchemeTab
-          courseId={course.id}
-          topicId={course.topicId ?? null}
-        />
+        <CourseAssessmentSchemeTab courseId={course.id} />
       )}
 
       {activeTab === "Outline" && (

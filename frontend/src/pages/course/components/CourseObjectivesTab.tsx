@@ -84,7 +84,11 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
 
   const openEdit = (obj: CourseObjective) => {
     setPanelMode("edit");
-    setForm({ code: obj.code, name: obj.name, description: obj.description ?? "" });
+    setForm({
+      code: obj.code,
+      name: obj.name,
+      description: obj.description ?? "",
+    });
     setEditingId(obj.id);
     setPanelOpen(true);
   };
@@ -243,7 +247,7 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
   // ─── Render ──────────────────────────────────────────────
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <span className="text-md font-semibold text-gray-800">
           Course Objectives
         </span>
@@ -261,7 +265,6 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
           </Button>
         </div>
       </div>
-
       <DataTable
         columns={columns}
         data={objectives}
@@ -270,7 +273,6 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
         searchValue={["name", "description"]}
         searchPlaceholder="name"
       />
-
       {/* ── View Detail Sheet ── */}
       <Sheet open={viewOpen} onOpenChange={setViewOpen}>
         <SheetContent className="p-0 sm:max-w-md" side="right">
@@ -297,7 +299,6 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
           )}
         </SheetContent>
       </Sheet>
-
       {/* ── Delete Confirm ── */}
       <ConfirmDeleteModal
         open={deleteOpen}
@@ -314,7 +315,6 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
           setDeleteTarget(null);
         }}
       />
-
       {/* ── Import / Export ── */}
       <ImportExportModal
         title="Objectives"
@@ -324,7 +324,6 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
         onExport={handleExport}
         onDownloadTemplate={handleDownloadTemplate}
       />
-
       <ObjectiveForm
         open={panelOpen}
         onClose={() => setPanelOpen(false)}
@@ -332,10 +331,10 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
         initialData={
           panelMode === "edit"
             ? {
-              code: form.code,
-              name: form.name,
-              description: form.description,
-            }
+                code: form.code,
+                name: form.name,
+                description: form.description,
+              }
             : null
         }
         onSubmit={async (data) => {
@@ -355,9 +354,9 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
           } catch (err: any) {
             toast.error(
               err?.response?.data?.message ||
-              (panelMode === "edit"
-                ? "Failed to update objective"
-                : "Failed to create objective")
+                (panelMode === "edit"
+                  ? "Failed to update objective"
+                  : "Failed to create objective"),
             );
           } finally {
             setSaving(false);
