@@ -1,5 +1,6 @@
 import axiosInstance from "./axiosInstance";
 import type { TopicSessionRequest, TopicSessionResponse } from "@/types/topicSession";
+import type { ImportResult } from "@/components/modal/import-export/ImportTab";
 
 export const topicSessionApi = {
   createSession: async (payload: TopicSessionRequest): Promise<TopicSessionResponse> => {
@@ -24,5 +25,32 @@ export const topicSessionApi = {
   getSessionsByLesson: async (lessonId: string): Promise<TopicSessionResponse[]> => {
     const res = await axiosInstance.get<TopicSessionResponse[]>(`/topics/sessions/lesson/${lessonId}`);
     return res.data;
+  },
+
+  exportSessions: async (lessonId: string): Promise<Blob> => {
+    const res = await axiosInstance.get(`/topics/sessions/export/lesson/${lessonId}`, {
+      responseType: "blob",
+    });
+    return res.data;
+  },
+
+  downloadSessionTemplate: async (): Promise<Blob> => {
+    const res = await axiosInstance.get("/topics/sessions/template", {
+      responseType: "blob",
+    });
+    return res.data;
+  },
+
+  importSessions: async (lessonId: string, file: File): Promise<ImportResult> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await axiosInstance.post<ImportResult>(
+      `/topics/sessions/import/lesson/${lessonId}`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
+    return response.data;
   },
 };

@@ -2,6 +2,7 @@ package com.example.starter_project_2025.system.topic.service;
 
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicSessionRequest;
 import com.example.starter_project_2025.system.topic.dto.TopicSessionResponse;
 import com.example.starter_project_2025.system.topic.entity.TopicLesson;
@@ -11,9 +12,18 @@ import com.example.starter_project_2025.system.topic.repository.TopicLessonRepos
 import com.example.starter_project_2025.system.topic.repository.TopicObjectiveRepository;
 import com.example.starter_project_2025.system.topic.repository.TopicSessionRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +33,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional
 public class TopicSessionServiceImpl implements TopicSessionService {
+
+    private static final String[] SESSION_HEADERS = {
+            "Session Order",
+            "Delivery Type",
+            "Training Format",
+            "Duration (minutes)",
+            "Learning Objective IDs",
+            "Content",
+            "Note"
+    };
 
     private final TopicSessionRepository topicSessionRepository;
     private final TopicLessonRepository topicLessonRepository;
@@ -75,6 +95,180 @@ public class TopicSessionServiceImpl implements TopicSessionService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportSessions(UUID lessonId) {
+        TopicLesson lesson = getLessonOrThrow(lessonId);
+        List<TopicSession> sessions = topicSessionRepository.findByLessonIdOrderBySessionOrderAsc(lessonId);
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Topic Sessions");
+
+            Font bold = workbook.createFont();
+            bold.setBold(true);
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFont(bold);
+            headerStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            Row header = sheet.createRow(0);
+            for (int columnIndex = 0; columnIndex < SESSION_HEADERS.length; columnIndex++) {
+                Cell cell = header.createCell(columnIndex);
+                cell.setCellValue(SESSION_HEADERS[columnIndex]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            int rowIndex = 1;
+            for (TopicSession session : sessions) {
+                Row row = sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(session.getSessionOrder() != null ? session.getSessionOrder() : 0);
+                row.createCell(1).setCellValue(session.getDeliveryType() != null ? session.getDeliveryType() : "");
+                row.createCell(2).setCellValue(session.getTrainingFormat() != null ? session.getTrainingFormat() : "");
+                row.createCell(3).setCellValue(session.getDuration() != null ? session.getDuration() : 0);
+
+                String objectiveIds = session.getLearningObjectives().stream()
+                        .map(objective -> objective.getId().toString())
+                        .reduce((left, right) -> left + "," + right)
+                        .orElse("");
+                row.createCell(4).setCellValue(objectiveIds);
+                row.createCell(5).setCellValue(session.getContent() != null ? session.getContent() : "");
+                row.createCell(6).setCellValue(session.getNote() != null ? session.getNote() : "");
+            }
+
+            for (int columnIndex = 0; columnIndex < SESSION_HEADERS.length; columnIndex++) {
+                sheet.autoSizeColumn(columnIndex);
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=topic_sessions_" + lesson.getId() + ".xlsx")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(outputStream.toByteArray());
+        } catch (Exception exception) {
+            throw new RuntimeException("Failed to export topic sessions", exception);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> downloadSessionTemplate() {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Topic Sessions");
+
+            Font bold = workbook.createFont();
+            bold.setBold(true);
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFont(bold);
+
+            Row header = sheet.createRow(0);
+            for (int columnIndex = 0; columnIndex < SESSION_HEADERS.length; columnIndex++) {
+                Cell cell = header.createCell(columnIndex);
+                cell.setCellValue(SESSION_HEADERS[columnIndex]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            Row sample = sheet.createRow(1);
+            sample.createCell(0).setCellValue(1);
+            sample.createCell(1).setCellValue("LIVE_SESSION");
+            sample.createCell(2).setCellValue("ONLINE");
+            sample.createCell(3).setCellValue(90);
+            sample.createCell(4).setCellValue("<objective-id-1>,<objective-id-2>");
+            sample.createCell(5).setCellValue("Introduction and overview");
+            sample.createCell(6).setCellValue("Optional note");
+
+            for (int columnIndex = 0; columnIndex < SESSION_HEADERS.length; columnIndex++) {
+                sheet.autoSizeColumn(columnIndex);
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=topic_sessions_template.xlsx")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(outputStream.toByteArray());
+        } catch (Exception exception) {
+            throw new RuntimeException("Failed to generate topic session template", exception);
+        }
+    }
+
+    @Override
+    public ImportResultResponse importSessions(UUID lessonId, MultipartFile file) {
+        ImportResultResponse result = new ImportResultResponse();
+        TopicLesson lesson = getLessonOrThrow(lessonId);
+
+        try (InputStream inputStream = file.getInputStream(); Workbook workbook = new XSSFWorkbook(inputStream)) {
+            Sheet sheet = workbook.getSheetAt(0);
+            Iterator<Row> rows = sheet.iterator();
+            if (!rows.hasNext()) {
+                result.buildMessage();
+                return result;
+            }
+
+            rows.next();
+            while (rows.hasNext()) {
+                Row row = rows.next();
+
+                String deliveryType = getCellAsString(row, 1);
+                if (deliveryType == null || deliveryType.isBlank()) {
+                    continue;
+                }
+
+                result.setTotalRows(result.getTotalRows() + 1);
+                int displayRow = row.getRowNum() + 1;
+
+                try {
+                    int sessionOrder = (int) getCellAsNumeric(row, 0);
+                    int duration = (int) getCellAsNumeric(row, 3);
+
+                    if (sessionOrder <= 0) {
+                        result.addError(displayRow, "sessionOrder", "Session order must be greater than 0.");
+                        continue;
+                    }
+                    if (duration <= 0) {
+                        result.addError(displayRow, "duration", "Duration must be greater than 0.");
+                        continue;
+                    }
+                    if (topicSessionRepository.existsByLessonIdAndSessionOrder(lessonId, sessionOrder)) {
+                        result.addError(displayRow, "sessionOrder", "Duplicate session order: " + sessionOrder);
+                        continue;
+                    }
+
+                    String objectiveIdsRaw = getCellAsString(row, 4);
+                    List<UUID> objectiveIds = parseObjectiveIds(objectiveIdsRaw, displayRow, result);
+                    if (objectiveIds == null) {
+                        continue;
+                    }
+
+                    TopicSessionRequest request = new TopicSessionRequest();
+                    request.setLessonId(lesson.getId());
+                    request.setDeliveryType(deliveryType.trim());
+                    request.setTrainingFormat(getCellAsString(row, 2));
+                    request.setDuration(duration);
+                    request.setSessionOrder(sessionOrder);
+                    request.setLearningObjectiveIds(objectiveIds);
+                    request.setContent(getCellAsString(row, 5));
+                    request.setNote(getCellAsString(row, 6));
+
+                    TopicSession session = new TopicSession();
+                    mapRequest(session, request, lesson);
+                    topicSessionRepository.save(session);
+                    result.addSuccess();
+                } catch (Exception exception) {
+                    result.addError(displayRow, "", exception.getMessage());
+                }
+            }
+        } catch (Exception exception) {
+            result.addError(0, "file", "Failed to import topic sessions: " + exception.getMessage());
+        }
+
+        result.buildMessage();
+        return result;
     }
 
     private TopicLesson getLessonOrThrow(UUID lessonId) {
@@ -135,6 +329,60 @@ public class TopicSessionServiceImpl implements TopicSessionService {
         }
 
         return new LinkedHashSet<>(objectives);
+    }
+
+    private String getCellAsString(Row row, int columnIndex) {
+        Cell cell = row.getCell(columnIndex);
+        if (cell == null) {
+            return null;
+        }
+
+        return switch (cell.getCellType()) {
+            case STRING -> cell.getStringCellValue().trim();
+            case NUMERIC -> String.valueOf((long) cell.getNumericCellValue());
+            default -> null;
+        };
+    }
+
+    private double getCellAsNumeric(Row row, int columnIndex) {
+        Cell cell = row.getCell(columnIndex);
+        if (cell == null) {
+            return 0;
+        }
+
+        return switch (cell.getCellType()) {
+            case NUMERIC -> cell.getNumericCellValue();
+            case STRING -> {
+                try {
+                    yield Double.parseDouble(cell.getStringCellValue().trim());
+                } catch (NumberFormatException exception) {
+                    yield 0;
+                }
+            }
+            default -> 0;
+        };
+    }
+
+    private List<UUID> parseObjectiveIds(String objectiveIdsRaw, int rowNumber, ImportResultResponse result) {
+        if (objectiveIdsRaw == null || objectiveIdsRaw.isBlank()) {
+            return List.of();
+        }
+
+        String[] parts = objectiveIdsRaw.split(",");
+        List<UUID> ids = new java.util.ArrayList<>();
+        for (String part : parts) {
+            String value = part.trim();
+            if (value.isEmpty()) {
+                continue;
+            }
+            try {
+                ids.add(UUID.fromString(value));
+            } catch (IllegalArgumentException exception) {
+                result.addError(rowNumber, "learningObjectiveIds", "Invalid objective id: " + value);
+                return null;
+            }
+        }
+        return ids;
     }
 
     private TopicSessionResponse toResponse(TopicSession session) {

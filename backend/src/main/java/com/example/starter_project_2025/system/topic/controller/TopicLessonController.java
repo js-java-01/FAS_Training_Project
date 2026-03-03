@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.topic.controller;
 
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicLessonCreateRequest;
 import com.example.starter_project_2025.system.topic.dto.TopicLessonResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicLessonUpdateRequest;
@@ -12,9 +13,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -67,5 +70,28 @@ public class TopicLessonController {
             @PathVariable UUID lessonId) {
         topicLessonService.delete(topicId, lessonId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/export")
+    @PreAuthorize("hasAuthority('TOPIC_READ')")
+    @Operation(summary = "Export lessons by topic")
+    public ResponseEntity<byte[]> exportLessons(@PathVariable UUID topicId) {
+        return topicLessonService.exportLessons(topicId);
+    }
+
+    @GetMapping("/template")
+    @PreAuthorize("hasAuthority('TOPIC_READ')")
+    @Operation(summary = "Download topic lesson import template")
+    public ResponseEntity<byte[]> downloadLessonTemplate() {
+        return topicLessonService.downloadLessonTemplate();
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('TOPIC_UPDATE')")
+    @Operation(summary = "Import lessons from Excel file by topic")
+    public ResponseEntity<ImportResultResponse> importLessons(
+            @PathVariable UUID topicId,
+            @RequestPart("file") MultipartFile file) {
+        return ResponseEntity.ok(topicLessonService.importLessons(topicId, file));
     }
 }

@@ -475,4 +475,31 @@ export const topicApi = {
   deleteLesson: async (topicId: string, lessonId: string): Promise<void> => {
     await axiosInstance.delete(`/topics/${topicId}/lessons/${lessonId}`);
   },
+
+  exportLessons: async (topicId: string): Promise<Blob> => {
+    const response = await axiosInstance.get(
+      `/topics/${topicId}/lessons/export`,
+      { responseType: "blob" }
+    );
+    return response.data;
+  },
+
+  downloadLessonTemplate: async (topicId: string): Promise<Blob> => {
+    const response = await axiosInstance.get(
+      `/topics/${topicId}/lessons/template`,
+      { responseType: "blob" }
+    );
+    return response.data;
+  },
+
+  importLessons: async (topicId: string, file: File): Promise<ImportResult> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await axiosInstance.post<ImportResult>(
+      `/topics/${topicId}/lessons/import`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return response.data;
+  },
 };
