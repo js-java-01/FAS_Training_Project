@@ -18,6 +18,7 @@ public class ClassResponse {
     private String className;
     private String description;
     private String classCode;
+    private String enrollmentKey;
     private Boolean isActive;
 
     private String status;

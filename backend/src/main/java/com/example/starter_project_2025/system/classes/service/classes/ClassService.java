@@ -38,4 +38,14 @@ public interface ClassService {
     List<TrainingClassSemesterResponse> getMyClasses(UUID id);
 
     TrainerClassSemesterResponse getTrainerClasses(UUID trainerId, SearchTrainerClassInSemesterRequest request);
+
+    private String generateEnrollmentKey() {
+        return UUID.randomUUID()
+                .toString()
+                .replace("-", "")
+                .substring(0, 8)
+                .toUpperCase();
+    }
+
+    ClassResponse joinClassByEnrollmentKey(String enrollmentKey, UUID userId);
 }

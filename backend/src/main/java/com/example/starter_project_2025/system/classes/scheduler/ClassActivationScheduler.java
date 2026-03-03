@@ -18,7 +18,7 @@ public class ClassActivationScheduler {
 
     private final TrainingClassRepository classRepository;
 
-    @Scheduled(cron = "0 0 0 * * ?") // chạy mỗi ngày 00:00
+    @Scheduled(cron = "*/15 * * * * ?")
     @Transactional
     public void activateClasses() {
 
