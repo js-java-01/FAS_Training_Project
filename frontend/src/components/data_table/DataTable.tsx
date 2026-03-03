@@ -147,12 +147,14 @@ export function DataTable<TData, TValue>({
         Math.floor(usableHeight / rowHeight),
         MIN_ROWS,
       );
+      let pageSizeChanged = false;
       // Update pagination state with new page size
       setPagination((prev) => {
         if (prev.pageSize === newSize) return prev; // prevent re-render loop
+        pageSizeChanged = true;
         return { ...prev, pageSize: newSize };
       });
-      if (onPageSizeChange) onPageSizeChange(newSize);
+      if (pageSizeChanged && onPageSizeChange) onPageSizeChange(newSize);
     });
 
     observer.observe(el);
@@ -198,8 +200,11 @@ export function DataTable<TData, TValue>({
       const next =
         typeof updater === "function" ? updater(pagination) : updater;
       setPagination(next);
-      if (onPageChange) onPageChange(next.pageIndex);
-      if (onPageSizeChange) onPageSizeChange(next.pageSize);
+      const pageIndexChanged = next.pageIndex !== pagination.pageIndex;
+      const pageSizeChanged = next.pageSize !== pagination.pageSize;
+
+      if (pageIndexChanged && onPageChange) onPageChange(next.pageIndex);
+      if (pageSizeChanged && onPageSizeChange) onPageSizeChange(next.pageSize);
       if (onSearchChange) onSearchChange(searchText);
     },
     // Handle sorting change - manualSorting = false
