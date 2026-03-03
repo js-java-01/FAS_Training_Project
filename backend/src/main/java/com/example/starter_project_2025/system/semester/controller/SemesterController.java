@@ -30,7 +30,7 @@ public class SemesterController
 
     @GetMapping
     @Operation(summary = "Search semesters with pagination")
-    @PreAuthorize("hasAuthority('SEMESTER_READ')")
+    @PreAuthorize("hasAuthority('SEMESTER_ADMIN_READ')")
     public ResponseEntity<ApiResponse<PageResponse<SemesterResponse>>> getAllSemesters(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam(required = false) String keyword,

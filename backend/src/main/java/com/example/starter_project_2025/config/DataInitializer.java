@@ -277,7 +277,10 @@ public class DataInitializer implements CommandLineRunner
                 createPermission("TOPIC_UPDATE", "Update existing topics", "TOPIC", "UPDATE"),
                 createPermission("TOPIC_DELETE", "Delete topics", "TOPIC", "DELETE"),
                 createPermission("TOPIC_IMPORT", "Import topics from Excel", "TOPIC", "IMPORT"),
-                createPermission("TOPIC_EXPORT", "Export topics to Excel", "TOPIC", "EXPORT"));
+                createPermission("TOPIC_EXPORT", "Export topics to Excel", "TOPIC", "EXPORT"),
+
+                createPermission("SEMESTER_ADMIN_READ", "View semesters as admin", "SEMESTER", "ADMIN_READ"));
+
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }
@@ -344,7 +347,6 @@ public class DataInitializer implements CommandLineRunner
 
     private void initializeRoles()
     {
-
 
         // ADMIN
         Role adminRole = new Role();
@@ -481,6 +483,8 @@ public class DataInitializer implements CommandLineRunner
 
     private void initializeUserRoles()
     {
+        Role superAdminRole = roleRepository.findByName("SUPER_ADMIN")
+                .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
         Role adminRole = roleRepository.findByName("ADMIN")
                 .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
         Role managerRole = roleRepository.findByName("MANAGER")
@@ -510,7 +514,7 @@ public class DataInitializer implements CommandLineRunner
         assignRoleIfNotFound(admin1, adminRole, true);
         assignRoleIfNotFound(admin1, studentRole, false);
 
-        assignRoleIfNotFound(admin2, adminRole, true);
+        assignRoleIfNotFound(admin2, superAdminRole, true);
 
         assignRoleIfNotFound(manager1, managerRole, true);
         assignRoleIfNotFound(manager1, trainerRole, false);
@@ -756,6 +760,9 @@ public class DataInitializer implements CommandLineRunner
 
                 createModule(trainingGroup, "Classes", "/classes", "people", 6,
                         "CLASS_READ",
+                        "User search and view classes"),
+                createModule(trainingGroup, "Semesters", "/semesters", "LayoutGrid", 6,
+                        "SEMESTER_ADMIN_READ",
                         "User search and view classes")
         ));
 

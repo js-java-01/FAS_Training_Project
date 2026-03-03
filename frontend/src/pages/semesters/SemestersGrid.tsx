@@ -38,7 +38,7 @@ export default function SemestersGrid({ onSelectSemester }: SemestersGridProps) 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSemester, setEditingSemester] = useState<SemesterResponse | null>(null);
   const [viewingSemester, setViewingSemester] = useState<SemesterResponse | null>(null);
-  const [deletingSemester, setDeletingSemester] = useState<SemesterResponse  | null>(null);
+  const [deletingSemester, setDeletingSemester] = useState<SemesterResponse | null>(null);
   const [openBackupModal, setOpenBackupModal] = useState(false);
 
   /* ---------- Pagination State ---------- */
