@@ -9,6 +9,7 @@ export interface TrainingClass {
   className: string;
   description?: string;
   classCode: string;
+  enrollmentKey?: string;
   isActive: boolean;
   creatorName?: string;
   approverName?: string;

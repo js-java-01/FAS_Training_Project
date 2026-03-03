@@ -393,6 +393,17 @@
   font-weight: 500;
   opacity: 0.8;
 }
+/* xóa màu nền text placeholder */
+.auth-field-container input:-webkit-autofill,
+.auth-field-container input:-webkit-autofill:hover,
+.auth-field-container input:-webkit-autofill:focus,
+.auth-field-container input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+  box-shadow: 0 0 0px 1000px transparent inset !important;
+  -webkit-text-fill-color: #1e293b !important;
+  background-color: transparent !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
 
 .dark .auth-field-container input::placeholder {
   color: #64748b;

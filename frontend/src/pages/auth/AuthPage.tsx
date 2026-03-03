@@ -331,7 +331,16 @@ export const AuthPage: React.FC = () => {
                     Test Only:
                   </p>
                   <p style={{ color: "#334155" }}>
+                    <b>SUPER_ADMIN:</b> super.admin@example.com / password123
+                  </p>
+                  <p style={{ color: "#334155" }}>
                     <b>ADMIN:</b> admin@example.com / password123
+                  </p>
+                  <p style={{ color: "#334155" }}>
+                    <b>MANAGER:</b> manager2@example.com / password123
+                  </p>
+                  <p style={{ color: "#334155" }}>
+                    <b>TRAINER:</b> trainer1@example.com / password123
                   </p>
                   <p style={{ color: "#334155" }}>
                     <b>STUDENT:</b> student@example.com / password123

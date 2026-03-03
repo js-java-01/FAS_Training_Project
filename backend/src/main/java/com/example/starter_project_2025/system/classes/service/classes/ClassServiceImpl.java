@@ -17,6 +17,8 @@ import com.example.starter_project_2025.system.classes.dto.request.ReviewClassRe
 import com.example.starter_project_2025.system.classes.entity.ClassStatus;
 
 import com.example.starter_project_2025.system.classes.mapper.ClassMapper;
+import com.example.starter_project_2025.system.learning.entity.Enrollment;
+import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.modulegroups.util.StringNormalizer;
 import com.example.starter_project_2025.system.semester.entity.Semester;
 import com.example.starter_project_2025.system.semester.repository.SemesterRepository;
@@ -45,6 +47,7 @@ public class ClassServiceImpl implements ClassService {
     private final UserRepository userRepository;
     private final TrainerClassMapper trainerClassMapper;
     private final ClassMapper mapper;
+    private final EnrollmentRepository enrollmentRepository;
 
     @Override
     public ClassResponse getTrainingClassById(UUID id) {
@@ -177,6 +180,21 @@ public class ClassServiceImpl implements ClassService {
         if (request.getEndDate() != null)
             existing.setEndDate(endDate);
 
+        if (request.getEnrollmentKey() != null) {
+
+            if (request.getEnrollmentKey().isBlank()) {
+                existing.setEnrollmentKey(null);
+            } else {
+
+                if (classRepository.existsByEnrollmentKey(request.getEnrollmentKey())
+                        && !request.getEnrollmentKey().equals(existing.getEnrollmentKey())) {
+                    throw new RuntimeException("Enrollment key already exists");
+                }
+
+                existing.setEnrollmentKey(request.getEnrollmentKey());
+            }
+        }
+
         TrainingClass saved = classRepository.save(existing);
 
         return mapper.toResponse(saved);
@@ -211,6 +229,8 @@ public class ClassServiceImpl implements ClassService {
 
         trainingClass.setClassStatus(ClassStatus.APPROVED);
         trainingClass.setApprover(approver);
+        trainingClass.setEnrollmentKey(generateEnrollmentKey());
+
         if (request != null) {
             trainingClass.setReviewReason(request.getReviewReason());
         }
@@ -268,5 +288,57 @@ public class ClassServiceImpl implements ClassService {
         res.setClasses(mappedClasses);
 
         return res;
+    }
+
+    private String generateEnrollmentKey() {
+        return UUID.randomUUID()
+                .toString()
+                .replace("-", "")
+                .substring(0, 8)
+                .toUpperCase();
+    }
+
+    @Override
+    public ClassResponse joinClassByEnrollmentKey(String enrollmentKey, UUID userId) {
+
+        if (enrollmentKey == null || enrollmentKey.isBlank()) {
+            throw new RuntimeException("Enrollment key is required");
+        }
+
+        List<TrainingClass> classes = classRepository.findAllByEnrollmentKey(enrollmentKey);
+
+        if (classes.isEmpty()) {
+            throw new RuntimeException("Invalid enrollment key");
+        }
+
+        if (classes.size() > 1) {
+            throw new IllegalStateException("Enrollment key duplicated. Contact admin.");
+        }
+
+        TrainingClass trainingClass = classes.get(0);
+
+        if (trainingClass.getClassStatus() != ClassStatus.APPROVED) {
+            throw new RuntimeException("Class not approved");
+        }
+
+        if (!Boolean.TRUE.equals(trainingClass.getIsActive())) {
+            throw new RuntimeException("Class not active");
+        }
+
+        if (enrollmentRepository.existsByUserIdAndTrainingClassId(userId, trainingClass.getId())) {
+            throw new RuntimeException("Already enrolled");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Enrollment enrollment = Enrollment.builder()
+                .user(user)
+                .trainingClass(trainingClass)
+                .build();
+
+        enrollmentRepository.save(enrollment);
+
+        return mapper.toResponse(trainingClass);
     }
 }

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -28,9 +29,7 @@ public class ModuleController {
 
     private final ModuleService moduleService;
 
-    /* =========================================================
-       VIEW MODULE DETAIL
-    ========================================================= */
+
     @PreAuthorize("hasAuthority('MODULE_READ')")
     @GetMapping("/{id}")
     @Operation(summary = "View module details")
@@ -41,9 +40,6 @@ public class ModuleController {
         );
     }
 
-    /* =========================================================
-       CREATE MODULE
-    ========================================================= */
     @PostMapping
     @PreAuthorize("hasAuthority('MODULE_CREATE')")
     @Operation(summary = "Create module")
@@ -55,9 +51,7 @@ public class ModuleController {
                 .body(moduleService.createModule(request));
     }
 
-    /* =========================================================
-       UPDATE MODULE
-    ========================================================= */
+
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('MODULE_UPDATE')")
     @Operation(summary = "Update module")
@@ -69,9 +63,7 @@ public class ModuleController {
         return ResponseEntity.ok(response);
     }
 
-    /* =========================================================
-       GET MODULES BY GROUP
-    ========================================================= */
+
     @GetMapping("/module-group/{id}")
     @PreAuthorize("hasAuthority('MODULE_READ')")
     @Operation(summary = "Get all modules by Module Group ID")
@@ -83,9 +75,6 @@ public class ModuleController {
         );
     }
 
-    /* =========================================================
-       DELETE MODULE (SOFT DELETE)
-    ========================================================= */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('MODULE_DELETE')")
     @Operation(summary = "Delete module (soft delete)")
@@ -102,7 +91,7 @@ public class ModuleController {
     @PreAuthorize("hasAuthority('MODULE_READ')")
     @Operation(summary = "Search modules with pagination")
     public ResponseEntity<ApiResponse<PageResponse<ModuleDetail>>> searchModules(
-            @ModelAttribute SearchModuleRequest request,
+            @Valid @ParameterObject @ModelAttribute SearchModuleRequest request,
             Pageable pageable
     ) {
 
