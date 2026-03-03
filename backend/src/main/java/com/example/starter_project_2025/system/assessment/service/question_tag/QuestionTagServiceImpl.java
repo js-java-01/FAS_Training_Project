@@ -5,7 +5,6 @@ import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.base.service.CrudServiceImpl;
 import com.example.starter_project_2025.system.assessment.dto.question_tag.QuestionTagDTO;
 import com.example.starter_project_2025.system.assessment.dto.question_tag.QuestionTagFilter;
-import com.example.starter_project_2025.system.assessment.dto.question_tag.response.TagCountResponse;
 import com.example.starter_project_2025.system.assessment.entity.QuestionTag;
 import com.example.starter_project_2025.system.assessment.mapper.QuestionTagMapper;
 import com.example.starter_project_2025.system.assessment.repository.QuestionTagRepository;
@@ -16,9 +15,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -92,12 +88,4 @@ public class QuestionTagServiceImpl
             questionTag.setDescription(request.getDescription());
         }
     }
-
-
-    @Override
-    public List<TagCountResponse> getTagsByCategory(UUID categoryId) {
-        return questionTagRepository.findTagsByCategoryWithCount(categoryId);
-    }
-
-
 }

@@ -1,28 +1,21 @@
-package com.example.starter_project_2025.system.assessment.service.category;
+package com.example.starter_project_2025.system.assessment.service.question_category;
 
 import com.example.starter_project_2025.base.mapper.BaseCrudMapper;
 import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.base.service.CrudServiceImpl;
-import com.example.starter_project_2025.system.assessment.dto.category.QuestionCategoryDTO;
-import com.example.starter_project_2025.system.assessment.dto.category.QuestionCategoryFilter;
-import com.example.starter_project_2025.system.assessment.dto.question_tag.QuestionTagDTO;
-import com.example.starter_project_2025.system.assessment.dto.question_tag.QuestionTagFilter;
+import com.example.starter_project_2025.system.assessment.dto.question_category.QuestionCategoryDTO;
+import com.example.starter_project_2025.system.assessment.dto.question_category.QuestionCategoryFilter;
 import com.example.starter_project_2025.system.assessment.entity.QuestionCategory;
-import com.example.starter_project_2025.system.assessment.entity.QuestionTag;
 import com.example.starter_project_2025.system.assessment.mapper.QuestionCategoryMapper;
 import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
-import com.example.starter_project_2025.system.assessment.service.question_tag.QuestionTagService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service

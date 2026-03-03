@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -37,7 +36,6 @@ public class QuestionServiceImpl
     QuestionMapper questionMapper;
     QuestionCategoryRepository categoryRepo;
     QuestionTagRepository tagRepo;
-
 
     @Override
     protected BaseCrudRepository<Question, UUID> getRepository() {
@@ -90,7 +88,6 @@ public class QuestionServiceImpl
         setOptions(entity, request.getOptions(), request.getQuestionType());
     }
 
-
     @Override
     protected void beforeUpdate(Question entity, QuestionDTO request) {
 
@@ -112,7 +109,6 @@ public class QuestionServiceImpl
             updateOptions(entity, request.getOptions(), type);
         }
     }
-
 
     private void setCategory(Question question, UUID categoryId) {
 

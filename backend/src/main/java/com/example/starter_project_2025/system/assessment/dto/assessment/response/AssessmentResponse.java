@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class AssessmentDTO {
+public class AssessmentResponse {
     private Long id;
 
     private String code;

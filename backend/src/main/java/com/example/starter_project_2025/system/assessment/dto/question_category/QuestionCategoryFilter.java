@@ -1,4 +1,4 @@
-package com.example.starter_project_2025.system.assessment.dto.category;
+package com.example.starter_project_2025.system.assessment.dto.question_category;
 
 import com.example.starter_project_2025.base.enums.FilterOperator;
 import com.example.starter_project_2025.base.spec.FilterField;

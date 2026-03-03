@@ -1,9 +1,10 @@
-package com.example.starter_project_2025.system.assessment.dto.assessmentquestion;
+package com.example.starter_project_2025.system.assessment.dto.question_category;
 
 import com.example.starter_project_2025.base.dto.CrudDto;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Getter
@@ -12,16 +13,15 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AssessmentQuestionDTO implements CrudDto<UUID>{
+public class QuestionCategoryDTO implements CrudDto<UUID> {
 
     UUID id;
 
-    Long assessmentId;
+    String name;
 
-    UUID questionId;
+    String description;
 
-    Double score;
+    LocalDate createdAt;
 
-    Integer orderIndex;
-
+    LocalDate updatedAt;
 }

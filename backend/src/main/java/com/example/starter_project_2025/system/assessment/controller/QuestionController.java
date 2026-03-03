@@ -5,24 +5,16 @@ import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.base.service.CrudService;
 import com.example.starter_project_2025.system.assessment.dto.question.QuestionDTO;
 import com.example.starter_project_2025.system.assessment.dto.question.QuestionFilter;
-import com.example.starter_project_2025.system.assessment.dto.question.request.QuestionRequestDTO;
-import com.example.starter_project_2025.system.assessment.dto.question.request.UpdateQuestionRequestDTO;
-import com.example.starter_project_2025.system.assessment.dto.question.response.QuestionResponseDTO;
 import com.example.starter_project_2025.system.assessment.entity.Question;
 import com.example.starter_project_2025.system.assessment.repository.QuestionRepository;
 import com.example.starter_project_2025.system.assessment.service.question.QuestionService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController

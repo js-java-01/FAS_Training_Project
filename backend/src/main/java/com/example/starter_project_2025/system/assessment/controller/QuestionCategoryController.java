@@ -3,22 +3,18 @@ package com.example.starter_project_2025.system.assessment.controller;
 import com.example.starter_project_2025.base.controller.BaseCrudDataIoController;
 import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.base.service.CrudService;
-import com.example.starter_project_2025.system.assessment.dto.category.QuestionCategoryDTO;
-import com.example.starter_project_2025.system.assessment.dto.category.QuestionCategoryFilter;
-import com.example.starter_project_2025.system.assessment.dto.question_tag.response.TagCountResponse;
+import com.example.starter_project_2025.system.assessment.dto.question_category.QuestionCategoryDTO;
+import com.example.starter_project_2025.system.assessment.dto.question_category.QuestionCategoryFilter;
 import com.example.starter_project_2025.system.assessment.entity.QuestionCategory;
 import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
-import com.example.starter_project_2025.system.assessment.service.category.QuestionCategoryService;
-import com.example.starter_project_2025.system.assessment.service.category.QuestionCategoryServiceImpl;
-import com.example.starter_project_2025.system.assessment.service.question_tag.QuestionTagService;
+import com.example.starter_project_2025.system.assessment.service.question_category.QuestionCategoryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -31,7 +27,6 @@ public class QuestionCategoryController
 
     QuestionCategoryService questionCategoryService;
     QuestionCategoryRepository questionCategoryRepository;
-    QuestionTagService questionTagService;
 
     @Override
     protected CrudService<UUID, QuestionCategoryDTO, QuestionCategoryFilter> getService() {
@@ -48,11 +43,4 @@ public class QuestionCategoryController
         return QuestionCategory.class;
     }
 
-
-    @GetMapping("/{categoryId}/tags")
-    public ResponseEntity<List<TagCountResponse>> getTagsByCategory(
-            @PathVariable UUID categoryId
-    ) {
-        return ResponseEntity.ok(questionTagService.getTagsByCategory(categoryId));
-    }
 }

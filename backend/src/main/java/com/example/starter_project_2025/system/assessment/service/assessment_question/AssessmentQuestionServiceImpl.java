@@ -1,11 +1,11 @@
-package com.example.starter_project_2025.system.assessment.service.assessmentquestion;
+package com.example.starter_project_2025.system.assessment.service.assessment_question;
 
 import com.example.starter_project_2025.base.mapper.BaseCrudMapper;
 import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.base.service.CrudServiceImpl;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
-import com.example.starter_project_2025.system.assessment.dto.assessmentquestion.AssessmentQuestionDTO;
-import com.example.starter_project_2025.system.assessment.dto.assessmentquestion.AssessmentQuestionFilter;
+import com.example.starter_project_2025.system.assessment.dto.assessment_question.AssessmentQuestionDTO;
+import com.example.starter_project_2025.system.assessment.dto.assessment_question.AssessmentQuestionFilter;
 import com.example.starter_project_2025.system.assessment.entity.Assessment;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentQuestion;
 import com.example.starter_project_2025.system.assessment.entity.Question;
@@ -73,7 +73,7 @@ public class AssessmentQuestionServiceImpl extends CrudServiceImpl<AssessmentQue
 
     @Override
     public void delete(UUID id) {
-
+        super.deleteEntity(id);
     }
 
     @Override
