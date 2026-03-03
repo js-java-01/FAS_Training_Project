@@ -12,7 +12,8 @@ import com.example.starter_project_2025.system.course_assessment_type_weight.Cou
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeightRepository;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
-import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
+import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
+import com.example.starter_project_2025.system.topic_mark.enums.ChangeType;
 import com.example.starter_project_2025.system.semester.entity.Semester;
 import com.example.starter_project_2025.system.topic_mark.entity.*;
 import com.example.starter_project_2025.system.topic_mark.repository.*;
@@ -43,7 +44,7 @@ import java.util.List;
  * CourseAssessmentTypeWeight Entrance Quiz 30% HIGHEST
  * Midterm Test 50% LATEST
  * Final Exam 20% AVERAGE
- * TrainingClass TC-DEMO-01 (Course x TC-DEMO-01, scores seeded)
+ * TrainingClass TC-DEMO-01 (DEMO-COURSE-TM + JBM-01, scores seeded separately)
  * TrainingClass TC-DEMO-02 (JBM-01 + RFP-01, no scores)
  * TrainingClass TC-DEMO-03 (JBM-01 + DEMO-COURSE-TM, no scores)
  * TrainingClass TC-DEMO-04 (DEMO-COURSE-TM, scores seeded)
@@ -81,6 +82,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
     private final TopicMarkEntryRepository entryRepository;
     private final TopicMarkEntryHistoryRepository historyRepository;
     private final TopicMarkRepository topicMarkRepository;
+    private final EnrollmentRepository enrollmentRepository;
 
     // Entry point
 
@@ -126,25 +128,46 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
 
         Semester semester = findOrCreateSemester();
         TrainingClass trainingClass = findOrCreateTrainingClass(semester, admin);
-        CourseClass courseClass = findOrCreateCourseClass(course, trainingClass);
+        CourseClass courseClass = findOrCreateCourseClass(course, trainingClass, admin);
 
         // Extra classes: TC-DEMO-02 and TC-DEMO-03, each linked to 2 courses
         Course javaCourse = findCourseByCode("JBM-01");
         Course reactCourse = findCourseByCode("RFP-01");
 
+        CourseClass courseClass01Extra = null;
+        if (javaCourse != null) {
+            findOrCreateWeight(javaCourse, quizType, 0.30, GradingMethod.HIGHEST);
+            findOrCreateWeight(javaCourse, midtermType, 0.50, GradingMethod.LATEST);
+            findOrCreateWeight(javaCourse, finalType, 0.20, GradingMethod.AVERAGE);
+            courseClass01Extra = findOrCreateCourseClass(javaCourse, trainingClass, admin);
+            log.info("TC-DEMO-01 extra course class linked: {}", javaCourse.getCourseCode());
+        } else {
+            log.warn("JBM-01 not found - skip extra course class seed for TC-DEMO-01");
+        }
+
         TrainingClass tc02 = findOrCreateTrainingClassByCode("TC-DEMO-02", "Demo Training Class 02", semester, admin);
-        if (javaCourse != null)
-            findOrCreateCourseClass(javaCourse, tc02);
-        if (reactCourse != null)
-            findOrCreateCourseClass(reactCourse, tc02);
+        CourseClass courseClass02Java = null;
+        CourseClass courseClass02React = null;
+        if (javaCourse != null) {
+            findOrCreateWeight(javaCourse, quizType, 0.30, GradingMethod.HIGHEST);
+            findOrCreateWeight(javaCourse, midtermType, 0.50, GradingMethod.LATEST);
+            findOrCreateWeight(javaCourse, finalType, 0.20, GradingMethod.AVERAGE);
+            courseClass02Java = findOrCreateCourseClass(javaCourse, tc02, admin);
+        }
+        if (reactCourse != null) {
+            findOrCreateWeight(reactCourse, quizType, 0.30, GradingMethod.HIGHEST);
+            findOrCreateWeight(reactCourse, midtermType, 0.50, GradingMethod.LATEST);
+            findOrCreateWeight(reactCourse, finalType, 0.20, GradingMethod.AVERAGE);
+            courseClass02React = findOrCreateCourseClass(reactCourse, tc02, admin);
+        }
 
         TrainingClass tc03 = findOrCreateTrainingClassByCode("TC-DEMO-03", "Demo Training Class 03", semester, admin);
         if (javaCourse != null)
-            findOrCreateCourseClass(javaCourse, tc03);
-        findOrCreateCourseClass(course, tc03); // DEMO-COURSE-TM
+            findOrCreateCourseClass(javaCourse, tc03, admin);
+        findOrCreateCourseClass(course, tc03, admin); // DEMO-COURSE-TM
 
         TrainingClass tc04 = findOrCreateTrainingClassByCode("TC-DEMO-04", "Demo Training Class 04", semester, admin);
-        CourseClass courseClass04 = findOrCreateCourseClass(course, tc04);
+        CourseClass courseClass04 = findOrCreateCourseClass(course, tc04, admin);
 
         log.info("Extra classes TC-DEMO-02, TC-DEMO-03, TC-DEMO-04 initialized");
 
@@ -158,10 +181,17 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
         User eva = findOrCreateStudent("eva.chen@test.com", "Eva", "Chen");
 
         for (User s : List.of(john, alice, bob, carol, david, eva)) {
-            findOrCreateEnrollment(s, courseClass.getCourse());
-            findOrCreateEnrollment(s, courseClass04.getCourse());
+            findOrCreateEnrollment(s, courseClass.getClassInfo());
+            findOrCreateEnrollment(s, tc02);
+            findOrCreateEnrollment(s, courseClass04.getClassInfo());
         }
-        log.info("6 students enrolled in TC-DEMO-01 and TC-DEMO-04");
+        log.info("6 students enrolled in TC-DEMO-01, TC-DEMO-02 and TC-DEMO-04");
+
+        List<User> tc02Students = List.of(john, alice, bob, carol, david, eva);
+        seedCourseClassWithoutScores(courseClass02Java, quizType, midtermType, finalType, admin, tc02Students,
+            "TC-DEMO-02 (JBM-01)");
+        seedCourseClassWithoutScores(courseClass02React, quizType, midtermType, finalType, admin, tc02Students,
+            "TC-DEMO-02 (RFP-01)");
 
         double minGpa = course.getMinGpaToPass() != null ? course.getMinGpaToPass() : 6.0;
         record SD(User user, double q1, double q2, double mid, double fin, double total) {
@@ -204,6 +234,40 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                     "TC-DEMO-01 seeded: John 7.90 PASS | Alice 8.15 PASS | Bob 4.80 FAIL | Carol 9.39 PASS | David 5.83 FAIL | Eva 8.12 PASS");
         } else {
             log.info("TC-DEMO-01 columns already exist - skipped");
+        }
+
+        // 3b. Seed extra CourseClass in TC-DEMO-01 (JBM-01) with separate gradebook
+        if (courseClass01Extra != null) {
+            final CourseClass extraCourseClass = courseClass01Extra;
+
+            double minGpaExtra = extraCourseClass.getCourse().getMinGpaToPass() != null
+                ? extraCourseClass.getCourse().getMinGpaToPass()
+                    : 5.0;
+
+            if (columnRepository.findActiveByCourseClassId(extraCourseClass.getId()).isEmpty()) {
+            TopicMarkColumn quizCol1Extra = createColumn(extraCourseClass, quizType, "JBM Quiz Chapter 1", 1, admin);
+            TopicMarkColumn quizCol2Extra = createColumn(extraCourseClass, quizType, "JBM Quiz Chapter 2", 2, admin);
+            TopicMarkColumn midtermColExtra = createColumn(extraCourseClass, midtermType, "JBM Midterm", 1, admin);
+            TopicMarkColumn finalColExtra = createColumn(extraCourseClass, finalType, "JBM Final", 1, admin);
+
+                List.of(
+                        new SD(john, 7.2, 8.1, 7.8, 8.0, 7.86),
+                        new SD(alice, 8.6, 8.9, 9.0, 8.8, 8.94),
+                        new SD(bob, 4.5, 5.2, 4.8, 4.9, 4.94),
+                        new SD(carol, 9.2, 9.4, 9.1, 9.0, 9.25),
+                        new SD(david, 5.8, 6.0, 5.4, 5.6, 5.64),
+                        new SD(eva, 8.1, 8.3, 8.0, 8.2, 8.26)).forEach(sd -> {
+                            saveEntry(quizCol1Extra, sd.user(), sd.q1(), admin);
+                            saveEntry(quizCol2Extra, sd.user(), sd.q2(), admin);
+                            saveEntry(midtermColExtra, sd.user(), sd.mid(), admin);
+                            saveEntry(finalColExtra, sd.user(), sd.fin(), admin);
+                            upsertTopicMark(extraCourseClass, sd.user(), sd.total(), minGpaExtra);
+                        });
+                log.info(
+                        "TC-DEMO-01 (JBM-01) seeded: John 7.86 PASS | Alice 8.94 PASS | Bob 4.94 FAIL | Carol 9.25 PASS | David 5.64 PASS | Eva 8.26 PASS");
+            } else {
+                log.info("TC-DEMO-01 (JBM-01) columns already exist - skipped");
+            }
         }
 
         // 4. Seed TC-DEMO-04 (guard: skip if columns already exist)
@@ -345,21 +409,20 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                 .orElse(null);
     }
 
-    private CourseClass findOrCreateCourseClass(Course course, TrainingClass tc) {
-        return null;
-        // return em.createQuery(
-        // "SELECT cc FROM CourseClass cc WHERE cc.course.id = :c AND cc.classInfo.id =
-        // :t", CourseClass.class)
-        // .setParameter("c", course.getId())
-        // .setParameter("t", tc.getId())
-        // .getResultStream().findFirst()
-        // .orElseGet(() -> {
-        // CourseClass cc = new CourseClass();
-        // cc.setCourse(course);
-        // cc.setClassInfo(tc);
-        // em.persist(cc);
-        // return cc;
-        // });
+    private CourseClass findOrCreateCourseClass(Course course, TrainingClass tc, User trainer) {
+        return em.createQuery(
+                "SELECT cc FROM CourseClass cc WHERE cc.course.id = :c AND cc.classInfo.id = :t", CourseClass.class)
+                .setParameter("c", course.getId())
+                .setParameter("t", tc.getId())
+                .getResultStream().findFirst()
+                .orElseGet(() -> {
+                    CourseClass cc = new CourseClass();
+                    cc.setCourse(course);
+                    cc.setClassInfo(tc);
+                    cc.setTrainer(trainer);
+                    em.persist(cc);
+                    return cc;
+                });
     }
 
     private User findOrCreateStudent(String email, String firstName, String lastName) {
@@ -373,24 +436,20 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                         .build()));
     }
 
-    private void findOrCreateEnrollment(User user, Course course) {
-        Long count = em.createQuery(
-                "SELECT COUNT(e) FROM Enrollment e WHERE e.user.id = :u AND e.course.id = :c", Long.class)
-                .setParameter("u", user.getId())
-                .setParameter("c", course.getId())
-                .getSingleResult();
-        if (count == 0) {
-            Enrollment e = new Enrollment();
-            e.setUser(user);
-            // e.setCourse(course);
-            // e.setStatus(EnrollmentStatus.ACTIVE);
-            em.persist(e);
+    private void findOrCreateEnrollment(User user, TrainingClass trainingClass) {
+        boolean exists = enrollmentRepository.findByUserIdAndTrainingClassId(
+                user.getId(), trainingClass.getId()).isPresent();
+        if (!exists) {
+            enrollmentRepository.save(Enrollment.builder()
+                    .user(user)
+                    .trainingClass(trainingClass)
+                    .build());
         }
     }
 
     private TopicMarkColumn createColumn(CourseClass courseClass, AssessmentType type,
             String label, int index, User createdBy) {
-        return columnRepository.save(TopicMarkColumn.builder()
+        return columnRepository.save(TopicMarkColumn.builder() 
                 .courseClass(courseClass)
                 .assessmentType(type)
                 .columnLabel(label)
@@ -412,9 +471,61 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                 .topicMarkEntry(entry)
                 .oldScore(null)
                 .newScore(score)
+//                .changeType(ChangeType.INCREASE)
                 .reason("Initial seed data")
                 .updatedBy(seeder)
                 .build());
+    }
+
+    private void seedCourseClassWithoutScores(CourseClass courseClass,
+            AssessmentType quizType,
+            AssessmentType midtermType,
+            AssessmentType finalType,
+            User createdBy,
+            List<User> students,
+            String seedLabel) {
+        if (courseClass == null) {
+            return;
+        }
+
+        if (!columnRepository.findActiveByCourseClassId(courseClass.getId()).isEmpty()) {
+            log.info("{} columns already exist - skipped", seedLabel);
+            return;
+        }
+
+        TopicMarkColumn quizCol1 = createColumn(courseClass, quizType, "Quiz Chapter 1", 1, createdBy);
+        TopicMarkColumn quizCol2 = createColumn(courseClass, quizType, "Quiz Chapter 2", 2, createdBy);
+        TopicMarkColumn midtermCol = createColumn(courseClass, midtermType, "Midterm Exam", 1, createdBy);
+        TopicMarkColumn finalCol = createColumn(courseClass, finalType, "Final Exam", 1, createdBy);
+
+        for (User student : students) {
+            entryRepository.save(TopicMarkEntry.builder()
+                    .topicMarkColumn(quizCol1)
+                    .user(student)
+                    .courseClass(courseClass)
+                    .score(null)
+                    .build());
+            entryRepository.save(TopicMarkEntry.builder()
+                    .topicMarkColumn(quizCol2)
+                    .user(student)
+                    .courseClass(courseClass)
+                    .score(null)
+                    .build());
+            entryRepository.save(TopicMarkEntry.builder()
+                    .topicMarkColumn(midtermCol)
+                    .user(student)
+                    .courseClass(courseClass)
+                    .score(null)
+                    .build());
+            entryRepository.save(TopicMarkEntry.builder()
+                    .topicMarkColumn(finalCol)
+                    .user(student)
+                    .courseClass(courseClass)
+                    .score(null)
+                    .build());
+        }
+
+        log.info("{} seeded with {} students and null scores", seedLabel, students.size());
     }
 
     private void upsertTopicMark(CourseClass courseClass, User user, double finalScore, double minGpa) {

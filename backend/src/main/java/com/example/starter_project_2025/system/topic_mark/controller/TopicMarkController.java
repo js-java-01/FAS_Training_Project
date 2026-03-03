@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.topic_mark.controller;
 
+import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ImportResultResponse;
 import com.example.starter_project_2025.system.topic_mark.dto.*;
 import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
@@ -53,6 +54,12 @@ import java.util.UUID;
 public class TopicMarkController {
 
     private final TopicMarkService topicMarkService;
+
+    @Schema(name = "TopicMarkImportRequest", description = "Multipart payload for gradebook import")
+    static class TopicMarkImportRequest {
+        @Schema(description = "Excel file (.xlsx)", type = "string", format = "binary", requiredMode = Schema.RequiredMode.REQUIRED)
+        public MultipartFile file;
+    }
     private final UserRepository userRepository;
 
     @GetMapping("/api/course-classes/{courseClassId}/topic-marks")
@@ -170,23 +177,33 @@ public class TopicMarkController {
                           "- Row 0 (meta): column UUIDs for matching\n" +
                           "- Column 1 (hidden): user UUID for matching\n" +
                           "- Blank cells = keep existing score, filled cells = update\n" +
-                          "- Final scores are auto-recomputed after import")
+                  "- Final scores are auto-recomputed after import",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                required = true,
+                content = @Content(
+                    mediaType = "multipart/form-data",
+                    schema = @Schema(implementation = TopicMarkImportRequest.class))))
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Import completed (all rows succeeded)"),
-        @ApiResponse(responseCode = "400", description = "Import completed with some failures"),
+        @ApiResponse(responseCode = "400", description = "Import failed (validation or row errors)"),
         @ApiResponse(responseCode = "404", description = "CourseClass not found", content = @Content)
     })
     public ResponseEntity<ImportResultResponse> importGradebook(
             @Parameter(description = "Course class ID", required = true) @PathVariable UUID courseClassId,
+            @Parameter(description = "Excel file (.xlsx)", required = true) 
             @RequestParam("file") MultipartFile file,
             Authentication authentication) {
         UUID editorId = resolveCurrentUserId(authentication);
         ImportResultResponse response = topicMarkService.importGradebook(courseClassId, file, editorId);
         if (response.getFailedCount() > 0) {
-            response.setMessage("Import completed. Some rows failed.");
-            return ResponseEntity.badRequest().body(response);
+            String message = (response.getMessage() == null || response.getMessage().isBlank())
+                    ? "Import failed. Please check your file and try again."
+                    : response.getMessage();
+            throw new BadRequestException(message);
         }
-        response.setMessage("Import gradebook scores successfully");
+        if (response.getMessage() == null || response.getMessage().isBlank()) {
+            response.setMessage("Import gradebook scores successfully");
+        }
         return ResponseEntity.ok(response);
     }
 

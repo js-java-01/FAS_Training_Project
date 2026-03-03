@@ -63,6 +63,25 @@ public class CourseClassController {
         return ResponseEntity.ok(courseClassService.getAll());
     }
 
+        /**
+         * GET /api/course-classes/{id}
+         * Get a course class by ID.
+         */
+        @GetMapping("/{id}")
+        @Operation(
+                        summary = "Get course class by ID",
+                        description = "Retrieve a course class detail by ID including course info, class info, and trainer info."
+        )
+        @ApiResponse(
+                        responseCode = "200",
+                        description = "Course class retrieved successfully",
+                        content = @Content(schema = @Schema(implementation = CourseClassResponse.class))
+        )
+        @ApiResponse(responseCode = "404", description = "Course class not found")
+        public ResponseEntity<CourseClassResponse> getById(@PathVariable UUID id) {
+                return ResponseEntity.ok(courseClassService.getById(id));
+        }
+
     /**
      * GET /api/course-classes/by-class/{classId}
      * Get all course classes by training class ID.

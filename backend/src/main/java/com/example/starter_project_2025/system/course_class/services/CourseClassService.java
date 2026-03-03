@@ -12,6 +12,7 @@ public interface CourseClassService
 {
     List<CourseClass> getByUser(User user);
     List<CourseClassResponse> getAll();
+    CourseClassResponse getById(UUID id);
 
     List<CourseClassResponse> getByClassId(UUID classId);
 

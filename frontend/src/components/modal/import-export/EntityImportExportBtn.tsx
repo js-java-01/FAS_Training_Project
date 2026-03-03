@@ -1,19 +1,26 @@
 import { useState } from "react";
-import { DatabaseBackup } from "lucide-react";
+import {
+  DatabaseBackup,
+  Upload,
+  Download,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import { toast } from "sonner";
 import dayjs from "dayjs";
 
-type MutationHook<TArgs, TResult> = () => {
+type MutationFactory<TArgs, TResult> = () => {
   mutateAsync: (args: TArgs) => Promise<TResult>;
 };
 
+type Mode = "all" | "import" | "export";
+
 type Props = {
   title: string;
-  useImportHook: MutationHook<File, any>;
-  useExportHook: MutationHook<void, Blob>;
-  useTemplateHook: MutationHook<void, Blob>;
+  useImportHook?: MutationFactory<File, any>;
+  useExportHook?: MutationFactory<void, Blob>;
+  useTemplateHook?: MutationFactory<void, Blob>;
+  mode?: Mode;
 };
 
 export default function EntityImportExportButton({
@@ -21,12 +28,13 @@ export default function EntityImportExportButton({
   useImportHook,
   useExportHook,
   useTemplateHook,
+  mode = "all",
 }: Props) {
   const [open, setOpen] = useState(false);
 
-  const { mutateAsync: importMutate } = useImportHook();
-  const { mutateAsync: exportMutate } = useExportHook();
-  const { mutateAsync: templateMutate } = useTemplateHook();
+  const importMutation = useImportHook?.();
+  const exportMutation = useExportHook?.();
+  const templateMutation = useTemplateHook?.();
 
   const downloadBlob = (blob: Blob, filename: string) => {
     const url = window.URL.createObjectURL(blob);
@@ -40,11 +48,15 @@ export default function EntityImportExportButton({
   };
 
   const handleImport = async (file: File) => {
+    if (!importMutation) return;
+
     try {
-      const res = await importMutate(file);
+      const res = await importMutation.mutateAsync(file);
+
       if (!res || res.failedCount === 0) {
         toast.success(`${title} imported successfully`);
       }
+
       return res;
     } catch (err: any) {
       const errorData = err?.response?.data;
@@ -59,12 +71,18 @@ export default function EntityImportExportButton({
   };
 
   const handleExport = async () => {
+    if (!exportMutation) return;
+
     try {
-      const blob = await exportMutate(undefined as any);
+      const blob = await exportMutation.mutateAsync(undefined as void);
+
       downloadBlob(
         blob,
-        `${title.toLowerCase()}_${dayjs().format("DD-MM-YYYY_HH-mm-ss")}.xlsx`,
+        `${title.toLowerCase()}_${dayjs().format(
+          "DD-MM-YYYY_HH-mm-ss"
+        )}.xlsx`
       );
+
       toast.success(`${title} exported successfully`);
     } catch {
       toast.error(`Failed to export ${title}`);
@@ -72,19 +90,46 @@ export default function EntityImportExportButton({
   };
 
   const handleDownloadTemplate = async () => {
+    if (!templateMutation) return;
+
     try {
-      const blob = await templateMutate(undefined as any);
+      const blob = await templateMutation.mutateAsync(undefined as void);
+
       downloadBlob(
         blob,
         `${title.toLowerCase()}_template_${dayjs().format(
-          "DD-MM-YYYY_HH-mm-ss",
-        )}.xlsx`,
+          "DD-MM-YYYY_HH-mm-ss"
+        )}.xlsx`
       );
+
       toast.success(`Template downloaded successfully`);
     } catch {
       toast.error(`Failed to download template`);
     }
   };
+
+  // Dynamic UI theo mode
+  const getButtonConfig = () => {
+    switch (mode) {
+      case "import":
+        return {
+          label: "Import",
+          icon: <Upload className="h-4 w-4" />,
+        };
+      case "export":
+        return {
+          label: "Export",
+          icon: <Download className="h-4 w-4" />,
+        };
+      default:
+        return {
+          label: "Import / Export",
+          icon: <DatabaseBackup className="h-4 w-4" />,
+        };
+    }
+  };
+
+  const { label, icon } = getButtonConfig();
 
   return (
     <>
@@ -93,17 +138,20 @@ export default function EntityImportExportButton({
         onClick={() => setOpen(true)}
         className="gap-2"
       >
-        <DatabaseBackup className="h-4 w-4" />
-        Import / Export
+        {icon}
+        {label}
       </Button>
 
       <ImportExportModal
         title={title}
         open={open}
         setOpen={setOpen}
-        onImport={handleImport}
-        onExport={handleExport}
-        onDownloadTemplate={handleDownloadTemplate}
+        mode={mode}
+        onImport={mode !== "export" ? handleImport : undefined}
+        onExport={mode !== "import" ? handleExport : undefined}
+        onDownloadTemplate={
+          mode !== "export" ? handleDownloadTemplate : undefined
+        }
       />
     </>
   );

@@ -14,7 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { trainingProgramApi } from "@/api/trainingProgramApi";
-import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import {
   useExportTrainingPrograms,
   useImportTrainingPrograms,
