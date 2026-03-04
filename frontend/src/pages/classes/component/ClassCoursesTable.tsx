@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, X } from "lucide-react";
 import type { CourseDetailsResponse } from "@/types/course";
 import { useGetClassCourses } from "@/pages/training-classes/trainer/services/queries";
+import { createBaseColumns } from "@/components/data_table/baseColumns";
 
 interface Props {
   classId: string;
@@ -14,14 +15,9 @@ interface Props {
 const EMPTY_DATA: CourseDetailsResponse[] = [];
 
 const columnHelper = createColumnHelper<CourseDetailsResponse>();
+const base = createBaseColumns<CourseDetailsResponse>();
 const columns = [
-  columnHelper.display({
-    id: "number",
-    header: "#",
-    size: 50,
-    cell: ({ row, table }) =>
-      row.index + 1 + table.getState().pagination.pageIndex * table.getState().pagination.pageSize,
-  }),
+  base.numberColumn,
 
   columnHelper.accessor("courseName", {
     header: "Tên môn học",
@@ -79,6 +75,8 @@ const columns = [
       </div>
     ),
   }),
+
+  base.columnControl,
 ];
 
 export default function ClassCoursesTable({ classId }: Props) {
@@ -123,7 +121,6 @@ export default function ClassCoursesTable({ classId }: Props) {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch={true}
-        searchPlaceholder="tên môn, mã môn..."
         onSearchChange={handleSearchChange}
       />
     </div>

@@ -1,11 +1,11 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import type { ModuleGroup } from "@/types/module";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { EditIcon, EyeIcon, Trash } from "lucide-react";
 import dayjs from "dayjs";
 import SortHeader from "@/components/data_table/SortHeader";
+import { createBaseColumns } from "@/components/data_table/baseColumns";
 
 export type TableActions = {
   onView?: (row: ModuleGroup) => void;
@@ -23,37 +23,11 @@ export const getColumns = (
   permission?: PermissionOptions
 ) => {
   const columnHelper = createColumnHelper<ModuleGroup>();
+  const base = createBaseColumns<ModuleGroup>();
 
   return [
-    columnHelper.display({
-      id: "select",
-      size: 50,
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(v) => row.toggleSelected(!!v)}
-        />
-      ),
-      enableSorting: false,
-    }),
-
-    columnHelper.display({
-      id: "number",
-      header: "#",
-      size: 60,
-      cell: ({ row, table }) =>
-        row.index +
-        1 +
-        table.getState().pagination.pageIndex *
-          table.getState().pagination.pageSize,
-      enableSorting: false,
-    }),
+    base.selectColumn,
+    base.numberColumn,
 
     columnHelper.accessor("name", {
       header: (info) => <SortHeader title="Name" info={info} />,
@@ -61,6 +35,9 @@ export const getColumns = (
       cell: (info) => (
         <span className="font-medium">{info.getValue()}</span>
       ),
+      meta: {
+        title: "Name"
+      }
     }),
 
     columnHelper.accessor("description", {
@@ -71,6 +48,9 @@ export const getColumns = (
           {info.getValue() || "-"}
         </span>
       ),
+      meta: {
+        title: "Description"
+      }
     }),
 
     columnHelper.accessor("displayOrder", {
@@ -79,6 +59,9 @@ export const getColumns = (
       cell: (info) => (
         <span className="block text-center">{info.getValue()}</span>
       ),
+      meta: {
+        title: "Display Order"
+      }
     }),
 
     columnHelper.accessor("isActive", {
@@ -95,6 +78,9 @@ export const getColumns = (
           {info.getValue() ? "Active" : "Inactive"}
         </Badge>
       ),
+      meta: {
+        title: "Status"
+      }
     }),
 
     columnHelper.accessor("createdAt", {
@@ -102,6 +88,9 @@ export const getColumns = (
       size: 160,
       cell: (info) =>
         dayjs(info.getValue()).format("HH:mm DD-MM-YYYY"),
+      meta: {
+        title: "Created At"
+      }
     }),
 
     columnHelper.display({
@@ -136,6 +125,12 @@ export const getColumns = (
         </div>
       ),
       enableSorting: false,
+      meta: {
+        title: "Actions"
+      }
     }),
+
+     /* ================= COLUMN CONTROL ================= */
+    base.columnControl,
   ];
 };

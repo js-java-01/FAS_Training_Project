@@ -131,7 +131,6 @@ export default function CourseTable() {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        searchPlaceholder="course name or code"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}

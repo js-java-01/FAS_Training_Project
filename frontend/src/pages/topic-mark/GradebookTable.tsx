@@ -122,6 +122,11 @@ export default function GradebookTable({ classId }: Props) {
 
   return (
     <div className="relative space-y-4 h-[calc(100%-90px)] flex-1">
+      {isEditing && (
+        <p className="text-xs text-muted-foreground font-semibold">
+          <Badge variant={"destructive"} className='text-xs text-center mr-1'>Editing Mode</Badge> Enter: Save • Esc: Cancel
+        </p>
+      )}
       {/* Dropdown */}
       <SearchableSelect
         label="Topic Code"
@@ -153,7 +158,6 @@ export default function GradebookTable({ classId }: Props) {
         onPageSizeChange={setPageSize}
         isSearch
         manualSearch
-        searchPlaceholder="Student name"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}
@@ -195,12 +199,6 @@ export default function GradebookTable({ classId }: Props) {
                 />
               </div>
             </div>
-
-            {isEditing && (
-              <p className="text-xs text-muted-foreground mt-3 font-semibold">
-                <Badge variant={"destructive"} className='text-xs text-center mr-1'>Editing Mode</Badge> Enter: Save • Esc: Cancel
-              </p>
-            )}
           </div>
         }
         facetedFilters={

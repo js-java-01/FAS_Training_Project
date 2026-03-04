@@ -2,11 +2,10 @@ package com.example.starter_project_2025.system.topic.entity;
 
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.topic.enums.TopicLevel;
-import com.example.starter_project_2025.system.topic.enums.TopicStatus; // Nên tạo Enum này
+import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,20 +20,18 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Topic {
-
+public class Topic
+{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // ===== BASIC =====
     @Column(nullable = false)
     private String topicName;
 
     @Column(nullable = false, unique = true)
     private String topicCode;
 
-    // ===== DETAILS =====
     @Enumerated(EnumType.STRING)
     private TopicLevel level; // Beginner, Intermediate, Advanced
 
@@ -43,11 +40,9 @@ public class Topic {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // ===== WORKFLOW =====
     @Enumerated(EnumType.STRING)
     private TopicStatus status; // DRAFT, ACTIVE, REJECTED...
 
-    // ===== METADATA (Audit fields khớp hoàn toàn với Course) =====
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 
@@ -66,21 +61,20 @@ public class Topic {
     @JoinColumn(name = "updater_id")
     private User updater;
 
-    // ===== AUTO TIME & DEFAULT STATUS =====
     @PrePersist
-    public void prePersist() {
+    public void prePersist()
+    {
         this.createdDate = LocalDateTime.now();
         this.updatedDate = LocalDateTime.now();
-        if (this.status == null) {
-            this.status = TopicStatus.DRAFT;
-        }
-        if (this.version == null) {
+        if (this.version == null)
+        {
             this.version = "v1.0";
         }
     }
 
     @PreUpdate
-    public void preUpdate() {
+    public void preUpdate()
+    {
         this.updatedDate = LocalDateTime.now();
     }
 }

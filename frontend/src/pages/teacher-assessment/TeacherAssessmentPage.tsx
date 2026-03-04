@@ -167,7 +167,6 @@ export default function TeacherAssessmentPage() {
                         // Search
                         isSearch
                         manualSearch
-                        searchPlaceholder="Enter title"
                         onSearchChange={setKeyword}
 
                         // Actions
