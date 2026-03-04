@@ -1,9 +1,9 @@
 import { createBaseApiService } from '@/api/base-service.api';
-import { Url } from '@/api/url';
 import type { Assessment } from '@/types';
 
+const path = "/assessments";
 
-const base = createBaseApiService<Assessment, null>({ path: Url.ASSESSMENT });
+const base = createBaseApiService<Assessment, null>({ path: path });
 
 // Adapter for API compatibility (ensures both .items and .content properties exist)
 const adaptPageResponse = async (promise: any) => {

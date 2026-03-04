@@ -1,9 +1,10 @@
 import { createBaseApiService } from "@/api/base-service.api";
-import { Url } from "@/api/url";
 import type { AssessmentTypeDTO, AssessmentTypeFilter } from "@/types";
 
+const path = "/assessment-types";
+
 const base = createBaseApiService<AssessmentTypeDTO, AssessmentTypeFilter>({
-  path: Url.ASSESSMENT_TYPE,
+  path: path,
 });
 
 // Adapter for API compatibility (ensures both .items and .content exist)

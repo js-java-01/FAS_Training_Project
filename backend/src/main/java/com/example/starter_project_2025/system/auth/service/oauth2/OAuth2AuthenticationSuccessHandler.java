@@ -3,7 +3,7 @@ package com.example.starter_project_2025.system.auth.service.oauth2;
 import com.example.starter_project_2025.constant.ErrorMessage;
 import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.auth.service.refreshToken.RefreshTokenService;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
+import com.example.starter_project_2025.system.rbac.user.UserRepository;
 import com.example.starter_project_2025.util.CookieUtil;
 import com.example.starter_project_2025.util.JwtUtil;
 import jakarta.persistence.EntityManager;

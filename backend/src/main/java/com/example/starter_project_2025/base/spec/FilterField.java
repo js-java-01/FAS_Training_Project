@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.base.spec;
 
-import com.example.starter_project_2025.base.enums.FilterOperator;
+import com.example.starter_project_2025.base.crud.dto.FilterOperator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
