@@ -1,11 +1,14 @@
 package com.example.starter_project_2025.system.training_program.service;
 
+import com.example.starter_project_2025.system.topic.entity.Topic;
+import com.example.starter_project_2025.system.topic.repository.TopicRepository;
 import com.example.starter_project_2025.system.training_program.dto.request.CreateTrainingProgramRequest;
 import com.example.starter_project_2025.system.training_program.dto.request.UpdateTrainingProgramRequest;
 import com.example.starter_project_2025.system.training_program.dto.response.TrainingProgramResponse;
 import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
 import com.example.starter_project_2025.system.training_program.mapper.TrainingProgramMapper;
 import com.example.starter_project_2025.system.training_program.repository.TrainingProgramRepository;
+import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,8 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.Optional;
+
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,6 +27,7 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
 
     private final TrainingProgramRepository trainingProgramRepository;
     private final TrainingProgramMapper mapper;
+    private final TopicRepository topicRepository;
 
     @Override
     public Page<TrainingProgramResponse> searchTrainingPrograms(
@@ -46,7 +49,6 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
                 .map(mapper::toResponse);
     }
 
-    @Override
     @Transactional
     public TrainingProgramResponse create(CreateTrainingProgramRequest request) {
 
@@ -59,26 +61,26 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
         program.setVersion(request.getVersion().trim());
         program.setDescription(request.getDescription());
 
-        TrainingProgram saved = trainingProgramRepository.saveAndFlush(program);
-        Set<UUID> ids = Optional.ofNullable(request.getProgramCourseIds())
-                .orElse(Collections.emptySet());
+        TrainingProgram savedProgram = trainingProgramRepository.saveAndFlush(program);
 
-        // if (!ids.isEmpty()) {
+        Set<Topic> topics = topicRepository.findAllById(request.getTopicIds())
+                .stream()
+                .collect(Collectors.toSet());
 
-        // Set<ProgramCourse> courses = programCourseRepository.findByIdIn(ids);
+        if (topics.size() != request.getTopicIds().size()) {
+            throw new RuntimeException("Some topics not found");
+        }
 
-        // if (courses.size() != ids.size()) {
-        // throw new RuntimeException("Some ProgramCourses not found");
-        // }
+        Set<TrainingProgramTopic> relations = topics.stream()
+                .map(topic -> TrainingProgramTopic.builder()
+                        .trainingProgram(savedProgram)
+                        .topic(topic)
+                        .build())
+                .collect(Collectors.toSet());
 
-        // for (ProgramCourse course : courses) {
-        // course.setTrainingProgram(saved);
-        // }
+        savedProgram.setTrainingProgramTopics(relations);
 
-        // saved.setProgramCourses(courses);
-        // }
-
-        return mapper.toResponse(saved);
+        return mapper.toResponse(savedProgram);
     }
 
     @Override
@@ -98,22 +100,15 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
         if (!trainingProgramRepository.existsById(id)) {
             throw new RuntimeException("Training Program not found");
         }
-
-        // if (programCourseRepository.existsByTrainingProgram_Id(id)) {
-        // throw new RuntimeException("Cannot delete program because it is being used");
-        // }
-
         trainingProgramRepository.deleteById(id);
     }
 
-    @Override
     @Transactional
     public TrainingProgramResponse update(UUID id, UpdateTrainingProgramRequest request) {
 
         TrainingProgram program = trainingProgramRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Training program not found"));
 
-        // ===== UPDATE BASIC FIELDS =====
         if (request.getName() != null && !request.getName().isBlank()) {
             program.setName(request.getName());
         }
@@ -126,21 +121,29 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
             program.setVersion(request.getVersion());
         }
 
-        // ===== UPDATE PROGRAM COURSES =====
-        // if (request.getProgramCourseIds() != null) {
+        if (request.getTopicIds() != null) {
 
-        // // Lấy danh sách course mới từ DB
-        // Set<ProgramCourse> newCourses = programCourseRepository
-        // .findAllById(request.getProgramCourseIds())
-        // .stream()
-        // .collect(Collectors.toSet());
+            if (request.getTopicIds().isEmpty()) {
+                throw new RuntimeException("Training program must have at least 1 topic");
+            }
 
-        // // Set lại toàn bộ
-        // program.setProgramCourses(newCourses);
+            Set<Topic> topics = topicRepository.findAllById(request.getTopicIds())
+                    .stream()
+                    .collect(Collectors.toSet());
 
-        // // Cập nhật ngược chiều quan hệ
-        // newCourses.forEach(course -> course.setTrainingProgram(program));
-        // }
+            if (topics.size() != request.getTopicIds().size()) {
+                throw new RuntimeException("Some topics not found");
+            }
+
+            Set<TrainingProgramTopic> relations = topics.stream()
+                    .map(topic -> TrainingProgramTopic.builder()
+                            .trainingProgram(program)
+                            .topic(topic)
+                            .build())
+                    .collect(Collectors.toSet());
+
+            program.setTrainingProgramTopics(relations);
+        }
 
         return mapper.toResponse(program);
     }
