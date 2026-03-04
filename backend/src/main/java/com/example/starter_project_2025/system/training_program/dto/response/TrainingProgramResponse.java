@@ -18,6 +18,6 @@ public class TrainingProgramResponse {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Set<UUID> programCourseIds;
+    private Set<UUID> topicIds;
 
 }

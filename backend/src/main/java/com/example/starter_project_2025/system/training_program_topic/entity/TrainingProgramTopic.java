@@ -20,8 +20,17 @@ public class TrainingProgramTopic
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne()
+    @ManyToOne
     private Topic topic;
+
+    public Topic getTopic() {
+        return topic;
+    }
+
+    public void setTopic(Topic topic) {
+        this.topic = topic;
+    }
+
     @ManyToOne()
     private TrainingProgram trainingProgram;
 

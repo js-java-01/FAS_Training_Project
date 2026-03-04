@@ -18,8 +18,6 @@ public class UpdateTrainingProgramRequest {
     @Schema (example = "1.0.0")
     private String version;
 
-    // Danh sách ProgramCourse ID muốn giữ lại
-    // Nếu null -> không update programCourses
-    @Schema (example = "[\"courseId1\", \"courseId2\"]")
-    private Set<UUID> programCourseIds;
+    @Schema(example = "[\"uuid-topic-1\",\"uuid-topic-2\"]")
+    private Set<UUID> topicIds;
 }

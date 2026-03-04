@@ -51,7 +51,7 @@ export default function ProgramsTable() {
 
   const safeTableData = useMemo(
     () => ({
-      items: tableData?.items ?? [],
+      items: (tableData?.items ?? []).filter(Boolean),
       page: tableData?.pagination?.page ?? pageIndex,
       pageSize: tableData?.pagination?.pageSize ?? pageSize,
       totalPages: tableData?.pagination?.totalPages ?? 0,

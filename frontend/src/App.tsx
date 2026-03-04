@@ -182,17 +182,11 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            
             <Route path="/courses/:id" element={<CourseDetailPage />} />
-            {/* /my-courses redirects to /courses for backward compat */}
-            <Route
-              path="/topics"
-              element={
-                <ProtectedRoute requiredPermission="TOPIC_READ">
-                  <TopicManagement />
-                </ProtectedRoute>
-              }
-            />
+            
             <Route path="/topics/:id" element={<TopicDetailPage />} />
+
             <Route
               path="/my-topics"
               element={<Navigate to="/topics" replace />}

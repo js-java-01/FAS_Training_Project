@@ -10,6 +10,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
@@ -49,6 +50,8 @@ public class Topic
     @OneToMany(mappedBy = "topic")
     @JsonManagedReference
     private Set<TrainingProgramTopic> trainingProgramTopics;
+
+
     @OneToMany(mappedBy = "topic")
     @JsonManagedReference
     private Set<Course> courses;

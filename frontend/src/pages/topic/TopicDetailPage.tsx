@@ -4,17 +4,12 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { topicApi } from "@/api/topicApi";
 import { TopicDetail } from "./components/TopicDetail";
 import { toast } from "sonner";
-import { usePermissions } from "@/hooks/usePermissions";
 
 const TopicDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [topic, setTopic] = useState<any>();
   const [loading, setLoading] = useState(true);
-  const { hasPermission } = usePermissions();
-  
-  // Kiểm tra quyền (giống Course)
-  const isStudentMode = !hasPermission("COURSE_UPDATE"); 
 
   const loadTopic = async () => {
     try {
@@ -37,10 +32,7 @@ const TopicDetailPage = () => {
   // if (isStudentMode) return <StudentTopicDetailPage />;
 
   return (
-    <MainLayout 
-      pathName={id ? { topics: "Topic", [id]: topic?.topicName ?? "Detail" } : undefined}
-      hideIcon
-    >
+    <MainLayout pathName={id ? { topics: "Topic", [id]: topic?.topicName ?? "Detail" } : undefined}>
       {loading ? (
         <div className="p-6 flex justify-center"><p>Loading...</p></div>
       ) : (

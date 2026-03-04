@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -33,5 +34,5 @@ public interface TopicRepository extends JpaRepository<Topic, UUID>, JpaSpecific
 
     Topic findByTopicName(String topicName);
 
-    Topic findByTopicCodeIn(List<String> topicCode);
+    Set<Topic> findByTopicCodeIn(List<String> topicCodes);
 }

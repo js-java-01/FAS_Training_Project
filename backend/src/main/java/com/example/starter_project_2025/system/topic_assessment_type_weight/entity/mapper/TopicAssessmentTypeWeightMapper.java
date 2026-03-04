@@ -29,7 +29,9 @@ public class TopicAssessmentTypeWeightMapper
 
         if (entity.getAssessmentType() != null)
         {
+            response.setAssessmentTypeId(entity.getAssessmentType().getId());
             response.setAccessmentTypeName(entity.getAssessmentType().getName());
+            response.setAssessmentTypeDescription(entity.getAssessmentType().getDescription());
         }
 
         return response;

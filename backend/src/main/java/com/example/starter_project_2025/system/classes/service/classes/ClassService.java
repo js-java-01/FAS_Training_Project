@@ -39,14 +39,13 @@ public interface ClassService {
 
     TrainerClassSemesterResponse getTrainerClasses(UUID trainerId, SearchTrainerClassInSemesterRequest request);
 
-    private String generateEnrollmentKey() {
-        return UUID.randomUUID()
-                .toString()
-                .replace("-", "")
-                .substring(0, 8)
-                .toUpperCase();
-    }
+//    private String generateEnrollmentKey() {
+//        return UUID.randomUUID()
+//                .toString()
+//                .replace("-", "")
+//                .substring(0, 8)
+//                .toUpperCase();
+//    }
 
-    ClassResponse joinClassByEnrollmentKey(String enrollmentKey, UUID userId);
-
+    //ClassResponse joinClassByEnrollmentKey(String enrollmentKey, UUID userId);
 }

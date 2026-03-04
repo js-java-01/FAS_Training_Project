@@ -12,4 +12,8 @@ public interface TrainingProgramTopicRepository extends JpaRepository<TrainingPr
     @Modifying
     @Transactional
     void deleteAllByTopicId(UUID topicId);
+
+    @Modifying
+    @Transactional
+    void deleteAllByTrainingProgram_Id(UUID trainingProgramId);
 }

@@ -23,6 +23,6 @@ public class CreateTrainingProgramRequest {
     @Schema (example = "This training program is designed to help developers master Java programming language and related technologies.")
     private String description;
 
-    @Schema (example = "[\"courseId1\", \"courseId2\"]")
-    private Set<UUID> programCourseIds;
+    @NotEmpty(message = "Training program must contain at least one topic")
+    private Set<UUID> topicIds;
 }

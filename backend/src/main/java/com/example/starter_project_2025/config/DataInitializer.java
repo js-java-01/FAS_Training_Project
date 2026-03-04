@@ -48,6 +48,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,7 +64,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DataInitializer implements CommandLineRunner
 {
-
+    @PersistenceContext
+    private EntityManager entityManager;
     private final PermissionRepository permissionRepository;
     private final ProvinceRepository provinceRepository;
     private final CommuneRepository communeRepository;
@@ -88,16 +90,14 @@ public class DataInitializer implements CommandLineRunner
     private final UserRoleInitializer userRoleInitializer;
     private final TrainingClassInitializer trainingClassInitializer;
     private final TrainingProgramInitializer trainingProgramInitializer;
-    private final RoleInitializer roleInitializer;
-    private final UserInitializer userInitializer;
     private final TopicInitializer topicInitializer;
     private final AssessmentTypeInitializer assessmentTypeInitializer;
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final RoleInitializer roleInitializer;
+    private final UserInitializer userInitializer;
 
     @Override
-    public void run(String... args)
-    {
+    @Transactional
+    public void run(String... args) {
         log.info("Initializing database with sample data...");
 
         if (roleRepository.count() == 0)
