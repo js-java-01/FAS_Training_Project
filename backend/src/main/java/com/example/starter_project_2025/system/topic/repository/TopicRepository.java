@@ -6,14 +6,18 @@ import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
-public interface TopicRepository extends JpaRepository<Topic, UUID> {
+public interface TopicRepository extends JpaRepository<Topic, UUID>, JpaSpecificationExecutor<Topic>
+{
 
     boolean existsByTopicCode(String topicCode);
 
@@ -27,4 +31,8 @@ public interface TopicRepository extends JpaRepository<Topic, UUID> {
             @Param("level") TopicLevel level,
             @Param("status") TopicStatus status,
             Pageable pageable);
+
+    Topic findByTopicName(String topicName);
+
+    Set<Topic> findByTopicCodeIn(List<String> topicCodes);
 }

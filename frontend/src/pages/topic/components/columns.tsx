@@ -8,7 +8,6 @@ import { createBaseColumns } from "@/components/data_table/baseColumns";
 export const getColumns = (
   handlers: {
     onView?: (t: Topic) => void;
-    onEdit?: (t: Topic) => void;
     onDelete?: (t: Topic) => void;
   }
 ) => {
@@ -69,11 +68,6 @@ export const getColumns = (
               icon={<FiEye />}
               tooltipText="View"
               onClick={() => handlers.onView?.(t)}
-            />
-            <ActionBtn
-              icon={<FiEdit />}
-              tooltipText="Edit"
-              onClick={() => handlers.onEdit?.(t)}
             />
             <ActionBtn
               icon={<FiTrash2 />}

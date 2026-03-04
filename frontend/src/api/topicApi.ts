@@ -1,10 +1,11 @@
 import axiosInstance from './axiosInstance';
 
 export interface Topic {
-  note: string;
+  note?: string;
   id: string;
   topicName: string;
   topicCode: string;
+  level?: string;
   description?: string;
   status: string;
   createdDate?: string;
@@ -31,9 +32,10 @@ export const topicApi = {
     size?: number;
     sort?: string;
     keyword?: string;
+    level?: string;
     status?: string;
   } = {}): Promise<TopicPageResponse> => {
-    const { page = 0, size = 10, sort, keyword, status } = params;
+    const { page = 0, size = 10, sort, keyword, level, status } = params;
     
     const response = await axiosInstance.get<{
       content: Topic[];
@@ -47,6 +49,7 @@ export const topicApi = {
         size,
         ...(sort ? { sort } : {}),
         ...(keyword?.trim() ? { keyword: keyword.trim() } : {}),
+        ...(level ? { level } : {}),
         ...(status ? { status } : {}),
       },
     });
@@ -95,8 +98,9 @@ export const topicApi = {
   importTopics: async (file: File): Promise<void> => {
     const formData = new FormData();
     formData.append('file', file);
-    await axiosInstance.post('/topics/import', formData, {
+    const response = await axiosInstance.post('/topics/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return response.data;
   },
 };

@@ -39,6 +39,7 @@ import ProgramManagement from "./pages/programs/ProgramManagement";
 import ProgramCreatePage from "./pages/programs/ProgramCreatePage";
 import ProgramDetailPage from "./pages/programs/ProgramDetailPage";
 import ClassesDetailComponent from "@/pages/classes/ClassesDetailManagement.tsx";
+import StudentCalendarPage from "./pages/schedule/studentSchedule/StudentCalendarPage";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -89,6 +90,14 @@ function App() {
                 );
               }),
             )}
+            <Route
+              path="/exampleCalendar"
+              element={
+                <ProtectedRoute>
+                  <StudentCalendarPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/classes/:id"
               element={
@@ -173,17 +182,11 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            
             <Route path="/courses/:id" element={<CourseDetailPage />} />
-            {/* /my-courses redirects to /courses for backward compat */}
-            <Route
-              path="/topics"
-              element={
-                <ProtectedRoute requiredPermission="TOPIC_READ">
-                  <TopicManagement />
-                </ProtectedRoute>
-              }
-            />
+            
             <Route path="/topics/:id" element={<TopicDetailPage />} />
+
             <Route
               path="/my-topics"
               element={<Navigate to="/topics" replace />}

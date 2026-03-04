@@ -317,7 +317,6 @@ export default function ClassDetailPage() {
 
                         {/* Placeholder tabs */}
                         <TabsContent value="trainee-list" className="pt-6 overflow-y-auto flex-1 h-full flex">
-                            {/* <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button> */}
                             <ClassTraineesTable classId={trainingClass.id} trainingClass={trainingClass} />
                         </TabsContent>
 

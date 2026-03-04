@@ -5,13 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { trainingProgramApi } from "@/api/trainingProgramApi";
-import { courseApi } from "@/api/courseApi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import type { Course } from "@/types/course";
+import { topicApi, type Topic } from "@/api/topicApi";
 
 type FormState = {
   name: string;
@@ -19,14 +18,14 @@ type FormState = {
   description: string;
 };
 
-type SelectableCourse = {
+type SelectableTopic = {
   id: string;
   code: string;
   name: string;
   level?: string;
 };
 
-const MOCK_COURSES: SelectableCourse[] = [
+const MOCK_TOPICS: SelectableTopic[] = [
   { id: "mock-1", code: "JAVA-CORE", name: "Java Core", level: "INTERMEDIATE" },
   { id: "mock-2", code: "SPRING-BOOT", name: "Spring Boot Web Development", level: "INTERMEDIATE" },
   { id: "mock-3", code: "DB-SQL", name: "SQL for Backend", level: "BEGINNER" },
@@ -43,40 +42,40 @@ export default function ProgramCreatePage() {
     version: "1.0.0",
     description: "",
   });
-  const [courseKeyword, setCourseKeyword] = useState("");
+  const [topicKeyword, setTopicKeyword] = useState("");
   const [selectedKeyword, setSelectedKeyword] = useState("");
-  const [selectedCourses, setSelectedCourses] = useState<SelectableCourse[]>([]);
+  const [selectedTopics, setSelectedTopics] = useState<SelectableTopic[]>([]);
 
-  const { data: courseData, isLoading: isCourseLoading } = useQuery({
-    queryKey: ["program-create-courses"],
-    queryFn: () => courseApi.getCourses({ page: 0, size: 100, sort: "courseName,asc" }),
+  const { data: topicData, isLoading: isTopicLoading } = useQuery({
+    queryKey: ["program-create-topics"],
+    queryFn: () => topicApi.getTopics({ page: 0, size: 100, sort: "topicName,asc" }),
   });
 
-  const coursePool = useMemo<SelectableCourse[]>(() => {
-    const fromApi = (courseData?.items || []).map((course: Course) => ({
-      id: course.id,
-      code: course.courseCode,
-      name: course.courseName,
-      level: course.level,
+  const topicPool = useMemo<SelectableTopic[]>(() => {
+    const fromApi = (topicData?.items || []).map((topic: Topic) => ({
+      id: topic.id,
+      code: topic.topicCode,
+      name: topic.topicName,
+      level: topic.level,
     }));
-    return fromApi.length > 0 ? fromApi : MOCK_COURSES;
-  }, [courseData]);
+    return fromApi.length > 0 ? fromApi : MOCK_TOPICS;
+  }, [topicData]);
 
-  const availableCourses = useMemo(() => {
-    const selectedIds = new Set(selectedCourses.map((course) => course.id));
-    return coursePool.filter(
-      (course) =>
-        !selectedIds.has(course.id) &&
-        (`${course.code} ${course.name}`).toLowerCase().includes(courseKeyword.toLowerCase()),
+  const availableTopics = useMemo(() => {
+    const selectedIds = new Set(selectedTopics.map((topic) => topic.id));
+    return topicPool.filter(
+      (topic) =>
+        !selectedIds.has(topic.id) &&
+        (`${topic.code} ${topic.name}`).toLowerCase().includes(topicKeyword.toLowerCase()),
     );
-  }, [coursePool, selectedCourses, courseKeyword]);
+  }, [topicPool, selectedTopics, topicKeyword]);
 
-  const filteredSelectedCourses = useMemo(
+  const filteredSelectedTopics = useMemo(
     () =>
-      selectedCourses.filter((course) =>
-        `${course.code} ${course.name}`.toLowerCase().includes(selectedKeyword.toLowerCase()),
+      selectedTopics.filter((topic) =>
+        `${topic.code} ${topic.name}`.toLowerCase().includes(selectedKeyword.toLowerCase()),
       ),
-    [selectedCourses, selectedKeyword],
+    [selectedTopics, selectedKeyword],
   );
 
   const validate = () => {
@@ -101,12 +100,11 @@ export default function ProgramCreatePage() {
 
     setIsSubmitting(true);
     try {
-      // Temporary backend contract: create only supports basic fields.
-      // Do not send programCourseIds until backend confirms stable linkage IDs.
       await trainingProgramApi.createTrainingProgram({
         name: form.name.trim(),
         version: form.version.trim(),
         description: form.description.trim() || undefined,
+        topicIds: selectedTopics.map((topic) => topic.id),
       });
 
       await queryClient.invalidateQueries({ queryKey: ["training-programs"] });
@@ -119,18 +117,18 @@ export default function ProgramCreatePage() {
     }
   };
 
-  const addCourse = (course: SelectableCourse) => {
-    if (selectedCourses.some((item) => item.id === course.id)) return;
-    setSelectedCourses((prev) => [...prev, course]);
+  const addTopic = (topic: SelectableTopic) => {
+    if (selectedTopics.some((item) => item.id === topic.id)) return;
+    setSelectedTopics((prev) => [...prev, topic]);
   };
 
-  const removeCourse = (courseId: string) => {
-    setSelectedCourses((prev) => prev.filter((course) => course.id !== courseId));
+  const removeTopic = (topicId: string) => {
+    setSelectedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
   };
 
   return (
-    <MainLayout pathName={{ programs: "Programs", new: "New" }}>
-      <div className="mx-auto w-full max-w-7xl py-6 space-y-6">
+    <MainLayout pathName={{ programs: "Training Programs", new: "Create New" }}>
+      <div className="mx-auto w-full max-w-7xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Create New Training Program</h1>
           <p className="text-muted-foreground">
@@ -197,39 +195,39 @@ export default function ProgramCreatePage() {
 
           <Card className="xl:col-span-1">
             <CardHeader>
-              <CardTitle>Courses</CardTitle>
-              <CardDescription>Choose or search a course</CardDescription>
+              <CardTitle>Topics</CardTitle>
+              <CardDescription>Choose or search a topic</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  value={courseKeyword}
-                  onChange={(event) => setCourseKeyword(event.target.value)}
-                  placeholder="Choose or Search a Course"
+                  value={topicKeyword}
+                  onChange={(event) => setTopicKeyword(event.target.value)}
+                  placeholder="Choose or Search a Topic"
                   className="pl-9"
                 />
               </div>
 
               <div className="border rounded-md h-96 overflow-y-auto">
-                {isCourseLoading ? (
+                {isTopicLoading ? (
                   <div className="h-full grid place-items-center text-sm text-muted-foreground">
-                    Loading courses...
+                    Loading topics...
                   </div>
-                ) : availableCourses.length === 0 ? (
+                ) : availableTopics.length === 0 ? (
                   <div className="h-full grid place-items-center text-sm text-muted-foreground">
-                    No courses available
+                    No topics available
                   </div>
                 ) : (
-                  availableCourses.map((course) => (
+                  availableTopics.map((topic) => (
                     <button
-                      key={course.id}
+                      key={topic.id}
                       type="button"
-                      onClick={() => addCourse(course)}
+                      onClick={() => addTopic(topic)}
                       className="w-full text-left px-3 py-2 border-b last:border-b-0 hover:bg-accent transition"
                     >
-                      <p className="text-sm font-medium">[{course.code}] - {course.name}</p>
-                      <p className="text-xs text-muted-foreground">Level: {course.level || "-"}</p>
+                      <p className="text-sm font-medium">[{topic.code}] - {topic.name}</p>
+                      <p className="text-xs text-muted-foreground">Level: {topic.level || "-"}</p>
                     </button>
                   ))
                 )}
@@ -239,8 +237,8 @@ export default function ProgramCreatePage() {
 
           <Card className="xl:col-span-1">
             <CardHeader>
-              <CardTitle>Selected Courses</CardTitle>
-              <CardDescription>{selectedCourses.length} course(s) selected</CardDescription>
+              <CardTitle>Selected Topics</CardTitle>
+              <CardDescription>{selectedTopics.length} topic(s) selected</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="relative">
@@ -248,32 +246,32 @@ export default function ProgramCreatePage() {
                 <Input
                   value={selectedKeyword}
                   onChange={(event) => setSelectedKeyword(event.target.value)}
-                  placeholder="Search selected courses"
+                  placeholder="Search selected topics"
                   className="pl-9"
                 />
               </div>
 
               <div className="border rounded-md h-96 overflow-y-auto p-2 space-y-2">
-                {filteredSelectedCourses.length === 0 ? (
+                {filteredSelectedTopics.length === 0 ? (
                   <div className="h-full grid place-items-center text-sm text-muted-foreground">
-                    No courses selected
+                    No topics selected
                   </div>
                 ) : (
-                  filteredSelectedCourses.map((course) => (
-                    <div key={course.id} className="border rounded-md p-2">
+                  filteredSelectedTopics.map((topic) => (
+                    <div key={topic.id} className="border rounded-md p-2">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="text-sm font-medium">[{course.code}]</p>
-                          <p className="text-sm">{course.name}</p>
+                          <p className="text-sm font-medium">[{topic.code}]</p>
+                          <p className="text-sm">{topic.name}</p>
                           <Badge variant="outline" className="mt-1 text-[10px]">
-                            {course.level || "-"}
+                            {topic.level || "-"}
                           </Badge>
                         </div>
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          onClick={() => removeCourse(course.id)}
+                          onClick={() => removeTopic(topic.id)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -284,7 +282,7 @@ export default function ProgramCreatePage() {
               </div>
 
               <p className="text-xs text-muted-foreground">
-                Note: Current backend create API does not accept courseIds yet. Selected courses are for UI preparation.
+                Selected topics will be submitted as topicIds when creating the program.
               </p>
             </CardContent>
           </Card>

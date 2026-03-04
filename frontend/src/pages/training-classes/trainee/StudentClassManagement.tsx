@@ -30,13 +30,7 @@ export default function StudentClassManagement() {
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
                     <div className="border-b border-slate-200">
                         <TabsList className="bg-transparent h-12 p-0 gap-8">
-                            <TabsTrigger
-                                value="search"
-                                className="relative text-md h-12 rounded-none border-b-2 border-transparent bg-transparent px-3 pb-3 pt-3 font-semibold text-slate-500 transition-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none"
-                            >
-                                <Search className="mr-2 h-4 w-4" />
-                                Tìm lớp mới
-                            </TabsTrigger>
+
                             <TabsTrigger
                                 value="my-classes"
                                 className="relative h-12 text-md rounded-none border-b-2 border-transparent bg-transparent px-3 pb-3 pt-3 font-semibold text-slate-500 transition-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none"
@@ -48,13 +42,7 @@ export default function StudentClassManagement() {
                     </div>
 
                     <div className="min-h-[600px]">
-                        <TabsContent value="search" className="m-0 focus-visible:outline-none">
-                            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                                <SearchClass onEnrollSuccess={() => {
-                                    setActiveTab("my-classes");
-                                }} />
-                            </div>
-                        </TabsContent>
+
 
                         <TabsContent value="my-classes" className="m-0 focus-visible:outline-none">
                             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
