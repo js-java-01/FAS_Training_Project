@@ -1,179 +1,229 @@
 package com.example.starter_project_2025.system.topic.service;
 
+import com.example.starter_project_2025.system.modulegroups.dto.response.ImportErrorDetail;
+import com.example.starter_project_2025.system.modulegroups.dto.response.ImportResultResponse;
 import com.example.starter_project_2025.system.topic.entity.Topic;
 import com.example.starter_project_2025.system.topic.enums.TopicLevel;
+import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import com.example.starter_project_2025.system.topic.repository.TopicRepository;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.List;
+import java.io.InputStream;
+import java.util.Iterator;
 
 @Service
 @RequiredArgsConstructor
 public class TopicImportExportServiceImpl implements TopicImportExportService
 {
+
+    private static final String[] TEMPLATE_HEADERS = {
+            "topicName",
+            "topicCode",
+            "level",
+            "status",
+            "version",
+            "description"
+    };
+
     private final TopicRepository topicRepository;
-    private final UserService userService;
 
     @Override
-    @PreAuthorize("hasAuthority('TOPIC_EXPORT')")
-    public ByteArrayInputStream exportTopics() throws IOException
+    public ResponseEntity<byte[]> downloadTemplate()
     {
-        String[] columns = {"Topic Name", "Topic Code", "Level", "Status", "Version", "Description"};
-        List<Topic> topics = topicRepository.findAll();
-
-        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream())
+        try (Workbook workbook = new XSSFWorkbook())
         {
             Sheet sheet = workbook.createSheet("Topics");
 
-            Font bold = workbook.createFont();
-            bold.setBold(true);
-            CellStyle headerStyle = workbook.createCellStyle();
-            headerStyle.setFont(bold);
-            headerStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
-            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-            Row headerRow = sheet.createRow(0);
-            for (int i = 0; i < columns.length; i++)
+            Row header = sheet.createRow(0);
+            for (int i = 0; i < TEMPLATE_HEADERS.length; i++)
             {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(columns[i]);
-                cell.setCellStyle(headerStyle);
+                header.createCell(i).setCellValue(TEMPLATE_HEADERS[i]);
+            }
+
+            Row exampleRow = sheet.createRow(1);
+            exampleRow.createCell(0).setCellValue("Lập trình Java");
+            exampleRow.createCell(1).setCellValue("JAVA01");
+            exampleRow.createCell(2).setCellValue("BEGINNER");
+            exampleRow.createCell(3).setCellValue("ACTIVE");
+            exampleRow.createCell(4).setCellValue("v1.0");
+            exampleRow.createCell(5).setCellValue("Mô tả khóa học...");
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            workbook.write(out);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=topic-import-template.xlsx")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(out.toByteArray());
+
+        } catch (Exception e)
+        {
+            throw new RuntimeException("Failed to generate topic template", e);
+        }
+    }
+
+    @Override
+    public ImportResultResponse importExcel(MultipartFile file)
+    {
+        if (file == null || file.isEmpty())
+        {
+            throw new RuntimeException("File is empty");
+        }
+        if (!file.getOriginalFilename().toLowerCase().endsWith(".xlsx"))
+        {
+            throw new RuntimeException("Invalid file format. Only .xlsx is allowed");
+        }
+
+        ImportResultResponse result = new ImportResultResponse();
+
+        try (InputStream is = file.getInputStream();
+             Workbook workbook = new XSSFWorkbook(is))
+        {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            Iterator<Row> rows = sheet.iterator();
+            if (!rows.hasNext())
+            {
+                throw new RuntimeException("File is empty");
+            }
+
+            rows.next();
+            int rowIndex = 1;
+
+            while (rows.hasNext())
+            {
+                Row row = rows.next();
+                result.setTotalRows(result.getTotalRows() + 1);
+                rowIndex++;
+
+                try
+                {
+                    String name = getString(row, 0);
+                    String code = getString(row, 1);
+                    String levelStr = getString(row, 2);
+                    String statusStr = getString(row, 3);
+                    String version = getString(row, 4);
+                    String description = getString(row, 5);
+
+                    if (name == null || name.isBlank())
+                    {
+                        throw new IllegalArgumentException("topicName|Topic name is required");
+                    }
+                    if (code == null || code.isBlank())
+                    {
+                        throw new IllegalArgumentException("topicCode|Topic code is required");
+                    }
+                    if (topicRepository.existsByTopicCode(code.trim()))
+                    {
+                        throw new IllegalArgumentException("topicCode|Topic code already exists: " + code);
+                    }
+
+                    TopicLevel level = parseEnum(TopicLevel.class, "level", levelStr);
+                    TopicStatus status = parseEnum(TopicStatus.class, "status", statusStr);
+
+                    Topic topic = new Topic();
+                    topic.setTopicName(name.trim());
+                    topic.setTopicCode(code.trim());
+                    topic.setLevel(level);
+                    topic.setStatus(status != null ? status : TopicStatus.DRAFT);
+                    topic.setVersion(version != null ? version.trim() : "v1.0");
+                    topic.setDescription(description);
+
+                    topicRepository.save(topic);
+                    result.setSuccessCount(result.getSuccessCount() + 1);
+
+                } catch (Exception ex)
+                {
+                    result.setFailedCount(result.getFailedCount() + 1);
+                    String msg = ex.getMessage() == null ? "Unknown error" : ex.getMessage();
+                    String[] err = msg.split("\\|");
+                    result.getErrors().add(new ImportErrorDetail(
+                            rowIndex,
+                            err[0],
+                            err.length > 1 ? err[1] : msg
+                    ));
+                }
+            }
+        } catch (Exception e)
+        {
+            throw new RuntimeException("Import topics failed: " + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public ResponseEntity<byte[]> exportExcel()
+    {
+        try (Workbook workbook = new XSSFWorkbook())
+        {
+            Sheet sheet = workbook.createSheet("Topics");
+
+            Row header = sheet.createRow(0);
+            for (int i = 0; i < TEMPLATE_HEADERS.length; i++)
+            {
+                header.createCell(i).setCellValue(TEMPLATE_HEADERS[i]);
             }
 
             int rowIdx = 1;
-            for (Topic t : topics)
+            for (Topic t : topicRepository.findAll())
             {
                 Row row = sheet.createRow(rowIdx++);
-                row.createCell(0).setCellValue(t.getTopicCode() != null ? t.getTopicCode() : "");
-                row.createCell(1).setCellValue(t.getTopicCode() != null ? t.getTopicName() : "");
+                row.createCell(0).setCellValue(t.getTopicName());
+                row.createCell(1).setCellValue(t.getTopicCode());
                 row.createCell(2).setCellValue(t.getLevel() != null ? t.getLevel().name() : "");
                 row.createCell(3).setCellValue(t.getStatus() != null ? t.getStatus().name() : "");
-                row.createCell(4).setCellValue(t.getVersion() != null ? t.getVersion() : "");
-                row.createCell(5).setCellValue(t.getDescription() != null ? t.getDescription() : "");
+                row.createCell(4).setCellValue(t.getVersion());
+                row.createCell(5).setCellValue(t.getDescription());
             }
 
-            for (int i = 0; i < columns.length; i++) sheet.autoSizeColumn(i);
-
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
             workbook.write(out);
-            return new ByteArrayInputStream(out.toByteArray());
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=topics.xlsx")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(out.toByteArray());
+
+        } catch (Exception e)
+        {
+            throw new RuntimeException("Topic export failed", e);
         }
     }
 
-    @Override
-    public ByteArrayInputStream downloadTemplate() throws IOException
+    private <E extends Enum<E>> E parseEnum(Class<E> enumClass, String fieldName, String value)
     {
-        String[] columns = {"Topic Name", "Topic Code", "Level", "Description"};
-
-        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream())
+        if (value == null || value.isBlank())
         {
-            Sheet sheet = workbook.createSheet("Topic Template");
-
-            Font bold = workbook.createFont();
-            bold.setBold(true);
-            CellStyle headerStyle = workbook.createCellStyle();
-            headerStyle.setFont(bold);
-
-            Row headerRow = sheet.createRow(0);
-            for (int i = 0; i < columns.length; i++)
-            {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(columns[i]);
-                cell.setCellStyle(headerStyle);
-            }
-
-            Row sample = sheet.createRow(1);
-            sample.createCell(0).setCellValue("Java Core Foundation");
-            sample.createCell(1).setCellValue("T-JAVA-01");
-            sample.createCell(2).setCellValue("BEGINNER");
-            sample.createCell(3).setCellValue("Học kiến thức nền tảng Java...");
-
-            for (int i = 0; i < columns.length; i++) sheet.autoSizeColumn(i);
-
-            workbook.write(out);
-            return new ByteArrayInputStream(out.toByteArray());
+            throw new IllegalArgumentException(fieldName + "|" + fieldName + " is required");
+        }
+        try
+        {
+            return Enum.valueOf(enumClass, value.trim().toUpperCase());
+        } catch (IllegalArgumentException e)
+        {
+            throw new IllegalArgumentException(fieldName + "|Invalid value for " + fieldName);
         }
     }
 
-    @Override
-    @PreAuthorize("hasAuthority('TOPIC_CREATE')")
-    public void importTopics(MultipartFile file) throws IOException
+    private String getString(Row row, int index)
     {
-        try (Workbook workbook = new XSSFWorkbook(file.getInputStream()))
+        Cell cell = row.getCell(index);
+        if (cell == null || cell.getCellType() == CellType.BLANK)
         {
-            Sheet sheet = workbook.getSheetAt(0);
-            User currentUser = userService.getCurrentUser();
-
-            for (int i = 1; i <= sheet.getLastRowNum(); i++)
-            {
-                Row row = sheet.getRow(i);
-                if (row == null)
-                {
-                    continue;
-                }
-
-                String name = getCellValue(row.getCell(0));
-                String code = getCellValue(row.getCell(1));
-
-                if (name == null || name.isBlank() || code == null || code.isBlank())
-                {
-                    continue;
-                }
-
-                if (topicRepository.existsByTopicCode(code))
-                {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Topic code already exists: " + code);
-                }
-
-                Topic topic = new Topic();
-                topic.setTopicCode(name);
-                topic.setTopicCode(code);
-
-                String levelStr = getCellValue(row.getCell(2));
-                if (levelStr != null && !levelStr.isBlank())
-                {
-                    try
-                    {
-                        topic.setLevel(TopicLevel.valueOf(levelStr.trim().toUpperCase()));
-                    } catch (IllegalArgumentException ignored)
-                    {
-                        topic.setLevel(TopicLevel.BEGINNER);
-                    }
-                }
-
-                topic.setDescription(getCellValue(row.getCell(3)));
-
-                topic.setVersion("v1.0");
-                topic.setCreator(currentUser);
-
-                topicRepository.save(topic);
-            }
+            return null;
         }
-    }
-
-    private String getCellValue(Cell cell)
-    {
-        if (cell == null)
+        if (cell.getCellType() == CellType.NUMERIC)
         {
-            return "";
+            return String.valueOf((int) cell.getNumericCellValue());
         }
-        return switch (cell.getCellType())
-        {
-            case STRING -> cell.getStringCellValue().trim();
-            case NUMERIC -> String.valueOf((long) cell.getNumericCellValue());
-            case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
-            default -> "";
-        };
+        return cell.getStringCellValue().trim();
     }
 }

@@ -1,15 +1,14 @@
 package com.example.starter_project_2025.system.topic.service;
 
+import com.example.starter_project_2025.system.modulegroups.dto.response.ImportResultResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 
 public interface TopicImportExportService
 {
-    ByteArrayInputStream exportTopics() throws IOException;
+    ResponseEntity<byte[]> downloadTemplate();
 
-    ByteArrayInputStream downloadTemplate() throws IOException;
+    ImportResultResponse importExcel(MultipartFile file);
 
-    void importTopics(MultipartFile file) throws IOException;
+    ResponseEntity<byte[]> exportExcel();
 }
