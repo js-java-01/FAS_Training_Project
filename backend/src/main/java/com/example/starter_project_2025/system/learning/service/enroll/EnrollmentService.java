@@ -1,8 +1,7 @@
 package com.example.starter_project_2025.system.learning.service.enroll;
 
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
-import com.example.starter_project_2025.system.course.dto.CourseResponse;
-import com.example.starter_project_2025.system.learning.dto.EnrolledCourseResponse;
+
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 
 import java.util.List;

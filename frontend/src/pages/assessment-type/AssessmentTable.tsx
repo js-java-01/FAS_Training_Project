@@ -213,7 +213,6 @@ export const AssessmentTable: React.FC = () => {
                 // Search
                 isSearch
                 manualSearch
-                searchPlaceholder="name"
                 onSearchChange={setKeyword}
 
                 // Actions

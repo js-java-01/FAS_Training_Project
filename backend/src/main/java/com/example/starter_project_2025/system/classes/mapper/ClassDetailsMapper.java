@@ -43,7 +43,6 @@ public class ClassDetailsMapper {
             response.setId(courseClass.getCourse().getId());
             response.setCourseName(courseClass.getCourse().getCourseName());
             response.setCourseCode(courseClass.getCourse().getCourseCode());
-            response.setLevel(courseClass.getCourse().getLevel());
             response.setNote(courseClass.getCourse().getNote());
             response.setDescription(courseClass.getCourse().getDescription());
             response.setMinGpaToPass(courseClass.getCourse().getMinGpaToPass());

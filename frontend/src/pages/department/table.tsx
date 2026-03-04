@@ -174,7 +174,6 @@ export default function DepartmentsTable() {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        searchPlaceholder="name, code, location"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}

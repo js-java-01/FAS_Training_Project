@@ -19,7 +19,6 @@ interface ServerDataTableProps<TData, TValue> {
 
   // SEARCH
   isSearch?: boolean;
-  searchPlaceholder?: string;
   onSearchChange?: (search: string) => void;
 
   // SORTING
@@ -44,7 +43,6 @@ export function ServerDataTable<TData, TValue>({
   onPageChange,
   onPageSizeChange,
   isSearch = false,
-  searchPlaceholder,
   onSearchChange,
   sorting,
   onSortingChange,
@@ -69,7 +67,6 @@ export function ServerDataTable<TData, TValue>({
       onPageSizeChange={onPageSizeChange}
       // SEARCH
       isSearch={isSearch}
-      searchPlaceholder={searchPlaceholder}
       onSearchChange={onSearchChange}
       // SORTING
       sorting={sorting}
