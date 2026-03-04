@@ -3,13 +3,19 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { topicApi, type Topic } from "@/api/topicApi";
 import { FiX, FiBookOpen, FiHash, FiLayers, FiFileText } from "react-icons/fi";
+import {
+  TOPIC_LEVEL_LABELS,
+  TOPIC_LEVELS,
+  TOPIC_STATUS_LABELS,
+  TOPIC_STATUSES,
+} from "../constants";
 
 type FormValues = {
   topicName: string;
   topicCode: string;
+  level: string;
   status: string;
   description?: string;
-  note?: string;
 };
 
 interface Props {
@@ -24,7 +30,7 @@ export function TopicCreateModal({ open, onClose, onSuccess, topic }: Props) {
   const [loading, setLoading] = useState(false);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
-    defaultValues: { status: "ACTIVE" },
+    defaultValues: { level: "BEGINNER", status: "DRAFT" },
   });
 
   useEffect(() => {
@@ -33,17 +39,17 @@ export function TopicCreateModal({ open, onClose, onSuccess, topic }: Props) {
         reset({
             topicName: topic.topicName,
             topicCode: topic.topicCode,
-            status: topic.status,
+            level: topic.level ?? "BEGINNER",
+            status: topic.status ?? "DRAFT",
             description: topic.description,
-            note: topic.note,
         });
     } else {
         reset({
             topicName: "",
             topicCode: "",
-            status: "ACTIVE",
+            level: "BEGINNER",
+            status: "DRAFT",
             description: "",
-            note: "",
         });
         }
     }
@@ -55,10 +61,20 @@ export function TopicCreateModal({ open, onClose, onSuccess, topic }: Props) {
     try {
       setLoading(true);
       if (isEdit) {
-        await topicApi.updateTopic(topic!.id, data);
+        await topicApi.updateTopic(topic!.id, {
+          topicName: data.topicName,
+          level: data.level,
+          status: data.status,
+          description: data.description,
+        });
         toast.success("Topic updated");
       } else {
-        await topicApi.createTopic(data);
+        await topicApi.createTopic({
+          topicName: data.topicName,
+          topicCode: data.topicCode,
+          level: data.level,
+          description: data.description,
+        });
         toast.success("Topic created");
       }
       onSuccess?.();
@@ -83,12 +99,24 @@ export function TopicCreateModal({ open, onClose, onSuccess, topic }: Props) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <Input icon={<FiBookOpen />} label="Topic Name *" error={errors.topicName?.message} {...register("topicName", { required: "Required" })} />
-          <Input icon={<FiHash />} label="Topic Code *" error={errors.topicCode?.message} {...register("topicCode", { required: "Required" })} />
-          
-          <Select label="Status" options={["ACTIVE", "INACTIVE"]} {...register("status")} />
+          <Input icon={<FiHash />} label="Topic Code *" error={errors.topicCode?.message} disabled={isEdit} {...register("topicCode", { required: "Required" })} />
+          <Select
+            icon={<FiLayers />}
+            label="Level"
+            options={TOPIC_LEVELS.map((level) => ({ value: level, label: TOPIC_LEVEL_LABELS[level] }))}
+            {...register("level")}
+          />
+
+          {isEdit && (
+            <Select
+              icon={<FiLayers />}
+              label="Status"
+              options={TOPIC_STATUSES.map((status) => ({ value: status, label: TOPIC_STATUS_LABELS[status] }))}
+              {...register("status")}
+            />
+          )}
 
           <Textarea icon={<FiFileText />} label="Description" {...register("description")} />
-          <Textarea label="Note" {...register("note")} />
 
           <div className="flex justify-end gap-3 pt-4 border-t">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm border rounded-md hover:bg-gray-100 cursor-pointer">Cancel</button>
@@ -110,11 +138,11 @@ const Input = ({ icon, label, error, ...props }: any) => (
   </div>
 );
 
-const Select = ({ label, options = [], ...props }: any) => (
+const Select = ({ icon, label, options = [], ...props }: any) => (
   <div>
-    <label className="flex items-center gap-2 text-sm mb-1 text-gray-700">{label}</label>
+    <label className="flex items-center gap-2 text-sm mb-1 text-gray-700">{icon}{label}</label>
     <select {...props} className="w-full border rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-      {options.map((o: string) => <option key={o} value={o}>{o}</option>)}
+      {options.map((o: { value: string; label: string }) => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
   </div>
 );

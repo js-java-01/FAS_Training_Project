@@ -92,10 +92,6 @@ export default function TopicTable() {
     () =>
       getColumns({
         onView: (t) => navigate(`/topics/${t.id}`),
-        onEdit: (t) => {
-          setEditTopic(t);
-          setShowCreateModal(true);
-        },
         onDelete: (t) => setDeletingTopic(t),
       }),
     [navigate],
