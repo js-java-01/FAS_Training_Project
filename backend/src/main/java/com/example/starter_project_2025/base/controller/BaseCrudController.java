@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.base.controller;
 
-import com.example.starter_project_2025.base.dto.group.OnCreate;
-import com.example.starter_project_2025.base.dto.group.OnUpdate;
+import com.example.starter_project_2025.base.dto.OnCreate;
+import com.example.starter_project_2025.base.dto.OnUpdate;
 import com.example.starter_project_2025.base.service.CrudService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

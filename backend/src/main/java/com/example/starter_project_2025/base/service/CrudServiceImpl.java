@@ -1,10 +1,8 @@
 package com.example.starter_project_2025.base.service;
 
-import com.example.starter_project_2025.base.dto.CrudDto;
 import com.example.starter_project_2025.base.mapper.BaseCrudMapper;
 import com.example.starter_project_2025.base.repository.BaseCrudRepository;
 import com.example.starter_project_2025.base.spec.AutoSpecBuilder;
-import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
@@ -20,7 +18,7 @@ import java.util.List;
 public abstract class CrudServiceImpl<
         E,
         I,
-        D extends CrudDto<I>,
+        D,
         F> implements CrudService<I, D, F> {
 
     @Autowired
@@ -30,10 +28,10 @@ public abstract class CrudServiceImpl<
     protected abstract BaseCrudMapper<E, D> getMapper();
     protected abstract String[] searchableFields();
 
-    protected void beforeCreate(E entity, D request) {}
+    protected abstract void beforeCreate(E entity, D request);
     protected void afterCreate(E entity, D request) {}
 
-    protected void beforeUpdate(E entity, D request) {}
+    protected abstract void beforeUpdate(E entity, D request);
     protected void afterUpdate(E entity, D request) {}
 
     protected void beforeDelete(E entity) {}
@@ -53,10 +51,6 @@ public abstract class CrudServiceImpl<
     }
 
     protected D updateEntity(I id, D request) {
-
-        if (!id.equals(request.getId())) {
-            throw new BadRequestException("ID mismatch");
-        }
 
         E entity = getRepository().findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Entity not found"));

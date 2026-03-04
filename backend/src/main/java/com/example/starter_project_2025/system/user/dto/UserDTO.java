@@ -1,8 +1,7 @@
 package com.example.starter_project_2025.system.user.dto;
 
-import com.example.starter_project_2025.base.dto.CrudDto;
-import com.example.starter_project_2025.base.dto.group.OnCreate;
-import com.example.starter_project_2025.base.dto.group.OnUpdate;
+import com.example.starter_project_2025.base.dto.OnCreate;
+import com.example.starter_project_2025.base.dto.OnUpdate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -21,7 +20,7 @@ import static com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserDTO implements CrudDto<UUID> {
+public class UserDTO {
 
     @Null(groups = OnCreate.class)
     @NotNull(groups = OnUpdate.class)

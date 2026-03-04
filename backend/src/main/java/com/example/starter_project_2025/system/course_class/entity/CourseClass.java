@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.example.starter_project_2025.system.assessment.entity.Submission;
+import com.example.starter_project_2025.system.assessment.submission.Submission;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.user.entity.User;
@@ -49,10 +49,6 @@ public class CourseClass {
     @JoinColumn(name = "trainer_id")
     @JsonBackReference
     private User trainer;
-
-    @OneToMany(mappedBy = "courseClass")
-    @JsonManagedReference
-    private Set<Submission> submissions;
 
     @CreationTimestamp
     private LocalDateTime createdDate;

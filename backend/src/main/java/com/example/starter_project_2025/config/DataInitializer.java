@@ -1,8 +1,20 @@
 package com.example.starter_project_2025.config;
 
-import com.example.starter_project_2025.system.assessment.entity.*;
-import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
-import com.example.starter_project_2025.system.assessment.repository.*;
+import com.example.starter_project_2025.system.assessment.assessment.Assessment;
+import com.example.starter_project_2025.system.assessment.assessment.AssessmentRepository;
+import com.example.starter_project_2025.system.assessment.assessment_question.AssessmentQuestion;
+import com.example.starter_project_2025.system.assessment.assessment_question.AssessmentQuestionRepository;
+import com.example.starter_project_2025.system.assessment.assessment_type.AssessmentType;
+import com.example.starter_project_2025.system.assessment.assessment.enums.AssessmentStatus;
+import com.example.starter_project_2025.system.assessment.assessment_type.AssessmentTypeRepository;
+import com.example.starter_project_2025.system.assessment.question.Question;
+import com.example.starter_project_2025.system.assessment.question.QuestionRepository;
+import com.example.starter_project_2025.system.assessment.question.QuestionType;
+import com.example.starter_project_2025.system.assessment.question_category.QuestionCategory;
+import com.example.starter_project_2025.system.assessment.question_category.QuestionCategoryRepository;
+import com.example.starter_project_2025.system.assessment.question_option.QuestionOption;
+import com.example.starter_project_2025.system.assessment.question_tag.QuestionTag;
+import com.example.starter_project_2025.system.assessment.question_tag.QuestionTagRepository;
 import com.example.starter_project_2025.system.auth.entity.Permission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
@@ -427,9 +439,9 @@ public class DataInitializer implements CommandLineRunner
         entranceAssessment.setPassScore(60);
         entranceAssessment.setTimeLimitMinutes(60);
         entranceAssessment.setAttemptLimit(1);
-        entranceAssessment.setIsShuffleQuestion(true);
-        entranceAssessment.setIsShuffleOption(true);
-        entranceAssessment.setStatus(AssessmentStatus.ACTIVE);
+        entranceAssessment.setShuffleQuestion(true);
+        entranceAssessment.setShuffleOption(true);
+        entranceAssessment.setStatus(AssessmentStatus.PUBLISHED);
 
         Assessment midtermAssessment = new Assessment();
         midtermAssessment.setAssessmentType(midtermType);
@@ -440,9 +452,9 @@ public class DataInitializer implements CommandLineRunner
         midtermAssessment.setPassScore(50);
         midtermAssessment.setTimeLimitMinutes(90);
         midtermAssessment.setAttemptLimit(1);
-        midtermAssessment.setIsShuffleQuestion(false);
-        midtermAssessment.setIsShuffleOption(false);
-        midtermAssessment.setStatus(AssessmentStatus.ACTIVE);
+        midtermAssessment.setShuffleQuestion(false);
+        midtermAssessment.setShuffleOption(false);
+        midtermAssessment.setStatus(AssessmentStatus.PUBLISHED);
 
         Assessment finalAssessment = new Assessment();
         finalAssessment.setAssessmentType(finalType);
@@ -453,9 +465,9 @@ public class DataInitializer implements CommandLineRunner
         finalAssessment.setPassScore(60);
         finalAssessment.setTimeLimitMinutes(120);
         finalAssessment.setAttemptLimit(1);
-        finalAssessment.setIsShuffleQuestion(false);
-        finalAssessment.setIsShuffleOption(false);
-        finalAssessment.setStatus(AssessmentStatus.ACTIVE);
+        finalAssessment.setShuffleQuestion(false);
+        finalAssessment.setShuffleOption(false);
+        finalAssessment.setStatus(AssessmentStatus.PUBLISHED);
 
         assessmentRepository.saveAll(
                 List.of(entranceAssessment, midtermAssessment, finalAssessment));
@@ -769,7 +781,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 1 =====
         Question q1 = new Question();
         q1.setContent("Which keyword is used to inherit a class in Java?");
-        q1.setQuestionType("SINGLE");
+        q1.setQuestionType(QuestionType.SINGLE_CHOICE);
         q1.setCategory(javaCore);
         q1.setOptions(List.of(
             createOption(q1, "extends", true, 1),
@@ -781,7 +793,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 2 =====
         Question q2 = new Question();
         q2.setContent("What is the default value of a boolean variable in Java?");
-        q2.setQuestionType("SINGLE");
+        q2.setQuestionType(QuestionType.SINGLE_CHOICE);
         q2.setCategory(javaCore);
         q2.setOptions(List.of(
             createOption(q2, "true", false, 1),
@@ -793,7 +805,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 3 =====
         Question q3 = new Question();
         q3.setContent("Which method must be implemented by all threads in Java?");
-        q3.setQuestionType("SINGLE");
+        q3.setQuestionType(QuestionType.SINGLE_CHOICE);
         q3.setCategory(javaCore);
         q3.setOptions(List.of(
             createOption(q3, "start()", false, 1),
@@ -805,7 +817,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 4 =====
         Question q4 = new Question();
         q4.setContent("What are the principles of OOP? (Select all that apply)");
-        q4.setQuestionType("MULTIPLE");
+        q4.setQuestionType(QuestionType.MULTIPLE_CHOICE);
         q4.setCategory(oop);
         q4.setOptions(List.of(
             createOption(q4, "Encapsulation", true, 1),
@@ -818,7 +830,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 5 =====
         Question q5 = new Question();
         q5.setContent("Which keyword is used to prevent method overriding in Java?");
-        q5.setQuestionType("SINGLE");
+        q5.setQuestionType(QuestionType.SINGLE_CHOICE);
         q5.setCategory(oop);
         q5.setOptions(List.of(
             createOption(q5, "static", false, 1),
@@ -830,7 +842,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 6 =====
         Question q6 = new Question();
         q6.setContent("What is the purpose of a constructor in Java?");
-        q6.setQuestionType("SINGLE");
+        q6.setQuestionType(QuestionType.SINGLE_CHOICE);
         q6.setCategory(oop);
         q6.setOptions(List.of(
             createOption(q6, "To initialize an object", true, 1),
@@ -842,7 +854,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 7 =====
         Question q7 = new Question();
         q7.setContent("Which SQL command is used to retrieve data from a database?");
-        q7.setQuestionType("SINGLE");
+        q7.setQuestionType(QuestionType.SINGLE_CHOICE);
         q7.setCategory(sql);
         q7.setOptions(List.of(
             createOption(q7, "GET", false, 1),
@@ -854,7 +866,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 8 =====
         Question q8 = new Question();
         q8.setContent("Which SQL clause is used to filter records?");
-        q8.setQuestionType("SINGLE");
+        q8.setQuestionType(QuestionType.SINGLE_CHOICE);
         q8.setCategory(sql);
         q8.setOptions(List.of(
             createOption(q8, "FILTER", false, 1),
@@ -866,7 +878,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 9 =====
         Question q9 = new Question();
         q9.setContent("What does JVM stand for?");
-        q9.setQuestionType("SINGLE");
+        q9.setQuestionType(QuestionType.SINGLE_CHOICE);
         q9.setCategory(javaCore);
         q9.setOptions(List.of(
             createOption(q9, "Java Virtual Machine", true, 1),
@@ -878,7 +890,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 10 =====
         Question q10 = new Question();
         q10.setContent("Which of the following are access modifiers in Java? (Select all that apply)");
-        q10.setQuestionType("MULTIPLE");
+        q10.setQuestionType(QuestionType.MULTIPLE_CHOICE);
         q10.setCategory(javaCore);
         q10.setOptions(List.of(
             createOption(q10, "public", true, 1),
@@ -897,7 +909,7 @@ public class DataInitializer implements CommandLineRunner
     {
         QuestionOption option = new QuestionOption();
         option.setContent(content);
-        option.setCorrect(isCorrect);
+        option.setIsCorrect(isCorrect);
         option.setOrderIndex(order);
         option.setQuestion(question);
         return option;

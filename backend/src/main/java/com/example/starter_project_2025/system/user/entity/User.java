@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.user.entity;
 
-import com.example.starter_project_2025.system.assessment.entity.Submission;
+import com.example.starter_project_2025.system.assessment.submission.Submission;
 import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportEntity;

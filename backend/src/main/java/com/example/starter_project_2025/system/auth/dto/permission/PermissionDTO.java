@@ -1,8 +1,7 @@
 package com.example.starter_project_2025.system.auth.dto.permission;
 
-import com.example.starter_project_2025.base.dto.CrudDto;
-import com.example.starter_project_2025.base.dto.group.OnCreate;
-import com.example.starter_project_2025.base.dto.group.OnUpdate;
+import com.example.starter_project_2025.base.dto.OnCreate;
+import com.example.starter_project_2025.base.dto.OnUpdate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,7 +21,7 @@ import static com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PermissionDTO implements CrudDto<UUID> {
+public class PermissionDTO {
 
     @Null(groups = OnCreate.class)
     @NotNull(groups = OnUpdate.class)
