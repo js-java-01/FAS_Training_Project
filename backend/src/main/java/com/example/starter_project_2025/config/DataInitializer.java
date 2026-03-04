@@ -64,7 +64,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DataInitializer implements CommandLineRunner
 {
-
+    @PersistenceContext
+    private EntityManager entityManager;
     private final PermissionRepository permissionRepository;
     private final ProvinceRepository provinceRepository;
     private final CommuneRepository communeRepository;
@@ -85,16 +86,14 @@ public class DataInitializer implements CommandLineRunner
     private final CourseClassRepository courseClassRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final LocationRepository locationRepository;
-    @PersistenceContext
-    private EntityManager entityManager;
     private final ModuleInitializer moduleInitializer;
     private final UserRoleInitializer userRoleInitializer;
     private final TrainingClassInitializer trainingClassInitializer;
     private final TrainingProgramInitializer trainingProgramInitializer;
     private final TopicInitializer topicInitializer;
     private final AssessmentTypeInitializer assessmentTypeInitializer;
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final RoleInitializer roleInitializer;
+    private final UserInitializer userInitializer;
 
     @Override
     @Transactional

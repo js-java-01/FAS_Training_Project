@@ -5,11 +5,12 @@ export interface TrainingProgram {
   version: string;
   createdAt: string;
   updatedAt: string;
-  programCourseIds?: string[];
+  topicIds: string[];
 }
 
 export interface TrainingProgramRequest {
   name: string;
   version: string;
   description?: string;
+  topicIds?: string[];  
 }
