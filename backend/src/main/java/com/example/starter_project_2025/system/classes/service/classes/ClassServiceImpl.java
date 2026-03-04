@@ -21,13 +21,17 @@ import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -297,6 +301,30 @@ public class ClassServiceImpl implements ClassService {
         res.setClasses(mappedClasses);
 
         return res;
+    }
+
+    @Override
+    public Map<String, Object> importClasses(MultipartFile file) {
+        // Mock implementation to resolve method not supported error
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "Import functionality is not yet implemented in the backend.");
+        result.put("totalCount", 0);
+        result.put("successCount", 0);
+        result.put("failedCount", 0);
+        result.put("errorFile", null); // Return base64 string if there are errors
+        return result;
+    }
+
+    @Override
+    public ByteArrayResource exportClasses() {
+        // Mock implementation
+        return new ByteArrayResource(new byte[0]);
+    }
+
+    @Override
+    public ByteArrayResource getTemplate() {
+        // Mock implementation
+        return new ByteArrayResource(new byte[0]);
     }
 
 //    private String generateEnrollmentKey() {

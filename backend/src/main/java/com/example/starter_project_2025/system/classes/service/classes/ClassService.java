@@ -17,6 +17,9 @@ import java.util.UUID;
 import com.example.starter_project_2025.system.classes.dto.request.ReviewClassRequest;
 
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.ByteArrayResource;
+import java.util.Map;
 
 public interface ClassService {
 
@@ -38,6 +41,12 @@ public interface ClassService {
     List<TrainingClassSemesterResponse> getMyClasses(UUID id);
 
     TrainerClassSemesterResponse getTrainerClasses(UUID trainerId, SearchTrainerClassInSemesterRequest request);
+
+    Map<String, Object> importClasses(MultipartFile file);
+
+    ByteArrayResource exportClasses();
+
+    ByteArrayResource getTemplate();
 
 //    private String generateEnrollmentKey() {
 //        return UUID.randomUUID()

@@ -11,9 +11,14 @@ import { getColumns, type TablePermissions } from "./column";
 import { TrainingClassForm } from "./form";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ClassStatus } from "./enum/ClassStatus";
-import { useGetAllTrainingClasses } from "./services/queries";
+import { useGetAllTrainingClasses,
+  useExportTrainingClasses,
+  useImportTrainingClasses,
+  useDownloadTrainingClassTemplate,
+} from "./services/queries";
 import { ReviewActionModal } from "@/components/ReviewActionModal";
 import { trainingClassApi } from "@/api/trainingClassApi";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import { ROLES } from "@/types/role";
 import {
   Breadcrumb,
@@ -72,6 +77,7 @@ export default function TrainingClassesTable({
   const semesterMode = mode === "semester";
   const canCreate = permissions.includes("CLASS_CREATE");
   const canReviewClass = role === ROLES.SUPER_ADMIN || role === ROLES.MANAGER;
+  const showImportExport = !semesterMode;
 
   /* ===================== DATA ===================== */
   const {
@@ -241,15 +247,24 @@ export default function TrainingClassesTable({
             setPageIndex(0);
           }}
           headerActions={
-            canCreate &&
-            (role === "ADMIN" || role === "MANAGER") && (
+            (showImportExport || canCreate) ? (
               <div className="flex gap-2">
-                <Button onClick={() => setOpenForm(true)} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
-                  <Plus className="h-4 w-4" />
-                  Open Class Request
-                </Button>
+                {showImportExport && (
+                  <EntityImportExportButton
+                    title="Classes"
+                    useImportHook={useImportTrainingClasses}
+                    useExportHook={useExportTrainingClasses}
+                    useTemplateHook={useDownloadTrainingClassTemplate}
+                  />
+                )}
+                {canCreate && (
+                  <Button onClick={() => setOpenForm(true)} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                    <Plus className="h-4 w-4" />
+                    Open Class Request
+                  </Button>
+                )}
               </div>
-            )
+            ) : undefined
           }
         />
       )}
