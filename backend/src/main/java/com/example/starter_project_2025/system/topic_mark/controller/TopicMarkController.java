@@ -1,6 +1,5 @@
 package com.example.starter_project_2025.system.topic_mark.controller;
 
-import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ImportResultResponse;
 import com.example.starter_project_2025.system.topic_mark.dto.*;
 import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
@@ -196,14 +195,12 @@ public class TopicMarkController {
             Authentication authentication) {
         UUID editorId = resolveCurrentUserId(authentication);
         ImportResultResponse response = topicMarkService.importGradebook(courseClassId, file, editorId);
-        if (response.getFailedCount() > 0) {
-            String message = (response.getMessage() == null || response.getMessage().isBlank())
-                    ? "Import failed. Please check your file and try again."
-                    : response.getMessage();
-            throw new BadRequestException(message);
-        }
         if (response.getMessage() == null || response.getMessage().isBlank()) {
-            response.setMessage("Import gradebook scores successfully");
+            if (response.getFailedCount() > 0) {
+                response.setMessage("Import completed with some failed rows. Please review errors.");
+            } else {
+                response.setMessage("Import gradebook scores successfully");
+            }
         }
         return ResponseEntity.ok(response);
     }
