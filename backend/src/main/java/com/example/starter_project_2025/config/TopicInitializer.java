@@ -4,60 +4,74 @@ import com.example.starter_project_2025.system.topic.entity.Topic;
 import com.example.starter_project_2025.system.topic.enums.TopicLevel;
 import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import com.example.starter_project_2025.system.topic.repository.TopicRepository;
+import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
+import com.example.starter_project_2025.system.training_program.repository.TrainingProgramRepository;
+import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
+import com.example.starter_project_2025.system.training_program_topic.entity.repository.TrainingProgramTopicRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Arrays;
 
-@Component
-@Order(3)
+@Service
 @RequiredArgsConstructor
-@Slf4j
-public class TopicInitializer {
+public class TopicInitializer
+{
 
     private final TopicRepository topicRepository;
+    private final TrainingProgramRepository trainingProgramRepository;
+    private final TrainingProgramTopicRepository trainingProgramTopicRepository;
 
-    public void initializeTopics() {
-
-        if (topicRepository.count() > 0) {
-            log.info("Topics already exist, skipping initialization");
+    public void init()
+    {
+        if (topicRepository.count() > 0)
+        {
             return;
         }
 
-        List<Topic> topics = List.of(
-                build("Java Core", "JAVA_CORE", TopicLevel.BEGINNER,
-                        "Basic Java programming including OOP, collections and exceptions"),
+        TrainingProgram tp1 = createProgram("Fullstack Java Web Development", "Chương trình đào tạo chuyên sâu Java");
+        TrainingProgram tp2 = createProgram("Data Science & AI", "Khám phá thế giới dữ liệu và trí tuệ nhân tạo");
+        trainingProgramRepository.saveAll(Arrays.asList(tp1, tp2));
 
-                build("Spring Boot Backend", "SPRING_BOOT", TopicLevel.INTERMEDIATE,
-                        "Building RESTful APIs using Spring Boot and Spring Data JPA"),
+        Topic t1 = createTopic("Spring Boot Basic", "TOPIC-001", TopicLevel.BEGINNER, "Hướng dẫn cơ bản về Spring Framework");
+        Topic t2 = createTopic("ReactJS Advanced", "TOPIC-002", TopicLevel.ADVANCED, "Làm chủ Hook và State Management");
+        Topic t3 = createTopic("Python for Data", "TOPIC-003", TopicLevel.INTERMEDIATE, "Sử dụng Pandas và Numpy");
+        topicRepository.saveAll(Arrays.asList(t1, t2, t3));
 
-                build("React Frontend", "REACT_FE", TopicLevel.INTERMEDIATE,
-                        "Frontend development using React, Hooks and modern JS"),
+        linkTopicToProgram(t1, tp1);
+        linkTopicToProgram(t2, tp1);
 
-                build("DevOps Fundamentals", "DEVOPS", TopicLevel.ADVANCED,
-                        "CI/CD, Docker, Kubernetes and cloud deployment concepts"),
+        linkTopicToProgram(t3, tp2);
 
-                build("Data Science Basics", "DATA_SCIENCE", TopicLevel.INTERMEDIATE,
-                        "Data analysis, machine learning basics with Python")
-        );
-
-        topicRepository.saveAll(topics);
-
-        log.info("Initialized {} Topics", topics.size());
+        System.out.println(">>> TopicInitializer: Đã khởi tạo dữ liệu mẫu thành công!");
     }
 
-    private Topic build(String name, String code, TopicLevel level, String description) {
+    private TrainingProgram createProgram(String name, String desc)
+    {
+        TrainingProgram tp = new TrainingProgram();
+        tp.setName(name);
+        tp.setDescription(desc);
+        tp.setVersion("v1.0");
+        return tp;
+    }
 
+    private Topic createTopic(String name, String code, TopicLevel level, String desc)
+    {
         Topic topic = new Topic();
         topic.setTopicName(name);
         topic.setTopicCode(code);
         topic.setLevel(level);
-        topic.setDescription(description);
+        topic.setDescription(desc);
         topic.setStatus(TopicStatus.ACTIVE);
         topic.setVersion("v1.0");
-
         return topic;
+    }
+
+    private void linkTopicToProgram(Topic topic, TrainingProgram program)
+    {
+        TrainingProgramTopic link = new TrainingProgramTopic();
+        link.setTopic(topic);
+        link.setTrainingProgram(program);
+        trainingProgramTopicRepository.save(link);
     }
 }

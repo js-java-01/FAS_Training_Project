@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { topicApi, type Topic } from "@/api/topicApi";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
-  BookOpen,
   LayoutGrid,
   Search,
   RotateCcw,
@@ -16,6 +15,7 @@ import {
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePermissions } from "@/hooks/usePermissions";
 import TopicTable from "./TopicTable";
+import { TOPIC_STATUS_LABELS, TOPIC_STATUSES } from "./constants";
 
 // ── Student Topic Card Component ──────────────────────────────────────────────
 function TopicCard({ topic }: { topic: Topic }) {
@@ -80,7 +80,7 @@ export const TopicManagement: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   
   const [keyword, setKeyword] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ACTIVE"); // Student mặc định xem Active
+  const [statusFilter, setStatusFilter] = useState("ACTIVE");
   const debouncedKeyword = useDebounce(keyword, 300);
 
   useEffect(() => {
@@ -157,9 +157,10 @@ export const TopicManagement: React.FC = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="text-sm border rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-600"
           >
-            <option value="ACTIVE">Active Topics</option>
-            <option value="INACTIVE">Archived</option>
-            <option value="">All Status</option>
+            <option value="">All status</option>
+            {TOPIC_STATUSES.map((status) => (
+              <option key={status} value={status}>{TOPIC_STATUS_LABELS[status]}</option>
+            ))}
           </select>
 
           <button

@@ -117,7 +117,7 @@ public class DataInitializer implements CommandLineRunner {
             ensureProgrammingLanguagePermissions();
             initializeProgrammingLanguages();
             initializeCourses();
-            topicInitializer.initializeTopics();
+            //topicInitializer.initializeTopics();
             trainingProgramInitializer.initializeTrainingProgram();
             trainingClassInitializer.initializeTrainingClasses();
             initializeCourseClasses();
@@ -135,6 +135,7 @@ public class DataInitializer implements CommandLineRunner {
         ensureTrainingProgramPermissionsForSuperAdmin();
 
         initializeEnrollments();
+        topicInitializer.init();
     }
 
     private void initializePermissions() {

@@ -5,14 +5,18 @@ import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
 import type { TraineeDetailsResponse } from "@/types/trainerClass";
 import { useGetClassTrainees } from "@/pages/training-classes/trainer/services/queries";
 import { Button } from "@/components/ui/button";
-import { FileBarChartIcon } from "lucide-react";
+import { EyeIcon, FileBarChartIcon } from "lucide-react";
 import TopicMarkModal from "@/pages/topic-mark/TopicMarkManagement";
 import type { TrainingClass } from "@/types/trainingClass";
 import { createBaseColumns } from "@/components/data_table/baseColumns";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
+import { useExportTrainees, useExportTraineeTemplate, useImportTrainees } from "../service/mutations";
+import { useExportTemplate } from "@/pages/topic-mark/services/mutations";
+import ActionBtn from "@/components/data_table/ActionBtn";
 
 interface Props {
   classId: string;
-  trainingClass:  TrainingClass| null;
+  trainingClass: TrainingClass | null;
 }
 
 const EMPTY_DATA: TraineeDetailsResponse[] = [];
@@ -23,21 +27,45 @@ const base = createBaseColumns<TraineeDetailsResponse>();
 const columns = [
   base.numberColumn,
   columnHelper.accessor("firstName", {
-    header: "Họ và tên",
+    header: "Full Name",
     cell: (info) => (
       <span className="font-semibold">
         {info.row.original.firstName} {info.row.original.lastName}
       </span>
     ),
+    meta: {
+      title: "Full Name"
+    }
   }),
   columnHelper.accessor("email", {
     header: "Email",
+    meta: {
+      title: "Email"
+    }
+  }),
+  columnHelper.display({
+    id: "actions",
+    header: "Actions",
+    size: 120,
+    cell: ({ row }) => (
+      <div className="flex gap-2">
+        <ActionBtn
+          tooltipText="View"
+          icon={<EyeIcon size={12} />}
+          onClick={() => console.log("View", row.original)}
+        />
+      </div>
+    ),
+    enableSorting: false,
+    meta: {
+      title: "Actions"
+    }
   }),
   base.columnControl,
 ];
 
 export default function ClassTraineesTable({ classId, trainingClass }: Props) {
-     const [openTopicMark, setOpenTopicMark] = useState(false);
+  const [openTopicMark, setOpenTopicMark] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
 
@@ -82,7 +110,19 @@ export default function ClassTraineesTable({ classId, trainingClass }: Props) {
         onSearchChange={handleSearchChange}
 
         headerActions={
-            <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon/> Topic mark</Button>
+          <div>
+            <div className="flex items-end justify-between">
+              <div className="flex gap-2"></div>
+              <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon /> Topic mark</Button>
+              <EntityImportExportButton
+                mode="all" title={"Trainee"}
+                useExportHook={() => useExportTrainees({ classCode: trainingClass?.classCode || "" })}
+                useImportHook={() => useImportTrainees({ classCode: trainingClass?.classCode || "", classId: trainingClass?.id || "" })}
+                useTemplateHook={() => useExportTraineeTemplate()}
+              />
+
+            </div>
+          </div>
         }
       />
 

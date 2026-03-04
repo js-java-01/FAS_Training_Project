@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { topicApi, type Topic } from "@/api/topicApi";
+import { topicApi } from "@/api/topicApi";
 import { toast } from "sonner";
 import { 
   FiEdit, FiBookOpen, FiHash, FiBarChart2, FiCalendar, 
   FiUser, FiX, FiSave, FiFileText, FiLayers 
 } from "react-icons/fi";
+import {
+  TOPIC_LEVEL_LABELS,
+  TOPIC_LEVELS,
+  TOPIC_STATUS_LABELS,
+  TOPIC_STATUSES,
+} from "../constants";
 
-const tabs = ["Overview", "Skills", "Objectives", "Assessment Scheme", "Delivery Principles", "Outline & Schedule", "Time Allocation"];
+const tabs = ["Overview", "Courses", "Objectives", "Assessment Scheme", "Delivery Principles", "Time Allocation"];
 
 const inputCls = "w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
 
@@ -21,9 +27,9 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
     reset({
       topicName: topic.topicName,
       topicCode: topic.topicCode,
-      status: topic.status,
+      level: topic.level ?? "BEGINNER",
+      status: topic.status ?? "DRAFT",
       description: topic.description,
-      note: topic.note,
     });
     setIsEditing(true);
   };
@@ -31,7 +37,13 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
   const onSubmit = async (data: any) => {
     try {
       setLoading(true);
-      await topicApi.updateTopic(topic.id, data);
+      await topicApi.updateTopic(topic.id, {
+        topicName: data.topicName,
+        topicCode: data.topicCode,
+        level: data.level,
+        status: data.status,
+        description: data.description,
+      });
       toast.success("Topic updated successfully");
       setIsEditing(false);
       onRefresh?.();
@@ -90,7 +102,8 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
             <div className="grid grid-cols-2 gap-4">
               <Info icon={<FiBookOpen />} label="Topic Name" value={topic.topicName} />
               <Info icon={<FiHash />} label="Topic Code" value={topic.topicCode} />
-              <Info icon={<FiBarChart2 />} label="Status" value={topic.status} />
+              <Info icon={<FiLayers />} label="Level" value={topic.level ? TOPIC_LEVEL_LABELS[topic.level as keyof typeof TOPIC_LEVEL_LABELS] ?? topic.level : "---"} />
+              <Info icon={<FiBarChart2 />} label="Status" value={topic.status ? TOPIC_STATUS_LABELS[topic.status as keyof typeof TOPIC_STATUS_LABELS] ?? topic.status : "---"} />
             </div>
           </Block>
 
@@ -104,7 +117,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
             <Block title="Additional Information">
               <div className="space-y-4">
                 <Info icon={<FiFileText />} label="Description" value={topic.description} />
-                <Info icon={<FiFileText />} label="Note" value={topic.note} />
+                <Info icon={<FiFileText />} label="Version" value={topic.version} />
               </div>
             </Block>
           </div>
@@ -129,10 +142,18 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
               <Field icon={<FiHash />} label="Topic Code">
                 <input {...register("topicCode", { required: true })} className={inputCls} />
               </Field>
+              <Field icon={<FiLayers />} label="Level">
+                <select {...register("level")} className={inputCls + " bg-white"}>
+                  {TOPIC_LEVELS.map((level) => (
+                    <option key={level} value={level}>{TOPIC_LEVEL_LABELS[level]}</option>
+                  ))}
+                </select>
+              </Field>
               <Field icon={<FiLayers />} label="Status">
                 <select {...register("status")} className={inputCls + " bg-white"}>
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
+                  {TOPIC_STATUSES.map((status) => (
+                    <option key={status} value={status}>{TOPIC_STATUS_LABELS[status]}</option>
+                  ))}
                 </select>
               </Field>
             </div>
@@ -140,9 +161,6 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
             <div className="mt-4 space-y-4">
               <Field icon={<FiFileText />} label="Description">
                 <textarea rows={3} {...register("description")} className={inputCls} />
-              </Field>
-              <Field icon={<FiFileText />} label="Note">
-                <textarea rows={2} {...register("note")} className={inputCls} />
               </Field>
             </div>
           </div>

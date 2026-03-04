@@ -57,5 +57,6 @@ public interface TrainingClassRepository
                      ClassStatus status,
                      LocalDate date);
 
+       Optional<TrainingClass> findByClassCode(String classCode);
        // List<TrainingClass> findAllByEnrollmentKey(String key);
 }

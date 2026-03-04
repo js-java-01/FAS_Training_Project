@@ -1,0 +1,104 @@
+/* =========================
+   Toolbar
+========================= */
+.gc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.gc-label {
+  font-size: 18px;
+  font-weight: 600;
+  margin-left: 12px;
+}
+
+/* =========================
+   Event Style
+========================= */
+.gc-event {
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 2px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================
+   Calendar Grid Polish
+========================= */
+.rbc-calendar {
+  font-family: inherit;
+}
+
+.rbc-header {
+  font-weight: 600;
+  padding: 8px 0;
+}
+
+.rbc-today {
+  background-color: #eef2ff !important;
+}
+
+.rbc-time-view {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.rbc-month-view {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.rbc-event {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* =========================
+   Scrollbar nhẹ
+========================= */
+.rbc-time-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rbc-time-content::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 6px;
+}
+
+/* Dark mode override */
+.dark .rbc-calendar {
+  background-color: #18181b;
+  color: #e4e4e7;
+}
+
+.dark .rbc-month-view,
+.dark .rbc-time-view,
+.dark .rbc-day-bg,
+.dark .rbc-header {
+  background-color: #18181b;
+  border-color: #3f3f46;
+}
+
+/* TODAY - Light mode */
+.rbc-today {
+  background-color: #dbeafe !important; /* blue-100 */
+}
+
+/* TODAY - Dark mode */
+.dark .rbc-today {
+  background-color: #1e293b !important; /* slate-800 */
+}
+
+/* Optional: header today highlight */
+.dark .rbc-header.rbc-today {
+  background-color: #1e40af !important; /* blue-800 */
+  color: white !important;
+}
