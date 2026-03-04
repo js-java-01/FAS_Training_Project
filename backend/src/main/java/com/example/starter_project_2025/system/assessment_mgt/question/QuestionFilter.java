@@ -12,6 +12,9 @@ import java.util.UUID;
 @Builder
 public record QuestionFilter(
 
+        @FilterField(entityField = "content", operator = FilterOperator.LIKE)
+        String content,
+
         @FilterField(entityField = "questionType")
         String questionType,
 
