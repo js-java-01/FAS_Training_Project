@@ -27,11 +27,21 @@ public class TopicAssessmentTypeWeightServiceImpl implements TopicAssessmentType
     @Override
     public List<TopicAssessmentTypeWeightResponse> createAndUpdateWeightsByTopicId(UUID topicId, List<TopicAssessmentTypeWeightCreateRequest> request)
     {
+        if (!validateTotalWeight(request))
+        {
+            throw new IllegalArgumentException("Total weight must be 100%");
+        }
         topicAssessmentTypeWeightRepository.deleteByTopicId((topicId));
 
         var entities = mapper.toEntityList(request);
         var savedEntities = topicAssessmentTypeWeightRepository.saveAll(entities);
 
         return mapper.toResponseList(savedEntities);
+    }
+
+    private boolean validateTotalWeight(List<TopicAssessmentTypeWeightCreateRequest> request)
+    {
+        double totalWeight = request.stream().mapToDouble(TopicAssessmentTypeWeightCreateRequest::getWeight).sum();
+        return totalWeight == 100;
     }
 }
