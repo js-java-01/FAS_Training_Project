@@ -17,7 +17,7 @@ export const OAuth2RedirectHandler = () => {
       const decoded: LoginResponse = jwtDecode(token);
       decoded.token = token;
       dispatch(setLogin(decoded));
-      navigate("/dashboard");
+      navigate(decoded.role === "STUDENT" ? "/student-home" : "/dashboard");
     } else {
       navigate("/login?error=true");
     }

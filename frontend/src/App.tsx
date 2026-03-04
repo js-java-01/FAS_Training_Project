@@ -30,6 +30,8 @@ import AssessmentManagement from "./pages/AssessmentManagement";
 import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
+import StudentHomePage from "./pages/learning/StudentHomePage";
+import StudentMyCoursesPage from "./pages/learning/StudentMyCoursesPage";
 import { RoleManagement } from "./pages/role/RoleManagement";
 import PermissionsManagement from "./pages/permissions/PermissionsManagement";
 import MfaSettings from "./pages/MfaSettings";
@@ -39,6 +41,16 @@ import Unauthorized from "./pages/Unauthorized";
 import ModuleGroupsManagement from "./pages/modules/module_groups/ModuleGroupsManagement";
 import { TopicManagement } from "./pages/topic/TopicManagement";
 import TopicDetailPage from "./pages/topic/TopicDetailPage";
+
+function RootRedirect() {
+  const role = useSelector((state: RootState) => state.auth.role);
+  return (
+    <Navigate
+      to={role === "STUDENT" ? "/student-home" : "/dashboard"}
+      replace
+    />
+  );
+}
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -71,7 +83,23 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<RootRedirect />} />
+            <Route
+              path="/student-home"
+              element={
+                <ProtectedRoute>
+                  <StudentHomePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student-my-courses"
+              element={
+                <ProtectedRoute>
+                  <StudentMyCoursesPage />
+                </ProtectedRoute>
+              }
+            />
             {moduleGroups.flatMap((group) =>
               group.modules.map((m) => {
                 if (!m.url) return null;
@@ -171,7 +199,6 @@ function App() {
               path="/my-topics/:id"
               element={<Navigate to="/topics" replace />}
             />
-
 
             <Route
               path="/teacher-assessment"

@@ -12,7 +12,8 @@ import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 
 const URL_LOGIN_WITH_GOOGLE =
-  import.meta.env.VITE_API_URL_FOR_GOOGLE || "http://localhost:8080/oauth2/authorization/google";
+  import.meta.env.VITE_API_URL_FOR_GOOGLE ||
+  "http://localhost:8080/oauth2/authorization/google";
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -31,12 +32,13 @@ export const Login: React.FC = () => {
     const cleanEmail = email.trim();
     const cleanPassword = password.trim();
     try {
-      const res = await authApi.login({ email: cleanEmail, password: cleanPassword, isRememberedMe });
+      const res = await authApi.login({
+        email: cleanEmail,
+        password: cleanPassword,
+        isRememberedMe,
+      });
       dispatch(setLogin(res));
-      console.log('====================================');
-      console.log("Testttttt: ",res);
-      console.log('====================================');
-      navigate("/dashboard");
+      navigate(res.role === "STUDENT" ? "/student-home" : "/dashboard");
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const backendMsg = err.response?.data?.message;
@@ -101,7 +103,10 @@ export const Login: React.FC = () => {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label htmlFor="password" className="text-sm font-medium leading-none">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium leading-none"
+              >
                 Password
               </label>
             </div>
@@ -115,15 +120,27 @@ export const Login: React.FC = () => {
                 placeholder="••••••••"
                 className="bg-background "
               />
-              <Button type="button" onClick={() => setShowPassword((prev) => !prev)} style={{ marginLeft: "10px" }}>
+              <Button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                style={{ marginLeft: "10px" }}
+              >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </Button>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
-            <Checkbox id="remember" onCheckedChange={(checked: boolean) => handleIsRememberMe(checked)} />
-            <label htmlFor="remember" className="text-sm font-medium leading-none cursor-pointer">
+            <Checkbox
+              id="remember"
+              onCheckedChange={(checked: boolean) =>
+                handleIsRememberMe(checked)
+              }
+            />
+            <label
+              htmlFor="remember"
+              className="text-sm font-medium leading-none cursor-pointer"
+            >
               Remember me
             </label>
           </div>
@@ -155,7 +172,12 @@ export const Login: React.FC = () => {
           </Button>
         </form>
 
-        <Button disabled={isLoading} onClick={handleGoogleLogin} variant="outline" className="w-full mt-3">
+        <Button
+          disabled={isLoading}
+          onClick={handleGoogleLogin}
+          variant="outline"
+          className="w-full mt-3"
+        >
           <FcGoogle className="mr-2 h-4 w-4" /> Continue with Google
         </Button>
 
@@ -173,15 +195,25 @@ export const Login: React.FC = () => {
         </div>
 
         <div className="mt-8 pt-6 border-t border-dashed">
-          <p className="text-xs font-semibold uppercase text-muted-foreground mb-3">(Test Only):</p>
+          <p className="text-xs font-semibold uppercase text-muted-foreground mb-3">
+            (Test Only):
+          </p>
           <div className="space-y-2 text-sm bg-muted/50 p-3 rounded-lg border">
             <p className="flex justify-between">
-              <span className="text-muted-foreground font-mono text-[11px]">ADMIN:</span>
-              <span className="font-medium">admin@example.com / password123</span>
+              <span className="text-muted-foreground font-mono text-[11px]">
+                ADMIN:
+              </span>
+              <span className="font-medium">
+                admin@example.com / password123
+              </span>
             </p>
             <p className="flex justify-between">
-              <span className="text-muted-foreground font-mono text-[11px]">STUDENT:</span>
-              <span className="font-medium">student@example.com / password123</span>
+              <span className="text-muted-foreground font-mono text-[11px]">
+                STUDENT:
+              </span>
+              <span className="font-medium">
+                student@example.com / password123
+              </span>
             </p>
           </div>
         </div>

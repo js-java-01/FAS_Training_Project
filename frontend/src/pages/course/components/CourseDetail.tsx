@@ -147,68 +147,153 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
     setThumbnailPreview(URL.createObjectURL(file));
   };
 
+  const statusBadgeClass: Record<string, string> = {
+    ACTIVE: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    DRAFT: "bg-amber-100 text-amber-700 border-amber-200",
+    UNDER_REVIEW: "bg-blue-100 text-blue-700 border-blue-200",
+    INACTIVE: "bg-gray-100 text-gray-500 border-gray-200",
+  };
+  const statusClass =
+    statusBadgeClass[course?.status] ??
+    "bg-gray-100 text-gray-500 border-gray-200";
+
   return (
-    <div>
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h1 className="text-2xl font-bold">Course Details</h1>
-          <p className="text-sm text-gray-500">
-            Course Details management and configuration
-          </p>
+    <div className="space-y-0">
+      {/* ── Hero header ───────────────────────────────────────────── */}
+      <div className="relative rounded-xl overflow-hidden mb-6">
+        {/* Background */}
+        {course?.thumbnailUrl ? (
+          <div className="absolute inset-0">
+            <img
+              src={course.thumbnailUrl}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-linear-to-r from-slate-900/90 via-slate-900/70 to-slate-900/40" />
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-linear-to-br from-slate-800 via-blue-900 to-slate-800" />
+        )}
+
+        <div className="relative px-6 py-6 flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4 min-w-0">
+            {/* Thumbnail icon */}
+            {course?.thumbnailUrl ? (
+              <img
+                src={course.thumbnailUrl}
+                alt=""
+                className="w-14 h-14 rounded-xl object-cover border-2 border-white/20 shrink-0 shadow-lg"
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                <FiBookOpen size={24} className="text-white/60" />
+              </div>
+            )}
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                <span className="text-xs font-mono uppercase tracking-widest text-white/50 bg-white/10 px-2 py-0.5 rounded">
+                  {course?.courseCode}
+                </span>
+                {course?.topic && (
+                  <span className="text-xs text-white/50">
+                    · {course.topic}
+                  </span>
+                )}
+                {course?.status && (
+                  <span
+                    className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusClass}`}
+                  >
+                    {course.status}
+                  </span>
+                )}
+              </div>
+              <h1 className="text-xl font-bold text-white leading-tight truncate">
+                {course?.courseName ?? "Course Detail"}
+              </h1>
+              {course?.trainerName && (
+                <p className="text-sm text-white/50 mt-0.5">
+                  Trainer:{" "}
+                  <span className="text-white/80">{course.trainerName}</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={onBack}
+              className="flex items-center text-sm gap-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
+            >
+              ← Back
+            </button>
+            {activeTab === "Overview" &&
+              (isEditing ? (
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="flex items-center text-sm gap-1.5 bg-white text-slate-700 hover:bg-gray-100 px-3 py-1.5 rounded-lg cursor-pointer transition-colors font-medium"
+                >
+                  <FiX size={13} /> Cancel
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={startEdit}
+                  className="flex items-center text-sm gap-1.5 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg cursor-pointer transition-colors font-medium"
+                >
+                  <FiEdit size={13} /> Edit
+                </button>
+              ))}
+          </div>
         </div>
 
-        <button
-          onClick={onBack}
-          className="text-sm text-gray-500 hover:bg-gray-100 px-3 py-1.5 rounded-md border border-gray-200"
-        >
-          ← Back to list
-        </button>
+        {/* Stats strip */}
+        <div className="relative border-t border-white/10 px-6 py-3 flex items-center gap-6 flex-wrap">
+          {course?.price != null && (
+            <div className="flex items-center gap-1.5 text-xs text-white/60">
+              <FiDollarSign size={12} />
+              <span>{Number(course.price).toLocaleString()} VND</span>
+              {course.discount ? (
+                <span className="text-emerald-300 font-semibold ml-1">
+                  -{course.discount}%
+                </span>
+              ) : null}
+            </div>
+          )}
+          {course?.level && (
+            <div className="flex items-center gap-1.5 text-xs text-white/60">
+              <FiBarChart2 size={12} /> {course.level}
+            </div>
+          )}
+          {course?.estimatedTime != null && (
+            <div className="flex items-center gap-1.5 text-xs text-white/60">
+              <FiClock size={12} /> {course.estimatedTime} min
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* TABS + EDIT / DONE BUTTON */}
-      <div className="flex justify-between items-center border-b mb-6">
-        <div className="flex gap-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-2 text-sm transition-all ${
-                activeTab === tab
-                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === "Overview" &&
-          (isEditing ? (
-            <button
-              type="button"
-              onClick={cancelEdit}
-              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md cursor-pointer hover:bg-blue-700 transition-colors"
-            >
-              <FiX size={14} />
-              Cancel
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={startEdit}
-              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md cursor-pointer hover:bg-blue-700 transition-colors"
-            >
-              <FiEdit size={14} />
-              Edit
-            </button>
-          ))}
+      {/* ── Tab bar ───────────────────────────────────────────────── */}
+      <div className="flex items-center border-b border-gray-200 mb-6 gap-1">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors border-b-2 -mb-px cursor-pointer ${
+              activeTab === tab
+                ? "border-blue-600 text-blue-600 bg-blue-50/50"
+                : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
       {/* READ-ONLY */}
       {activeTab === "Overview" && !isEditing && (
-        <div className="animate-in fade-in duration-300">
+        <div className="animate-in fade-in duration-200">
           <OverviewTab course={course} />
         </div>
       )}
@@ -217,7 +302,7 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
       {activeTab === "Overview" && isEditing && (
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="space-y-6 animate-in fade-in duration-300"
+          className="space-y-6 animate-in fade-in duration-200"
         >
           {/* Basic Information */}
           <div className="border rounded-lg p-4">
@@ -460,124 +545,51 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
 /* ─── Read-only Overview ─────────────────────────────────── */
 function OverviewTab({ course }: any) {
-  const statusColor: Record<string, string> = {
-    ACTIVE: "text-emerald-700 border-emerald-300",
-    DRAFT: "text-amber-700 border-amber-300",
-    UNDER_REVIEW: "text-blue-700 border-blue-300",
-    INACTIVE: "text-gray-500 border-gray-300",
-  };
-  const badgeClass =
-    statusColor[course.status] ?? "text-gray-500 border-gray-300";
-
   return (
     <div className="space-y-5">
-      {/* Identity card */}
-      <div className="rounded-xl border border-gray-200 overflow-hidden">
-        {/* Thumbnail banner */}
-        {course.thumbnailUrl ? (
-          <div className="relative w-full h-44 bg-gray-100 overflow-hidden">
-            <img
-              src={course.thumbnailUrl}
-              alt="thumbnail"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
-            <span
-              className={`absolute top-3 right-3 text-xs font-semibold px-3 py-1.5 rounded-full border bg-white/90 backdrop-blur-sm ${badgeClass}`}
-            >
-              {course.status}
-            </span>
-          </div>
-        ) : (
-          <div className="relative w-full h-28 bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-            <FiBookOpen size={36} className="text-gray-300" />
-            <span
-              className={`absolute top-3 right-3 text-xs font-semibold px-3 py-1.5 rounded-full border bg-white ${badgeClass}`}
-            >
-              {course.status}
-            </span>
-          </div>
-        )}
+      {/* Description card */}
+      {course.description && (
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
+            Description
+          </p>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            {course.description}
+          </p>
+        </div>
+      )}
 
-        <div className="p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1 min-w-0">
-              {course.thumbnailUrl ? (
-                <img
-                  src={course.thumbnailUrl}
-                  alt="thumbnail"
-                  className="w-16 h-16 object-cover rounded-xl border border-gray-200 shrink-0"
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-xl border border-gray-200 flex items-center justify-center shrink-0">
-                  <FiBookOpen size={22} className="text-gray-400" />
-                </div>
-              )}
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                  <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
-                    {course.courseCode}
-                  </span>
-                  {course.topic && (
-                    <>
-                      <span className="text-gray-200">|</span>
-                      <span className="text-xs text-gray-500">
-                        {course.topic}
-                      </span>
-                    </>
-                  )}
-                  {course.level && (
-                    <span className="text-xs text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full">
-                      {course.level}
-                    </span>
-                  )}
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 leading-tight">
-                  {course.courseName}
-                </h2>
-                {course.description && (
-                  <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                    {course.description}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Stats row */}
-          <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-3 divide-x divide-gray-100">
-            <div className="text-center pr-4">
-              <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
-                Price
-              </p>
-              <p className="font-semibold text-gray-900 mt-1">
-                {course.price != null
-                  ? `${Number(course.price).toLocaleString()} VND`
-                  : "—"}
-              </p>
-            </div>
-            <div className="text-center px-4">
-              <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
-                Discount
-              </p>
-              <p className="font-semibold text-gray-900 mt-1">
-                {course.discount != null ? `${course.discount}%` : "0%"}
-              </p>
-            </div>
-            <div className="text-center pl-4">
-              <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
-                Duration
-              </p>
-              <p className="font-semibold text-gray-900 mt-1">
-                {course.estimatedTime != null
-                  ? `${course.estimatedTime} min`
-                  : "—"}
-              </p>
-            </div>
-          </div>
+      {/* Pricing + Duration strip */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+            Price
+          </p>
+          <p className="text-lg font-bold text-gray-900">
+            {course.price != null
+              ? `${Number(course.price).toLocaleString()} VND`
+              : "Free"}
+          </p>
+        </div>
+        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+            Discount
+          </p>
+          <p className="text-lg font-bold text-gray-900">
+            {course.discount != null ? `${course.discount}%` : "0%"}
+          </p>
+        </div>
+        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+            Duration
+          </p>
+          <p className="text-lg font-bold text-gray-900">
+            {course.estimatedTime != null ? `${course.estimatedTime} min` : "—"}
+          </p>
         </div>
       </div>
 
+      {/* Details + Metadata */}
       <div className="grid grid-cols-2 gap-5">
         <Block title="Course Details">
           <div className="space-y-4">
