@@ -77,8 +77,8 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
   useEffect(() => {
     userApi
-      .getAllUsers(0, 100)
-      .then((res) => setUsers(res?.content ?? []))
+      .getAllUsers({ page: 0, size: 100 })
+      .then((res) => setUsers(res?.items ?? []))
       .catch(() => {});
   }, []);
 
@@ -152,12 +152,11 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
       {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h1 className="text-2xl font-bold">Course Details</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Course Details</h1>
           <p className="text-sm text-gray-500">
-            Course Details management and configuration
+            Course details management and configuration
           </p>
         </div>
-
         <button
           onClick={onBack}
           className="text-sm text-gray-500 hover:bg-gray-100 px-3 py-1.5 rounded-md border border-gray-200"
@@ -166,7 +165,7 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
         </button>
       </div>
 
-      {/* TABS + EDIT / DONE BUTTON */}
+      {/* TABS SELECTOR */}
       <div className="flex justify-between items-center border-b mb-6">
         <div className="flex gap-6">
           {tabs.map((tab) => (
@@ -189,26 +188,24 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
             <button
               type="button"
               onClick={cancelEdit}
-              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md cursor-pointer hover:bg-blue-700 transition-colors"
+              className="flex items-center text-sm gap-2 mb-2 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors"
             >
-              <FiX size={14} />
-              Cancel
+              <FiX /> Cancel
             </button>
           ) : (
             <button
               type="button"
               onClick={startEdit}
-              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md cursor-pointer hover:bg-blue-700 transition-colors"
+              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
             >
-              <FiEdit size={14} />
-              Edit
+              <FiEdit /> Edit
             </button>
           ))}
       </div>
 
       {/* READ-ONLY */}
       {activeTab === "Overview" && !isEditing && (
-        <div className="animate-in fade-in duration-300">
+        <div className="animate-in fade-in duration-200">
           <OverviewTab course={course} />
         </div>
       )}
@@ -217,29 +214,20 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
       {activeTab === "Overview" && isEditing && (
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="space-y-6 animate-in fade-in duration-300"
+          className="space-y-6 animate-in fade-in duration-200"
         >
           {/* Basic Information */}
           <div className="border rounded-lg p-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold text-gray-700">Basic Information</h2>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="flex items-center gap-1.5 text-sm border rounded-md px-3 py-1.5 hover:bg-gray-100 cursor-pointer"
-                >
-                  <FiX size={13} /> Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex items-center gap-1.5 text-sm bg-blue-600 text-white rounded-md px-3 py-1.5 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
-                >
-                  <FiSave size={13} />
-                  {loading ? "Saving..." : "Save"}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-1.5 text-sm bg-blue-600 text-white rounded-md px-3 py-1.5 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+              >
+                <FiSave size={13} />
+                {loading ? "Saving..." : "Save"}
+              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -460,124 +448,80 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
 /* ─── Read-only Overview ─────────────────────────────────── */
 function OverviewTab({ course }: any) {
-  const statusColor: Record<string, string> = {
+  const statusCls: Record<string, string> = {
     ACTIVE: "text-emerald-700 border-emerald-300",
     DRAFT: "text-amber-700 border-amber-300",
     UNDER_REVIEW: "text-blue-700 border-blue-300",
     INACTIVE: "text-gray-500 border-gray-300",
   };
-  const badgeClass =
-    statusColor[course.status] ?? "text-gray-500 border-gray-300";
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-in fade-in duration-300">
       {/* Identity card */}
-      <div className="rounded-xl border border-gray-200 overflow-hidden">
-        {/* Thumbnail banner */}
-        {course.thumbnailUrl ? (
-          <div className="relative w-full h-44 bg-gray-100 overflow-hidden">
-            <img
-              src={course.thumbnailUrl}
-              alt="thumbnail"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
-            <span
-              className={`absolute top-3 right-3 text-xs font-semibold px-3 py-1.5 rounded-full border bg-white/90 backdrop-blur-sm ${badgeClass}`}
-            >
-              {course.status}
-            </span>
-          </div>
-        ) : (
-          <div className="relative w-full h-28 bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-            <FiBookOpen size={36} className="text-gray-300" />
-            <span
-              className={`absolute top-3 right-3 text-xs font-semibold px-3 py-1.5 rounded-full border bg-white ${badgeClass}`}
-            >
-              {course.status}
-            </span>
-          </div>
-        )}
-
-        <div className="p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1 min-w-0">
-              {course.thumbnailUrl ? (
-                <img
-                  src={course.thumbnailUrl}
-                  alt="thumbnail"
-                  className="w-16 h-16 object-cover rounded-xl border border-gray-200 shrink-0"
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-xl border border-gray-200 flex items-center justify-center shrink-0">
-                  <FiBookOpen size={22} className="text-gray-400" />
-                </div>
+      <div className="rounded-xl border border-gray-200 p-6">
+        <div className="flex items-start justify-between gap-6">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <FiBookOpen size={14} className="text-blue-500 shrink-0" />
+              <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
+                {course.courseCode}
+              </span>
+              {course.topic && (
+                <span className="text-xs text-gray-400">· {course.topic}</span>
               )}
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                  <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
-                    {course.courseCode}
-                  </span>
-                  {course.topic && (
-                    <>
-                      <span className="text-gray-200">|</span>
-                      <span className="text-xs text-gray-500">
-                        {course.topic}
-                      </span>
-                    </>
-                  )}
-                  {course.level && (
-                    <span className="text-xs text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full">
-                      {course.level}
-                    </span>
-                  )}
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 leading-tight">
-                  {course.courseName}
-                </h2>
-                {course.description && (
-                  <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                    {course.description}
-                  </p>
-                )}
-              </div>
             </div>
+            <h2 className="text-2xl font-bold text-gray-900 leading-tight">
+              {course.courseName}
+            </h2>
+            {course.description && (
+              <p className="text-sm text-gray-500 mt-3 leading-relaxed max-w-2xl">
+                {course.description}
+              </p>
+            )}
           </div>
-
-          {/* Stats row */}
-          <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-3 divide-x divide-gray-100">
-            <div className="text-center pr-4">
-              <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
-                Price
-              </p>
-              <p className="font-semibold text-gray-900 mt-1">
-                {course.price != null
-                  ? `${Number(course.price).toLocaleString()} VND`
-                  : "—"}
-              </p>
-            </div>
-            <div className="text-center px-4">
-              <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
-                Discount
-              </p>
-              <p className="font-semibold text-gray-900 mt-1">
-                {course.discount != null ? `${course.discount}%` : "0%"}
-              </p>
-            </div>
-            <div className="text-center pl-4">
-              <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">
-                Duration
-              </p>
-              <p className="font-semibold text-gray-900 mt-1">
-                {course.estimatedTime != null
-                  ? `${course.estimatedTime} min`
-                  : "—"}
-              </p>
-            </div>
-          </div>
+          {course.status && (
+            <span
+              className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${
+                statusCls[course.status] ?? "text-gray-500 border-gray-300"
+              }`}
+            >
+              {course.status}
+            </span>
+          )}
         </div>
       </div>
 
+      {/* Pricing + Duration strip */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+            Price
+          </p>
+          <p className="text-lg font-bold text-gray-900">
+            {course.price != null
+              ? `${Number(course.price).toLocaleString()} VND`
+              : "Free"}
+          </p>
+        </div>
+        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+            Discount
+          </p>
+          <p className="text-lg font-bold text-gray-900">
+            {course.discount != null ? `${course.discount}%` : "0%"}
+          </p>
+        </div>
+        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+            Duration
+          </p>
+          <p className="text-lg font-bold text-gray-900">
+            {course.estimatedTime != null ? `${course.estimatedTime} min` : "—"}
+          </p>
+        </div>
+      </div>
+
+      {/* Details + Metadata */}
       <div className="grid grid-cols-2 gap-5">
         <Block title="Course Details">
           <div className="space-y-4">
@@ -655,10 +599,6 @@ function Block({ title, children }: any) {
       {children}
     </div>
   );
-}
-
-function Grid({ children }: any) {
-  return <div className="grid grid-cols-2 gap-4">{children}</div>;
 }
 
 function Info({ icon, label, value }: any) {

@@ -456,7 +456,6 @@ public class DataInitializer implements CommandLineRunner {
 
                 // Admin user: all roles, ADMIN is default
                 saveUserRole(adminUser, adminRole, true);
-                saveUserRole(adminUser, superAdminRole, false);
                 saveUserRole(adminUser, trainerRole, false);
                 saveUserRole(adminUser, departmentManagerRole, false);
                 saveUserRole(adminUser, studentRole, false);
