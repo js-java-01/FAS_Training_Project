@@ -3,19 +3,25 @@ package com.example.starter_project_2025.config;
 import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
 import com.example.starter_project_2025.system.training_program.repository.TrainingProgramRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Service
+@Component
+@Order(2)
 @RequiredArgsConstructor
-public class TrainingProgramInitializer {
+@Slf4j
+public class TrainingProgramInitializer  {
 
     private final TrainingProgramRepository trainingProgramRepository;
+
 
     public void initializeTrainingProgram() {
 
         if (trainingProgramRepository.count() > 0) {
+            log.info("Training programs already exist, skipping initialization");
             return;
         }
 
@@ -34,6 +40,8 @@ public class TrainingProgramInitializer {
         );
 
         trainingProgramRepository.saveAll(programs);
+
+        log.info("Initialized {} Training Programs", programs.size());
     }
 
     private TrainingProgram build(String name, String description) {
