@@ -9,9 +9,7 @@ import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import com.example.starter_project_2025.system.topic.mapper.TopicMapper;
 import com.example.starter_project_2025.system.topic.repository.TopicRepository;
 import com.example.starter_project_2025.system.topic.spec.TopicSpecification;
-import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
 import com.example.starter_project_2025.system.training_program.repository.TrainingProgramRepository;
-import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
 import com.example.starter_project_2025.system.training_program_topic.entity.repository.TrainingProgramTopicRepository;
 import com.example.starter_project_2025.system.user.service.UserService;
 import jakarta.transaction.Transactional;
@@ -23,9 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -57,23 +53,6 @@ public class TopicServiceImpl implements TopicService
         topic.setCreator(userService.getCurrentUser());
         topic.setStatus(TopicStatus.ACTIVE);
         Topic savedTopic = topicRepository.save(topic);
-
-        if (req.getTrainingProgramIds() != null && !req.getTrainingProgramIds().isEmpty())
-        {
-            List<TrainingProgramTopic> pivotList = req.getTrainingProgramIds().stream()
-                    .map(tpId -> {
-                        TrainingProgram tp = trainingProgramRepository.findById(tpId)
-                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Program not found: " + tpId));
-
-                        TrainingProgramTopic pivot = new TrainingProgramTopic();
-                        pivot.setTopic(savedTopic);
-                        pivot.setTrainingProgram(tp);
-                        return pivot;
-                    })
-                    .collect(Collectors.toList());
-
-            trainingProgramTopicRepository.saveAll(pivotList);
-        }
 
         return mapper.toResponse(savedTopic);
     }
@@ -114,28 +93,6 @@ public class TopicServiceImpl implements TopicService
 
         topic.setUpdater(userService.getCurrentUser());
         Topic savedTopic = topicRepository.save(topic);
-
-        if (req.getTrainingProgramIds() != null)
-        {
-            trainingProgramTopicRepository.deleteAllByTopicId(id);
-
-            if (!req.getTrainingProgramIds().isEmpty())
-            {
-                List<TrainingProgramTopic> newLinks = req.getTrainingProgramIds().stream()
-                        .map(tpId -> {
-                            TrainingProgram tp = trainingProgramRepository.findById(tpId)
-                                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "TrainingProgram not found. " + tpId));
-
-                            TrainingProgramTopic link = new TrainingProgramTopic();
-                            link.setTopic(savedTopic);
-                            link.setTrainingProgram(tp);
-                            return link;
-                        })
-                        .collect(Collectors.toList());
-
-                trainingProgramTopicRepository.saveAll(newLinks);
-            }
-        }
 
         return mapper.toResponse(savedTopic);
     }

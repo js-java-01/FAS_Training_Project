@@ -11,11 +11,14 @@ import java.util.Arrays;
 
 @RequiredArgsConstructor
 @Service
-public class ModuleInitializer {
+public class ModuleInitializer
+{
     private final ModuleGroupsRepository moduleGroupsRepository;
     private final ModuleRepository moduleRepository;
+
     private com.example.starter_project_2025.system.modulegroups.entity.Module createModule(ModuleGroups group, String title, String url, String icon,
-                                                                                            int order, String permission, String description) {
+                                                                                            int order, String permission, String description)
+    {
         com.example.starter_project_2025.system.modulegroups.entity.Module module = new Module();
         module.setModuleGroup(group);
         module.setTitle(title);
@@ -27,7 +30,9 @@ public class ModuleInitializer {
         module.setIsActive(true);
         return module;
     }
-    public void initializeModuleGroups() {
+
+    public void initializeModuleGroups()
+    {
 
         /*
          * =======================================================
@@ -124,7 +129,11 @@ public class ModuleInitializer {
                         "User search and view classes"),
                 createModule(trainingGroup, "Semesters", "/semesters", "LayoutGrid", 6,
                         "SEMESTER_ADMIN_READ",
-                        "User search and view classes")));
+                        "User search and view classes"),
+                createModule(trainingGroup, "Topics", "/topics", "library", 1,
+                        "TOPIC_READ",
+                        "User search and view topics")
+        ));
 
         /*
          * =======================================================

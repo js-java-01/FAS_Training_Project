@@ -7,9 +7,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.util.Set;
-import java.util.UUID;
-
 @Data
 public class UpdateTopicRequest
 {
@@ -25,6 +22,4 @@ public class UpdateTopicRequest
 
     @Size(max = 500, message = "Description must not exceed 500 characters")
     private String description;
-
-    private Set<UUID> trainingProgramIds;
 }
