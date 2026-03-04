@@ -1,13 +1,13 @@
 package com.example.starter_project_2025.system.learning.service;
 
-import com.example.starter_project_2025.system.course_online.entity.Course;
-import com.example.starter_project_2025.system.course_online.mapper.CourseMapper;
-import com.example.starter_project_2025.system.course_online.repository.CourseRepository;
 import com.example.starter_project_2025.system.learning.dto.EnrolledCourseResponse;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentResponse;
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
+import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
+import com.example.starter_project_2025.system.course_online.mapper.CourseOnlineMapper;
+import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
 import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
@@ -27,9 +27,9 @@ import java.util.List;
 public class EnrollmentServiceImpl implements EnrollmentService {
 
     private final EnrollmentRepository enrollmentRepository;
-    private final CourseRepository courseRepository;
+    private final CourseOnlineRepository courseOnlineRepository;
     private final UserRepository userRepository;
-    private final CourseMapper courseMapper;
+    private final CourseOnlineMapper courseOnlineMapper;
     private final CourseClassRepository courseClassRepository;
     private final TopicMarkService topicMarkService;
     
@@ -42,7 +42,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Course course = courseRepository.findById(request.courseId())
+        CourseOnline course = courseOnlineRepository.findById(request.courseId())
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
         if (enrollmentRepository.existsByUserIdAndCourseId(user.getId(), course.getId())) {
@@ -82,7 +82,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 .filter(e -> e.getCourse() != null)
                 .map(e -> EnrolledCourseResponse.builder()
                         .courseId(e.getCourse().getId())
-                        .course(courseMapper.toResponse(e.getCourse()))
+                        .course(courseOnlineMapper.toResponse(e.getCourse()))
                         .build())
                 .collect(java.util.stream.Collectors.toList());
     }

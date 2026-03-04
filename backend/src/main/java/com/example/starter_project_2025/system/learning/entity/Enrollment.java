@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.learning.entity;
 
-import com.example.starter_project_2025.system.course_online.entity.Course;
+import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
 import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
 import com.example.starter_project_2025.system.user.entity.User;
 
@@ -28,7 +28,7 @@ public class Enrollment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    private CourseOnline course;
 
     private Instant enrolledAt;
 

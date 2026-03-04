@@ -4,8 +4,8 @@ import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.classes.repository.ClassRepository;
-import com.example.starter_project_2025.system.course_online.entity.Course;
-import com.example.starter_project_2025.system.course_online.repository.CourseRepository;
+import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
+import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
 import com.example.starter_project_2025.system.course_class.dto.CourseClassRequest;
 import com.example.starter_project_2025.system.course_class.dto.CourseClassResponse;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
@@ -24,7 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CourseClassServiceImpl implements CourseClassService {
 
-    private final CourseRepository courseRepository;
+    private final CourseOnlineRepository courseOnlineRepository;
     private final ClassRepository classRepository;
     private final UserRepository userRepository;
 
@@ -37,7 +37,7 @@ public class CourseClassServiceImpl implements CourseClassService {
             throw new BadRequestException("Course is already assigned to this class");
         }
 
-        Course course = courseRepository.findById(request.courseId())
+        CourseOnline course = courseOnlineRepository.findById(request.courseId())
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found: " + request.courseId()));
 
         TrainingClass trainingClass = classRepository.findById(request.classId())

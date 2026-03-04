@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
-import com.example.starter_project_2025.system.course_online.entity.Course;
+import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
@@ -38,7 +38,7 @@ public class CourseAssessmentTypeWeight {
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
     @JsonBackReference
-    private Course course;
+    private CourseOnline course;
 
     @ManyToOne
     @JoinColumn(name = "assessment_type_id", nullable = false)

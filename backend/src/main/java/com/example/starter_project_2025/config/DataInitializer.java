@@ -12,14 +12,12 @@ import com.example.starter_project_2025.system.auth.repository.PermissionReposit
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
 import com.example.starter_project_2025.system.common.enums.LocationStatus;
-import com.example.starter_project_2025.system.course_online.entity.Course;
-// import com.example.starter_project_2025.system.course.entity.CourseCohort;
-import com.example.starter_project_2025.system.course_online.entity.CourseLesson;
-// import com.example.starter_project_2025.system.course.enums.CohortStatus;
-import com.example.starter_project_2025.system.course_online.enums.CourseLevel;
-import com.example.starter_project_2025.system.course_online.enums.CourseStatus;
-import com.example.starter_project_2025.system.course_online.repository.CourseLessonRepository;
-import com.example.starter_project_2025.system.course_online.repository.CourseRepository;
+import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
+import com.example.starter_project_2025.system.course_online.entity.CourseLessonOnline;
+import com.example.starter_project_2025.system.course_online.enums.CourseLevelOnline;
+import com.example.starter_project_2025.system.course_online.enums.CourseStatusOnline;
+import com.example.starter_project_2025.system.course_online.repository.CourseLessonOnlineRepository;
+import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeightRepository;
 import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
@@ -97,11 +95,11 @@ public class DataInitializer implements CommandLineRunner {
         private final UserRepository userRepository;
         private final PasswordEncoder passwordEncoder;
         private final AssessmentTypeRepository assessmentTypeRepository;
-        private final CourseRepository courseRepository;
+        private final CourseOnlineRepository courseOnlineRepository;
         private final AssessmentRepository assessmentRepository;
         private final QuestionCategoryRepository questionCategoryRepository;
         private final QuestionRepository questionRepository;
-        private final CourseLessonRepository courseLessonRepository;
+        private final CourseLessonOnlineRepository courseLessonOnlineRepository;
         private final UserRoleRepository userRoleRepository;
         private final SemesterRepository semesterRepository;
         private final LocationRepository locationRepository;
@@ -1020,22 +1018,22 @@ public class DataInitializer implements CommandLineRunner {
 
         private void initializeCourses() {
 
-                if (courseRepository.count() > 0) {
+                if (courseOnlineRepository.count() > 0) {
                         log.info("Courses already exist, skipping initialization");
                         return;
                 }
 
                 User admin = userRepository.findByEmail("admin@example.com").orElseThrow();
 
-                Course javaCourse = Course.builder()
+                CourseOnline javaCourse = CourseOnline.builder()
                                 .courseName("Java Backend Master")
                                 .courseCode("JBM-01")
                                 .price(BigDecimal.valueOf(15_000_000))
                                 .discount(10.0)
-                                .level(CourseLevel.ADVANCED)
+                                .level(CourseLevelOnline.ADVANCED)
                                 .estimatedTime(90 * 24 * 60) // 3 months ≈ minutes
                                 .thumbnailUrl("https://example.com/java.jpg")
-                                .status(CourseStatus.DRAFT)
+                                .status(CourseStatusOnline.DRAFT)
 
                                 .creator(admin)
                                 // .trainer(admin)
@@ -1052,16 +1050,16 @@ public class DataInitializer implements CommandLineRunner {
 
                                 .build();
 
-                Course reactCourse = Course.builder()
+                CourseOnline reactCourse = CourseOnline.builder()
                                 .courseName("React Frontend Pro")
                                 .courseCode("RFP-01")
                                 .price(BigDecimal.valueOf(12_000_000))
                                 .discount(5.0)
-                                .level(CourseLevel.INTERMEDIATE)
+                                .level(CourseLevelOnline.INTERMEDIATE)
                                 .estimatedTime(60 * 24 * 60) // 2 months
                                 .thumbnailUrl("https://example.com/react.jpg")
 
-                                .status(CourseStatus.ACTIVE)
+                                .status(CourseStatusOnline.ACTIVE)
 
                                 .description("React from zero to hero")
                                 .note("Frontend track")
@@ -1075,7 +1073,7 @@ public class DataInitializer implements CommandLineRunner {
 
                                 .build();
 
-                courseRepository.saveAll(List.of(javaCourse, reactCourse));
+                courseOnlineRepository.saveAll(List.of(javaCourse, reactCourse));
 
                 log.info("Initialized {} courses", 2);
         }
@@ -1112,10 +1110,10 @@ public class DataInitializer implements CommandLineRunner {
         // initializeCohorts() - temporarily disabled, cohort feature not in use
         // -----------------------------------------------------------------------
         // private void initializeCohorts() {
-        // Course java01 = courseRepository.findAll().stream()
+        // Course java01 = courseOnlineRepository.findAll().stream()
         // .filter(c -> "JBM-01".equals(c.getCourseCode()))
         // .findFirst().orElse(null);
-        // Course react01 = courseRepository.findAll().stream()
+        // Course react01 = courseOnlineRepository.findAll().stream()
         // .filter(c -> "RFP-01".equals(c.getCourseCode()))
         // .findFirst().orElse(null);
         //
@@ -1191,48 +1189,48 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         private void initializeLessons() {
-                if (courseLessonRepository.count() > 0) {
+                if (courseLessonOnlineRepository.count() > 0) {
                         log.info("Lessons already exist, skipping initialization");
                         return;
                 }
 
                 // Tìm khóa học Java
-                Course java01 = courseRepository.findAll().stream()
+                CourseOnline java01 = courseOnlineRepository.findAll().stream()
                                 .filter(c -> "JBM-01".equals(c.getCourseCode()))
                                 .findFirst().orElse(null);
 
                 // Tìm khóa học React
-                Course react01 = courseRepository.findAll().stream()
+                CourseOnline react01 = courseOnlineRepository.findAll().stream()
                                 .filter(c -> "RFP-01".equals(c.getCourseCode()))
                                 .findFirst().orElse(null);
 
                 if (java01 != null) {
-                        List<CourseLesson> javaLessons = Arrays.asList(
+                        List<CourseLessonOnline> javaLessons = Arrays.asList(
                                         createLesson(java01, "Introduction to Spring Boot",
                                                         "Overview of Spring ecosystem and setup.", 1),
                                         createLesson(java01, "Spring Data JPA & Hibernate",
                                                         "Deep dive into database ORM mapping.", 2),
                                         createLesson(java01, "Spring Security & JWT",
                                                         "Securing APIs with token-based authentication.", 3));
-                        courseLessonRepository.saveAll(javaLessons);
+                        courseLessonOnlineRepository.saveAll(javaLessons);
                 }
 
                 if (react01 != null) {
-                        List<CourseLesson> reactLessons = Arrays.asList(
+                        List<CourseLessonOnline> reactLessons = Arrays.asList(
                                         createLesson(react01, "React Fundamentals",
                                                         "Components, Props, and State basics.", 1),
                                         createLesson(react01, "Hooks & Context API",
                                                         "Managing global state and side effects.", 2),
                                         createLesson(react01, "TanStack Query & Axios",
                                                         "Handling server-side state and API calls.", 3));
-                        courseLessonRepository.saveAll(reactLessons);
+                        courseLessonOnlineRepository.saveAll(reactLessons);
                 }
 
                 log.info("Initialized lessons for Java and React courses");
         }
 
-        private CourseLesson createLesson(Course course, String name, String desc, int order) {
-                return CourseLesson.builder()
+        private CourseLessonOnline createLesson(CourseOnline course, String name, String desc, int order) {
+                return CourseLessonOnline.builder()
                                 .course(course)
                                 .lessonName(name)
                                 .description(desc)

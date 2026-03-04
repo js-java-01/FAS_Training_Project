@@ -4,10 +4,10 @@ import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
-import com.example.starter_project_2025.system.course_online.entity.Course;
-import com.example.starter_project_2025.system.course_online.enums.CourseLevel;
-import com.example.starter_project_2025.system.course_online.enums.CourseStatus;
-import com.example.starter_project_2025.system.course_online.repository.CourseRepository;
+import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
+import com.example.starter_project_2025.system.course_online.enums.CourseLevelOnline;
+import com.example.starter_project_2025.system.course_online.enums.CourseStatusOnline;
+import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeightRepository;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
@@ -75,7 +75,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AssessmentTypeRepository assessmentTypeRepository;
-    private final CourseRepository courseRepository;
+    private final CourseOnlineRepository courseOnlineRepository;
     private final CourseAssessmentTypeWeightRepository weightRepository;
     private final TopicMarkColumnRepository columnRepository;
     private final TopicMarkEntryRepository entryRepository;
@@ -117,7 +117,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
         AssessmentType midtermType = findOrCreateAssessmentType("Midterm Test", "Comprehensive midterm exam");
         AssessmentType finalType = findOrCreateAssessmentType("Final Exam", "End-of-course final exam");
 
-        Course course = findOrCreateCourse(admin);
+        CourseOnline course = findOrCreateCourse(admin);
 
         findOrCreateWeight(course, quizType, 0.30, GradingMethod.HIGHEST);
         findOrCreateWeight(course, midtermType, 0.50, GradingMethod.LATEST);
@@ -129,8 +129,8 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
         CourseClass courseClass = findOrCreateCourseClass(course, trainingClass);
 
         // Extra classes: TC-DEMO-02 and TC-DEMO-03, each linked to 2 courses
-        Course javaCourse = findCourseByCode("JBM-01");
-        Course reactCourse = findCourseByCode("RFP-01");
+        CourseOnline javaCourse = findCourseByCode("JBM-01");
+        CourseOnline reactCourse = findCourseByCode("RFP-01");
 
         TrainingClass tc02 = findOrCreateTrainingClassByCode("TC-DEMO-02", "Demo Training Class 02", semester, admin);
         if (javaCourse != null)
@@ -262,19 +262,19 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                 });
     }
 
-    private Course findOrCreateCourse(User admin) {
-        return em.createQuery("SELECT c FROM Course c WHERE c.courseCode = :code", Course.class)
+    private CourseOnline findOrCreateCourse(User admin) {
+        return em.createQuery("SELECT c FROM CourseOnline c WHERE c.courseCode = :code", CourseOnline.class)
                 .setParameter("code", "DEMO-COURSE-TM")
                 .getResultStream().findFirst()
-                .orElseGet(() -> courseRepository.save(Course.builder()
+                .orElseGet(() -> courseOnlineRepository.save(CourseOnline.builder()
                         .courseName("Demo Course for Topic Marks")
                         .courseCode("DEMO-COURSE-TM")
                         .price(BigDecimal.valueOf(5_000_000))
                         .discount(0.0)
-                        .level(CourseLevel.BEGINNER)
+                        .level(CourseLevelOnline.BEGINNER)
                         .estimatedTime(30 * 24 * 60)
                         .thumbnailUrl("https://example.com/demo-tm.jpg")
-                        .status(CourseStatus.ACTIVE)
+                        .status(CourseStatusOnline.ACTIVE)
                         .description("Demo course for testing manual Topic Mark entry")
                         .note("Seed data")
                         .minGpaToPass(6.0)
@@ -284,7 +284,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                         .build()));
     }
 
-    private void findOrCreateWeight(Course course, AssessmentType type, double weight, GradingMethod gm) {
+    private void findOrCreateWeight(CourseOnline course, AssessmentType type, double weight, GradingMethod gm) {
         Long count = em.createQuery(
                 "SELECT COUNT(w) FROM CourseAssessmentTypeWeight w WHERE w.course.id = :c AND w.assessmentType.id = :t",
                 Long.class)
@@ -337,14 +337,14 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                 });
     }
 
-    private Course findCourseByCode(String code) {
-        return em.createQuery("SELECT c FROM Course c WHERE c.courseCode = :code", Course.class)
+    private CourseOnline findCourseByCode(String code) {
+        return em.createQuery("SELECT c FROM CourseOnline c WHERE c.courseCode = :code", CourseOnline.class)
                 .setParameter("code", code)
                 .getResultStream().findFirst()
                 .orElse(null);
     }
 
-    private CourseClass findOrCreateCourseClass(Course course, TrainingClass tc) {
+    private CourseClass findOrCreateCourseClass(CourseOnline course, TrainingClass tc) {
         return em.createQuery(
                 "SELECT cc FROM CourseClass cc WHERE cc.course.id = :c AND cc.classInfo.id = :t", CourseClass.class)
                 .setParameter("c", course.getId())
@@ -370,7 +370,7 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                         .build()));
     }
 
-    private void findOrCreateEnrollment(User user, Course course) {
+    private void findOrCreateEnrollment(User user, CourseOnline course) {
         Long count = em.createQuery(
                 "SELECT COUNT(e) FROM Enrollment e WHERE e.user.id = :u AND e.course.id = :c", Long.class)
                 .setParameter("u", user.getId())
