@@ -30,6 +30,7 @@ public interface TrainingClassRepository
                          LEFT JOIN tc.creator
                          LEFT JOIN tc.approver
                          LEFT JOIN tc.semester
+                         LEFT JOIN  tc.trainingProgram
                          WHERE (:keyword IS NULL OR LOWER(tc.className) LIKE LOWER(CONCAT('%', :keyword, '%'))
                                 OR LOWER(tc.classCode) LIKE LOWER(CONCAT('%', :keyword, '%')))
                          AND (:isActive IS NULL OR tc.isActive = :isActive)

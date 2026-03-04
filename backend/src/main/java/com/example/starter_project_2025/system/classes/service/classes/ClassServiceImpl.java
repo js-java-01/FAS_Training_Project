@@ -1,41 +1,34 @@
 package com.example.starter_project_2025.system.classes.service.classes;
 
-import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
 import com.example.starter_project_2025.constant.ErrorMessage;
-import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
-import com.example.starter_project_2025.system.classes.dto.request.SearchTrainerClassInSemesterRequest;
+import com.example.starter_project_2025.system.classes.dto.request.*;
+import com.example.starter_project_2025.system.classes.dto.response.ClassResponse;
 import com.example.starter_project_2025.system.classes.dto.response.TrainerClassSemesterResponse;
-
+import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
+import com.example.starter_project_2025.system.classes.entity.ClassStatus;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.classes.mapper.ClassMapper;
 import com.example.starter_project_2025.system.classes.mapper.TrainerClassMapper;
 import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
 import com.example.starter_project_2025.system.classes.spec.ClassSpecification;
-import com.example.starter_project_2025.system.classes.dto.request.UpdateClassRequest;
-import com.example.starter_project_2025.system.classes.dto.response.ClassResponse;
-import com.example.starter_project_2025.system.classes.dto.request.CreateClassRequest;
-import com.example.starter_project_2025.system.classes.dto.request.ReviewClassRequest;
-import com.example.starter_project_2025.system.classes.entity.ClassStatus;
-
-import com.example.starter_project_2025.system.classes.mapper.ClassMapper;
-import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.modulegroups.util.StringNormalizer;
 import com.example.starter_project_2025.system.semester.entity.Semester;
 import com.example.starter_project_2025.system.semester.repository.SemesterRepository;
+import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
+import com.example.starter_project_2025.system.training_program.repository.TrainingProgramRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
-
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.UUID;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +41,7 @@ public class ClassServiceImpl implements ClassService {
     private final TrainerClassMapper trainerClassMapper;
     private final ClassMapper mapper;
     private final EnrollmentRepository enrollmentRepository;
+    private final TrainingProgramRepository trainingProgramRepository;
 
     @Override
     public ClassResponse getTrainingClassById(UUID id) {
@@ -89,10 +83,14 @@ public class ClassServiceImpl implements ClassService {
             throw new RuntimeException("Cannot open class for past semester");
         }
 
-        if (startDate.isBefore(semester.getStartDate())
-                || endDate.isAfter(semester.getEndDate())) {
+        if (startDate.isBefore(semester.getStartDate()) ||
+                endDate.isAfter(semester.getEndDate())) {
             throw new RuntimeException("Class duration must be within semester period");
         }
+
+        TrainingProgram program = trainingProgramRepository
+                .findById(request.getTrainingProgramId())
+                .orElseThrow(() -> new RuntimeException("Training program not found"));
 
         User creator = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -104,6 +102,7 @@ public class ClassServiceImpl implements ClassService {
         entity.setIsActive(false);
         entity.setCreator(creator);
         entity.setSemester(semester);
+        entity.setTrainingProgram(program);
         entity.setStartDate(startDate);
         entity.setEndDate(endDate);
 
@@ -121,16 +120,21 @@ public class ClassServiceImpl implements ClassService {
         TrainingClass existing = classRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Training class not found"));
 
-        String className = request.getClassName() != null ? StringNormalizer.normalize(request.getClassName())
+        String className = request.getClassName() != null
+                ? StringNormalizer.normalize(request.getClassName())
                 : existing.getClassName();
-        String classCode = request.getClassCode() != null ? StringNormalizer.normalize(request.getClassCode())
+
+        String classCode = request.getClassCode() != null
+                ? StringNormalizer.normalize(request.getClassCode())
                 : existing.getClassCode();
 
-        if (request.getClassName() != null && classRepository.existsByClassNameIgnoreCaseAndIdNot(className, id)) {
+        if (request.getClassName() != null &&
+                classRepository.existsByClassNameIgnoreCaseAndIdNot(className, id)) {
             throw new RuntimeException("Class name already exists");
         }
 
-        if (request.getClassCode() != null && classRepository.existsByClassCodeIgnoreCaseAndIdNot(classCode, id)) {
+        if (request.getClassCode() != null &&
+                classRepository.existsByClassCodeIgnoreCaseAndIdNot(classCode, id)) {
             throw new RuntimeException("Class code already exists");
         }
 
@@ -144,14 +148,20 @@ public class ClassServiceImpl implements ClassService {
             throw new RuntimeException("End date must be today or in the future");
         }
 
-        LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : existing.getStartDate();
-        LocalDate endDate = request.getEndDate() != null ? request.getEndDate() : existing.getEndDate();
+        LocalDate startDate = request.getStartDate() != null
+                ? request.getStartDate()
+                : existing.getStartDate();
+
+        LocalDate endDate = request.getEndDate() != null
+                ? request.getEndDate()
+                : existing.getEndDate();
 
         if (startDate.isAfter(endDate)) {
             throw new RuntimeException("Start date must be before end date");
         }
 
         Semester semester = existing.getSemester();
+
         if (request.getSemesterId() != null) {
             semester = semesterRepository.findById(request.getSemesterId())
                     .orElseThrow(() -> new RuntimeException("Semester not found"));
@@ -159,6 +169,13 @@ public class ClassServiceImpl implements ClassService {
             if (semester.getEndDate().isBefore(today)) {
                 throw new RuntimeException("Cannot assign class to past semester");
             }
+        }
+
+        TrainingProgram program = existing.getTrainingProgram();
+
+        if (request.getTrainingProgramId() != null) {
+            program = trainingProgramRepository.findById(request.getTrainingProgramId())
+                    .orElseThrow(() -> new RuntimeException("Training program not found"));
         }
 
         if (startDate.isBefore(semester.getStartDate())
@@ -171,29 +188,21 @@ public class ClassServiceImpl implements ClassService {
 
         if (request.getClassName() != null)
             existing.setClassName(className);
+
         if (request.getClassCode() != null)
             existing.setClassCode(classCode);
+
         if (request.getSemesterId() != null)
             existing.setSemester(semester);
+
+        if (request.getTrainingProgramId() != null)
+            existing.setTrainingProgram(program);
+
         if (request.getStartDate() != null)
             existing.setStartDate(startDate);
+
         if (request.getEndDate() != null)
             existing.setEndDate(endDate);
-
-        // if (request.getEnrollmentKey() != null) {
-
-        // if (request.getEnrollmentKey().isBlank()) {
-        // existing.setEnrollmentKey(null);
-        // } else {
-
-        // if (classRepository.existsByEnrollmentKey(request.getEnrollmentKey())
-        // && !request.getEnrollmentKey().equals(existing.getEnrollmentKey())) {
-        // throw new RuntimeException("Enrollment key already exists");
-        // }
-
-        // existing.setEnrollmentKey(request.getEnrollmentKey());
-        // }
-        // }
 
         TrainingClass saved = classRepository.save(existing);
 
@@ -290,55 +299,13 @@ public class ClassServiceImpl implements ClassService {
         return res;
     }
 
-    private String generateEnrollmentKey() {
-        return UUID.randomUUID()
-                .toString()
-                .replace("-", "")
-                .substring(0, 8)
-                .toUpperCase();
-    }
+//    private String generateEnrollmentKey() {
+//        return UUID.randomUUID()
+//                .toString()
+//                .replace("-", "")
+//                .substring(0, 8)
+//                .toUpperCase();
+//    }
 
-    @Override
-    public ClassResponse joinClassByEnrollmentKey(String enrollmentKey, UUID userId) {
 
-        if (enrollmentKey == null || enrollmentKey.isBlank()) {
-            throw new RuntimeException("Enrollment key is required");
-        }
-
-        List<TrainingClass> classes = null;
-
-        if (classes.isEmpty()) {
-            throw new RuntimeException("Invalid enrollment key");
-        }
-
-        if (classes.size() > 1) {
-            throw new IllegalStateException("Enrollment key duplicated. Contact admin.");
-        }
-
-        TrainingClass trainingClass = classes.get(0);
-
-        if (trainingClass.getClassStatus() != ClassStatus.APPROVED) {
-            throw new RuntimeException("Class not approved");
-        }
-
-        if (!Boolean.TRUE.equals(trainingClass.getIsActive())) {
-            throw new RuntimeException("Class not active");
-        }
-
-        if (enrollmentRepository.existsByUserIdAndTrainingClassId(userId, trainingClass.getId())) {
-            throw new RuntimeException("Already enrolled");
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Enrollment enrollment = Enrollment.builder()
-                .user(user)
-                .trainingClass(trainingClass)
-                .build();
-
-        enrollmentRepository.save(enrollment);
-
-        return mapper.toResponse(trainingClass);
-    }
 }

@@ -6,10 +6,14 @@ import lombok.Data;
 @Data
 public class SearchTrainingProgramRequest {
 
+    @Schema (example = "1")
     private int page = 0;
-    @Schema (example = "2")
+
+    @Schema (example = "20")
     private int size = 20;
-    @Schema (example = "[\"createdAt\",) \"desc\"]")
+
+    @Schema(example = "[\"createdAt\",\"desc\"]")
     private String[] sort = new String[]{"createdAt","desc"};
+
     private String keyword;
 }

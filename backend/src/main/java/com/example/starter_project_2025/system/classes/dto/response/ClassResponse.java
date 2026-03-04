@@ -30,6 +30,9 @@ public class ClassResponse {
 
     private String semesterName;
 
+    private UUID trainingProgramId;
+    private String trainingProgramName;
+
     private LocalDate startDate;
     private LocalDate endDate;
 

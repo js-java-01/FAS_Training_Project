@@ -25,7 +25,9 @@ public class UpdateClassRequest {
     @Schema(example = "9ad6df34-212b-4808-ac2f-5af79299ea8d")
     private UUID semesterId;
 
-    private String enrollmentKey;
+
+    @Schema(example = "1761f58f-74a0-4acd-a895-903571d6d5b2")
+    private UUID trainingProgramId;
 
     @Schema(example = "2026-03-16")
     private LocalDate startDate;
