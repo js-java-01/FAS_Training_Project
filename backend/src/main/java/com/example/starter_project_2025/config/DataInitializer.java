@@ -91,6 +91,7 @@ public class DataInitializer implements CommandLineRunner
     private final RoleInitializer roleInitializer;
     private final UserInitializer userInitializer;
     private final TopicInitializer topicInitializer;
+    private final AssessmentTypeInitializer assessmentTypeInitializer;
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -108,7 +109,7 @@ public class DataInitializer implements CommandLineRunner
 
             initializeLocations();
             moduleInitializer.initializeModuleGroups();
-            initializeAssessmentType();
+            assessmentTypeInitializer.init();
             initializeAssessments();
             initializeQuestionCategories();
             initializeQuestions();
@@ -459,31 +460,6 @@ public class DataInitializer implements CommandLineRunner
         questionCategoryRepository.saveAll(List.of(javaCore, oop, sql));
 
         log.info("Initialized {} question categories", 3);
-    }
-
-    private void initializeAssessmentType()
-    {
-
-        if (assessmentTypeRepository.count() > 0)
-        {
-            return;
-        }
-
-        AssessmentType a1 = new AssessmentType();
-        a1.setName("Entrance Quiz");
-        a1.setDescription("Assessment for entrance examination");
-
-        AssessmentType a2 = new AssessmentType();
-        a2.setName("Midterm Test");
-        a2.setDescription("Midterm evaluation assessment");
-
-        AssessmentType a3 = new AssessmentType();
-        a3.setName("Final Exam");
-        a3.setDescription("Final assessment of the course");
-
-        assessmentTypeRepository.saveAll(List.of(a1, a2, a3));
-
-        log.info("Initialized {} assessments", 3);
     }
 
     private void ensureProgrammingLanguagePermissions()
