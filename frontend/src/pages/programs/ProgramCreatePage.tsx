@@ -127,8 +127,8 @@ export default function ProgramCreatePage() {
   };
 
   return (
-    <MainLayout pathName={{ programs: "Programs", new: "New" }}>
-      <div className="mx-auto w-full max-w-7xl py-6 space-y-6">
+    <MainLayout pathName={{ programs: "Training Programs", new: "Create New" }}>
+      <div className="mx-auto w-full max-w-7xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Create New Training Program</h1>
           <p className="text-muted-foreground">

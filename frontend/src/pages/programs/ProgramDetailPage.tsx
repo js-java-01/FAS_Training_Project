@@ -132,7 +132,7 @@ export default function ProgramDetailPage() {
 
   return (
     <MainLayout pathName={id ? { programs: "Programs", [id]: data?.name ?? "Detail" } : { programs: "Programs" }}>
-      <div className="mx-auto w-full max-w-7xl py-6 space-y-5">
+      <div className="mx-auto w-full max-w-7xl space-y-5">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Programs</h1>

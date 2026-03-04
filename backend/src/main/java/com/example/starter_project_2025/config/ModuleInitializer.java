@@ -95,11 +95,7 @@ public class ModuleInitializer
 
                 createModule(systemGroup, "Departments", "/departments", "university", 6,
                         "DEPARTMENT_READ",
-                        "Manage departments"),
-                createModule(systemGroup, "Training Programs", "/programs", "book", 7,
-                        "TRAINING_PROGRAM_READ",
-                        "Manage training programs")
-                ));
+                        "Manage departments")));
 
         /*
          * =======================================================
@@ -123,11 +119,6 @@ public class ModuleInitializer
                         "ENROLL_COURSE",
                         "Browse and enroll in available courses"),
 
-                createModule(trainingGroup, "Programming Languages", "/programming-languages", "code",
-                        3,
-                        "PROGRAMMING_LANGUAGE_READ",
-                        "Manage programming languages"),
-
                 createModule(trainingGroup, "Classes", "/classes", "people", 6,
                         "CLASS_READ",
                         "User search and view classes"),
@@ -136,7 +127,10 @@ public class ModuleInitializer
                         "User search and view classes"),
                 createModule(trainingGroup, "Topics", "/topics", "library", 1,
                         "TOPIC_READ",
-                        "User search and view topics")
+                        "User search and view topics"),
+                createModule(trainingGroup, "Programs", "/programs", "book", 7,
+                        "TRAINING_PROGRAM_READ",
+                        "Manage training programs")
         ));
 
         /*
