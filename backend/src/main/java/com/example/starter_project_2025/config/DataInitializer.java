@@ -48,7 +48,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,14 +89,16 @@ public class DataInitializer implements CommandLineRunner
     private final UserRoleInitializer userRoleInitializer;
     private final TrainingClassInitializer trainingClassInitializer;
     private final TrainingProgramInitializer trainingProgramInitializer;
+    private final RoleInitializer roleInitializer;
+    private final UserInitializer userInitializer;
     private final TopicInitializer topicInitializer;
     private final AssessmentTypeInitializer assessmentTypeInitializer;
     private final RoleInitializer roleInitializer;
     private final UserInitializer userInitializer;
 
     @Override
-    @Transactional
-    public void run(String... args) {
+    public void run(String... args)
+    {
         log.info("Initializing database with sample data...");
 
         if (roleRepository.count() == 0)
@@ -462,7 +463,7 @@ public class DataInitializer implements CommandLineRunner
         log.info("Initialized {} question categories", 3);
     }
 
-    private void ensureProgrammingLanguagePermissions()
+      private void ensureProgrammingLanguagePermissions()
     {
         boolean hasProgLangPerms = permissionRepository.existsByName("PROGRAMMING_LANGUAGE_READ");
 

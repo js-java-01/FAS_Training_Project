@@ -1,9 +1,9 @@
 import type { StudentScheduleResponse } from "./studentSchedule.mock";
 
-
 export interface StudentSchedule {
   id: string;
-  subject: string;
+  topicCode: string;
+  topicName: string;
   room: string;
   lecturer: string;
   date: string;
@@ -21,7 +21,8 @@ export function transformStudentSchedule(
 ): StudentSchedule[] {
   return data.map((item) => ({
     id: item.id,
-    subject: item.subjectName,
+    topicCode: item.topicCode,
+    topicName: item.topicName,
     room: item.roomName,
     lecturer: item.trainerName,
     date: item.studyDate,
