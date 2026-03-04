@@ -2,7 +2,7 @@ package com.example.starter_project_2025.system.course_assessment_type_weight;
 
 import java.util.UUID;
 
-import com.example.starter_project_2025.system.assessment.assessment_type.AssessmentType;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_type.AssessmentType;
 import com.example.starter_project_2025.system.course.entity.Course;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 

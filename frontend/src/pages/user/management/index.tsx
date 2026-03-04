@@ -1,5 +1,5 @@
 import { userApi } from "@/api";
-import { roleApi } from "@/api/features/auth/role.api";
+import { roleApi } from "@/api/features/rbac/role.api";
 import { ProTable } from "@/components/datatable/ProTable";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useProTable } from "@/hooks/useProTable";

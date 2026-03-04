@@ -1,19 +1,19 @@
+import { createBaseApiService } from "@/api/base-service.api";
 import type {
   AssessmentQuestion,
-  AssessmentQuestionCreateRequest,
-  AssessmentQuestionUpdateRequest,
+  AssessmentQuestionCreateRequest
 } from "@/types/features/assessment/assessment-question";
 import axiosInstance from "../../axiosInstance";
-import { Url } from "@/api/url";
-import { createBaseApiService } from "@/api/base-service.api";
 
-const base = createBaseApiService<AssessmentQuestion, null>({ path: Url.ASSESSMENT_QUESTION });
+const path = "/assessment-questions";
+
+const base = createBaseApiService<AssessmentQuestion, null>({ path: path });
 
 export const assessmentQuestionApi = Object.assign({}, base, {
   getByAssessmentId: async (assessmentId: number): Promise<AssessmentQuestion[]> => {
     try {
       const response = await axiosInstance.get<AssessmentQuestion[]>(
-        `${Url.ASSESSMENT_QUESTION}/${assessmentId}`,
+        `${path}/${assessmentId}`,
         {
           responseType: 'json',
           transformResponse: [(data) => {
@@ -63,7 +63,7 @@ export const assessmentQuestionApi = Object.assign({}, base, {
     data: AssessmentQuestionCreateRequest[],
   ): Promise<AssessmentQuestion[]> => {
     const response = await axiosInstance.post<AssessmentQuestion[]>(
-      `${Url.ASSESSMENT_QUESTION}/bulk`,
+      `${path}/bulk`,
       data,
     );
     return response.data;
@@ -74,7 +74,7 @@ export const assessmentQuestionApi = Object.assign({}, base, {
     questionOrders: { id: string; orderIndex: number }[],
   ): Promise<void> => {
     await axiosInstance.put(
-      `${Url.ASSESSMENT_QUESTION}/${assessmentId}/reorder`,
+      `${path}/${assessmentId}/reorder`,
       questionOrders,
     );
   },

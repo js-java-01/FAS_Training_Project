@@ -7,7 +7,7 @@ import { LocationManagement } from "@/pages/LocationManagement";
 import CourseManagement from "@/pages/course/CourseManagement";
 import { TeacherAssessmentPage } from "@/pages/teacher-assessment";
 import { QuestionCategoryManagement } from "@/pages/question-category";
-import { QuestionManagementPage } from "@/pages/question";
+
 
 // Auth components
 import { OAuth2RedirectHandler } from "@/components/auth/OAuth2RedirectHandler";
@@ -21,12 +21,13 @@ import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import CourseDetailPage from "@/pages/course/CourseDetailPage";
 import StudentCourseContent from "@/pages/learning/StudentCourseContent";
 import { AssessmentFormPage } from "@/pages/teacher-assessment";
-import { CreateQuestionPage, EditQuestionPage } from "@/pages/question";
+import { CreateQuestionPage, EditQuestionPage, QuestionManagementPage } from "@/pages/assessment/question";
 import UserManagement from "@/pages/user/management";
 import { AttemptHistoryPage, QuizPage, ResultPage, SelectAssessmentPage } from "@/pages/assessment";
 import { RoleManagementPage } from "@/pages/role";
 import ProgrammingLanguageManagement from "@/pages/programming-language";
 import AssessmentTypeManagementPage from "@/pages/assessment-type/management";
+import ProTableQuestionManagementPage from "@/pages/assessment/question/management";
 
 // ── Route Configuration Types ─────────────────────────────────────────────────
 export interface RouteConfig {
@@ -53,7 +54,7 @@ export const routes: RouteConfig[] = [
     { path: "/assessments", component: SelectAssessmentPage, isModuleDriven: true },
     { path: "/teacher-assessment", component: TeacherAssessmentPage, isModuleDriven: true },
     { path: "/question-categories", component: QuestionCategoryManagement, isModuleDriven: true },
-    { path: "/questions", component: QuestionManagementPage, isModuleDriven: true },
+    { path: "/questions", component: ProTableQuestionManagementPage, isModuleDriven: true },
     
     // Public routes (frontend-controlled)
     { path: "/login", component: Login, isPublic: true },

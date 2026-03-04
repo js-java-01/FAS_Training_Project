@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.auth.entity;
 
+import com.example.starter_project_2025.system.rbac.role.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
