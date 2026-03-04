@@ -32,6 +32,7 @@ import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import StudentHomePage from "./pages/learning/StudentHomePage";
 import StudentMyCoursesPage from "./pages/learning/StudentMyCoursesPage";
+import StudentCoursesPage from "./pages/learning/StudentCoursesPage";
 import { RoleManagement } from "./pages/role/RoleManagement";
 import PermissionsManagement from "./pages/permissions/PermissionsManagement";
 import MfaSettings from "./pages/MfaSettings";
@@ -97,6 +98,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <StudentMyCoursesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student-courses"
+              element={
+                <ProtectedRoute>
+                  <StudentCoursesPage />
                 </ProtectedRoute>
               }
             />

@@ -77,8 +77,8 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
   useEffect(() => {
     userApi
-      .getAllUsers(0, 100)
-      .then((res) => setUsers(res?.content ?? []))
+      .getAllUsers({ page: 0, size: 100 })
+      .then((res) => setUsers(res?.items ?? []))
       .catch(() => {});
   }, []);
 
@@ -147,148 +147,60 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
     setThumbnailPreview(URL.createObjectURL(file));
   };
 
-  const statusBadgeClass: Record<string, string> = {
-    ACTIVE: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    DRAFT: "bg-amber-100 text-amber-700 border-amber-200",
-    UNDER_REVIEW: "bg-blue-100 text-blue-700 border-blue-200",
-    INACTIVE: "bg-gray-100 text-gray-500 border-gray-200",
-  };
-  const statusClass =
-    statusBadgeClass[course?.status] ??
-    "bg-gray-100 text-gray-500 border-gray-200";
-
   return (
-    <div className="space-y-0">
-      {/* ── Hero header ───────────────────────────────────────────── */}
-      <div className="relative rounded-xl overflow-hidden mb-6">
-        {/* Background */}
-        {course?.thumbnailUrl ? (
-          <div className="absolute inset-0">
-            <img
-              src={course.thumbnailUrl}
-              alt=""
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-linear-to-r from-slate-900/90 via-slate-900/70 to-slate-900/40" />
-          </div>
-        ) : (
-          <div className="absolute inset-0 bg-linear-to-br from-slate-800 via-blue-900 to-slate-800" />
-        )}
-
-        <div className="relative px-6 py-6 flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4 min-w-0">
-            {/* Thumbnail icon */}
-            {course?.thumbnailUrl ? (
-              <img
-                src={course.thumbnailUrl}
-                alt=""
-                className="w-14 h-14 rounded-xl object-cover border-2 border-white/20 shrink-0 shadow-lg"
-              />
-            ) : (
-              <div className="w-14 h-14 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
-                <FiBookOpen size={24} className="text-white/60" />
-              </div>
-            )}
-
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                <span className="text-xs font-mono uppercase tracking-widest text-white/50 bg-white/10 px-2 py-0.5 rounded">
-                  {course?.courseCode}
-                </span>
-                {course?.topic && (
-                  <span className="text-xs text-white/50">
-                    · {course.topic}
-                  </span>
-                )}
-                {course?.status && (
-                  <span
-                    className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusClass}`}
-                  >
-                    {course.status}
-                  </span>
-                )}
-              </div>
-              <h1 className="text-xl font-bold text-white leading-tight truncate">
-                {course?.courseName ?? "Course Detail"}
-              </h1>
-              {course?.trainerName && (
-                <p className="text-sm text-white/50 mt-0.5">
-                  Trainer:{" "}
-                  <span className="text-white/80">{course.trainerName}</span>
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={onBack}
-              className="flex items-center text-sm gap-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
-            >
-              ← Back
-            </button>
-            {activeTab === "Overview" &&
-              (isEditing ? (
-                <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="flex items-center text-sm gap-1.5 bg-white text-slate-700 hover:bg-gray-100 px-3 py-1.5 rounded-lg cursor-pointer transition-colors font-medium"
-                >
-                  <FiX size={13} /> Cancel
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={startEdit}
-                  className="flex items-center text-sm gap-1.5 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg cursor-pointer transition-colors font-medium"
-                >
-                  <FiEdit size={13} /> Edit
-                </button>
-              ))}
-          </div>
+    <div>
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Course Details</h1>
+          <p className="text-sm text-gray-500">
+            Course details management and configuration
+          </p>
         </div>
-
-        {/* Stats strip */}
-        <div className="relative border-t border-white/10 px-6 py-3 flex items-center gap-6 flex-wrap">
-          {course?.price != null && (
-            <div className="flex items-center gap-1.5 text-xs text-white/60">
-              <FiDollarSign size={12} />
-              <span>{Number(course.price).toLocaleString()} VND</span>
-              {course.discount ? (
-                <span className="text-emerald-300 font-semibold ml-1">
-                  -{course.discount}%
-                </span>
-              ) : null}
-            </div>
-          )}
-          {course?.level && (
-            <div className="flex items-center gap-1.5 text-xs text-white/60">
-              <FiBarChart2 size={12} /> {course.level}
-            </div>
-          )}
-          {course?.estimatedTime != null && (
-            <div className="flex items-center gap-1.5 text-xs text-white/60">
-              <FiClock size={12} /> {course.estimatedTime} min
-            </div>
-          )}
-        </div>
+        <button
+          onClick={onBack}
+          className="text-sm text-gray-500 hover:bg-gray-100 px-3 py-1.5 rounded-md border border-gray-200"
+        >
+          ← Back to list
+        </button>
       </div>
 
-      {/* ── Tab bar ───────────────────────────────────────────────── */}
-      <div className="flex items-center border-b border-gray-200 mb-6 gap-1">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors border-b-2 -mb-px cursor-pointer ${
-              activeTab === tab
-                ? "border-blue-600 text-blue-600 bg-blue-50/50"
-                : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      {/* TABS SELECTOR */}
+      <div className="flex justify-between items-center border-b mb-6">
+        <div className="flex gap-6">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`pb-2 text-sm transition-all ${
+                activeTab === tab
+                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "Overview" &&
+          (isEditing ? (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="flex items-center text-sm gap-2 mb-2 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              <FiX /> Cancel
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={startEdit}
+              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <FiEdit /> Edit
+            </button>
+          ))}
       </div>
 
       {/* READ-ONLY */}
@@ -308,23 +220,14 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
           <div className="border rounded-lg p-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold text-gray-700">Basic Information</h2>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="flex items-center gap-1.5 text-sm border rounded-md px-3 py-1.5 hover:bg-gray-100 cursor-pointer"
-                >
-                  <FiX size={13} /> Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex items-center gap-1.5 text-sm bg-blue-600 text-white rounded-md px-3 py-1.5 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
-                >
-                  <FiSave size={13} />
-                  {loading ? "Saving..." : "Save"}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-1.5 text-sm bg-blue-600 text-white rounded-md px-3 py-1.5 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+              >
+                <FiSave size={13} />
+                {loading ? "Saving..." : "Save"}
+              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -545,19 +448,48 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
 /* ─── Read-only Overview ─────────────────────────────────── */
 function OverviewTab({ course }: any) {
+  const statusCls: Record<string, string> = {
+    ACTIVE: "text-emerald-700 border-emerald-300",
+    DRAFT: "text-amber-700 border-amber-300",
+    UNDER_REVIEW: "text-blue-700 border-blue-300",
+    INACTIVE: "text-gray-500 border-gray-300",
+  };
+
   return (
-    <div className="space-y-5">
-      {/* Description card */}
-      {course.description && (
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
-            Description
-          </p>
-          <p className="text-sm text-gray-700 leading-relaxed">
-            {course.description}
-          </p>
+    <div className="space-y-5 animate-in fade-in duration-300">
+      {/* Identity card */}
+      <div className="rounded-xl border border-gray-200 p-6">
+        <div className="flex items-start justify-between gap-6">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <FiBookOpen size={14} className="text-blue-500 shrink-0" />
+              <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
+                {course.courseCode}
+              </span>
+              {course.topic && (
+                <span className="text-xs text-gray-400">· {course.topic}</span>
+              )}
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 leading-tight">
+              {course.courseName}
+            </h2>
+            {course.description && (
+              <p className="text-sm text-gray-500 mt-3 leading-relaxed max-w-2xl">
+                {course.description}
+              </p>
+            )}
+          </div>
+          {course.status && (
+            <span
+              className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${
+                statusCls[course.status] ?? "text-gray-500 border-gray-300"
+              }`}
+            >
+              {course.status}
+            </span>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Pricing + Duration strip */}
       <div className="grid grid-cols-3 gap-4">
@@ -667,10 +599,6 @@ function Block({ title, children }: any) {
       {children}
     </div>
   );
-}
-
-function Grid({ children }: any) {
-  return <div className="grid grid-cols-2 gap-4">{children}</div>;
 }
 
 function Info({ icon, label, value }: any) {

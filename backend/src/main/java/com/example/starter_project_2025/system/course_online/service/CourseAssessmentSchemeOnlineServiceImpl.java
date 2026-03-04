@@ -27,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -48,7 +49,8 @@ public class CourseAssessmentSchemeOnlineServiceImpl
                 CourseAssessmentSchemeOnline scheme = schemeRepo.findByCourseId(courseId)
                                 .orElseGet(() -> {
                                         CourseOnline course = courseRepo.findById(courseId)
-                                                        .orElseThrow(() -> new RuntimeException("CourseOnline not found"));
+                                                        .orElseThrow(() -> new RuntimeException(
+                                                                        "CourseOnline not found"));
                                         CourseAssessmentSchemeOnline newScheme = CourseAssessmentSchemeOnline.builder()
                                                         .course(course)
                                                         .minGpaToPass(6.0)
@@ -73,7 +75,8 @@ public class CourseAssessmentSchemeOnlineServiceImpl
                 CourseAssessmentSchemeOnline scheme = schemeRepo.findByCourseId(courseId)
                                 .orElseGet(() -> {
                                         CourseOnline course = courseRepo.findById(courseId)
-                                                        .orElseThrow(() -> new RuntimeException("CourseOnline not found"));
+                                                        .orElseThrow(() -> new RuntimeException(
+                                                                        "CourseOnline not found"));
                                         return schemeRepo.save(CourseAssessmentSchemeOnline.builder()
                                                         .course(course)
                                                         .minGpaToPass(6.0)
@@ -104,7 +107,8 @@ public class CourseAssessmentSchemeOnlineServiceImpl
                 CourseAssessmentSchemeOnline scheme = schemeRepo.findByCourseId(courseId)
                                 .orElseGet(() -> {
                                         CourseOnline course = courseRepo.findById(courseId)
-                                                        .orElseThrow(() -> new RuntimeException("CourseOnline not found"));
+                                                        .orElseThrow(() -> new RuntimeException(
+                                                                        "CourseOnline not found"));
                                         return schemeRepo.save(CourseAssessmentSchemeOnline.builder()
                                                         .course(course)
                                                         .minGpaToPass(6.0)
@@ -152,9 +156,12 @@ public class CourseAssessmentSchemeOnlineServiceImpl
                 CourseOnline course = courseRepo.findById(courseId)
                                 .orElseThrow(() -> new RuntimeException("CourseOnline not found"));
 
-                // get topic scheme
-                TopicAssessmentScheme topicScheme = topicSchemeRepo.findByTopicId(topicId)
-                                .orElseThrow(() -> new RuntimeException("Topic scheme not found"));
+                // get topic scheme - skip gracefully if not yet configured
+                Optional<TopicAssessmentScheme> topicSchemeOpt = topicSchemeRepo.findByTopicId(topicId);
+                if (topicSchemeOpt.isEmpty()) {
+                        return; // topic has no assessment scheme, skip cloning
+                }
+                TopicAssessmentScheme topicScheme = topicSchemeOpt.get();
 
                 // delete existing scheme if any
                 schemeRepo.findByCourseId(courseId).ifPresent(schemeRepo::delete);
@@ -285,7 +292,8 @@ public class CourseAssessmentSchemeOnlineServiceImpl
                                                 throw new IllegalArgumentException(
                                                                 "displayOrder|Order must be positive");
 
-                                        AssessmentTypeOnline type = AssessmentTypeOnline.valueOf(typeStr.trim().toUpperCase());
+                                        AssessmentTypeOnline type = AssessmentTypeOnline
+                                                        .valueOf(typeStr.trim().toUpperCase());
                                         CourseAssessmentComponentOnline c = CourseAssessmentComponentOnline.builder()
                                                         .type(type)
                                                         .name(name.trim())

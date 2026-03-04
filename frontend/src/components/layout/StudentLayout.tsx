@@ -91,7 +91,7 @@ function StudentNavbar({ active }: { active?: string }) {
                   className="absolute top-full left-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 mt-0.5"
                 >
                   <Link
-                    to="/courses"
+                    to="/student-courses"
                     className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-800 transition-colors"
                   >
                     <BookOpen className="w-4 h-4" />

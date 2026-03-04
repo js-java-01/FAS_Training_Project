@@ -181,7 +181,7 @@ export default function StudentHomePage() {
               Tiếp tục học
             </Link>
             <Link
-              to="/courses"
+              to="/student-courses"
               className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-white/30 transition-colors"
             >
               Khám phá khóa học
@@ -228,7 +228,7 @@ export default function StudentHomePage() {
               Khóa học trong kỳ
             </h2>
             <Link
-              to="/courses"
+              to="/student-courses"
               className="text-sm text-blue-700 hover:text-blue-800 font-medium flex items-center gap-1"
             >
               Xem tất cả <ArrowRight className="w-3.5 h-3.5" />
@@ -291,7 +291,7 @@ export default function StudentHomePage() {
                 Bạn chưa đăng ký khóa học online nào.
               </p>
               <Link
-                to="/courses"
+                to="/student-courses"
                 className="inline-flex items-center gap-2 bg-blue-800 text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-blue-900 transition-colors mt-4"
               >
                 <BookOpen className="w-4 h-4" />

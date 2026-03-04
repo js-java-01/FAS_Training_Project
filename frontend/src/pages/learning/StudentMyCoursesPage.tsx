@@ -236,7 +236,7 @@ export default function StudentMyCoursesPage() {
                   Hãy khám phá và đăng ký khóa học để bắt đầu học tập.
                 </p>
                 <Link
-                  to="/courses"
+                  to="/student-courses"
                   className="inline-flex items-center gap-2 bg-blue-800 text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-blue-900 transition-colors"
                 >
                   <Globe className="w-4 h-4" />
