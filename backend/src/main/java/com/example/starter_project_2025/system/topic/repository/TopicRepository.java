@@ -31,4 +31,6 @@ public interface TopicRepository extends JpaRepository<Topic, UUID>, JpaSpecific
             Pageable pageable);
 
     Topic findByTopicName(String topicName);
+
+    Topic findByTopicCodeIn(String topicCode);
 }
