@@ -12,6 +12,9 @@ import { TrainingClassForm } from "./form";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ClassStatus } from "./enum/ClassStatus";
 import { useGetAllTrainingClasses } from "./services/queries";
+import { ReviewActionModal } from "@/components/ReviewActionModal";
+import { trainingClassApi } from "@/api/trainingClassApi";
+import { ROLES } from "@/types/role";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -44,6 +47,9 @@ export default function TrainingClassesTable({
   /* ===================== STATE ===================== */
 
   const [openForm, setOpenForm] = useState(false);
+  const [approveTarget, setApproveTarget] = useState<TrainingClass | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<TrainingClass | null>(null);
+  const [reviewLoading, setReviewLoading] = useState(false);
   const navigate = useNavigate();
 
   /* ---------- faceted filter ---------- */
@@ -65,6 +71,7 @@ export default function TrainingClassesTable({
 
   const semesterMode = mode === "semester";
   const canCreate = permissions.includes("CLASS_CREATE");
+  const canReviewClass = role === ROLES.SUPER_ADMIN || role === ROLES.MANAGER;
 
   /* ===================== DATA ===================== */
   const {
@@ -88,6 +95,8 @@ export default function TrainingClassesTable({
   const tablePermissions: TablePermissions = {
     canUpdate: permissions.includes("CLASS_UPDATE"),
     canDelete: permissions.includes("CLASS_DELETE"),
+    canApprove: canReviewClass,
+    canReject: canReviewClass,
   };
 
   const columns = useMemo(
@@ -98,8 +107,11 @@ export default function TrainingClassesTable({
             state: { trainingClass },
           });
         },
+        onApprove: canReviewClass ? (trainingClass) => setApproveTarget(trainingClass) : undefined,
+        onReject: canReviewClass ? (trainingClass) => setRejectTarget(trainingClass) : undefined,
       }),
-    [navigate, role, tablePermissions],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [navigate, role, canReviewClass],
   );
 
   /* ===================== HANDLERS ===================== */
@@ -111,6 +123,44 @@ export default function TrainingClassesTable({
     toast.success("Class request submitted successfully");
     await invalidateAll();
     setOpenForm(false);
+  };
+
+  const handleApprove = async (reason: string) => {
+    if (!approveTarget) return;
+    setReviewLoading(true);
+    try {
+      await trainingClassApi.approveClass(approveTarget.id, reason);
+      toast.success("Class request approved successfully");
+      await invalidateAll();
+      setApproveTarget(null);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err as { message?: string })?.message ||
+        "Failed to approve class";
+      toast.error(msg);
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  const handleReject = async (reason: string) => {
+    if (!rejectTarget) return;
+    setReviewLoading(true);
+    try {
+      await trainingClassApi.rejectClass(rejectTarget.id, reason);
+      toast.success("Class request rejected");
+      await invalidateAll();
+      setRejectTarget(null);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err as { message?: string })?.message ||
+        "Failed to reject class";
+      toast.error(msg);
+    } finally {
+      setReviewLoading(false);
+    }
   };
 
   /* ===================== RENDER ===================== */
@@ -205,6 +255,36 @@ export default function TrainingClassesTable({
       )}
 
       <TrainingClassForm role={role} open={openForm} onClose={() => setOpenForm(false)} onSaved={handleSaved} />
+
+      {/* Approve Modal */}
+      <ReviewActionModal
+        open={!!approveTarget}
+        title="Approve Training Request"
+        description="Please provide approval notes for this request."
+        label="Approval Note"
+        placeholder="Enter approval notes..."
+        confirmText="Approve"
+        variant="approve"
+        loading={reviewLoading}
+        requireReason={false}
+        onConfirm={handleApprove}
+        onCancel={() => setApproveTarget(null)}
+      />
+
+      {/* Reject Modal */}
+      <ReviewActionModal
+        open={!!rejectTarget}
+        title="Reject Training Request"
+        description="Please provide a reason for rejecting this request."
+        label="Rejection Reason"
+        placeholder="Enter rejection reason..."
+        confirmText="Reject"
+        variant="destructive"
+        loading={reviewLoading}
+        requireReason={true}
+        onConfirm={handleReject}
+        onCancel={() => setRejectTarget(null)}
+      />
     </div>
   );
 }
