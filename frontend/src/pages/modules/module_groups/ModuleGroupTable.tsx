@@ -168,7 +168,6 @@ export default function ModuleGroupsTable() {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        searchPlaceholder="module group name"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}

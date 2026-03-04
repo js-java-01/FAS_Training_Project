@@ -206,7 +206,6 @@ export default function ModulesTable() {
         /* Search */
         isSearch
         manualSearch
-        searchPlaceholder="module name"
         onSearchChange={setSearchValue}
         /* Sorting */
         sorting={sorting}

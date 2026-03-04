@@ -220,7 +220,6 @@ export default function UserTable() {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        searchPlaceholder="name, email"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}
