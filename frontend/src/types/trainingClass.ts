@@ -24,6 +24,7 @@ export interface CreateTrainingClassRequest {
   className: string;
   classCode: string;
   semesterId: string;
+  trainingProgramId: string;
   startDate: string;
   endDate: string;
 }

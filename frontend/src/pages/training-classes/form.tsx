@@ -14,11 +14,13 @@ import { Button } from "@/components/ui/button";
 import { trainingClassApi } from "@/api/trainingClassApi";
 import type { TrainingClass } from "@/types/trainingClass";
 import { useGetAllSemesters } from "../semesters/services/queries/useSemesters";
+import { useGetAllTrainingPrograms } from "../programs/services/queries";
 
 type FormValues = {
   className: string;
   classCode: string;
   semesterId: string;
+  trainingProgramId: string;
   startDate: string;
   endDate: string;
 };
@@ -52,6 +54,9 @@ const formSchema = z
     semesterId: z
       .string()
       .min(1, { message: "Please select a semester" }),
+    trainingProgramId: z
+      .string()
+      .min(1, { message: "Please select a training program" }),
     startDate: z
       .string()
       .min(1, { message: "Start date is required" }),
@@ -88,6 +93,11 @@ export const TrainingClassForm: React.FC<{
     },
     role!
   );
+  const { data: trainingPrograms, isLoading: loadingPrograms } = useGetAllTrainingPrograms({
+    page: 0,
+    pageSize: 100,
+    sort: "name,asc",
+  });
 
   const {
     register,
@@ -101,6 +111,7 @@ export const TrainingClassForm: React.FC<{
       className: "",
       classCode: "",
       semesterId: "",
+      trainingProgramId: "",
       startDate: "",
       endDate: "",
     },
@@ -118,6 +129,7 @@ export const TrainingClassForm: React.FC<{
         className: "",
         classCode: "",
         semesterId: "",
+        trainingProgramId: "",
         startDate: "",
         endDate: "",
       });
@@ -133,6 +145,7 @@ export const TrainingClassForm: React.FC<{
         className: data.className,
         classCode: data.classCode,
         semesterId: data.semesterId,
+        trainingProgramId: data.trainingProgramId,
         startDate: data.startDate,
         endDate: data.endDate,
       });
@@ -232,6 +245,30 @@ export const TrainingClassForm: React.FC<{
               {errors.semesterId && <p className="text-xs text-red-600">{errors.semesterId.message}</p>}
             </div>
 
+            {/* Training Program */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">
+                Training Program <span className="text-red-500">*</span>
+              </label>
+              <select
+                {...register("trainingProgramId")}
+                className={`w-full px-3 py-2 border rounded-md outline-none transition
+                                    ${errors.trainingProgramId
+                    ? "border-red-500 focus:ring-red-200"
+                    : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  }`}
+                disabled={loadingPrograms}
+              >
+                <option value="">{loadingPrograms ? "Loading programs..." : "Select a training program"}</option>
+                {(trainingPrograms?.items ?? []).filter(Boolean).map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} {p.version ? `(v${p.version})` : ""}
+                  </option>
+                ))}
+              </select>
+              {errors.trainingProgramId && <p className="text-xs text-red-600">{errors.trainingProgramId.message}</p>}
+            </div>
+
             {/* Date Range */}
             <div className="grid grid-cols-2 gap-4">
               {/* Start Date */}
@@ -241,6 +278,7 @@ export const TrainingClassForm: React.FC<{
                 </label>
                 <input
                   type="date"
+                  min={todayString}
                   {...register("startDate")}
                   className={`w-full px-3 py-2 border rounded-md outline-none transition
                                         ${errors.startDate
@@ -258,6 +296,7 @@ export const TrainingClassForm: React.FC<{
                 </label>
                 <input
                   type="date"
+                  min={minEndDate}
                   {...register("endDate")}
                   className={`w-full px-3 py-2 border rounded-md outline-none transition
                                         ${errors.endDate
