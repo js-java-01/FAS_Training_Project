@@ -150,7 +150,6 @@ export default function TrainingClassesTable({
           isLoading={isLoading}
           isFetching={isFetching}
           isSearch={true}
-          searchPlaceholder="class name or code"
           searchValue={["className", "classCode"]}
           facetedFilters={
             role === "MANAGER" && (
@@ -185,7 +184,6 @@ export default function TrainingClassesTable({
             setPageIndex(0);
           }}
           isSearch={true}
-          searchPlaceholder="class name or code"
           onSearchChange={setSearchKeyword}
           sorting={sorting}
           onSortingChange={(nextSorting) => {

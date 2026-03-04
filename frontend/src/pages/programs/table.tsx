@@ -98,7 +98,6 @@ export default function ProgramsTable() {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        searchPlaceholder="program name"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}

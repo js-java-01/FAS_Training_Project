@@ -10,7 +10,6 @@ interface ClientDataTableProps<TData, TValue> {
   // SEARCH
   isSearch?: boolean;
   searchValue?: string[];
-  searchPlaceholder?: string;
 
   // ACTION
   headerActions?: React.ReactNode;
@@ -26,7 +25,6 @@ export function ClientDataTable<TData, TValue>({
   isFetching,
   isSearch = false,
   searchValue = [],
-  searchPlaceholder,
   headerActions,
   facetedFilters,
   onRowClick,
@@ -44,7 +42,6 @@ export function ClientDataTable<TData, TValue>({
       // SEARCH
       isSearch={isSearch}
       searchValue={searchValue}
-      searchPlaceholder={searchPlaceholder}
       // ACTION
       headerActions={headerActions}
       facetedFilters={facetedFilters}

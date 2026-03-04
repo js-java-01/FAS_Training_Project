@@ -214,7 +214,6 @@ export default function LocationsTable() {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        searchPlaceholder="location name"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}

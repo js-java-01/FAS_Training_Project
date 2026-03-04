@@ -4,30 +4,30 @@ import { Calendar, Pencil, Eye } from "lucide-react";
 import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
 import type { SemesterResponse } from "./SemesterCard";
+import { createBaseColumns } from "@/components/data_table/baseColumns";
 
 const columnHelper = createColumnHelper<SemesterResponse>();
+const base = createBaseColumns<SemesterResponse>();
 
 export const getSemesterColumns = (
   onView: (s: SemesterResponse) => void,
   onEdit?: (s: SemesterResponse) => void,
   //   onDelete?: (s: SemesterResponse) => void,
 ) => [
-  columnHelper.display({
-    id: "number",
-    header: "#",
-    size: 50,
-    cell: ({ row, table }) =>
-      row.index + 1 + table.getState().pagination.pageIndex * table.getState().pagination.pageSize,
-  }),
+  base.selectColumn,
+  base.numberColumn,
 
   columnHelper.accessor("name", {
-    header: "Tên học kỳ",
+    header: "Semester Name",
     size: 200,
     cell: (info) => <span className="font-bold text-blue-600">{info.getValue()}</span>,
+    meta: {
+      title: "Semester Name"
+    }
   }),
 
   columnHelper.accessor("startDate", {
-    header: "Ngày bắt đầu",
+    header: "Start Date",
     size: 150,
     cell: (info) => (
       <div className="flex items-center gap-2">
@@ -35,10 +35,13 @@ export const getSemesterColumns = (
         {dayjs(info.getValue()).format("DD/MM/YYYY")}
       </div>
     ),
+    meta: {
+      title: "Start Date"
+    }
   }),
 
   columnHelper.accessor("endDate", {
-    header: "Ngày kết thúc",
+    header: "End Date",
     size: 150,
     cell: (info) => (
       <div className="flex items-center gap-2">
@@ -46,11 +49,14 @@ export const getSemesterColumns = (
         {dayjs(info.getValue()).format("DD/MM/YYYY")}
       </div>
     ),
+    meta: {
+      title: "End Date"
+    }
   }),
 
   columnHelper.display({
     id: "status",
-    header: "Trạng thái",
+    header: "Status",
     size: 150,
     cell: ({ row }) => {
       const now = dayjs();
@@ -75,6 +81,9 @@ export const getSemesterColumns = (
         </Badge>
       );
     },
+    meta: {
+      title: "Status"
+    }
   }),
 
   columnHelper.display({
@@ -98,5 +107,10 @@ export const getSemesterColumns = (
         )} */}
       </div>
     ),
+    meta: {
+      title: "Actions"
+    }
   }),
+ /* ================= COLUMN CONTROL ================= */
+  base.columnControl
 ];

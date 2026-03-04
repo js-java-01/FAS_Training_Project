@@ -216,7 +216,6 @@ export default function PermissionsTable() {
         onPageSizeChange={setPageSize}
         /* Search */
         isSearch
-        searchPlaceholder="name, resource, action..."
         onSearchChange={setSearchValue}
         /* Sorting */
         sorting={sorting}
