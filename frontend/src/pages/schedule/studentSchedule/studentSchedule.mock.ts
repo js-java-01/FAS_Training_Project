@@ -1,6 +1,7 @@
 export interface StudentScheduleResponse {
   id: string;
-  subjectName: string;
+  topicCode: string;
+  topicName: string;
   roomName: string;
   trainerName: string;
   studyDate: string;
@@ -16,7 +17,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== WEEK 1 =====
   {
     id: "1",
-    subjectName: "ReactJS Advanced",
+    topicCode: "RJS",
+    topicName: "ReactJS Advanced",
     roomName: "Room A1",
     trainerName: "Nguyen Van A",
     studyDate: "2026-03-10",
@@ -26,7 +28,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "2",
-    subjectName: "TypeScript Deep Dive",
+    topicCode: "TS",
+    topicName: "TypeScript Deep Dive",
     roomName: "Room B2",
     trainerName: "Tran Thi B",
     studyDate: "2026-03-10",
@@ -36,7 +39,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "3",
-    subjectName: "Soft Skills Training",
+    topicCode: "SS",
+    topicName: "Soft Skills Training",
     roomName: "Room C3",
     trainerName: "Le Van C",
     studyDate: "2026-03-11",
@@ -48,7 +52,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== SAME DAY MULTIPLE CLASSES =====
   {
     id: "4",
-    subjectName: "Japanese N3",
+    topicCode: "JP",
+    topicName: "Japanese N3",
     roomName: "Room D1",
     trainerName: "Yamada Sensei",
     studyDate: "2026-03-12",
@@ -58,7 +63,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "5",
-    subjectName: "Business Analysis",
+    topicCode: "BA",
+    topicName: "Business Analysis",
     roomName: "Room D1",
     trainerName: "Pham Minh",
     studyDate: "2026-03-12",
@@ -70,7 +76,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== OVERLAPPING TIME (test UI) =====
   {
     id: "6",
-    subjectName: "Frontend Project",
+    topicCode: "FP",
+    topicName: "Frontend Project",
     roomName: "Lab 1",
     trainerName: "Tran Van Dev",
     studyDate: "2026-03-13",
@@ -80,7 +87,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "7",
-    subjectName: "Code Review Session",
+    topicCode: "CR",
+    topicName: "Code Review Session",
     roomName: "Lab 2",
     trainerName: "Senior Mentor",
     studyDate: "2026-03-13",
@@ -92,7 +100,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== PAST CLASSES =====
   {
     id: "8",
-    subjectName: "Git & Workflow",
+    topicCode: "GW",
+    topicName: "Git & Workflow",
     roomName: "Room A2",
     trainerName: "Hoang Anh",
     studyDate: "2026-02-25",
@@ -102,7 +111,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "9",
-    subjectName: "Database Design",
+    topicCode: "DB",
+    topicName: "Database Design",
     roomName: "Room B1",
     trainerName: "Nguyen DBA",
     studyDate: "2026-02-26",
@@ -114,7 +124,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== WORKSHOP SPECIAL =====
   {
     id: "10",
-    subjectName: "Career Orientation Workshop",
+    topicCode: "CW",
+    topicName: "Career Orientation Workshop",
     roomName: "Hall 1",
     trainerName: "HR Team",
     studyDate: "2026-03-15",
@@ -126,7 +137,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== EVENING CLASS =====
   {
     id: "11",
-    subjectName: "English Communication",
+    topicCode: "EC",
+    topicName: "English Communication",
     roomName: "Room E1",
     trainerName: "John Smith",
     studyDate: "2026-03-16",
@@ -138,7 +150,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== WEEKEND CLASS =====
   {
     id: "12",
-    subjectName: "Fullstack Capstone",
+    topicCode: "FC",
+    topicName: "Fullstack Capstone",
     roomName: "Lab 3",
     trainerName: "Architect Lead",
     studyDate: "2026-03-21",
@@ -149,7 +162,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== WEEK 3 =====
   {
     id: "13",
-    subjectName: "Microservices Architecture",
+    topicCode: "MA",
+    topicName: "Microservices Architecture",
     roomName: "Room F1",
     trainerName: "System Architect",
     studyDate: "2026-03-23",
@@ -159,7 +173,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "14",
-    subjectName: "Docker & DevOps",
+    topicCode: "DC",
+    topicName: "Docker & DevOps",
     roomName: "Lab DevOps",
     trainerName: "Cloud Engineer",
     studyDate: "2026-03-23",
@@ -169,7 +184,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "15",
-    subjectName: "Agile & Scrum",
+    topicCode: "AS",
+    topicName: "Agile & Scrum",
     roomName: "Room Agile",
     trainerName: "Scrum Master",
     studyDate: "2026-03-24",
@@ -181,7 +197,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== HEAVY DAY TEST =====
   {
     id: "16",
-    subjectName: "System Design",
+    topicCode: "SD",
+    topicName: "System Design",
     roomName: "Hall 2",
     trainerName: "Tech Lead",
     studyDate: "2026-03-25",
@@ -191,7 +208,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "17",
-    subjectName: "Clean Code",
+    topicCode: "CC",
+    topicName: "Clean Code",
     roomName: "Hall 2",
     trainerName: "Senior Dev",
     studyDate: "2026-03-25",
@@ -201,7 +219,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "18",
-    subjectName: "Unit Testing",
+    topicCode: "UT",
+    topicName: "Unit Testing",
     roomName: "Hall 2",
     trainerName: "QA Lead",
     studyDate: "2026-03-25",
@@ -211,7 +230,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "19",
-    subjectName: "CI/CD Pipeline",
+    topicCode: "CI",
+    topicName: "CI/CD Pipeline",
     roomName: "Hall 2",
     trainerName: "DevOps Lead",
     studyDate: "2026-03-25",
@@ -223,7 +243,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== OVERLAP TEST 2 =====
   {
     id: "20",
-    subjectName: "UI/UX Design",
+    topicCode: "UI",
+    topicName: "UI/UX Design",
     roomName: "Design Lab",
     trainerName: "UX Mentor",
     studyDate: "2026-03-26",
@@ -233,7 +254,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "21",
-    subjectName: "Figma Workshop",
+    topicCode: "FW",
+    topicName: "Figma Workshop",
     roomName: "Design Lab",
     trainerName: "UI Specialist",
     studyDate: "2026-03-26",
@@ -245,7 +267,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== END OF MONTH =====
   {
     id: "22",
-    subjectName: "Final Project Briefing",
+    topicCode: "PB",
+    topicName: "Final Project Briefing",
     roomName: "Main Hall",
     trainerName: "Program Manager",
     studyDate: "2026-03-30",
@@ -257,7 +280,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== NEXT MONTH (APRIL) =====
   {
     id: "23",
-    subjectName: "Advanced React Patterns",
+    topicCode: "ARP",
+    topicName: "Advanced React Patterns",
     roomName: "Room A1",
     trainerName: "React Expert",
     studyDate: "2026-04-02",
@@ -267,7 +291,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "24",
-    subjectName: "NextJS Full Guide",
+    topicCode: "NG",
+    topicName: "NextJS Full Guide",
     roomName: "Room A1",
     trainerName: "Frontend Architect",
     studyDate: "2026-04-02",
@@ -277,7 +302,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "25",
-    subjectName: "Backend with NodeJS",
+    topicCode: "BN",
+    topicName: "Backend with NodeJS",
     roomName: "Room B3",
     trainerName: "Backend Lead",
     studyDate: "2026-04-05",
@@ -289,7 +315,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   // ===== RANDOM FUTURE TEST =====
   {
     id: "26",
-    subjectName: "AI for Developers",
+    topicCode: "AI",
+    topicName: "AI for Developers",
     roomName: "Innovation Lab",
     trainerName: "AI Specialist",
     studyDate: "2026-04-10",
@@ -299,7 +326,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "27",
-    subjectName: "Cloud Architecture",
+    topicCode: "CA",
+    topicName: "Cloud Architecture",
     roomName: "Cloud Room",
     trainerName: "AWS Architect",
     studyDate: "2026-04-15",
@@ -309,7 +337,8 @@ export const studentScheduleMock: StudentScheduleResponse[] = [
   },
   {
     id: "28",
-    subjectName: "Security Best Practices",
+    topicCode: "SP",
+    topicName: "Security Best Practices",
     roomName: "Security Lab",
     trainerName: "Security Expert",
     studyDate: "2026-04-20",
