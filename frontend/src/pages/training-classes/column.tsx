@@ -1,12 +1,12 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import type { TrainingClass } from "@/types/trainingClass";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { Check, EyeIcon, X } from "lucide-react";
 import dayjs from "dayjs";
 import SortHeader from "@/components/data_table/SortHeader";
 import { getTrainingClassStatusPresentation } from "./utils/statusPresentation";
+import { createBaseColumns } from "@/components/data_table/baseColumns";
 
 export type TableActions = {
   onView?: (row: TrainingClass) => void;
@@ -25,40 +25,13 @@ export type TablePermissions = {
 export const getColumns = (role: string, _permissions: TablePermissions, actions?: TableActions) => {
   const columnHelper = createColumnHelper<TrainingClass>();
   const isReviewRole = role === "MANAGER" || role === "ADMIN" || role === "SUPER_ADMIN";
-
+  const base = createBaseColumns<TrainingClass>()
   const baseColumns = [
     /* ================= SELECT ================= */
-    columnHelper.display({
-      id: "select",
-      size: 50,
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(v) => row.toggleSelected(!!v)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    }),
+    base.selectColumn,
 
     /* ================= NUMBER ================= */
-    columnHelper.display({
-      id: "number",
-      header: "#",
-      size: 60,
-      cell: ({ row, table }) =>
-        row.index + 1 + table.getState().pagination.pageIndex * table.getState().pagination.pageSize,
-      enableSorting: false,
-      enableHiding: false,
-    }),
+    base.numberColumn,
 
     /* ================= CLASS NAME ================= */
     columnHelper.accessor("className", {
@@ -175,8 +148,5 @@ export const getColumns = (role: string, _permissions: TablePermissions, actions
     enableHiding: false,
   });
 
-  return [...baseColumns, statusColumn, actionColumn];
+  return [...baseColumns, statusColumn, actionColumn, base.columnControl];
 };
-
-
-

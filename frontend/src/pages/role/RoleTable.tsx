@@ -213,7 +213,6 @@ export default function RoleTable() {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        searchPlaceholder="role name"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}

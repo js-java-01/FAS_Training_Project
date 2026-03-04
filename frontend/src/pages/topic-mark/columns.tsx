@@ -2,7 +2,6 @@ import {
   createColumnHelper,
   type ColumnDef,
 } from "@tanstack/react-table"
-import { Checkbox } from "@/components/ui/checkbox"
 import SortHeader from "@/components/data_table/SortHeader"
 import { Badge } from "@/components/ui/badge"
 import type {
@@ -10,47 +9,18 @@ import type {
   GradebookRow,
 } from "@/types/topicMark"
 import { EditableGradeCell } from "./EditableGradeCell"
+import { createBaseColumns } from "@/components/data_table/baseColumns"
 
 export const buildGradebookColumns = (
   metaColumns: GradebookColumnMeta[],
   isEditing: boolean
 ): ColumnDef<GradebookRow, any>[] => {
   const columnHelper = createColumnHelper<GradebookRow>()
-
+  const base = createBaseColumns<GradebookRow>()
   const baseColumns: ColumnDef<GradebookRow, any>[] = [
-    columnHelper.display({
-      id: "select",
-      size: 50,
-      enableSorting: false,
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(v) =>
-            table.toggleAllPageRowsSelected(!!v)
-          }
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(v) =>
-            row.toggleSelected(!!v)
-          }
-        />
-      ),
-    }),
+    base.selectColumn,
 
-    columnHelper.display({
-      id: "number",
-      header: "#",
-      size: 60,
-      enableSorting: false,
-      cell: ({ row, table }) =>
-        row.index +
-        1 +
-        table.getState().pagination.pageIndex *
-          table.getState().pagination.pageSize,
-    }),
+    base.numberColumn,
 
     columnHelper.accessor("fullName", {
       size: 220,
@@ -62,6 +32,9 @@ export const buildGradebookColumns = (
           {info.getValue()}
         </span>
       ),
+      meta: {
+        title: "Student Name",
+      },
     }),
     columnHelper.accessor("email", {
       size: 220,
@@ -73,6 +46,9 @@ export const buildGradebookColumns = (
           {info.getValue()}
         </Badge>
       ),
+      meta: {
+        title: "Student Email",
+      },
     }),
   ]
 
@@ -143,9 +119,12 @@ export const buildGradebookColumns = (
             </span>
           )
         },
+        meta: {
+          title: col.label,
+        },
       }
     )
   )
 
-  return [...baseColumns, ...dynamicColumns]
+  return [...baseColumns, ...dynamicColumns, base.columnControl]
 }

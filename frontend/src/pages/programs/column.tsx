@@ -1,10 +1,10 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import type { TrainingProgram } from "@/types/trainingProgram";
-import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { EyeIcon, Trash } from "lucide-react";
 import dayjs from "dayjs";
 import SortHeader from "@/components/data_table/SortHeader";
+import { createBaseColumns } from "@/components/data_table/baseColumns";
 
 export type ProgramTableActions = {
   onView?: (row: TrainingProgram) => void;
@@ -13,41 +13,10 @@ export type ProgramTableActions = {
 
 export const getColumns = (actions?: ProgramTableActions) => {
   const columnHelper = createColumnHelper<TrainingProgram>();
-
+  const base = createBaseColumns<TrainingProgram>();
   return [
-    columnHelper.display({
-      id: "select",
-      size: 50,
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(v) => row.toggleSelected(!!v)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    }),
-
-    columnHelper.display({
-      id: "number",
-      header: "#",
-      size: 60,
-      cell: ({ row, table }) =>
-        row.index +
-        1 +
-        table.getState().pagination.pageIndex *
-          table.getState().pagination.pageSize,
-      enableSorting: false,
-      enableHiding: false,
-    }),
+    base.selectColumn,
+    base.numberColumn,
 
     columnHelper.accessor("name", {
       header: (info) => <SortHeader title="Program Name" info={info} />,
@@ -101,5 +70,6 @@ export const getColumns = (actions?: ProgramTableActions) => {
       ),
       enableSorting: false,
     }),
+    base.columnControl
   ];
 };

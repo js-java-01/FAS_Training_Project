@@ -117,7 +117,6 @@ export default function TopicTable() {
         onPageSizeChange={setPageSize}
         isSearch
         manualSearch
-        searchPlaceholder="topic name or code"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}
