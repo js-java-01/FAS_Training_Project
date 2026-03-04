@@ -49,7 +49,7 @@ import java.util.UUID;
  */
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Topic Marks (Gradebook)", description = "APIs for managing gradebook columns and student scores in course classes")
+@Tag(name = "Topic Marks (Gradebook)", description = "APIs for managing gradebook columns and student scores by course class topic")
 @SecurityRequirement(name = "bearerAuth")
 public class TopicMarkController {
 
@@ -64,7 +64,8 @@ public class TopicMarkController {
 
     @GetMapping("/api/course-classes/{courseClassId}/topic-marks")
     @Operation(summary = "Get full gradebook for a course class",
-               description = "Returns all active column definitions and one row per enrolled student with their current scores, final score, and pass/fail status.")
+               description = "Returns active score columns and one row per enrolled student with column scores, final score, and pass/fail status. " +
+                             "Final score is derived from topic assessment-type weights and distributed per column.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Gradebook retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "CourseClass not found", content = @Content)
@@ -95,7 +96,7 @@ public class TopicMarkController {
 
     @GetMapping("/api/course-classes/{courseClassId}/topic-marks/{userId}")
     @Operation(summary = "Get detailed scores for a single student",
-               description = "Returns per-section scores (with grading method applied), individual column scores, and full audit history.")
+               description = "Returns per-assessment-type sections, individual column scores, and full audit history for one student.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Detail retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "CourseClass or User not found", content = @Content)
@@ -110,7 +111,7 @@ public class TopicMarkController {
     @Operation(summary = "Save / update scores for a student",
                description = "Updates one or more column scores for a student. " +
                              "A reason is required for audit trail. " +
-                             "If all columns are filled after saving, the final score is automatically computed.")
+                             "If all active columns have scores and all assessment types have topic weights, final score is auto-computed.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Scores saved successfully"),
         @ApiResponse(responseCode = "400", description = "Validation error (score out of range, deleted column, etc.)", content = @Content),
@@ -177,7 +178,7 @@ public class TopicMarkController {
                           "- Row 0 (meta): column UUIDs for matching\n" +
                           "- Column 1 (hidden): user UUID for matching\n" +
                           "- Blank cells = keep existing score, filled cells = update\n" +
-                  "- Final scores are auto-recomputed after import",
+                  "- Final scores are auto-recomputed after import using topic assessment-type weights distributed by number of columns",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                 required = true,
                 content = @Content(
@@ -211,7 +212,7 @@ public class TopicMarkController {
     @Operation(summary = "Add a new gradebook column",
                description = "Creates a new column under the specified AssessmentType for this course class. " +
                              "Automatically creates null-score entries for all currently enrolled students. " +
-                             "The AssessmentType must already have a weight configured for the course.")
+                             "Final-score computation requires topic assessment-type weights to exist for this course's topic.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Column created successfully"),
         @ApiResponse(responseCode = "400", description = "No weight configured for the AssessmentType", content = @Content),
