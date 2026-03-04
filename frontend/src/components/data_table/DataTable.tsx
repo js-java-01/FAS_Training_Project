@@ -30,6 +30,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader,
+  ColumnsSettings,
 } from "lucide-react";
 import "animate.css";
 import {
@@ -63,7 +64,6 @@ interface DataTableProps<TData, TValue> {
   isSearch?: boolean;
   manualSearch?: boolean;
   searchValue?: string[];
-  searchPlaceholder?: string;
   onSearchChange?: (search: string) => void;
   //SORTED
   sorting?: SortingState;
@@ -93,7 +93,6 @@ export function DataTable<TData, TValue>({
   //SEARCH
   isSearch = false,
   searchValue = [],
-  searchPlaceholder,
   onSearchChange,
   manualSearch = false,
   //SORTED
@@ -256,40 +255,11 @@ export function DataTable<TData, TValue>({
       >
         <div
           className={cn(
-            "flex gap-2 w-full",
-            headerActions ? "flex-col" : "flex-col lg:flex-row items-center"
+            "flex gap-2 w-full flex-col lg:flex-row items-center"
           )}
         >
           {/* Row 1: Columns + Search */}
           <div className="flex flex-col lg:flex-row justify-start items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full !outline-none lg:w-28"
-                >
-                  Columns <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {table
-                  .getAllColumns()
-                  .filter((column) => column.getCanHide())
-                  .map((column) => (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.columnDef.meta?.title ?? column.id}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
             {isSearch && (
               <div className="relative w-full lg:w-[420px]">
                 <Search
@@ -297,7 +267,7 @@ export function DataTable<TData, TValue>({
                   className="absolute text-gray-500 top-[10px] left-2"
                 />
                 <Input
-                  placeholder={`Search by ${searchPlaceholder}...`}
+                  placeholder="Search value..."
                   value={searchText}
                   onChange={(e) => handleSearchInput(e.target.value)}
                   className="pl-8 w-full"

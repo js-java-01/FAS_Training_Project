@@ -1,12 +1,12 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import type { Role } from "@/types/role";
-import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { EditIcon, EyeIcon, ToggleLeft } from "lucide-react";
 import dayjs from "dayjs";
 import { Badge } from "@/components/ui/badge";
 import SortHeader from "@/components/data_table/SortHeader";
 import FilterHeader from "@/components/data_table/FilterHeader";
+import { createBaseColumns } from "@/components/data_table/baseColumns";
 
 export type TableActions = {
   onView?: (row: Role) => void;
@@ -16,32 +16,18 @@ export type TableActions = {
 
 export const getColumns = (actions?: TableActions) => {
   const columnHelper = createColumnHelper<Role>();
-
+  const base = createBaseColumns<Role>();
   return [
-    columnHelper.display({
-      id: "select",
-      size: 50,
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(v) => row.toggleSelected(!!v)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-    }),
+    base.selectColumn,
+    base.numberColumn,
 
     columnHelper.accessor("name", {
       header: (info) => <SortHeader info={info} title="Name" />,
       size: 200,
       cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+      meta: {
+        title: "Name"
+      }
     }),
 
     columnHelper.accessor("description", {
@@ -52,11 +38,17 @@ export const getColumns = (actions?: TableActions) => {
           {info.getValue() || "-"}
         </span>
       ),
+      meta: {
+        title: "Description"
+      }
     }),
 
     columnHelper.accessor("hierarchyLevel", {
       header: (info) => <SortHeader info={info} title="Hierarchy" />,
       size: 120,
+      meta: {
+        title: "Hierarchy"
+      }
     }),
 
     columnHelper.accessor("permissionNames", {
@@ -65,6 +57,9 @@ export const getColumns = (actions?: TableActions) => {
       size: 140,
       cell: (info) => <span>{(info.getValue() as string[])?.length || 0}</span>,
       enableSorting: false,
+      meta: {
+        title: "Permissions"
+      }
     }),
 
     columnHelper.accessor("isActive", {
@@ -106,6 +101,9 @@ export const getColumns = (actions?: TableActions) => {
       header: (info) => <SortHeader info={info} title="Created At" />,
       size: 160,
       cell: (info) => dayjs(info.getValue()).format("YYYY-MM-DD HH:mm"),
+      meta: {
+        title: "Created At"
+      }
     }),
 
     columnHelper.display({
@@ -138,6 +136,12 @@ export const getColumns = (actions?: TableActions) => {
         </div>
       ),
       enableSorting: false,
+      meta: {
+        title: "Actions"
+      }
     }),
+
+     /* ================= COLUMN CONTROL ================= */
+    base.columnControl,
   ];
 };

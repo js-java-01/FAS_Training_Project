@@ -1,7 +1,5 @@
 package com.example.starter_project_2025.system.training_program.service;
 
-import com.example.starter_project_2025.system.program_courses.entity.ProgramCourse;
-import com.example.starter_project_2025.system.program_courses.repository.ProgramCourseRepository;
 import com.example.starter_project_2025.system.training_program.dto.request.CreateTrainingProgramRequest;
 import com.example.starter_project_2025.system.training_program.dto.request.UpdateTrainingProgramRequest;
 import com.example.starter_project_2025.system.training_program.dto.response.TrainingProgramResponse;
@@ -26,22 +24,19 @@ import java.util.stream.Collectors;
 public class TrainingProgramServiceImpl implements TrainingProgramService {
 
     private final TrainingProgramRepository trainingProgramRepository;
-    private final ProgramCourseRepository programCourseRepository;
     private final TrainingProgramMapper mapper;
 
     @Override
     public Page<TrainingProgramResponse> searchTrainingPrograms(
             String keyword,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
 
         Specification<TrainingProgram> spec = (root, query, cb) -> {
 
             if (keyword != null && !keyword.isEmpty()) {
                 return cb.like(
                         cb.lower(root.get("name")),
-                        "%" + keyword.toLowerCase() + "%"
-                );
+                        "%" + keyword.toLowerCase() + "%");
             }
 
             return cb.conjunction();
@@ -68,20 +63,20 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
         Set<UUID> ids = Optional.ofNullable(request.getProgramCourseIds())
                 .orElse(Collections.emptySet());
 
-        if (!ids.isEmpty()) {
+        // if (!ids.isEmpty()) {
 
-            Set<ProgramCourse> courses = programCourseRepository.findByIdIn(ids);
+        // Set<ProgramCourse> courses = programCourseRepository.findByIdIn(ids);
 
-            if (courses.size() != ids.size()) {
-                throw new RuntimeException("Some ProgramCourses not found");
-            }
+        // if (courses.size() != ids.size()) {
+        // throw new RuntimeException("Some ProgramCourses not found");
+        // }
 
-            for (ProgramCourse course : courses) {
-                course.setTrainingProgram(saved);
-            }
+        // for (ProgramCourse course : courses) {
+        // course.setTrainingProgram(saved);
+        // }
 
-            saved.setProgramCourses(courses);
-        }
+        // saved.setProgramCourses(courses);
+        // }
 
         return mapper.toResponse(saved);
     }
@@ -95,6 +90,7 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
 
         return mapper.toResponse(program);
     }
+
     @Override
     @Transactional
     public void delete(UUID id) {
@@ -103,9 +99,9 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
             throw new RuntimeException("Training Program not found");
         }
 
-        if (programCourseRepository.existsByTrainingProgram_Id(id)) {
-            throw new RuntimeException("Cannot delete program because it is being used");
-        }
+        // if (programCourseRepository.existsByTrainingProgram_Id(id)) {
+        // throw new RuntimeException("Cannot delete program because it is being used");
+        // }
 
         trainingProgramRepository.deleteById(id);
     }
@@ -131,21 +127,22 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
         }
 
         // ===== UPDATE PROGRAM COURSES =====
-        if (request.getProgramCourseIds() != null) {
+        // if (request.getProgramCourseIds() != null) {
 
-            // Lấy danh sách course mới từ DB
-            Set<ProgramCourse> newCourses = programCourseRepository
-                    .findAllById(request.getProgramCourseIds())
-                    .stream()
-                    .collect(Collectors.toSet());
+        // // Lấy danh sách course mới từ DB
+        // Set<ProgramCourse> newCourses = programCourseRepository
+        // .findAllById(request.getProgramCourseIds())
+        // .stream()
+        // .collect(Collectors.toSet());
 
-            // Set lại toàn bộ
-            program.setProgramCourses(newCourses);
+        // // Set lại toàn bộ
+        // program.setProgramCourses(newCourses);
 
-            // Cập nhật ngược chiều quan hệ
-            newCourses.forEach(course -> course.setTrainingProgram(program));
-        }
+        // // Cập nhật ngược chiều quan hệ
+        // newCourses.forEach(course -> course.setTrainingProgram(program));
+        // }
 
         return mapper.toResponse(program);
     }
+
 }

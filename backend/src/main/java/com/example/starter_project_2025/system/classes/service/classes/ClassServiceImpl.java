@@ -180,20 +180,20 @@ public class ClassServiceImpl implements ClassService {
         if (request.getEndDate() != null)
             existing.setEndDate(endDate);
 
-        if (request.getEnrollmentKey() != null) {
+        // if (request.getEnrollmentKey() != null) {
 
-            if (request.getEnrollmentKey().isBlank()) {
-                existing.setEnrollmentKey(null);
-            } else {
+        // if (request.getEnrollmentKey().isBlank()) {
+        // existing.setEnrollmentKey(null);
+        // } else {
 
-                if (classRepository.existsByEnrollmentKey(request.getEnrollmentKey())
-                        && !request.getEnrollmentKey().equals(existing.getEnrollmentKey())) {
-                    throw new RuntimeException("Enrollment key already exists");
-                }
+        // if (classRepository.existsByEnrollmentKey(request.getEnrollmentKey())
+        // && !request.getEnrollmentKey().equals(existing.getEnrollmentKey())) {
+        // throw new RuntimeException("Enrollment key already exists");
+        // }
 
-                existing.setEnrollmentKey(request.getEnrollmentKey());
-            }
-        }
+        // existing.setEnrollmentKey(request.getEnrollmentKey());
+        // }
+        // }
 
         TrainingClass saved = classRepository.save(existing);
 
@@ -229,7 +229,7 @@ public class ClassServiceImpl implements ClassService {
 
         trainingClass.setClassStatus(ClassStatus.APPROVED);
         trainingClass.setApprover(approver);
-        trainingClass.setEnrollmentKey(generateEnrollmentKey());
+        // trainingClass.setEnrollmentKey(generateEnrollmentKey());
 
         if (request != null) {
             trainingClass.setReviewReason(request.getReviewReason());
@@ -305,7 +305,7 @@ public class ClassServiceImpl implements ClassService {
             throw new RuntimeException("Enrollment key is required");
         }
 
-        List<TrainingClass> classes = classRepository.findAllByEnrollmentKey(enrollmentKey);
+        List<TrainingClass> classes = null;
 
         if (classes.isEmpty()) {
             throw new RuntimeException("Invalid enrollment key");

@@ -259,7 +259,6 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
         isLoading={loading}
         isSearch
         searchValue={["name", "description"]}
-        searchPlaceholder="name"
       />
 
       {/* ── Add / Edit Side Panel ── */}

@@ -153,7 +153,6 @@ export default function GradebookTable({ classId }: Props) {
         onPageSizeChange={setPageSize}
         isSearch
         manualSearch
-        searchPlaceholder="Student name"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FileBarChartIcon } from "lucide-react";
 import TopicMarkModal from "@/pages/topic-mark/TopicMarkManagement";
 import type { TrainingClass } from "@/types/trainingClass";
+import { createBaseColumns } from "@/components/data_table/baseColumns";
 
 interface Props {
   classId: string;
@@ -17,14 +18,10 @@ interface Props {
 const EMPTY_DATA: TraineeDetailsResponse[] = [];
 
 const columnHelper = createColumnHelper<TraineeDetailsResponse>();
+const base = createBaseColumns<TraineeDetailsResponse>();
+
 const columns = [
-  columnHelper.display({
-    id: "number",
-    header: "#",
-    size: 50,
-    cell: ({ row, table }) =>
-      row.index + 1 + table.getState().pagination.pageIndex * table.getState().pagination.pageSize,
-  }),
+  base.numberColumn,
   columnHelper.accessor("firstName", {
     header: "Họ và tên",
     cell: (info) => (
@@ -36,6 +33,7 @@ const columns = [
   columnHelper.accessor("email", {
     header: "Email",
   }),
+  base.columnControl,
 ];
 
 export default function ClassTraineesTable({ classId, trainingClass }: Props) {
@@ -81,7 +79,6 @@ export default function ClassTraineesTable({ classId, trainingClass }: Props) {
         onPageSizeChange={setPageSize}
         /* SEARCH */
         isSearch={true}
-        searchPlaceholder="tên hoặc email..."
         onSearchChange={handleSearchChange}
 
         headerActions={
