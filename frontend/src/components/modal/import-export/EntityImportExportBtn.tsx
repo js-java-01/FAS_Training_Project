@@ -46,25 +46,36 @@ export default function EntityImportExportButton({
     link.remove();
     window.URL.revokeObjectURL(url);
   };
+  const base64ToBlob = (base64: string, mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"): Blob => {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+  };
 
   const handleImport = async (file: File) => {
     if (!importMutation) return;
 
     try {
       const res = await importMutation.mutateAsync(file);
+      const errorBlob = res.errorFile ? base64ToBlob(res.errorFile) : undefined;
 
-      if (!res || res.failedCount === 0) {
-        toast.success(`${title} imported successfully`);
-      }
+      return {
+        message: res.failedCount > 0 ? "Import finished with some errors." : "Import successful!",
+        totalRows: res.totalCount,
+        successCount: res.successCount,
+        failedCount: res.failedCount,
+        errors: [],
+        errorBlob: errorBlob,
+      };
 
-      return res;
     } catch (err: any) {
       const errorData = err?.response?.data;
-
-      if (errorData?.totalRows !== undefined) {
-        return errorData;
-      }
-
       toast.error(errorData?.message ?? `Failed to import ${title}`);
       throw err;
     }

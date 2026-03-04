@@ -1034,7 +1034,6 @@ public class DataInitializer implements CommandLineRunner {
                 return cc;
         }
 
-
         private void createRoleIfNotFound(String roleName, String description, Set<Permission> permissions) {
                 if (roleRepository.findByName(roleName).isEmpty()) {
                         Role role = new Role();
