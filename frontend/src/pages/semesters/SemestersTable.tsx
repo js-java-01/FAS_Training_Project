@@ -231,13 +231,13 @@ export default function SemestersTable({ onSelectSemester, role }: SemestersTabl
 
         {/* Actions */}
         <div className="flex items-center gap-2 w-full lg:w-auto justify-end">
-          <Button variant="outline" className="h-10" onClick={() => setOpenBackupModal(true)} disabled={isFetching}>
+          {/* <Button variant="outline" className="h-10" onClick={() => setOpenBackupModal(true)} disabled={isFetching}>
             <Download className="w-4 h-4 mr-2" /> Export
-          </Button>
+          </Button> */}
           {(role === "SUPER_ADMIN" || role === "ADMIN") && (
             <>
               <Button variant="outline" className="h-10" onClick={() => setOpenBackupModal(true)}>
-                <Upload className="w-4 h-4 mr-2" /> Import
+                <Upload className="w-4 h-4 mr-2" /> Import/Export
               </Button>
               <Button
                 className="bg-blue-600 hover:bg-blue-700 h-10 text-white"

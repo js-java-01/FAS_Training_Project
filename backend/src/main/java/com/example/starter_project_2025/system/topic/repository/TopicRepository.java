@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Repository
-public interface TopicRepository extends JpaRepository<Topic, UUID> {
+public interface TopicRepository extends JpaRepository<Topic, UUID>, JpaSpecificationExecutor<Topic>{
 
     boolean existsByTopicCode(String topicCode);
 
@@ -33,5 +33,5 @@ public interface TopicRepository extends JpaRepository<Topic, UUID> {
 
     Topic findByTopicName(String topicName);
 
-    Topic findByTopicCodeIn(String topicCode);
+    Set<Topic> findByTopicCodeIn(List<String> topicCodes);
 }

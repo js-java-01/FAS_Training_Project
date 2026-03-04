@@ -32,6 +32,7 @@ import { useGetTrainingProgramById } from "./services/queries";
 import { trainingProgramKeys } from "./keys";
 import type { Course } from "@/types/course";
 import type { TrainingProgram } from "@/types/trainingProgram";
+import { decodeRouteId } from "@/utils/routeIdCodec";
 
 type ProgramFormData = {
   name: string;
@@ -55,8 +56,9 @@ const validateForm = (data: ProgramFormData): Record<string, string> => {
 export default function ProgramDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const decodedProgramId = id ? decodeRouteId("programs", id) : null;
 
-  const { data, isLoading, isError } = useGetTrainingProgramById(id);
+  const { data, isLoading, isError } = useGetTrainingProgramById(decodedProgramId ?? undefined);
   const queryClient = useQueryClient();
   const { data: coursesData } = useQuery({
     queryKey: ["program-detail-courses"],
@@ -100,16 +102,16 @@ export default function ProgramDetailPage() {
       setFormErrors(errs);
       return;
     }
-    if (!id) return;
+    if (!decodedProgramId) return;
     setSaving(true);
     try {
-      await trainingProgramApi.updateTrainingProgram(id, {
+      await trainingProgramApi.updateTrainingProgram(decodedProgramId, {
         name: formData.name.trim(),
         version: formData.version.trim(),
         description: formData.description.trim() || undefined,
       });
       toast.success("Program updated successfully");
-      await queryClient.invalidateQueries({ queryKey: trainingProgramKeys.detail(id) });
+      await queryClient.invalidateQueries({ queryKey: trainingProgramKeys.detail(decodedProgramId) });
       await queryClient.invalidateQueries({ queryKey: ["training-programs"] });
       setIsEditing(false);
     } catch (err: unknown) {
@@ -121,7 +123,7 @@ export default function ProgramDetailPage() {
     } finally {
       setSaving(false);
     }
-  }, [id, formData, queryClient]);
+  }, [decodedProgramId, formData, queryClient]);
 
   const relatedCourses = useMemo(() => {
     if (!data?.programCourseIds || data.programCourseIds.length === 0) return [] as Course[];
@@ -135,7 +137,7 @@ export default function ProgramDetailPage() {
   );
 
   return (
-    <MainLayout pathName={{ programs: "Programs", detail: "Detail" }}>
+    <MainLayout pathName={id ? { programs: "Programs", [id]: data?.name ?? "Detail" } : { programs: "Programs" }}>
       <div className="mx-auto w-full max-w-7xl py-6 space-y-5">
         <div className="flex items-center justify-between gap-4">
           <div>

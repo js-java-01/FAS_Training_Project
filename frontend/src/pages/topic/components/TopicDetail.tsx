@@ -13,7 +13,7 @@ import {
   TOPIC_STATUSES,
 } from "../constants";
 
-const tabs = ["Overview", "Courses", "Objectives", "Assessment Scheme", "Delivery Principles", "Outline & Schedule", "Time Allocation"];
+const tabs = ["Overview", "Courses", "Objectives", "Assessment Scheme", "Delivery Principles", "Time Allocation"];
 
 const inputCls = "w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
 
@@ -39,6 +39,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
       setLoading(true);
       await topicApi.updateTopic(topic.id, {
         topicName: data.topicName,
+        topicCode: data.topicCode,
         level: data.level,
         status: data.status,
         description: data.description,
@@ -116,6 +117,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
             <Block title="Additional Information">
               <div className="space-y-4">
                 <Info icon={<FiFileText />} label="Description" value={topic.description} />
+                <Info icon={<FiFileText />} label="Version" value={topic.version} />
               </div>
             </Block>
           </div>
@@ -138,7 +140,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
                 <input {...register("topicName", { required: true })} className={inputCls} />
               </Field>
               <Field icon={<FiHash />} label="Topic Code">
-                <input {...register("topicCode", { required: true })} className={inputCls} disabled />
+                <input {...register("topicCode", { required: true })} className={inputCls} />
               </Field>
               <Field icon={<FiLayers />} label="Level">
                 <select {...register("level")} className={inputCls + " bg-white"}>
