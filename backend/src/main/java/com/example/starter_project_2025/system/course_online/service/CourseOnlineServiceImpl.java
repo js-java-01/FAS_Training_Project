@@ -12,7 +12,8 @@ import com.example.starter_project_2025.system.course_online.mapper.CourseOnline
 import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import com.example.starter_project_2025.system.user.service.UserService;
-
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
@@ -91,7 +92,25 @@ public class CourseOnlineServiceImpl implements CourseOnlineService {
 
     @Override
     public CourseOnlineResponse getById(UUID id) {
-        return mapper.toResponse(courseRepository.findById(id).orElseThrow());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean isStudent = authentication.getAuthorities()
+                .stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_STUDENT"));
+
+        CourseOnline course;
+
+        if (isStudent) {
+            course = courseRepository
+                    .findByIdAndStatus(id, CourseStatusOnline.ACTIVE)
+                    .orElseThrow(() -> new RuntimeException("Course not found or not published"));
+        } else {
+            course = courseRepository
+                    .findById(id)
+                    .orElseThrow(() -> new RuntimeException("Course not found"));
+        }
+
+        return mapper.toResponse(course);
     }
 
     @Override
@@ -124,8 +143,8 @@ public class CourseOnlineServiceImpl implements CourseOnlineService {
     @PreAuthorize("hasAuthority('COURSE_EXPORT')")
     public ByteArrayInputStream exportCourses() throws IOException {
         // Columns match the import template (no ID column)
-        String[] columns = { "CourseOnline Name", "CourseOnline Code", "Level", "Status",
-                "Estimated Time (min)", "Price", "Discount (%)", "Trainer Email", "Description", "Note" };
+        String[] columns = {"CourseOnline Name", "CourseOnline Code", "Level", "Status",
+                "Estimated Time (min)", "Price", "Discount (%)", "Trainer Email", "Description", "Note"};
 
         List<CourseOnline> courses = courseRepository.findAll();
 
@@ -173,8 +192,8 @@ public class CourseOnlineServiceImpl implements CourseOnlineService {
     // ─── TEMPLATE ────────────────────────────────────────────────────────────
     @Override
     public ByteArrayInputStream downloadTemplate() throws IOException {
-        String[] columns = { "CourseOnline Name", "CourseOnline Code", "Level", "Status",
-                "Estimated Time (min)", "Price", "Discount (%)", "Trainer Email", "Description", "Note" };
+        String[] columns = {"CourseOnline Name", "CourseOnline Code", "Level", "Status",
+                "Estimated Time (min)", "Price", "Discount (%)", "Trainer Email", "Description", "Note"};
 
         try (Workbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = wb.createSheet("Courses Template");

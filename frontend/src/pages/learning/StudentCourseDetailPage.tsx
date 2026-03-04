@@ -23,6 +23,7 @@ import {
   ShoppingCart,
   Play,
 } from "lucide-react";
+import type { CourseObjective } from "@/types/courseObjective";
 
 // ── Mocked outcomes & reviews (since backend doesn't have these yet) ──────────
 const MOCK_OUTCOMES = [
@@ -235,22 +236,24 @@ export default function StudentCourseDetailPage() {
   const [activeTab, setActiveTab] = useState<Tab>("about");
   const [showEnrollModal, setShowEnrollModal] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
-
+  const [objectives, setObjectives] = useState<CourseObjective[]>([]);
+  const [lessons, setLessons] = useState<any[]>([]);
   useEffect(() => {
     if (!id) return;
     // Load course + enrollment status in parallel
     Promise.all([
       courseApi.getCourseById(id),
       enrollmentApi.getMyEnrolledCourses().catch(() => []),
+      courseApi.getObjectivesByCourse(id),
+      courseApi.getLessonsByCourse(id),
     ])
-      .then(([courseData, enrolled]) => {
+      .then(([courseData, enrolled, objectivesData, lessonsData]) => {
         setCourse(courseData);
+        setObjectives(objectivesData);
+        setLessons(lessonsData);
+
         const match = enrolled.find((ec) => ec?.course?.id === id);
         if (match) setIsEnrolled(true);
-      })
-      .catch(() => {
-        toast.error("Failed to load course");
-        navigate("/courses");
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -398,7 +401,7 @@ export default function StudentCourseDetailPage() {
             <div className="flex items-center gap-8 py-3 overflow-x-auto text-md">
               <div className="shrink-0 flex items-center gap-2 text-sm text-gray-600">
                 <BookOpen size={17} className="text-blue-500" />
-                <span className="font-semibold text-gray-800">4</span> modules
+                <span className="font-semibold text-gray-800"> {lessons.length}</span> modules
               </div>
               <div className="shrink-0 flex items-center gap-2 text-sm text-gray-600">
                 <Star size={17} className="text-yellow-400 fill-yellow-400" />
@@ -437,11 +440,10 @@ export default function StudentCourseDetailPage() {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex-1 px-4 py-3.5 text-sm font-semibold transition-colors border-b-2 ${
-                    activeTab === tab.key
-                      ? "border-blue-600 text-blue-600 bg-blue-50/50"
-                      : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-                  }`}
+                  className={`flex-1 px-4 py-3.5 text-sm font-semibold transition-colors border-b-2 ${activeTab === tab.key
+                    ? "border-blue-600 text-blue-600 bg-blue-50/50"
+                    : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -504,15 +506,21 @@ export default function StudentCourseDetailPage() {
                     What you'll learn
                   </h2>
                   <div className="grid sm:grid-cols-2 gap-3 mb-6">
-                    {MOCK_OUTCOMES.map((outcome, i) => (
-                      <div key={i} className="flex items-start gap-3">
-                        <CheckCircle
-                          size={16}
-                          className="text-green-500 shrink-0 mt-0.5"
-                        />
-                        <span className="text-sm text-gray-700">{outcome}</span>
-                      </div>
-                    ))}
+                    {objectives.length === 0 ? (
+                      <p className="text-sm text-gray-500">No outcomes available.</p>
+                    ) : (
+                      objectives.map((obj) => (
+                        <div key={obj.id} className="flex items-start gap-3">
+                          <CheckCircle
+                            size={16}
+                            className="text-green-500 shrink-0 mt-0.5"
+                          />
+                          <span className="text-sm text-gray-700">
+                            {obj.description}
+                          </span>
+                        </div>
+                      ))
+                    )}
                   </div>
                   <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex items-start gap-3">
                     <Award
@@ -534,72 +542,46 @@ export default function StudentCourseDetailPage() {
 
               {/* ── Modules ── */}
               {activeTab === "modules" && (
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 mb-1">
-                    Course Modules
-                  </h2>
-                  <p className="text-sm text-gray-500 mb-5">
-                    4 modules · Approx. {hours ?? "—"} hours total
-                  </p>
-                  <div className="space-y-3">
-                    {[
-                      {
-                        num: 1,
-                        title: "Introduction & Foundations",
-                        desc: "Set up your environment and understand the core principles.",
-                        duration: "~2 hours",
-                        items: 6,
-                      },
-                      {
-                        num: 2,
-                        title: "Core Concepts in Depth",
-                        desc: "Dive deeper with practical exercises and case studies.",
-                        duration: "~3 hours",
-                        items: 8,
-                      },
-                      {
-                        num: 3,
-                        title: "Applied Skills & Projects",
-                        desc: "Build real projects from scratch.",
-                        duration: "~4 hours",
-                        items: 10,
-                      },
-                      {
-                        num: 4,
-                        title: "Advanced Topics & Assessment",
-                        desc: "Explore advanced patterns and complete the final assessment.",
-                        duration: "~3 hours",
-                        items: 7,
-                      },
-                    ].map((mod) => (
+                <div className="space-y-4">
+
+                  {lessons.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      No modules available.
+                    </p>
+                  ) : (
+                    lessons.map((lesson, index) => (
                       <div
-                        key={mod.num}
+                        key={lesson.id}
                         className="flex items-start gap-4 border border-gray-200 rounded-xl p-4 hover:border-blue-200 hover:bg-blue-50/30 transition-colors"
                       >
                         <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 font-bold text-sm flex items-center justify-center shrink-0">
-                          {mod.num}
+                          {index + 1}
                         </div>
+
                         <div className="flex-1">
                           <p className="font-semibold text-gray-900 text-sm mb-0.5">
-                            Module {mod.num}: {mod.title}
+                            {lesson.lessonName}
                           </p>
-                          <p className="text-xs text-gray-500 mb-2">
-                            {mod.desc}
-                          </p>
+
+                          {lesson.description && (
+                            <p className="text-xs text-gray-500 mb-2">
+                              {lesson.description}
+                            </p>
+                          )}
+
                           <div className="flex gap-4 text-xs text-gray-400">
-                            <span className="flex items-center gap-1">
-                              <Clock size={11} />
-                              {mod.duration}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <BookOpen size={11} />
-                              {mod.items} lessons
-                            </span>
+                            {lesson.duration && (
+                              <span className="flex items-center gap-1">
+                                <Clock size={11} />
+                                {lesson.duration} mins
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    ))
+                  )}
+
                 </div>
               )}
 

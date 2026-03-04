@@ -279,4 +279,13 @@ export const courseApi = {
     );
     return res.data;
   },
+
+  // =============================
+  // LESSONS (Modules)
+  // =============================
+
+  getLessonsByCourse: async (courseId: string) => {
+    const res = await axiosInstance.get(`/lessons/course/${courseId}`);
+    return res.data;
+  },
 };

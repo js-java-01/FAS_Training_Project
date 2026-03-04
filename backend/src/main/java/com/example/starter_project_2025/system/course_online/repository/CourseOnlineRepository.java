@@ -3,7 +3,8 @@ package com.example.starter_project_2025.system.course_online.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
+import java.util.Optional;
+import com.example.starter_project_2025.system.course_online.enums.CourseStatusOnline;
 import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
 
 import java.util.UUID;
@@ -25,4 +26,5 @@ public interface CourseOnlineRepository extends JpaRepository<CourseOnline, UUID
                         @org.springframework.data.repository.query.Param("trainerId") java.util.UUID trainerId,
                         org.springframework.data.domain.Pageable pageable);
 
+        Optional<CourseOnline> findByIdAndStatus(UUID id, CourseStatusOnline status);
 }
