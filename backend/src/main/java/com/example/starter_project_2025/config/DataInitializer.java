@@ -136,7 +136,6 @@ public class DataInitializer implements CommandLineRunner
             userRoleInitializer.initializeUserRoles();
             initializeLessons();
         }
-        ensureTrainingProgramPermissionsForSuperAdmin();
 
         initializeEnrollments();
         topicInitializer.init();
@@ -299,77 +298,6 @@ public class DataInitializer implements CommandLineRunner
         permission.setResource(resource);
         permission.setAction(action);
         return permission;
-    }
-
-    private void initializeTrainerRole()
-    {
-
-        if (roleRepository.findByName("TRAINER").isPresent())
-        {
-            return;
-        }
-
-        List<Permission> allPermissions = permissionRepository.findAll();
-
-        Set<Permission> trainerPermissions = allPermissions.stream()
-                .filter(p -> ("READ".equals(p.getAction())
-                        && Arrays.asList("SIDEBAR", "CLASS", "COURSE", "SEMESTER", "STUDENT",
-                                "MODULE", "DASHBOARD")
-                        .contains(p.getResource())
-                        || "CREATE".equals(p.getAction()) && Arrays.asList("CLASS")
-                        .contains(p.getResource())))
-                .collect(Collectors.toSet());
-
-        List<String> extraPermissionNames = Arrays.asList(
-                "CLASS_CREATE",
-                "LESSON_CREATE", "LESSON_UPDATE", "LESSON_DELETE",
-                "SESSION_CREATE", "SESSION_UPDATE", "SESSION_DELETE",
-                "COURSE_OUTLINE_EDIT",
-                "ASSESSMENT_CREATE", "ASSESSMENT_UPDATE", "ASSESSMENT_DELETE",
-                "ASSESSMENT_ASSIGN", "ASSESSMENT_PUBLISH", "ASSESSMENT_SUBMIT",
-                "QUESTION_CREATE", "QUESTION_UPDATE", "QUESTION_DELETE",
-                "QUESTION_CATEGORY_CREATE", "QUESTION_CATEGORY_UPDATE", "QUESTION_CATEGORY_DELETE",
-                "ENROLL_COURSE");
-
-        for (String name : extraPermissionNames)
-        {
-            permissionRepository.findByName(name)
-                    .ifPresent(trainerPermissions::add);
-        }
-
-        Role trainerRole = new Role();
-        trainerRole.setName("TRAINER");
-        trainerRole.setHierarchyLevel(4);
-        trainerRole.setDescription("Trainer with course/lesson/assessment management access");
-        trainerRole.setPermissions(trainerPermissions);
-
-        roleRepository.save(trainerRole);
-
-        log.info("Initialized TRAINER role with {} permissions", trainerPermissions.size());
-    }
-
-
-    private void createUserIfNotFound(String email, String firstName, String lastName)
-    {
-        if (!userRepository.existsByEmail(email))
-        {
-            User user = new User();
-            user.setEmail(email);
-            user.setPasswordHash(passwordEncoder.encode("password123"));
-            user.setFirstName(firstName);
-            user.setLastName(lastName);
-            user.setIsActive(true);
-            userRepository.save(user);
-        }
-    }
-
-    private void saveUserRole(User user, Role role, boolean isDefault)
-    {
-        UserRole ur = new UserRole();
-        ur.setUser(user);
-        ur.setRole(role);
-        ur.setDefault(isDefault);
-        userRoleRepository.save(ur);
     }
 
     private void initializeAssessments()
@@ -1006,30 +934,6 @@ public class DataInitializer implements CommandLineRunner
         {
             log.error("Failed to import location data from LocationData.json", e);
         }
-    }
-
-    private void ensureTrainingProgramPermissionsForSuperAdmin() {
-
-        Role superAdmin = roleRepository.findByName("SUPER_ADMIN")
-                .orElseThrow(() -> new RuntimeException("SUPER_ADMIN role not found"));
-
-        List<String> permissionNames = List.of(
-                "TRAINING_PROGRAM_CREATE",
-                "TRAINING_PROGRAM_READ",
-                "TRAINING_PROGRAM_UPDATE",
-                "TRAINING_PROGRAM_DELETE"
-        );
-
-        Set<Permission> permissions = permissionNames.stream()
-                .map(name -> permissionRepository.findByName(name)
-                        .orElseThrow(() -> new RuntimeException("Permission not found: " + name)))
-                .collect(Collectors.toSet());
-
-        superAdmin.getPermissions().addAll(permissions);
-
-        roleRepository.save(superAdmin);
-
-        log.info("Added TRAINING_PROGRAM permissions to SUPER_ADMIN");
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
