@@ -70,15 +70,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
 
-        private final RoleRepository roleRepository;
         private final PermissionRepository permissionRepository;
-        private final MenuRepository menuRepository;
-        private final MenuItemRepository menuItemRepository;
         private final ProvinceRepository provinceRepository;
         private final CommuneRepository communeRepository;
         private final ObjectMapper objectMapper;
-        private final ModuleGroupsRepository moduleGroupsRepository;
-        private final ModuleRepository moduleRepository;
         private final ProgrammingLanguageRepository programmingLanguageRepository;
         private final UserRepository userRepository;
         private final PasswordEncoder passwordEncoder;
@@ -89,6 +84,7 @@ public class DataInitializer implements CommandLineRunner {
         private final QuestionRepository questionRepository;
         private final CourseLessonRepository courseLessonRepository;
         private final UserRoleRepository userRoleRepository;
+        private final RoleRepository roleRepository;
         private final SemesterRepository semesterRepository;
         private final TrainingClassRepository trainingClassRepository;
         private final CourseClassRepository courseClassRepository;
@@ -96,6 +92,10 @@ public class DataInitializer implements CommandLineRunner {
         private final LocationRepository locationRepository;
         @PersistenceContext
         private EntityManager entityManager;
+        private final ModuleInitializer moduleInitializer;
+        private final UserRoleInitializer userRoleInitializer;
+        private final TrainingClassInitializer trainingClassInitializer;
+        private final TrainingProgramInitializer trainingProgramInitializer;
 
         @Override
         @Transactional
@@ -110,19 +110,20 @@ public class DataInitializer implements CommandLineRunner {
                         // initializeLocationData();
 
                         initializeLocations();
-                        initializeModuleGroups();
+                        moduleInitializer.initializeModuleGroups();
                         initializeAssessmentType();
                         initializeAssessments();
                         initializeQuestionCategories();
                         initializeQuestions();
                         // initializeCourses();
                         // initializeCohorts(); // disabled - cohort feature temporarily not in use
-                        initializeUserRoles();
+                        userRoleInitializer.initializeUserRoles();
                         initializeSemester();
                         ensureProgrammingLanguagePermissions();
                         initializeProgrammingLanguages();
                         initializeCourses();
-                        // initializeTrainingClasses();
+                        trainingProgramInitializer.initializeTrainingProgram();
+                        trainingClassInitializer.initializeTrainingClasses();
                         initializeCourseClasses();
                         log.info("Database initialization completed successfully!");
                 } else {
@@ -134,7 +135,7 @@ public class DataInitializer implements CommandLineRunner {
                 if (userRoleRepository.count() == 0)
 
                 {
-                        initializeUserRoles();
+                        userRoleInitializer.initializeUserRoles();
                         initializeLessons();
                 }
 
@@ -470,89 +471,12 @@ public class DataInitializer implements CommandLineRunner {
                 }
         }
 
-        private void initializeUserRoles() {
-
-                Role superAdminRole = roleRepository.findByName("SUPER_ADMIN")
-                                .orElseThrow(() -> new RuntimeException("Role SUPER ADMIN not found"));
-                Role adminRole = roleRepository.findByName("ADMIN")
-                                .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
-                Role managerRole = roleRepository.findByName("MANAGER")
-                                .orElseThrow(() -> new RuntimeException("Role MANAGER not found"));
-                Role trainerRole = roleRepository.findByName("TRAINER")
-                                .orElseThrow(() -> new RuntimeException("Role TRAINER not found"));
-                Role studentRole = roleRepository.findByName("STUDENT")
-                                .orElseThrow(() -> new RuntimeException("Role STUDENT not found"));
-
-                User admin1 = userRepository.findByEmail("admin@example.com").orElseThrow();
-                User superadmin = userRepository.findByEmail("superadmin@example.com").orElseThrow();
-
-                User manager1 = userRepository.findByEmail("manager1@example.com").orElseThrow();
-                User manager2 = userRepository.findByEmail("manager2@example.com").orElseThrow();
-
-                User trainer1 = userRepository.findByEmail("trainer1@example.com").orElseThrow();
-                User trainer2 = userRepository.findByEmail("trainer2@example.com").orElseThrow();
-                User trainer3 = userRepository.findByEmail("trainer3@example.com").orElseThrow();
-
-                User student1 = userRepository.findByEmail("student1@example.com").orElseThrow();
-                User student2 = userRepository.findByEmail("student2@example.com").orElseThrow();
-                User student3 = userRepository.findByEmail("student3@example.com").orElseThrow();
-                User student4 = userRepository.findByEmail("student4@example.com").orElseThrow();
-                User student5 = userRepository.findByEmail("student5@example.com").orElseThrow();
-
-                assignRoleIfNotFound(admin1, adminRole, true);
-                assignRoleIfNotFound(admin1, studentRole, false);
-
-                assignRoleIfNotFound(superadmin, superAdminRole, true);
-
-                assignRoleIfNotFound(manager1, managerRole, true);
-                assignRoleIfNotFound(manager1, trainerRole, false);
-
-                assignRoleIfNotFound(manager2, managerRole, true);
-
-                assignRoleIfNotFound(trainer1, trainerRole, true);
-                assignRoleIfNotFound(trainer1, studentRole, false);
-                assignRoleIfNotFound(trainer2, trainerRole, true);
-                assignRoleIfNotFound(trainer3, trainerRole, true);
-
-                assignRoleIfNotFound(student1, studentRole, true);
-                assignRoleIfNotFound(student2, studentRole, true);
-                assignRoleIfNotFound(student3, studentRole, true);
-                assignRoleIfNotFound(student4, studentRole, true);
-                assignRoleIfNotFound(student5, studentRole, true);
-
-                log.info("Successfully assigned roles to all 12 users in UserRole table.");
-        }
-
-        private void assignRoleIfNotFound(User user, Role role, boolean isDefault) {
-                if (userRoleRepository.findByUserAndRole(user, role).isEmpty()) {
-                        UserRole userRole = new UserRole();
-                        userRole.setUser(user);
-                        userRole.setRole(role);
-                        userRole.setDefault(isDefault);
-                        userRoleRepository.save(userRole);
-                }
-        }
-
         private void saveUserRole(User user, Role role, boolean isDefault) {
                 UserRole ur = new UserRole();
                 ur.setUser(user);
                 ur.setRole(role);
                 ur.setDefault(isDefault);
                 userRoleRepository.save(ur);
-        }
-
-        private Module createModule(ModuleGroups group, String title, String url, String icon,
-                        int order, String permission, String description) {
-                Module module = new Module();
-                module.setModuleGroup(group);
-                module.setTitle(title);
-                module.setUrl(url);
-                module.setIcon(icon);
-                module.setDisplayOrder(order);
-                module.setRequiredPermission(permission);
-                module.setDescription(description);
-                module.setIsActive(true);
-                return module;
         }
 
         private void initializeAssessments() {
@@ -639,130 +563,6 @@ public class DataInitializer implements CommandLineRunner {
                 questionCategoryRepository.saveAll(List.of(javaCore, oop, sql));
 
                 log.info("Initialized {} question categories", 3);
-        }
-
-        private void initializeModuleGroups() {
-
-                /*
-                 * =======================================================
-                 * MODULE GROUP: Main Menu
-                 * =======================================================
-                 */
-                ModuleGroups mainGroup = new ModuleGroups();
-                mainGroup.setName("Main Menu");
-                mainGroup.setDescription("Main navigation menu of the application");
-                mainGroup.setDisplayOrder(1);
-                mainGroup.setIsActive(true);
-                mainGroup = moduleGroupsRepository.save(mainGroup);
-
-                moduleRepository.save(
-                                createModule(
-                                                mainGroup,
-                                                "Dashboard",
-                                                "/dashboard",
-                                                "home",
-                                                1,
-                                                "DASHBOARD_READ",
-                                                "System dashboard overview"));
-
-                /*
-                 * =======================================================
-                 * MODULE GROUP: System Management
-                 * =======================================================
-                 */
-                ModuleGroups systemGroup = new ModuleGroups();
-                systemGroup.setName("System Management");
-                systemGroup.setDescription("System configuration and administration");
-                systemGroup.setDisplayOrder(4);
-                systemGroup.setIsActive(true);
-                systemGroup = moduleGroupsRepository.save(systemGroup);
-
-                moduleRepository.saveAll(Arrays.asList(
-
-                                createModule(systemGroup, "Modules", "/modules", "menu", 1,
-                                                "MODULE_CREATE",
-                                                "Manage system modules"),
-
-                                createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 2,
-                                                "MODULE_GROUP_CREATE",
-                                                "Manage module groups"),
-
-                                createModule(systemGroup, "Users", "/users", "users", 3,
-                                                "USER_READ",
-                                                "Manage system users"),
-
-                                createModule(systemGroup, "Roles", "/roles", "shield", 4,
-                                                "ROLE_READ",
-                                                "Manage roles and permissions"),
-
-                                createModule(systemGroup, "Permissions", "/permissions", "key", 5,
-                                                "PERMISSION_READ",
-                                                "Manage system permissions"),
-                                createModule(systemGroup, "Locations", "/locations", "map-pin", 5,
-                                                "LOCATION_READ",
-                                                "Manage office locations"),
-
-                                createModule(systemGroup, "Departments", "/departments", "university", 6,
-                                                "DEPARTMENT_READ",
-                                                "Manage departments")));
-
-                /*
-                 * =======================================================
-                 * MODULE GROUP: Training
-                 * =======================================================
-                 */
-                ModuleGroups trainingGroup = new ModuleGroups();
-                trainingGroup.setName("Training");
-                trainingGroup.setDescription("Manage training programs and related activities");
-                trainingGroup.setDisplayOrder(5);
-                trainingGroup.setIsActive(true);
-                trainingGroup = moduleGroupsRepository.save(trainingGroup);
-
-                moduleRepository.saveAll(Arrays.asList(
-
-                                createModule(trainingGroup, "Courses", "/courses", "book-open", 1,
-                                                "COURSE_READ",
-                                                "Manage training courses"),
-
-                                createModule(trainingGroup, "Course Catalog", "/my-courses", "graduation-cap", 2,
-                                                "ENROLL_COURSE",
-                                                "Browse and enroll in available courses"),
-
-                                createModule(trainingGroup, "Programming Languages", "/programming-languages", "code",
-                                                3,
-                                                "PROGRAMMING_LANGUAGE_READ",
-                                                "Manage programming languages"),
-
-                                createModule(trainingGroup, "Classes", "/classes", "people", 6,
-                                                "CLASS_READ",
-                                                "User search and view classes"),
-                                createModule(trainingGroup, "Semesters", "/semesters", "LayoutGrid", 6,
-                                                "SEMESTER_ADMIN_READ",
-                                                "User search and view classes")));
-
-                /*
-                 * =======================================================
-                 * MODULE GROUP: Assessment
-                 * =======================================================
-                 */
-                ModuleGroups assessmentGroup = new ModuleGroups();
-                assessmentGroup.setName("Assessment");
-                assessmentGroup.setDescription("Manage assessments and related permissions");
-                assessmentGroup.setDisplayOrder(6);
-                assessmentGroup.setIsActive(true);
-                assessmentGroup = moduleGroupsRepository.save(assessmentGroup);
-
-                moduleRepository.save(
-                                createModule(
-                                                assessmentGroup,
-                                                "Assessment Type",
-                                                "/assessment-type",
-                                                "shield",
-                                                1,
-                                                "ASSESSMENTTYPE_READ",
-                                                "Manage assessment types"));
-
-                log.info("Initialized module groups and modules successfully.");
         }
 
         private void initializeAssessmentType() {
@@ -1234,87 +1034,6 @@ public class DataInitializer implements CommandLineRunner {
                 return cc;
         }
 
-        private TrainingClass buildTrainingClass(String name, String code, User creator, Semester semester,
-                        LocalDate start, LocalDate end, User approvedBy) {
-                Random random = new Random();
-                TrainingClass tc = new TrainingClass();
-                tc.setClassName(name);
-                tc.setClassCode(code);
-
-                tc.setCreator(creator);
-                tc.setSemester(semester);
-                tc.setStartDate(start);
-                tc.setEndDate(end);
-                tc.setApprover(approvedBy);
-                if (random.nextBoolean()) {
-                        // tc.setEnrollmentKey("abc");
-                        tc.setIsActive(true);
-                } else {
-
-                        tc.setIsActive(false);
-                }
-
-                return tc;
-        }
-
-        private void initializeTrainingClasses() {
-                if (trainingClassRepository.count() > 0) {
-                        log.info("Training classes already exist, skipping initialization");
-                        return;
-                }
-
-                User admin = userRepository.findByEmail("admin@example.com")
-                                .orElseThrow(() -> new RuntimeException("Admin not found"));
-                User manager = userRepository.findByEmail("manager1@example.com")
-                                .orElseThrow(() -> new RuntimeException("Manager not found"));
-
-                Map<String, Semester> semesterMap = semesterRepository.findAll().stream()
-                                .collect(Collectors.toMap(Semester::getName, s -> s));
-
-                if (semesterMap.isEmpty()) {
-                        log.warn("No semesters found! Please run initializeSemester() first.");
-                        return;
-                }
-
-                List<TrainingClass> classes = List.of(
-                                buildTrainingClass("Kỹ sư phần mềm - Khóa 1", "SE-K1-01", manager,
-                                                semesterMap.get("Fall 2025"), LocalDate.of(2025, 9, 10),
-                                                LocalDate.of(2025, 12, 20), admin),
-
-                                buildTrainingClass("Hệ thống thông tin - Khóa 1", "IS-K1-01", manager,
-                                                semesterMap.get("Fall 2025"), LocalDate.of(2025, 9, 15),
-                                                LocalDate.of(2025, 12, 25), admin),
-
-                                buildTrainingClass("Kỹ sư phần mềm - Khóa 2", "SE-K2-01", manager,
-                                                semesterMap.get("Spring 2026"), LocalDate.of(2026, 1, 10),
-                                                LocalDate.of(2026, 4, 20), admin),
-
-                                buildTrainingClass("Khoa học dữ liệu - Khóa 1", "DS-K1-01", manager,
-                                                semesterMap.get("Spring 2026"), LocalDate.of(2026, 1, 15),
-                                                LocalDate.of(2026, 4, 25), admin),
-
-                                buildTrainingClass("Trí tuệ nhân tạo - Khóa 1", "AI-K1-01", manager,
-                                                semesterMap.get("Summer 2026"), LocalDate.of(2026, 5, 10),
-                                                LocalDate.of(2026, 8, 20), admin),
-
-                                buildTrainingClass("An toàn thông tin - Khóa 1", "CS-K1-01", manager,
-                                                semesterMap.get("Summer 2026"), LocalDate.of(2026, 5, 15),
-                                                LocalDate.of(2026, 8, 25), admin),
-
-                                buildTrainingClass("Kỹ sư phần mềm - Khóa 3", "SE-K3-01", manager,
-                                                semesterMap.get("Fall 2026"), LocalDate.of(2026, 9, 10),
-                                                LocalDate.of(2026, 12, 20), admin),
-
-                                buildTrainingClass("Thiết kế đồ họa - Khóa 1", "GD-K1-01", manager,
-                                                semesterMap.get("Fall 2026"), LocalDate.of(2026, 9, 15),
-                                                LocalDate.of(2026, 12, 25), admin));
-                List<TrainingClass> validClasses = classes.stream()
-                                .filter(c -> c.getSemester() != null)
-                                .toList();
-
-                trainingClassRepository.saveAll(validClasses);
-                log.info("Initialized {} Training Classes distributed across multiple Semesters.", validClasses.size());
-        }
 
         private void createRoleIfNotFound(String roleName, String description, Set<Permission> permissions) {
                 if (roleRepository.findByName(roleName).isEmpty()) {
