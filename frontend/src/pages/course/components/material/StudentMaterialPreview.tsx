@@ -98,12 +98,50 @@ export default function StudentMaterialPreview({
             </a>
           </div>
         );
-      case "DOCUMENT":
+      case "DOCUMENT": {
+        const apiBase = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+        const backendBase = apiBase.replace(/\/api$/, "");
+        const resolvedUrl = material.sourceUrl.startsWith("/")
+          ? backendBase + material.sourceUrl
+          : material.sourceUrl;
+        const isUploaded = material.sourceUrl.startsWith("/api/files/materials/") ||
+          material.sourceUrl.startsWith("/files/materials/") ||
+          material.sourceUrl.startsWith("/uploads/");
+        const ext = resolvedUrl.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
+
+        if (isUploaded) {
+          const extIconMap: Record<string, string> = {
+            pdf: "📄",
+            docx: "📝", doc: "📝",
+            xlsx: "📊", xls: "📊",
+            pptx: "📋", ppt: "📋",
+          };
+          const icon = extIconMap[ext] ?? "📄";
+          const displayName = decodeURIComponent(material.sourceUrl.split("/").pop() ?? material.sourceUrl);
+          return (
+            <div className="w-full mb-4 rounded-xl border border-gray-200 bg-gray-50 p-5 flex items-center gap-4">
+              <span className="text-4xl">{icon}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 truncate">{displayName}</p>
+                <p className="text-xs text-gray-400 uppercase mt-0.5">{ext} file</p>
+              </div>
+              <a
+                href={resolvedUrl}
+                download
+                className="shrink-0 flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <FiExternalLink size={13} /> Download File
+              </a>
+            </div>
+          );
+        }
+
+        // External URL → show link
         return (
           <div className="w-full p-4 mb-4 bg-gray-100 rounded-lg border border-gray-200">
             <p className="text-sm text-gray-600 mb-2">Document Link</p>
             <a
-              href={material.sourceUrl}
+              href={resolvedUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-700 break-all flex items-center gap-1"
@@ -113,6 +151,7 @@ export default function StudentMaterialPreview({
             </a>
           </div>
         );
+      }
       default:
         return null;
     }

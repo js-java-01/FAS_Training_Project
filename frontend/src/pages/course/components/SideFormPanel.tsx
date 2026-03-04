@@ -34,7 +34,7 @@ export function SideFormPanel({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="p-0 sm:max-w-md" side="right">
+      <SheetContent className="p-0 sm:max-w-md" side="right" showCloseButton={false}>
         {/* Header: title left, Cancel + Save right (like Ant Design Drawer) */}
         <SheetHeader className="flex flex-row items-center justify-between border-b px-4 py-3">
           <SheetTitle className="text-base font-semibold">{title}</SheetTitle>

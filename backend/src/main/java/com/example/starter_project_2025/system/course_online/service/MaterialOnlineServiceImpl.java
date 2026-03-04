@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
@@ -112,14 +113,22 @@ public class MaterialOnlineServiceImpl implements MaterialOnlineService {
             SessionOnline session = sessionRepository.findById(sessionId)
                     .orElseThrow(() -> new ResourceNotFoundException("SessionOnline", "id", sessionId));
 
-            Path uploadPath = Paths.get(uploadDir);
+            // Resolve to an absolute path so we don't accidentally land inside
+            // the Tomcat temp working directory when the path is relative.
+            Path uploadPath = Paths.get(uploadDir).isAbsolute()
+                    ? Paths.get(uploadDir)
+                    : Paths.get(System.getProperty("user.dir")).resolve(uploadDir);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
 
             String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
             Path filePath = uploadPath.resolve(fileName);
-            Files.write(filePath, file.getBytes());
+            // Use Files.copy(InputStream) instead of transferTo() – transferTo() with a
+            // relative Path resolves against Tomcat's temp working directory.
+            try (var inputStream = file.getInputStream()) {
+                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
 
             MaterialOnline material = MaterialOnline.builder()
                     .title(title)

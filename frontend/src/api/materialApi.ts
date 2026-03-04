@@ -31,10 +31,17 @@ export const materialApi = {
     return response.data;
   },
 
-  uploadMaterial: async (formData: FormData): Promise<Material> => {
+  uploadMaterial: async (
+    formData: FormData,
+    onProgress?: (percent: number) => void,
+  ): Promise<Material> => {
     const response = await axiosInstance.post('/materials/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 0, // no timeout – large video uploads can take several minutes
+      onUploadProgress: (event) => {
+        if (onProgress && event.total) {
+          onProgress(Math.round((event.loaded * 100) / event.total));
+        }
       },
     });
     return response.data;

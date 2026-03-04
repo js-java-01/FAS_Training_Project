@@ -167,35 +167,33 @@ function MaterialItem({
             </audio>
           </div>
         );
-      case "DOCUMENT":
-        if (
-          resolved.toLowerCase().endsWith(".pdf") ||
-          resolved.includes("/pdf")
-        ) {
-          return (
-            <div
-              className="w-full mb-3 rounded-xl overflow-hidden border"
-              style={{ height: 480 }}
-            >
-              <iframe
-                src={resolved}
-                title={material.title}
-                className="w-full h-full"
-                frameBorder="0"
-              />
-            </div>
-          );
-        }
+      case "DOCUMENT": {
+        const ext = resolved.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
+        const extIconMap: Record<string, string> = {
+          pdf: "📄",
+          docx: "📝", doc: "📝",
+          xlsx: "📊", xls: "📊",
+          pptx: "📋", ppt: "📋",
+        };
+        const icon = extIconMap[ext] ?? "📄";
+        const displayName = decodeURIComponent(material.sourceUrl.split("/").pop() ?? material.sourceUrl);
         return (
-          <a
-            href={resolved}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 mb-3 text-blue-600 hover:underline text-sm"
-          >
-            <ExternalLink size={14} /> Open document
-          </a>
+          <div className="w-full mb-3 rounded-xl border border-gray-200 bg-gray-50 p-4 flex items-center gap-4">
+            <span className="text-4xl">{icon}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-800 truncate">{displayName}</p>
+              <p className="text-xs text-gray-400 uppercase mt-0.5">{ext} file</p>
+            </div>
+            <a
+              href={resolved}
+              download
+              className="shrink-0 flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <ExternalLink size={13} /> Download File
+            </a>
+          </div>
         );
+      }
       case "LINK":
         return (
           <a
