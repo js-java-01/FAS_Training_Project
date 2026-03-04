@@ -7,7 +7,6 @@ import { MainLayout } from "@/components/layout/MainLayout";
 
 export default function StudentCalendarPage() {
   const apiResponse = studentScheduleMock;
-
   const scheduleData = transformStudentSchedule(apiResponse);
 
   return (

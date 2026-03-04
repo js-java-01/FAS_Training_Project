@@ -110,18 +110,14 @@ export default function ClassTraineesTable({ classId, trainingClass }: Props) {
         onSearchChange={handleSearchChange}
 
         headerActions={
-          <div>
-            <div className="flex items-end justify-between">
-              <div className="flex gap-2"></div>
-              <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon /> Topic mark</Button>
-              <EntityImportExportButton
-                mode="all" title={"Trainee"}
-                useExportHook={() => useExportTrainees({ classCode: trainingClass?.classCode || "" })}
-                useImportHook={() => useImportTrainees({ classCode: trainingClass?.classCode || "", classId: trainingClass?.id || "" })}
-                useTemplateHook={() => useExportTraineeTemplate()}
-              />
-
-            </div>
+          <div className="flex items-end justify-between gap-2">
+            <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon /> Topic mark</Button>
+            <EntityImportExportButton
+              mode="all" title={"Trainee"}
+              useExportHook={() => useExportTrainees({ classCode: trainingClass?.classCode || "" })}
+              useImportHook={() => useImportTrainees({ classCode: trainingClass?.classCode || "", classId: trainingClass?.id || "" })}
+              useTemplateHook={() => useExportTraineeTemplate()}
+            />
           </div>
         }
       />
