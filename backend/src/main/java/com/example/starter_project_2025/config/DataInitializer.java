@@ -343,7 +343,7 @@ public class DataInitializer implements CommandLineRunner {
 
                 log.info("Initialized TRAINER role with {} permissions", trainerPermissions.size());
         }
-        
+
 
         private void createUserIfNotFound(String email, String firstName, String lastName) {
                 if (!userRepository.existsByEmail(email)) {
