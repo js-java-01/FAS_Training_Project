@@ -96,6 +96,8 @@ public class DataInitializer implements CommandLineRunner {
         private final UserRoleInitializer userRoleInitializer;
         private final TrainingClassInitializer trainingClassInitializer;
         private final TrainingProgramInitializer trainingProgramInitializer;
+        private final RoleInitializer roleInitializer;
+        private final UserInitializer userInitializer;
 
         @Override
         @Transactional
@@ -104,9 +106,8 @@ public class DataInitializer implements CommandLineRunner {
 
                 if (roleRepository.count() == 0) {
                         initializePermissions();
-                        initializeRoles();
-                        initializeUsers();
-
+                        roleInitializer.initializeRoles();
+                        userInitializer.initializeUsers();
                         // initializeLocationData();
 
                         initializeLocations();
@@ -343,121 +344,6 @@ public class DataInitializer implements CommandLineRunner {
                 log.info("Initialized TRAINER role with {} permissions", trainerPermissions.size());
         }
 
-        private void initializeRoles() {
-
-                // ADMIN
-                Role adminRole = new Role();
-                adminRole.setName("ADMIN");
-                adminRole.setDescription("Administrator with full system access");
-                adminRole.setHierarchyLevel(2);
-                List<String> excludedAdminPermissions = List.of(
-                                "MODULE_GROUP_CREATE",
-                                "MODULE_CREATE");
-
-                List<Permission> adminPermissions = permissionRepository.findAll()
-                                .stream()
-                                .filter(p -> !excludedAdminPermissions.contains(p.getName()))
-                                .toList();
-
-                adminRole.setPermissions(new HashSet<>(adminPermissions));
-                roleRepository.save(adminRole);
-
-                // MANAGER
-                Role departmentManagerRole = new Role();
-                departmentManagerRole.setName("MANAGER");
-                departmentManagerRole.setDescription("Department Manager with class management permissions");
-                departmentManagerRole.setHierarchyLevel(3);
-                List<Permission> departmentPermissions = permissionRepository.findAll()
-                                .stream()
-                                .filter(p -> "CLASS".equals(p.getResource()))
-                                .toList();
-
-                departmentManagerRole.setPermissions(new HashSet<>(departmentPermissions));
-                roleRepository.save(departmentManagerRole);
-
-                // STUDENT
-                Role studentRole = new Role();
-                studentRole.setName("STUDENT");
-                studentRole.setHierarchyLevel(5);
-                studentRole.setDescription("Student with limited access to educational resources");
-
-                List<Permission> studentPermissions = new ArrayList<>(
-                                permissionRepository.findByAction("READ"));
-
-                permissionRepository.findByName("ENROLL_COURSE")
-                                .ifPresent(studentPermissions::add);
-
-                List<String> excludedStudentPermissions = List.of(
-                                "ROLE_READ",
-                                "USER_READ",
-                                "PERMISSION_READ",
-                                "SEMESTER_READ",
-                                "STUDENT_READ",
-                                "LOCATION_READ",
-                                "DEPARTMENT_READ");
-
-                Set<Permission> filteredPermissions = studentPermissions.stream()
-                                .filter(p -> !excludedStudentPermissions.contains(p.getName()))
-                                .collect(Collectors.toSet());
-
-                studentRole.setPermissions(filteredPermissions);
-
-                roleRepository.save(studentRole);
-
-                // TRAINER
-                initializeTrainerRole();
-
-                // SUPER_ADMIN
-                Role superAdminRole = new Role();
-                superAdminRole.setName("SUPER_ADMIN");
-                superAdminRole.setHierarchyLevel(1);
-                superAdminRole.setDescription("Super Administrator with all permissions and role-switch capability");
-                superAdminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
-                roleRepository.save(superAdminRole);
-
-                log.info("Initialized 4 roles: ADMIN, MANAGER, STUDENT, TRAINER, SUPER_ADMIN");
-
-                List<Permission> allPermissions = permissionRepository.findAll();
-
-                Set<Permission> managerPermissions = allPermissions.stream()
-                                .filter(p -> "UPDATE".equals(p.getAction())
-                                                && Arrays.asList("STUDENT").contains(p.getResource())
-                                                || "READ".equals(p.getAction()) && Arrays.asList("MENU", "SEMESTER")
-                                                                .contains(p.getResource())
-                                                || "CLASS".equals(p.getResource())
-                                                || "COURSE".equals(p.getResource())
-                                                || "SEMESTER".equals(p.getResource()))
-                                .collect(Collectors.toSet());
-                createRoleIfNotFound("MANAGER", "Manager with class and course management permissions",
-                                managerPermissions);
-
-        }
-
-        private void initializeUsers() {
-                // SUPER ADMIN
-                createUserIfNotFound("superadmin@example.com", "Super", "Admin");
-                // ADMIN (2)
-                createUserIfNotFound("admin@example.com", "Admin", "User");
-                createUserIfNotFound("super.admin@example.com", "Super", "Admin");
-
-                // MANAGER (2)
-                createUserIfNotFound("manager1@example.com", "Alice", "Manager");
-                createUserIfNotFound("manager2@example.com", "David", "Manager");
-
-                // TRAINER (3)
-                createUserIfNotFound("trainer1@example.com", "Bob", "Teacher");
-                createUserIfNotFound("trainer2@example.com", "Michael", "Trainer");
-                createUserIfNotFound("trainer3@example.com", "Sarah", "Instructor");
-
-                // STUDENT (5)
-                createUserIfNotFound("student1@example.com", "John", "Doe");
-                createUserIfNotFound("student2@example.com", "Jane", "Smith");
-                createUserIfNotFound("student3@example.com", "Peter", "Parker");
-                createUserIfNotFound("student4@example.com", "Tony", "Stark");
-                createUserIfNotFound("student5@example.com", "Bruce", "Wayne");
-
-                log.info("Initialized 12 users successfully across ADMIN, MANAGER, TRAINER, and STUDENT roles.");
-        }
 
         private void createUserIfNotFound(String email, String firstName, String lastName) {
                 if (!userRepository.existsByEmail(email)) {
@@ -1032,19 +918,6 @@ public class DataInitializer implements CommandLineRunner {
                 cc.setClassInfo(classInfo);
                 cc.setTrainer(trainer);
                 return cc;
-        }
-
-
-        private void createRoleIfNotFound(String roleName, String description, Set<Permission> permissions) {
-                if (roleRepository.findByName(roleName).isEmpty()) {
-                        Role role = new Role();
-                        role.setName(roleName);
-                        role.setDescription(description);
-                        role.setPermissions(permissions);
-
-                        roleRepository.save(role);
-                        log.info("Created role: {}", roleName);
-                }
         }
 
         private void initializeLocationData() {

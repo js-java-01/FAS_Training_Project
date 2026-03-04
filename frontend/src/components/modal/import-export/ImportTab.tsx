@@ -9,6 +9,7 @@ import {
   AlertCircle,
   XCircle,
 } from "lucide-react";
+import dayjs from "dayjs";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
@@ -22,6 +23,7 @@ export interface ImportResult {
     field: string;
     message: string;
   }[];
+  errorBlob?: Blob;
 }
 
 interface Props {
@@ -44,6 +46,7 @@ export default function ImportTab({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /* ================= UTIL ================= */
+
 
   const formatSize = (size: number) => {
     const mb = size / (1024 * 1024);
@@ -112,7 +115,7 @@ export default function ImportTab({
       } else {
         setError(
           errorData?.message ??
-            "Import failed. Please check your file and try again."
+          "Import failed. Please check your file and try again."
         );
       }
     } finally {
@@ -276,7 +279,50 @@ export default function ImportTab({
           </div>
         </div>
       )}
+      {(result?.failedCount ?? 0) > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-red-700 flex gap-2">
+              <AlertCircle size={18} />
+              Import Errors Detected
+            </p>
 
+
+            {result?.errorBlob && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  const url = window.URL.createObjectURL(result!.errorBlob!);
+                  const link = document.createElement("a");
+                  link.href = url;
+                  link.download = `import_errors_${dayjs().format("HHmmss")}.xlsx`;
+                  link.click();
+                }}
+                className="h-8 text-xs"
+              >
+                <Download className="h-3 w-3 mr-1" />
+                Download Error Report
+              </Button>
+            )}
+          </div>
+
+          {(result?.errors?.length ?? 0) > 0 ? (
+            <div className="max-h-56 overflow-y-auto space-y-2 text-sm">
+              {result?.errors.map((err, index) => (
+                <div key={index} className="bg-white border rounded-md px-3 py-2">
+                  <p className="text-xs font-medium">Row {err.row}</p>
+                  <p className="text-red-600 text-xs">{err.message}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-red-600">
+              Please download the error report above to see detailed information for each row.
+            </p>
+          )}
+        </div>
+      )}
       {/* RESULT */}
       {result && (
         <div className="border rounded-xl p-6 bg-white shadow-sm space-y-5">
@@ -316,6 +362,7 @@ export default function ImportTab({
           )}
         </div>
       )}
+
     </div>
   );
 }
@@ -340,9 +387,8 @@ function StatCard({
     <div className="bg-gray-50 rounded-lg p-4">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p
-        className={`text-xl font-semibold mt-1 ${
-          color ? colorMap[color] : ""
-        }`}
+        className={`text-xl font-semibold mt-1 ${color ? colorMap[color] : ""
+          }`}
       >
         {value}
       </p>

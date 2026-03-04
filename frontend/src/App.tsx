@@ -39,6 +39,7 @@ import ProgramManagement from "./pages/programs/ProgramManagement";
 import ProgramCreatePage from "./pages/programs/ProgramCreatePage";
 import ProgramDetailPage from "./pages/programs/ProgramDetailPage";
 import ClassesDetailComponent from "@/pages/classes/ClassesDetailManagement.tsx";
+import StudentCalendarPage from "./pages/schedule/studentSchedule/StudentCalendarPage";
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -89,6 +90,14 @@ function App() {
                 );
               }),
             )}
+            <Route
+              path="/exampleCalendar"
+              element={
+                <ProtectedRoute>
+                  <StudentCalendarPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/classes/:id"
               element={

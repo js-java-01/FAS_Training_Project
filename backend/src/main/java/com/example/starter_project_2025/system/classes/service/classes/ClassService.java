@@ -48,4 +48,5 @@ public interface ClassService {
     }
 
     ClassResponse joinClassByEnrollmentKey(String enrollmentKey, UUID userId);
+
 }
