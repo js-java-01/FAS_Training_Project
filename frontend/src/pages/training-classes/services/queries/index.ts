@@ -7,6 +7,8 @@ import { toast } from "sonner";
 
 export { useGetTrainingClassById } from "./useTrainingClassDetail";
 
+// ─── Queries ─────────────────────────────────────────────────────────────────
+
 export const useGetAllTrainingClasses = (params: {
   page: number;
   pageSize: number;
@@ -37,25 +39,41 @@ export const useGetAllTrainingClasses = (params: {
   });
 };
 
+// ─── Mutations ───────────────────────────────────────────────────────────────
+
 export const useUpdateTrainingClass = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateTrainingClassRequest }) =>
       trainingClassApi.updateTrainingClass(id, data),
-
     onSuccess: (data) => {
       toast.success(`Cập nhật lớp học ${data.className} thành công`);
-      queryClient.invalidateQueries({
-        queryKey: ["training-classes"],
-      });
+      queryClient.invalidateQueries({ queryKey: ["training-classes"] });
     },
-
     onError: (error: any) => {
       const message = error?.response?.data?.message || "Cập nhật thất bại, vui lòng thử lại!";
       toast.error(message);
     },
-
     retry: false,
   });
 };
+
+export const useExportTrainingClasses = () =>
+  useMutation({
+    mutationFn: () => trainingClassApi.exportClasses(),
+  });
+
+export const useImportTrainingClasses = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => trainingClassApi.importClasses(file),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["training-classes"] }),
+  });
+};
+
+export const useDownloadTrainingClassTemplate = () =>
+  useMutation({
+    mutationFn: () => trainingClassApi.downloadTemplate(),
+  });
+
