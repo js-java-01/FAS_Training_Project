@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.topic.dto;
 
 import com.example.starter_project_2025.system.topic.enums.TopicLevel;
+import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -10,12 +11,10 @@ import java.util.Set;
 import java.util.UUID;
 
 @Data
-public class TopicCreateRequest
+public class UpdateTopicRequest
 {
-
-    @NotBlank(message = "Topic code is required")
-    @Size(max = 20, message = "Topic code must not exceed 20 characters")
-    private String topicCode;
+    private TopicStatus status;
+    private String version;
 
     @NotBlank(message = "Topic name is required")
     @Size(max = 200, message = "Topic name must not exceed 200 characters")
