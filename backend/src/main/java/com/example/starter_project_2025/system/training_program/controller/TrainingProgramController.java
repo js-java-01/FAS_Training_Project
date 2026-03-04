@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -26,9 +27,10 @@ public class TrainingProgramController {
 
     @GetMapping(params = "page")
     @Operation(summary = "Search training programs with pagination")
+    @PreAuthorize("hasAuthority('TRAINING_PROGRAM_READ')")
     public ResponseEntity<ApiResponse<PageResponse<TrainingProgramResponse>>> searchTrainingPrograms(
 
-            @Valid @ParameterObject  @ModelAttribute SearchTrainingProgramRequest request
+            @Valid @ParameterObject   @ModelAttribute SearchTrainingProgramRequest request
     ) {
 
         String sortField = request.getSort()[0];
@@ -59,6 +61,7 @@ public class TrainingProgramController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('TRAINING_PROGRAM_READ')")
     public ResponseEntity<TrainingProgramResponse> getDetail(
             @PathVariable UUID id
     ) {
@@ -66,6 +69,7 @@ public class TrainingProgramController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('TRAINING_PROGRAM_CREATE')")
     public ResponseEntity<TrainingProgramResponse> create(
             @Valid @RequestBody CreateTrainingProgramRequest request
     ) {
@@ -73,6 +77,7 @@ public class TrainingProgramController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('TRAINING_PROGRAM_DELETE')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
 
         service .delete(id);
@@ -80,6 +85,7 @@ public class TrainingProgramController {
         return ResponseEntity.noContent().build();
     }
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('TRAINING_PROGRAM_UPDATE')")
     public ResponseEntity<TrainingProgramResponse> update(
             @PathVariable UUID id,
             @RequestBody UpdateTrainingProgramRequest request
