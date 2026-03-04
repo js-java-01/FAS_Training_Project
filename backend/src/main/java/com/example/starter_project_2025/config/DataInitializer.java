@@ -93,8 +93,6 @@ public class DataInitializer implements CommandLineRunner
     private final UserInitializer userInitializer;
     private final TopicInitializer topicInitializer;
     private final AssessmentTypeInitializer assessmentTypeInitializer;
-    private final RoleInitializer roleInitializer;
-    private final UserInitializer userInitializer;
 
     @Override
     public void run(String... args)
