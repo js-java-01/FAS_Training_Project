@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { courseApi } from "@/api/courseApi";
+import { topicApi, type Topic } from "@/api/topicApi";
 import { trainingProgramApi } from "@/api/trainingProgramApi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, CalendarDays, FileText, Hash, Layers, MapPin, Pencil, Save, X } from "lucide-react";
@@ -30,7 +30,6 @@ import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetTrainingProgramById } from "./services/queries";
 import { trainingProgramKeys } from "./keys";
-import type { Course } from "@/types/course";
 import type { TrainingProgram } from "@/types/trainingProgram";
 import { decodeRouteId } from "@/utils/routeIdCodec";
 
@@ -60,9 +59,9 @@ export default function ProgramDetailPage() {
 
   const { data, isLoading, isError } = useGetTrainingProgramById(decodedProgramId ?? undefined);
   const queryClient = useQueryClient();
-  const { data: coursesData } = useQuery({
-    queryKey: ["program-detail-courses"],
-    queryFn: () => courseApi.getCourses({ page: 0, size: 200, sort: "courseName,asc" }),
+  const { data: topicsData } = useQuery({
+    queryKey: ["program-detail-topics"],
+    queryFn: () => topicApi.getTopics({ page: 0, size: 200, sort: "topicName,asc" }),
   });
 
   /* ── Edit mode state ── */
@@ -125,16 +124,11 @@ export default function ProgramDetailPage() {
     }
   }, [decodedProgramId, formData, queryClient]);
 
-  const relatedCourses = useMemo(() => {
-    if (!data?.programCourseIds || data.programCourseIds.length === 0) return [] as Course[];
-    const idSet = new Set(data.programCourseIds);
-    return (coursesData?.items || []).filter((course) => idSet.has(course.id));
-  }, [data?.programCourseIds, coursesData?.items]);
-
-  const totalHours = useMemo(
-    () => relatedCourses.reduce((sum, course) => sum + (course.estimatedTime || 0), 0) / 60,
-    [relatedCourses],
-  );
+  const relatedTopics = useMemo(() => {
+    if (!data?.topicIds || data.topicIds.length === 0) return [] as Topic[];
+    const idSet = new Set(data.topicIds);
+    return (topicsData?.items || []).filter((topic) => idSet.has(topic.id));
+  }, [data?.topicIds, topicsData?.items]);
 
   return (
     <MainLayout pathName={id ? { programs: "Programs", [id]: data?.name ?? "Detail" } : { programs: "Programs" }}>
@@ -213,7 +207,6 @@ export default function ProgramDetailPage() {
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-2xl font-semibold">{data.name}</h2>
               <Badge variant="outline">{data.version}</Badge>
-              <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">Pending</Badge>
             </div>
 
             <Card>
@@ -316,8 +309,8 @@ export default function ProgramDetailPage() {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Course Info</CardTitle>
-                  <CardDescription>Courses currently linked with this program</CardDescription>
+                  <CardTitle>Topic Info</CardTitle>
+                  <CardDescription>Topics currently linked with this program</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="rounded-md border overflow-hidden">
@@ -325,25 +318,25 @@ export default function ProgramDetailPage() {
                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-14">No.</TableHead>
-                          <TableHead>Course Code</TableHead>
-                          <TableHead>Course Name</TableHead>
+                          <TableHead>Topic Code</TableHead>
+                          <TableHead>Topic Name</TableHead>
                           <TableHead>Level</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {relatedCourses.length === 0 ? (
+                        {relatedTopics.length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={4} className="text-center text-muted-foreground py-6">
-                              No courses linked yet.
+                              No topics linked yet.
                             </TableCell>
                           </TableRow>
                         ) : (
-                          relatedCourses.map((course, index) => (
-                            <TableRow key={course.id}>
+                          relatedTopics.map((topic, index) => (
+                            <TableRow key={topic.id}>
                               <TableCell>{index + 1}</TableCell>
-                              <TableCell>{course.courseCode}</TableCell>
-                              <TableCell>{course.courseName}</TableCell>
-                              <TableCell>{course.level || "-"}</TableCell>
+                              <TableCell>{topic.topicCode}</TableCell>
+                              <TableCell>{topic.topicName}</TableCell>
+                              <TableCell>{topic.level || "-"}</TableCell>
                             </TableRow>
                           ))
                         )}
@@ -355,24 +348,23 @@ export default function ProgramDetailPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Course Summary</CardTitle>
-                  <CardDescription>Quick overview of linked courses</CardDescription>
+                  <CardTitle>Topic Summary</CardTitle>
+                  <CardDescription>Quick overview of linked topics</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <SummaryRow label="Total Courses" value={`${relatedCourses.length}`} />
+                  <SummaryRow label="Total Topics" value={`${relatedTopics.length}`} />
                   <SummaryRow
                     label="Beginner"
-                    value={`${relatedCourses.filter((course) => course.level === "BEGINNER").length}`}
+                    value={`${relatedTopics.filter((topic) => topic.level === "BEGINNER").length}`}
                   />
                   <SummaryRow
                     label="Intermediate"
-                    value={`${relatedCourses.filter((course) => course.level === "INTERMEDIATE").length}`}
+                    value={`${relatedTopics.filter((topic) => topic.level === "INTERMEDIATE").length}`}
                   />
                   <SummaryRow
                     label="Advanced"
-                    value={`${relatedCourses.filter((course) => course.level === "ADVANCED").length}`}
+                    value={`${relatedTopics.filter((topic) => topic.level === "ADVANCED").length}`}
                   />
-                  <SummaryRow label="Estimated Hours" value={`${totalHours.toFixed(1)}h`} />
                 </CardContent>
               </Card>
             </div>

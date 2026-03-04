@@ -63,7 +63,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DataInitializer implements CommandLineRunner
 {
-
+    @PersistenceContext
+    private EntityManager entityManager;
     private final PermissionRepository permissionRepository;
     private final ProvinceRepository provinceRepository;
     private final CommuneRepository communeRepository;
@@ -91,8 +92,9 @@ public class DataInitializer implements CommandLineRunner
     private final RoleInitializer roleInitializer;
     private final UserInitializer userInitializer;
     private final TopicInitializer topicInitializer;
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final AssessmentTypeInitializer assessmentTypeInitializer;
+    private final RoleInitializer roleInitializer;
+    private final UserInitializer userInitializer;
 
     @Override
     public void run(String... args)
@@ -108,7 +110,7 @@ public class DataInitializer implements CommandLineRunner
 
             initializeLocations();
             moduleInitializer.initializeModuleGroups();
-            initializeAssessmentType();
+            assessmentTypeInitializer.init();
             initializeAssessments();
             initializeQuestionCategories();
             initializeQuestions();
@@ -300,6 +302,77 @@ public class DataInitializer implements CommandLineRunner
         return permission;
     }
 
+    private void initializeTrainerRole()
+    {
+
+        if (roleRepository.findByName("TRAINER").isPresent())
+        {
+            return;
+        }
+
+        List<Permission> allPermissions = permissionRepository.findAll();
+
+        Set<Permission> trainerPermissions = allPermissions.stream()
+                .filter(p -> ("READ".equals(p.getAction())
+                        && Arrays.asList("SIDEBAR", "CLASS", "COURSE", "SEMESTER", "STUDENT",
+                                "MODULE", "DASHBOARD")
+                        .contains(p.getResource())
+                        || "CREATE".equals(p.getAction()) && Arrays.asList("CLASS")
+                        .contains(p.getResource())))
+                .collect(Collectors.toSet());
+
+        List<String> extraPermissionNames = Arrays.asList(
+                "CLASS_CREATE",
+                "LESSON_CREATE", "LESSON_UPDATE", "LESSON_DELETE",
+                "SESSION_CREATE", "SESSION_UPDATE", "SESSION_DELETE",
+                "COURSE_OUTLINE_EDIT",
+                "ASSESSMENT_CREATE", "ASSESSMENT_UPDATE", "ASSESSMENT_DELETE",
+                "ASSESSMENT_ASSIGN", "ASSESSMENT_PUBLISH", "ASSESSMENT_SUBMIT",
+                "QUESTION_CREATE", "QUESTION_UPDATE", "QUESTION_DELETE",
+                "QUESTION_CATEGORY_CREATE", "QUESTION_CATEGORY_UPDATE", "QUESTION_CATEGORY_DELETE",
+                "ENROLL_COURSE");
+
+        for (String name : extraPermissionNames)
+        {
+            permissionRepository.findByName(name)
+                    .ifPresent(trainerPermissions::add);
+        }
+
+        Role trainerRole = new Role();
+        trainerRole.setName("TRAINER");
+        trainerRole.setHierarchyLevel(4);
+        trainerRole.setDescription("Trainer with course/lesson/assessment management access");
+        trainerRole.setPermissions(trainerPermissions);
+
+        roleRepository.save(trainerRole);
+
+        log.info("Initialized TRAINER role with {} permissions", trainerPermissions.size());
+    }
+
+
+    private void createUserIfNotFound(String email, String firstName, String lastName)
+    {
+        if (!userRepository.existsByEmail(email))
+        {
+            User user = new User();
+            user.setEmail(email);
+            user.setPasswordHash(passwordEncoder.encode("password123"));
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            user.setIsActive(true);
+            userRepository.save(user);
+        }
+    }
+
+    private void saveUserRole(User user, Role role, boolean isDefault)
+    {
+        UserRole ur = new UserRole();
+        ur.setUser(user);
+        ur.setRole(role);
+        ur.setDefault(isDefault);
+        userRoleRepository.save(ur);
+    }
+
     private void initializeAssessments()
     {
 
@@ -390,32 +463,7 @@ public class DataInitializer implements CommandLineRunner
         log.info("Initialized {} question categories", 3);
     }
 
-    private void initializeAssessmentType()
-    {
-
-        if (assessmentTypeRepository.count() > 0)
-        {
-            return;
-        }
-
-        AssessmentType a1 = new AssessmentType();
-        a1.setName("Entrance Quiz");
-        a1.setDescription("Assessment for entrance examination");
-
-        AssessmentType a2 = new AssessmentType();
-        a2.setName("Midterm Test");
-        a2.setDescription("Midterm evaluation assessment");
-
-        AssessmentType a3 = new AssessmentType();
-        a3.setName("Final Exam");
-        a3.setDescription("Final assessment of the course");
-
-        assessmentTypeRepository.saveAll(List.of(a1, a2, a3));
-
-        log.info("Initialized {} assessments", 3);
-    }
-
-    private void ensureProgrammingLanguagePermissions()
+      private void ensureProgrammingLanguagePermissions()
     {
         boolean hasProgLangPerms = permissionRepository.existsByName("PROGRAMMING_LANGUAGE_READ");
 

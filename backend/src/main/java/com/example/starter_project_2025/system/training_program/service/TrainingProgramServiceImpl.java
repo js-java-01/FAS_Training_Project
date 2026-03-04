@@ -11,6 +11,7 @@ import com.example.starter_project_2025.system.training_program.entity.TrainingP
 import com.example.starter_project_2025.system.training_program.mapper.TrainingProgramMapper;
 import com.example.starter_project_2025.system.training_program.repository.TrainingProgramRepository;
 import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
+import com.example.starter_project_2025.system.training_program_topic.entity.repository.TrainingProgramTopicRepository;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,7 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
     private final TrainingProgramRepository trainingProgramRepository;
     private final TrainingProgramMapper mapper;
     private final TopicRepository topicRepository;
+    private final TrainingProgramTopicRepository trainingProgramTopicRepository;
 
     @Override
     public Page<TrainingProgramResponse> searchTrainingPrograms(
@@ -85,6 +87,7 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
                         .build())
                 .collect(Collectors.toSet());
 
+        trainingProgramTopicRepository.saveAll(relations);
         savedProgram.setTrainingProgramTopics(relations);
 
         return mapper.toResponse(savedProgram);
@@ -149,6 +152,8 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
                             .build())
                     .collect(Collectors.toSet());
 
+                trainingProgramTopicRepository.deleteAllByTrainingProgram_Id(program.getId());
+                trainingProgramTopicRepository.saveAll(relations);
             program.setTrainingProgramTopics(relations);
         }
 
