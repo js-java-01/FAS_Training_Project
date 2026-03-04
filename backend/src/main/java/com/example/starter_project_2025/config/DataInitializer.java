@@ -132,6 +132,7 @@ public class DataInitializer implements CommandLineRunner {
             userRoleInitializer.initializeUserRoles();
             initializeLessons();
         }
+        ensureTrainingProgramPermissionsForSuperAdmin();
 
         initializeEnrollments();
     }
@@ -1072,6 +1073,30 @@ public class DataInitializer implements CommandLineRunner {
         } catch (IOException e) {
             log.error("Failed to import location data from LocationData.json", e);
         }
+    }
+
+    private void ensureTrainingProgramPermissionsForSuperAdmin() {
+
+        Role superAdmin = roleRepository.findByName("SUPER_ADMIN")
+                .orElseThrow(() -> new RuntimeException("SUPER_ADMIN role not found"));
+
+        List<String> permissionNames = List.of(
+                "TRAINING_PROGRAM_CREATE",
+                "TRAINING_PROGRAM_READ",
+                "TRAINING_PROGRAM_UPDATE",
+                "TRAINING_PROGRAM_DELETE"
+        );
+
+        Set<Permission> permissions = permissionNames.stream()
+                .map(name -> permissionRepository.findByName(name)
+                        .orElseThrow(() -> new RuntimeException("Permission not found: " + name)))
+                .collect(Collectors.toSet());
+
+        superAdmin.getPermissions().addAll(permissions);
+
+        roleRepository.save(superAdmin);
+
+        log.info("Added TRAINING_PROGRAM permissions to SUPER_ADMIN");
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

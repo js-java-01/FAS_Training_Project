@@ -90,7 +90,11 @@ public class ModuleInitializer {
 
                 createModule(systemGroup, "Departments", "/departments", "university", 6,
                         "DEPARTMENT_READ",
-                        "Manage departments")));
+                        "Manage departments"),
+                createModule(systemGroup, "Training Programs", "/programs", "book", 7,
+                        "TRAINING_PROGRAM_READ",
+                        "Manage training programs")
+                ));
 
         /*
          * =======================================================
