@@ -104,6 +104,7 @@ export const TrainingClassForm: React.FC<{
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -118,9 +119,36 @@ export const TrainingClassForm: React.FC<{
   });
 
   const selectedStartDate = watch("startDate");
+  const selectedSemesterId = watch("semesterId");
+
+  // Find the selected semester object
+  const selectedSemester = (semesters?.items ?? []).find(
+    (s) => s && s.id === selectedSemesterId
+  ) ?? null;
+
+  // Clamp min start date: max(today, semesterStart)
+  const minStartDate = selectedSemester
+    ? selectedSemester.startDate > todayString
+      ? selectedSemester.startDate
+      : todayString
+    : todayString;
+
+  // Max start date: semesterEnd (if semester selected)
+  const maxStartDate = selectedSemester ? selectedSemester.endDate : undefined;
+
+  // Min end date: day after selected start date (within semester range)
   const minEndDate = selectedStartDate
     ? getNextDateString(selectedStartDate)
-    : todayString;
+    : minStartDate;
+
+  // Max end date: semesterEnd (if semester selected)
+  const maxEndDate = selectedSemester ? selectedSemester.endDate : undefined;
+
+  // Reset start/end dates when semester changes to avoid out-of-range stale values
+  useEffect(() => {
+    setValue("startDate", "");
+    setValue("endDate", "");
+  }, [selectedSemesterId, setValue]);
 
   useEffect(() => {
     if (open) {
@@ -239,6 +267,9 @@ export const TrainingClassForm: React.FC<{
                 {semesters?.items.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
+                    {s.startDate && s.endDate
+                      ? ` (${s.startDate} → ${s.endDate})`
+                      : ""}
                   </option>
                 ))}
               </select>
@@ -278,7 +309,8 @@ export const TrainingClassForm: React.FC<{
                 </label>
                 <input
                   type="date"
-                  min={todayString}
+                  min={minStartDate}
+                  max={maxStartDate}
                   {...register("startDate")}
                   className={`w-full px-3 py-2 border rounded-md outline-none transition
                                         ${errors.startDate
@@ -297,6 +329,7 @@ export const TrainingClassForm: React.FC<{
                 <input
                   type="date"
                   min={minEndDate}
+                  max={maxEndDate}
                   {...register("endDate")}
                   className={`w-full px-3 py-2 border rounded-md outline-none transition
                                         ${errors.endDate
