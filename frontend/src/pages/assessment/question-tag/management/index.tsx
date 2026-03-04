@@ -1,7 +1,6 @@
 import { questionTagApi } from "@/api";
 import { ProTable } from "@/components/datatable/ProTable";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Button } from "@/components/ui/button";
 import { useProTable } from "@/hooks/useProTable";
 import type { EntitySchema } from "@/types/common/datatable";
 import { useNavigate } from "react-router";
