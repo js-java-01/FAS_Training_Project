@@ -82,7 +82,7 @@ export function BigCalendar<T>({
           <div className="flex items-center
                           bg-gray-100 dark:bg-gray-800
                           border border-gray-200 dark:border-gray-700
-                          rounded-xl p-1">
+                          rounded-xl">
             <Button
               size="icon"
               variant="ghost"
@@ -124,6 +124,7 @@ export function BigCalendar<T>({
               <Calendar
                 mode="single"
                 selected={date}
+                 captionLayout="dropdown"
                 onSelect={(selectedDate) => {
                   if (!selectedDate) return;
 
@@ -131,6 +132,7 @@ export function BigCalendar<T>({
                   toolbar.onNavigate("DATE", selectedDate);
                   setPickerOpen(false);
                 }}
+
                 initialFocus
               />
             </PopoverContent>
@@ -177,7 +179,7 @@ export function BigCalendar<T>({
                   }
                 `}
               >
-                {v.charAt(0) + v.slice(1).toLowerCase()}
+                {v.charAt(0).toUpperCase() + v.slice(1).toLowerCase()}
               </Button>
             );
           })}
