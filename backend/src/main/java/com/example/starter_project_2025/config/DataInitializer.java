@@ -62,7 +62,8 @@ import java.util.stream.Collectors;
 @Order(1)
 @RequiredArgsConstructor
 @Slf4j
-public class DataInitializer implements CommandLineRunner {
+public class DataInitializer implements CommandLineRunner
+{
 
     private final PermissionRepository permissionRepository;
     private final ProvinceRepository provinceRepository;
@@ -91,22 +92,25 @@ public class DataInitializer implements CommandLineRunner {
     private final TrainingClassInitializer trainingClassInitializer;
     private final TrainingProgramInitializer trainingProgramInitializer;
     private final TopicInitializer topicInitializer;
+    private final AssessmentTypeInitializer assessmentTypeInitializer;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     @Transactional
     public void run(String... args) {
         log.info("Initializing database with sample data...");
 
-        if (roleRepository.count() == 0) {
+        if (roleRepository.count() == 0)
+        {
             initializePermissions();
-            initializeRoles();
-            initializeUsers();
-
+            roleInitializer.initializeRoles();
+            userInitializer.initializeUsers();
             // initializeLocationData();
 
             initializeLocations();
             moduleInitializer.initializeModuleGroups();
-            initializeAssessmentType();
+            assessmentTypeInitializer.init();
             initializeAssessments();
             initializeQuestionCategories();
             initializeQuestions();
@@ -117,28 +121,30 @@ public class DataInitializer implements CommandLineRunner {
             ensureProgrammingLanguagePermissions();
             initializeProgrammingLanguages();
             initializeCourses();
-            //topicInitializer.initializeTopics();
             trainingProgramInitializer.initializeTrainingProgram();
             trainingClassInitializer.initializeTrainingClasses();
             initializeCourseClasses();
             log.info("Database initialization completed successfully!");
-        } else {
+        } else
+        {
             log.info("Database already initialized, checking for missing permissions...");
             // Check if programming language permissions exist, if not, add them
 
         }
         ensureOutlinePermissions();
-        if (userRoleRepository.count() == 0) {
+        if (userRoleRepository.count() == 0)
+
+        {
             userRoleInitializer.initializeUserRoles();
             initializeLessons();
         }
-        ensureTrainingProgramPermissionsForSuperAdmin();
 
         initializeEnrollments();
         topicInitializer.init();
     }
 
-    private void initializePermissions() {
+    private void initializePermissions()
+    {
         List<Permission> permissions = Arrays.asList(
                 createPermission("DASHBOARD_READ", "AHIHI", "DASHBOARD",
                         "READ"),
@@ -281,16 +287,13 @@ public class DataInitializer implements CommandLineRunner {
                 createPermission("TOPIC_UPDATE", "Update existing topics", "TOPIC", "UPDATE"),
                 createPermission("TOPIC_DELETE", "Delete topics", "TOPIC", "DELETE"),
                 createPermission("TOPIC_IMPORT", "Import topics from Excel", "TOPIC", "IMPORT"),
-                createPermission("TOPIC_EXPORT", "Export topics to Excel", "TOPIC", "EXPORT"),
-                createPermission("TRAINING_PROGRAM_CREATE", "Create training programs", "TRAINING_PROGRAM", "CREATE"),
-                createPermission("TRAINING_PROGRAM_READ", "View training programs", "TRAINING_PROGRAM", "READ"),
-                createPermission("TRAINING_PROGRAM_UPDATE", "Update training programs", "TRAINING_PROGRAM", "UPDATE"),
-                createPermission("TRAINING_PROGRAM_DELETE", "Delete training programs", "TRAINING_PROGRAM", "DELETE"));
+                createPermission("TOPIC_EXPORT", "Export topics to Excel", "TOPIC", "EXPORT"));
         permissionRepository.saveAll(permissions);
         log.info("Initialized {} permissions", permissions.size());
     }
 
-    private Permission createPermission(String name, String description, String resource, String action) {
+    private Permission createPermission(String name, String description, String resource, String action)
+    {
         Permission permission = new Permission();
         permission.setName(name);
         permission.setDescription(description);
@@ -299,9 +302,11 @@ public class DataInitializer implements CommandLineRunner {
         return permission;
     }
 
-    private void initializeTrainerRole() {
+    private void initializeTrainerRole()
+    {
 
-        if (roleRepository.findByName("TRAINER").isPresent()) {
+        if (roleRepository.findByName("TRAINER").isPresent())
+        {
             return;
         }
 
@@ -327,7 +332,8 @@ public class DataInitializer implements CommandLineRunner {
                 "QUESTION_CATEGORY_CREATE", "QUESTION_CATEGORY_UPDATE", "QUESTION_CATEGORY_DELETE",
                 "ENROLL_COURSE");
 
-        for (String name : extraPermissionNames) {
+        for (String name : extraPermissionNames)
+        {
             permissionRepository.findByName(name)
                     .ifPresent(trainerPermissions::add);
         }
@@ -343,124 +349,11 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized TRAINER role with {} permissions", trainerPermissions.size());
     }
 
-    private void initializeRoles() {
 
-        // ADMIN
-        Role adminRole = new Role();
-        adminRole.setName("ADMIN");
-        adminRole.setDescription("Administrator with full system access");
-        adminRole.setHierarchyLevel(2);
-        List<String> excludedAdminPermissions = List.of(
-                "MODULE_GROUP_CREATE",
-                "MODULE_CREATE");
-
-        List<Permission> adminPermissions = permissionRepository.findAll()
-                .stream()
-                .filter(p -> !excludedAdminPermissions.contains(p.getName()))
-                .toList();
-
-        adminRole.setPermissions(new HashSet<>(adminPermissions));
-        roleRepository.save(adminRole);
-
-        // MANAGER
-        Role departmentManagerRole = new Role();
-        departmentManagerRole.setName("MANAGER");
-        departmentManagerRole.setDescription("Department Manager with class management permissions");
-        departmentManagerRole.setHierarchyLevel(3);
-        List<Permission> departmentPermissions = permissionRepository.findAll()
-                .stream()
-                .filter(p -> "CLASS".equals(p.getResource()))
-                .toList();
-
-        departmentManagerRole.setPermissions(new HashSet<>(departmentPermissions));
-        roleRepository.save(departmentManagerRole);
-
-        // STUDENT
-        Role studentRole = new Role();
-        studentRole.setName("STUDENT");
-        studentRole.setHierarchyLevel(5);
-        studentRole.setDescription("Student with limited access to educational resources");
-
-        List<Permission> studentPermissions = new ArrayList<>(
-                permissionRepository.findByAction("READ"));
-
-        permissionRepository.findByName("ENROLL_COURSE")
-                .ifPresent(studentPermissions::add);
-
-        List<String> excludedStudentPermissions = List.of(
-                "ROLE_READ",
-                "USER_READ",
-                "PERMISSION_READ",
-                "SEMESTER_READ",
-                "STUDENT_READ",
-                "LOCATION_READ",
-                "DEPARTMENT_READ");
-
-        Set<Permission> filteredPermissions = studentPermissions.stream()
-                .filter(p -> !excludedStudentPermissions.contains(p.getName()))
-                .collect(Collectors.toSet());
-
-        studentRole.setPermissions(filteredPermissions);
-
-        roleRepository.save(studentRole);
-
-        // TRAINER
-        initializeTrainerRole();
-
-        // SUPER_ADMIN
-        Role superAdminRole = new Role();
-        superAdminRole.setName("SUPER_ADMIN");
-        superAdminRole.setHierarchyLevel(1);
-        superAdminRole.setDescription("Super Administrator with all permissions and role-switch capability");
-        superAdminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
-        roleRepository.save(superAdminRole);
-
-        log.info("Initialized 4 roles: ADMIN, MANAGER, STUDENT, TRAINER, SUPER_ADMIN");
-
-        List<Permission> allPermissions = permissionRepository.findAll();
-
-        Set<Permission> managerPermissions = allPermissions.stream()
-                .filter(p -> "UPDATE".equals(p.getAction())
-                        && Arrays.asList("STUDENT").contains(p.getResource())
-                        || "READ".equals(p.getAction()) && Arrays.asList("MENU", "SEMESTER")
-                        .contains(p.getResource())
-                        || "CLASS".equals(p.getResource())
-                        || "COURSE".equals(p.getResource())
-                        || "SEMESTER".equals(p.getResource()))
-                .collect(Collectors.toSet());
-        createRoleIfNotFound("MANAGER", "Manager with class and course management permissions",
-                managerPermissions);
-
-    }
-
-    private void initializeUsers() {
-        // SUPER ADMIN
-        createUserIfNotFound("superadmin@example.com", "Super", "Admin");
-        // ADMIN (2)
-        createUserIfNotFound("admin@example.com", "Admin", "User");
-        createUserIfNotFound("super.admin@example.com", "Super", "Admin");
-
-        // MANAGER (2)
-        createUserIfNotFound("manager1@example.com", "Alice", "Manager");
-        createUserIfNotFound("manager2@example.com", "David", "Manager");
-
-        // TRAINER (3)
-        createUserIfNotFound("trainer1@example.com", "Bob", "Teacher");
-        createUserIfNotFound("trainer2@example.com", "Michael", "Trainer");
-        createUserIfNotFound("trainer3@example.com", "Sarah", "Instructor");
-
-        // STUDENT (5)
-        createUserIfNotFound("student1@example.com", "John", "Doe");
-        createUserIfNotFound("student2@example.com", "Jane", "Smith");
-        createUserIfNotFound("student3@example.com", "Peter", "Parker");
-        createUserIfNotFound("student4@example.com", "Tony", "Stark");
-        createUserIfNotFound("student5@example.com", "Bruce", "Wayne");
-
-        log.info("Initialized 12 users successfully across ADMIN, MANAGER, TRAINER, and STUDENT roles.");
-    }
-
-    private void createUserIfNotFound(String email, String firstName, String lastName) {
-        if (!userRepository.existsByEmail(email)) {
+    private void createUserIfNotFound(String email, String firstName, String lastName)
+    {
+        if (!userRepository.existsByEmail(email))
+        {
             User user = new User();
             user.setEmail(email);
             user.setPasswordHash(passwordEncoder.encode("password123"));
@@ -471,7 +364,8 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private void saveUserRole(User user, Role role, boolean isDefault) {
+    private void saveUserRole(User user, Role role, boolean isDefault)
+    {
         UserRole ur = new UserRole();
         ur.setUser(user);
         ur.setRole(role);
@@ -479,9 +373,11 @@ public class DataInitializer implements CommandLineRunner {
         userRoleRepository.save(ur);
     }
 
-    private void initializeAssessments() {
+    private void initializeAssessments()
+    {
 
-        if (assessmentRepository.count() > 0) {
+        if (assessmentRepository.count() > 0)
+        {
             return;
         }
 
@@ -542,9 +438,11 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized {} assessments", 3);
     }
 
-    private void initializeQuestionCategories() {
+    private void initializeQuestionCategories()
+    {
 
-        if (questionCategoryRepository.count() > 0) {
+        if (questionCategoryRepository.count() > 0)
+        {
             return;
         }
 
@@ -565,33 +463,12 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized {} question categories", 3);
     }
 
-    private void initializeAssessmentType() {
-
-        if (assessmentTypeRepository.count() > 0) {
-            return;
-        }
-
-        AssessmentType a1 = new AssessmentType();
-        a1.setName("Entrance Quiz");
-        a1.setDescription("Assessment for entrance examination");
-
-        AssessmentType a2 = new AssessmentType();
-        a2.setName("Midterm Test");
-        a2.setDescription("Midterm evaluation assessment");
-
-        AssessmentType a3 = new AssessmentType();
-        a3.setName("Final Exam");
-        a3.setDescription("Final assessment of the course");
-
-        assessmentTypeRepository.saveAll(List.of(a1, a2, a3));
-
-        log.info("Initialized {} assessments", 3);
-    }
-
-    private void ensureProgrammingLanguagePermissions() {
+    private void ensureProgrammingLanguagePermissions()
+    {
         boolean hasProgLangPerms = permissionRepository.existsByName("PROGRAMMING_LANGUAGE_READ");
 
-        if (!hasProgLangPerms) {
+        if (!hasProgLangPerms)
+        {
             log.info("Programming language permissions not found, adding them...");
 
             List<Permission> progLangPermissions = Arrays.asList(
@@ -611,7 +488,8 @@ public class DataInitializer implements CommandLineRunner {
 
             // Add these permissions to the ADMIN role
             Role adminRole = roleRepository.findByName("ADMIN").orElse(null);
-            if (adminRole != null) {
+            if (adminRole != null)
+            {
                 adminRole.getPermissions().addAll(progLangPermissions);
                 roleRepository.save(adminRole);
                 log.info("Added programming language permissions to ADMIN role");
@@ -619,9 +497,11 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private void initializeQuestions() {
+    private void initializeQuestions()
+    {
 
-        if (questionRepository.count() > 0) {
+        if (questionRepository.count() > 0)
+        {
             return;
         }
 
@@ -659,9 +539,11 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized 1 question with options");
     }
 
-    private void initializeProgrammingLanguages() {
+    private void initializeProgrammingLanguages()
+    {
         // Only initialize if no programming languages exist
-        if (programmingLanguageRepository.count() == 0) {
+        if (programmingLanguageRepository.count() == 0)
+        {
             ProgrammingLanguage java = createProgrammingLanguage("Java", "17",
                     "Object-oriented programming language widely used for enterprise applications",
                     true);
@@ -680,21 +562,25 @@ public class DataInitializer implements CommandLineRunner {
 
             programmingLanguageRepository.saveAll(Arrays.asList(java, python, javascript, csharp, cpp, go));
             log.info("Initialized 6 programming languages");
-        } else {
+        } else
+        {
             log.info("Programming languages already exist, skipping initialization");
         }
     }
 
     private ProgrammingLanguage createProgrammingLanguage(String name, String version, String description,
-                                                          boolean isSupported) {
+                                                          boolean isSupported)
+    {
         ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
         return language;
 
     }
 
-    private void initializeCourses() {
+    private void initializeCourses()
+    {
 
-        if (courseRepository.count() > 0) {
+        if (courseRepository.count() > 0)
+        {
             log.info("Courses already exist, skipping initialization");
             return;
         }
@@ -755,10 +641,12 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized {} courses", 2);
     }
 
-    private void ensureOutlinePermissions() {
+    private void ensureOutlinePermissions()
+    {
         boolean hasOutlinePerm = permissionRepository.existsByName("COURSE_OUTLINE_EDIT");
 
-        if (!hasOutlinePerm) {
+        if (!hasOutlinePerm)
+        {
             log.info("Course outline permissions not found, adding them...");
 
             List<Permission> outlinePermissions = Arrays.asList(
@@ -769,10 +657,12 @@ public class DataInitializer implements CommandLineRunner {
 
             // Add to all existing roles that have COURSE_UPDATE
             List<Role> roles = roleRepository.findAll();
-            for (Role role : roles) {
+            for (Role role : roles)
+            {
                 boolean hasCourseUpdate = role.getPermissions().stream()
                         .anyMatch(p -> "COURSE_UPDATE".equals(p.getName()));
-                if (hasCourseUpdate || "ADMIN".equals(role.getName())) {
+                if (hasCourseUpdate || "ADMIN".equals(role.getName()))
+                {
                     role.getPermissions().addAll(outlinePermissions);
                     roleRepository.save(role);
                     log.info("Added outline permissions to role: {}", role.getName());
@@ -781,8 +671,10 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private void initializeEnrollments() {
-        if (enrollmentRepository.count() > 0) {
+    private void initializeEnrollments()
+    {
+        if (enrollmentRepository.count() > 0)
+        {
             log.info("Enrollments already exist, skipping initialization");
             return;
         }
@@ -795,7 +687,8 @@ public class DataInitializer implements CommandLineRunner {
 
         List<TrainingClass> classes = trainingClassRepository.findAll();
 
-        if (classes.isEmpty() || student1 == null) {
+        if (classes.isEmpty() || student1 == null)
+        {
             log.warn("Missing Students or Training Classes! Please run their initializers first.");
             return;
         }
@@ -804,38 +697,46 @@ public class DataInitializer implements CommandLineRunner {
 
         int totalClasses = classes.size();
 
-        if (totalClasses > 0) {
+        if (totalClasses > 0)
+        {
             enrollments.add(buildEnrollment(student1, classes.get(0)));
             enrollments.add(buildEnrollment(student2, classes.get(0)));
             enrollments.add(buildEnrollment(student3, classes.get(0)));
         }
 
-        if (totalClasses > 1) {
+        if (totalClasses > 1)
+        {
             enrollments.add(buildEnrollment(student4, classes.get(1)));
             enrollments.add(buildEnrollment(student5, classes.get(1)));
         }
 
-        if (totalClasses > 2) {
+        if (totalClasses > 2)
+        {
             enrollments.add(buildEnrollment(student1, classes.get(2)));
             enrollments.add(buildEnrollment(student2, classes.get(2)));
             enrollments.add(buildEnrollment(student4, classes.get(2)));
             enrollments.add(buildEnrollment(student5, classes.get(2)));
         }
 
-        if (totalClasses > 3) {
+        if (totalClasses > 3)
+        {
             enrollments.add(buildEnrollment(student3, classes.get(3)));
         }
 
-        if (totalClasses > 4) {
+        if (totalClasses > 4)
+        {
             enrollments.add(buildEnrollment(student1, classes.get(4)));
         }
-        if (totalClasses > 5) {
+        if (totalClasses > 5)
+        {
             enrollments.add(buildEnrollment(student2, classes.get(5)));
         }
-        if (totalClasses > 6) {
+        if (totalClasses > 6)
+        {
             enrollments.add(buildEnrollment(student3, classes.get(6)));
         }
-        if (totalClasses > 7) {
+        if (totalClasses > 7)
+        {
             enrollments.add(buildEnrollment(student4, classes.get(7)));
         }
 
@@ -844,16 +745,19 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized {} Enrollments successfully. Students are now in classes!", enrollments.size());
     }
 
-    private Enrollment buildEnrollment(User student, TrainingClass trainingClass) {
+    private Enrollment buildEnrollment(User student, TrainingClass trainingClass)
+    {
         Enrollment enrollment = new Enrollment();
         enrollment.setUser(student);
         enrollment.setTrainingClass(trainingClass);
         return enrollment;
     }
 
-    private void initializeSemester() {
+    private void initializeSemester()
+    {
 
-        if (semesterRepository.count() > 0) {
+        if (semesterRepository.count() > 0)
+        {
             return;
         }
 
@@ -866,7 +770,8 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized {} Semesters successfully.", semesters.size());
     }
 
-    private Semester buildSemester(String name, LocalDate start, LocalDate end) {
+    private Semester buildSemester(String name, LocalDate start, LocalDate end)
+    {
         Semester s = new Semester();
         s.setName(name);
         s.setStartDate(start);
@@ -874,8 +779,10 @@ public class DataInitializer implements CommandLineRunner {
         return s;
     }
 
-    private void initializeLocations() {
-        if (locationRepository.count() > 0) {
+    private void initializeLocations()
+    {
+        if (locationRepository.count() > 0)
+        {
             log.info("Locations already exist, skipping initialization");
             return;
         }
@@ -912,8 +819,10 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized {} locations", 4);
     }
 
-    private void initializeLessons() {
-        if (courseLessonRepository.count() > 0) {
+    private void initializeLessons()
+    {
+        if (courseLessonRepository.count() > 0)
+        {
             log.info("Lessons already exist, skipping initialization");
             return;
         }
@@ -928,7 +837,8 @@ public class DataInitializer implements CommandLineRunner {
                 .filter(c -> "RFP-01".equals(c.getCourseCode()))
                 .findFirst().orElse(null);
 
-        if (java01 != null) {
+        if (java01 != null)
+        {
             List<CourseLesson> javaLessons = Arrays.asList(
                     createLesson(java01, "Introduction to Spring Boot",
                             "Overview of Spring ecosystem and setup.", 1),
@@ -939,7 +849,8 @@ public class DataInitializer implements CommandLineRunner {
             courseLessonRepository.saveAll(javaLessons);
         }
 
-        if (react01 != null) {
+        if (react01 != null)
+        {
             List<CourseLesson> reactLessons = Arrays.asList(
                     createLesson(react01, "React Fundamentals",
                             "Components, Props, and State basics.", 1),
@@ -953,7 +864,8 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized lessons for Java and React courses");
     }
 
-    private CourseLesson createLesson(Course course, String name, String desc, int order) {
+    private CourseLesson createLesson(Course course, String name, String desc, int order)
+    {
         return CourseLesson.builder()
                 .course(course)
                 .lessonName(name)
@@ -962,8 +874,10 @@ public class DataInitializer implements CommandLineRunner {
                 .build();
     }
 
-    private void initializeCourseClasses() {
-        if (courseClassRepository.count() > 0) {
+    private void initializeCourseClasses()
+    {
+        if (courseClassRepository.count() > 0)
+        {
             log.info("Course classes already exist, skipping initialization");
             return;
         }
@@ -981,13 +895,15 @@ public class DataInitializer implements CommandLineRunner {
         Map<String, Course> courseMap = courseRepository.findAll().stream()
                 .collect(Collectors.toMap(Course::getCourseCode, c -> c));
 
-        if (courseMap.isEmpty()) {
+        if (courseMap.isEmpty())
+        {
             log.warn("No courses found! Please run initializeCourses() first.");
             return;
         }
 
         List<TrainingClass> trainingClasses = trainingClassRepository.findAll();
-        if (trainingClasses.isEmpty()) {
+        if (trainingClasses.isEmpty())
+        {
             log.warn("No TrainingClasses found! Please initialize TrainingClasses before CourseClasses.");
             return;
         }
@@ -1026,7 +942,8 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized {} Course Classes with diverse Trainers and Courses.", validCourseClasses.size());
     }
 
-    private CourseClass buildCourseClass(Course course, TrainingClass classInfo, User trainer) {
+    private CourseClass buildCourseClass(Course course, TrainingClass classInfo, User trainer)
+    {
         CourseClass cc = new CourseClass();
         cc.setCourse(course);
         cc.setClassInfo(classInfo);
@@ -1034,26 +951,16 @@ public class DataInitializer implements CommandLineRunner {
         return cc;
     }
 
-
-    private void createRoleIfNotFound(String roleName, String description, Set<Permission> permissions) {
-        if (roleRepository.findByName(roleName).isEmpty()) {
-            Role role = new Role();
-            role.setName(roleName);
-            role.setDescription(description);
-            role.setPermissions(permissions);
-
-            roleRepository.save(role);
-            log.info("Created role: {}", roleName);
-        }
-    }
-
-    private void initializeLocationData() {
-        if (provinceRepository.count() > 0 || communeRepository.count() > 0) {
+    private void initializeLocationData()
+    {
+        if (provinceRepository.count() > 0 || communeRepository.count() > 0)
+        {
             log.info("Location data already initialized, skipping location data import.");
             return;
         }
 
-        try (InputStream inputStream = new ClassPathResource("LocationData.json").getInputStream()) {
+        try (InputStream inputStream = new ClassPathResource("LocationData.json").getInputStream())
+        {
             LocationDataJson locationData = objectMapper.readValue(inputStream, LocationDataJson.class);
 
             List<Province> provinces = locationData.province().stream()
@@ -1071,44 +978,24 @@ public class DataInitializer implements CommandLineRunner {
             communeRepository.saveAll(communes);
 
             log.info("Initialized {} provinces and {} communes", provinces.size(), communes.size());
-        } catch (IOException e) {
+        } catch (IOException e)
+        {
             log.error("Failed to import location data from LocationData.json", e);
         }
     }
 
-    private void ensureTrainingProgramPermissionsForSuperAdmin() {
-
-        Role superAdmin = roleRepository.findByName("SUPER_ADMIN")
-                .orElseThrow(() -> new RuntimeException("SUPER_ADMIN role not found"));
-
-        List<String> permissionNames = List.of(
-                "TRAINING_PROGRAM_CREATE",
-                "TRAINING_PROGRAM_READ",
-                "TRAINING_PROGRAM_UPDATE",
-                "TRAINING_PROGRAM_DELETE"
-        );
-
-        Set<Permission> permissions = permissionNames.stream()
-                .map(name -> permissionRepository.findByName(name)
-                        .orElseThrow(() -> new RuntimeException("Permission not found: " + name)))
-                .collect(Collectors.toSet());
-
-        superAdmin.getPermissions().addAll(permissions);
-
-        roleRepository.save(superAdmin);
-
-        log.info("Added TRAINING_PROGRAM permissions to SUPER_ADMIN");
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record LocationDataJson(List<ProvinceJson> province, List<CommuneJson> commune)
+    {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record LocationDataJson(List<ProvinceJson> province, List<CommuneJson> commune) {
+    private record ProvinceJson(String idProvince, String name)
+    {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record ProvinceJson(String idProvince, String name) {
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record CommuneJson(String idProvince, String idCommune, String name) {
+    private record CommuneJson(String idProvince, String idCommune, String name)
+    {
     }
 }
