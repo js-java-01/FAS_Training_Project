@@ -8,6 +8,8 @@ import java.util.UUID;
 public class TopicAssessmentTypeWeightResponse
 {
     private UUID id;
+    private String assessmentTypeId;
     private String accessmentTypeName;
+    private String assessmentTypeDescription;
     private Double weight;
 }
