@@ -5,17 +5,25 @@ import com.example.starter_project_2025.system.modulegroups.dto.response.PageRes
 import com.example.starter_project_2025.system.training_program.dto.request.CreateTrainingProgramRequest;
 import com.example.starter_project_2025.system.training_program.dto.request.SearchTrainingProgramRequest;
 import com.example.starter_project_2025.system.training_program.dto.request.UpdateTrainingProgramRequest;
+import com.example.starter_project_2025.system.training_program.dto.response.ImportTrainingProgramResponse;
 import com.example.starter_project_2025.system.training_program.dto.response.TrainingProgramResponse;
 import com.example.starter_project_2025.system.training_program.service.TrainingProgramService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.InputStreamResource;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.UUID;
 
 @RestController
@@ -91,5 +99,42 @@ public class TrainingProgramController {
             @RequestBody UpdateTrainingProgramRequest request
     ) {
         return ResponseEntity.ok(service.update(id, request));
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<Resource> exportTrainingPrograms() throws IOException {
+
+        ByteArrayInputStream stream = service.exportTrainingPrograms();
+
+        InputStreamResource file = new InputStreamResource(stream);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=training_programs.xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(file);
+    }
+
+    @GetMapping("/template")
+    public ResponseEntity<Resource> downloadTemplate() throws IOException {
+
+        ByteArrayInputStream stream = service.downloadTemplate();
+
+        InputStreamResource file = new InputStreamResource(stream);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=training_program_template.xlsx")
+                .body(file);
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<?> importTrainingPrograms(
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+
+        ImportTrainingProgramResponse response = service.importTrainingPrograms(file);
+
+        return ResponseEntity.ok(response);
     }
 }

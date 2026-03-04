@@ -13,5 +13,4 @@ public interface TrainingProgramRepository
 
     boolean existsByNameIgnoreCase(String name);
     Optional<TrainingProgram> findByName(String name);
-
 }
