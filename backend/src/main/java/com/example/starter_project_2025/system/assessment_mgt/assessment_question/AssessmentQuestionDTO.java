@@ -16,7 +16,7 @@ public class AssessmentQuestionDTO implements CrudDto<UUID>{
 
     UUID id;
 
-    Long assessmentId;
+    UUID assessmentId;
 
     UUID questionId;
 
