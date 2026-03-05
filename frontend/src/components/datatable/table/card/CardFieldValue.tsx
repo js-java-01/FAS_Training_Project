@@ -1,6 +1,7 @@
 import { Switch } from "@/components/ui/switch";
 import { TruncatedText } from "@/components/datatable/common/TruncatedText";
 import { BadgeList } from "@/components/datatable/common/BadgeList";
+import { TooltipWrapper } from "@/components/TooltipWrapper";
 import type { FieldSchema } from "@/types/common/datatable";
 
 interface CardFieldValueProps {
@@ -91,6 +92,39 @@ export function CardFieldValue({
         />
       );
     }
+  }
+
+  // Handle arrays (e.g. question options)
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return <span className="text-xs text-muted-foreground">—</span>;
+    }
+
+    const firstItem = value[0];
+    if (typeof firstItem === "object" && firstItem !== null && "content" in firstItem) {
+      const optionsText = value
+        .map((opt: any, idx: number) =>
+          `${String.fromCharCode(65 + idx)}. ${opt.content}${opt.correct ? " ✓" : ""}`
+        )
+        .join("\n");
+
+      return (
+        <TooltipWrapper content={optionsText}>
+          <span className="text-xs text-muted-foreground cursor-help">
+            {value.length} option{value.length !== 1 ? "s" : ""}
+          </span>
+        </TooltipWrapper>
+      );
+    }
+
+    // Array of primitives
+    return (
+      <TruncatedText
+        content={value.join(", ")}
+        bold={field.bold}
+        className="text-sm"
+      />
+    );
   }
 
   const displayValue = String(value ?? "—");

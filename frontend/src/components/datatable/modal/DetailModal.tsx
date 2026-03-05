@@ -92,8 +92,63 @@ export function DetailModal({
         }
       }
 
-      default:
+      default: {
+        // Handle arrays of objects (like question options)
+        if (Array.isArray(value)) {
+          if (value.length === 0) {
+            return <span className="text-muted-foreground">—</span>;
+          }
+
+          // Check if array items are objects with known structure
+          const firstItem = value[0];
+          if (typeof firstItem === "object" && firstItem !== null) {
+            // Special handling for question options
+            if ("content" in firstItem && "correct" in firstItem) {
+              return (
+                <div className="flex flex-col gap-2 w-full">
+                  {value.map((option: any, idx: number) => (
+                    <div
+                      key={option.id || idx}
+                      className="flex items-start gap-2 p-2 rounded-md bg-muted/50"
+                    >
+                      <Badge
+                        variant={option.correct ? "default" : "outline"}
+                        className="shrink-0 mt-0.5"
+                      >
+                        {option.correct ? "✓" : String.fromCharCode(65 + idx)}
+                      </Badge>
+                      <span className="text-sm flex-1">{option.content}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+            // Generic object array
+            return (
+              <div className="flex flex-col gap-1">
+                {value.map((item: any, idx: number) => (
+                  <Badge key={idx} variant="secondary" className="text-xs w-fit">
+                    {JSON.stringify(item)}
+                  </Badge>
+                ))}
+              </div>
+            );
+          }
+
+          // Array of primitives
+          return (
+            <div className="flex flex-wrap gap-1">
+              {value.map((item: any, idx: number) => (
+                <Badge key={idx} variant="secondary" className="text-xs">
+                  {String(item)}
+                </Badge>
+              ))}
+            </div>
+          );
+        }
+
         return String(value);
+      }
     }
   };
 
@@ -113,9 +168,9 @@ export function DetailModal({
                   <span className="text-sm font-medium text-muted-foreground min-w-[140px] shrink-0">
                     {field.label}
                   </span>
-                  <span className="text-sm break-all">
+                  <div className="text-sm break-all flex-1">
                     {renderValue(field)}
-                  </span>
+                  </div>
                 </div>
               </div>
             ))}

@@ -82,6 +82,47 @@ export function CellRenderer({
     );
   }
 
+  // Handle arrays (like question options)
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return (
+        <TableCell>
+          <span className="text-muted-foreground">—</span>
+        </TableCell>
+      );
+    }
+
+    // Check if it's an array of objects (like question options)
+    const firstItem = value[0];
+    if (typeof firstItem === "object" && firstItem !== null) {
+      // For question options, show count with tooltip of contents
+      if ("content" in firstItem) {
+        const optionsText = value
+          .map((opt: any, idx: number) =>
+            `${String.fromCharCode(65 + idx)}. ${opt.content}${opt.correct ? " ✓" : ""}`
+          )
+          .join("\n");
+
+        return (
+          <TableCell>
+            <TooltipWrapper content={optionsText}>
+              <span className="text-muted-foreground cursor-help">
+                {value.length} option{value.length !== 1 ? "s" : ""}
+              </span>
+            </TooltipWrapper>
+          </TableCell>
+        );
+      }
+    }
+
+    // Array of primitives
+    return (
+      <TableCell>
+        <TruncatedText content={value.join(", ")} bold={field.bold} />
+      </TableCell>
+    );
+  }
+
   const displayValue = value ?? "—";
   const displayStr =
     field.type === "date" && value

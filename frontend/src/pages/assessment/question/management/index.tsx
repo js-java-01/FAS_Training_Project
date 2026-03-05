@@ -59,6 +59,12 @@ const questionSchema: EntitySchema = {
             filterType: "select",
         },
         {
+            name: "options",
+            label: "Options",
+            type: "text",
+            editable: false,
+        },
+        {
             name: "isActive",
             label: "Status",
             type: "boolean",
