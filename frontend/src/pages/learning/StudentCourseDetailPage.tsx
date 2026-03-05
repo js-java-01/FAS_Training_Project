@@ -3,8 +3,15 @@ import { useEffect, useState } from "react";
 import { StudentLayout } from "@/components/layout/StudentLayout";
 import { courseApi } from "@/api/courseApi";
 import { enrollmentApi } from "@/api/enrollmentApi";
+import { courseOnlineFeedbackApi } from "@/api/courseOnlineFeedbackApi";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Course } from "@/types/course";
 import { toast } from "sonner";
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { StarRating as InteractiveStarRating } from '@/pages/course/components/material/StarRating';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   BookOpen,
   Clock,
@@ -14,59 +21,24 @@ import {
   X,
   Award,
   Play,
-  Home,
-  ChevronRight,
+  Edit2,
+  Trash2,
   FileText,
   Target,
   MessageSquare,
+  Home,
+  ChevronRight,
+  Users,
 } from "lucide-react";
-import type { CourseObjective } from "@/types/courseObjective";
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
-const MOCK_OUTCOMES = [
+// ── Learning Outcomes (Generic) ───────────────────────────────────────────────
+const LEARNING_OUTCOMES = [
   "Understand core concepts and terminology of the subject",
   "Apply practical skills to real-world scenarios",
   "Build projects from scratch with confidence",
   "Debug, test and optimize solutions effectively",
   "Collaborate using modern development workflows",
   "Prepare for professional assessments and certifications",
-];
-
-interface MockReview {
-  name: string;
-  rating: number;
-  comment: string;
-  date: string;
-}
-const MOCK_REVIEWS: MockReview[] = [
-  {
-    name: "Nguyen Van A",
-    rating: 5,
-    comment:
-      "Excellent course! Very well structured and easy to follow. I learned so much from this.",
-    date: "Jan 2026",
-  },
-  {
-    name: "Tran Thi B",
-    rating: 4,
-    comment:
-      "Great content overall. Some sections could be explained in more detail, but very helpful.",
-    date: "Dec 2025",
-  },
-  {
-    name: "Le Van C",
-    rating: 5,
-    comment:
-      "The instructor explains everything clearly. Highly recommend this course to beginners.",
-    date: "Nov 2025",
-  },
-  {
-    name: "Pham Thi D",
-    rating: 4,
-    comment:
-      "Solid foundation course. I built 3 projects by the end and feel much more confident.",
-    date: "Oct 2025",
-  },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -213,13 +185,126 @@ const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
 export default function StudentCourseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("about");
   const [showEnrollModal, setShowEnrollModal] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
-  const [objectives, setObjectives] = useState<CourseObjective[]>([]);
+  const [_objectives, setObjectives] = useState<any[]>([]);
   const [lessons, setLessons] = useState<any[]>([]);
+  
+  // Feedback form state
+  const [rating, setRating] = useState<number>(5);
+  const [comment, setComment] = useState<string>('');
+
+  // Edit feedback state
+  const [editingFeedback, setEditingFeedback] = useState<any>(null);
+  const [editRating, setEditRating] = useState<number>(5);
+  const [editComment, setEditComment] = useState<string>('');
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  // Delete feedback state
+  const [deletingFeedbackId, setDeletingFeedbackId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Fetch feedbacks
+  const { data: feedbackData, isLoading: feedbackLoading } = useQuery({
+    queryKey: ['courseFeedbacks', id],
+    queryFn: () => id ? courseOnlineFeedbackApi.getByCourse(id) : Promise.reject('No course ID'),
+    enabled: !!id,
+  });
+
+  // Submit feedback mutation
+  const submitMutation = useMutation({
+    mutationFn: courseOnlineFeedbackApi.create,
+    onSuccess: () => {
+      toast.success('Cảm ơn bạn đã đánh giá khóa học!');
+      setComment('');
+      setRating(5);
+      queryClient.invalidateQueries({ queryKey: ['courseFeedbacks', id] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || error.response?.data || 'Có lỗi xảy ra khi gửi đánh giá!';
+      toast.error(errorMessage);
+      console.error('Feedback submission error:', error.response?.data);
+    }
+  });
+
+  // Update feedback mutation
+  const updateMutation = useMutation({
+    mutationFn: courseOnlineFeedbackApi.update,
+    onSuccess: () => {
+      toast.success('Cập nhật đánh giá thành công!');
+      setShowEditModal(false);
+      setEditingFeedback(null);
+      queryClient.invalidateQueries({ queryKey: ['courseFeedbacks', id] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || error.response?.data || 'Có lỗi xảy ra khi cập nhật!';
+      toast.error(errorMessage);
+    }
+  });
+
+  // Delete feedback mutation
+  const deleteMutation = useMutation({
+    mutationFn: courseOnlineFeedbackApi.delete,
+    onSuccess: () => {
+      toast.success('Xóa đánh giá thành công!');
+      setShowDeleteConfirm(false);
+      setDeletingFeedbackId(null);
+      queryClient.invalidateQueries({ queryKey: ['courseFeedbacks', id] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || error.response?.data || 'Có lỗi xảy ra khi xóa!';
+      toast.error(errorMessage);
+    }
+  });
+
+  const handleSubmitFeedback = () => {
+    if (!id) return;
+    submitMutation.mutate({
+      courseOnlineId: id,
+      rating,
+      comment,
+    });
+  };
+
+  const handleEditFeedback = (feedback: any) => {
+    setEditingFeedback(feedback);
+    setEditRating(feedback.rating);
+    setEditComment(feedback.comment || '');
+    setShowEditModal(true);
+  };
+
+  const handleUpdateFeedback = () => {
+    if (!editingFeedback?.id) return;
+    updateMutation.mutate({
+      id: editingFeedback.id,
+      data: {
+        rating: editRating,
+        comment: editComment,
+      }
+    });
+  };
+
+  const handleDeleteFeedback = (feedbackId: string) => {
+    setDeletingFeedbackId(feedbackId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    if (!deletingFeedbackId) return;
+    deleteMutation.mutate(deletingFeedbackId);
+  };
+
+  // Check if feedback belongs to current user (compare first name)
+  const isOwnFeedback = (feedback: any) => {
+    return feedback.studentName === user?.firstName;
+  };
+
   useEffect(() => {
     if (!id) return;
     Promise.all([
@@ -261,9 +346,14 @@ export default function StudentCourseDetailPage() {
   const hours = course.estimatedTime
     ? Math.round(course.estimatedTime / 60)
     : null;
-  const avgRating = 4.7;
-  const reviewCount = MOCK_REVIEWS.length * 198;
-  const studentCount = reviewCount * 14;
+  
+  // Calculate real average rating from feedback data
+  const feedbacks = feedbackData?.content || [];
+  const avgRating = feedbacks.length > 0 
+    ? feedbacks.reduce((sum: number, f: any) => sum + f.rating, 0) / feedbacks.length 
+    : 0;
+  const reviewCount = feedbacks.length;
+  const studentCount = reviewCount * 14; // Estimated student count
 
   return (
     <StudentLayout active="/courses">
@@ -381,56 +471,36 @@ export default function StudentCourseDetailPage() {
             </span>
           </div>
 
-          {/* Stats strip */}
-          <div className="bg-white border border-gray-200 rounded-xl mt-6 shadow-sm mb-10">
-            <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-100">
-              {/* Rating */}
-              <div className="px-5 py-4">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="font-bold text-gray-900 text-sm">
-                    {avgRating}
-                  </span>
-                  <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                </div>
-                <p className="text-xs text-gray-500">
-                  from {reviewCount.toLocaleString()} reviews
-                </p>
-              </div>
+              {/* META */}
+              <div className="flex flex-wrap items-center gap-4 text-sm">
+                {avgRating > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-gray-900">{avgRating.toFixed(1)}</span>
+                    <StarRating rating={Math.round(avgRating)} />
+                    <span className="text-gray-500 text-xs">
+                      ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
+                    </span>
+                  </div>
+                )}
 
-              {/* Level */}
-              <div className="px-5 py-4">
-                <p className="font-bold text-gray-900 text-sm mb-0.5">
-                  {course.level
-                    ? course.level.charAt(0) +
-                    course.level.slice(1).toLowerCase()
-                    : "All levels"}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {course.level === "BEGINNER"
-                    ? "No prior experience required"
-                    : "Some experience helpful"}
-                </p>
-              </div>
+                <span className="flex items-center gap-1 text-gray-500">
+                  <Users size={14} />
+                  {(reviewCount * 14).toLocaleString()} students
+                </span>
 
-              {/* Hours */}
-              {hours && (
-                <div className="px-5 py-4">
-                  <p className="font-bold text-gray-900 text-sm mb-0.5">
+                {hours && (
+                  <span className="flex items-center gap-1 text-gray-500">
+                    <Clock size={14} />
                     {hours} hours
-                  </p>
-                  <p className="text-xs text-gray-500">Estimated duration</p>
-                </div>
-              )}
+                  </span>
+                )}
 
-              {/* Schedule */}
-              <div className="px-5 py-4">
-                <p className="font-bold text-gray-900 text-sm mb-0.5">
-                  Flexible
-                </p>
-                <p className="text-xs text-gray-500">Learn at your own pace</p>
+                {course.level && (
+                  <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
+                    {course.level}
+                  </span>
+                )}
               </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -514,34 +584,23 @@ export default function StudentCourseDetailPage() {
                   </div>
                 )}
 
-                {/* Outcomes */}
+                {/* ── Outcomes ── */}
                 {activeTab === "outcomes" && (
-                  <div className="space-y-4">
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Target size={16} className="text-emerald-500" />
-                        <h2 className="text-base font-bold text-gray-900">
-                          What you'll learn
-                        </h2>
+                  <div>
+                  <h2 className="text-lg font-bold text-gray-900 mb-4">
+                    What you'll learn
+                  </h2>
+                  <div className="grid sm:grid-cols-2 gap-3 mb-6">
+                    {LEARNING_OUTCOMES.map((outcome, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <CheckCircle
+                          size={16}
+                          className="text-green-500 shrink-0 mt-0.5"
+                        />
+                        <span className="text-sm text-gray-700">{outcome}</span>
                       </div>
-                      <div className="grid sm:grid-cols-2 gap-2.5">
-                        {objectives.length === 0 ? (
-                          <p className="text-sm text-gray-500">No outcomes available.</p>
-                        ) : (
-                          objectives.map((obj) => (
-                            <div key={obj.id} className="flex items-start gap-3">
-                              <CheckCircle
-                                size={16}
-                                className="text-green-500 shrink-0 mt-0.5"
-                              />
-                              <span className="text-sm text-gray-700">
-                                {obj.description}
-                              </span>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
+                    ))}
+                  </div>
                     <div className="p-5 bg-linear-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-start gap-4 text-white shadow-md">
                       <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                         <Award size={20} className="text-white" />
@@ -623,231 +682,147 @@ export default function StudentCourseDetailPage() {
                   </div>
                 )}
 
-                {/* Reviews */}
+                {/* ── Reviews ── */}
                 {activeTab === "reviews" && (
-                  <div className="space-y-4">
-                    {/* Rating overview */}
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                      <div className="flex items-center gap-2 mb-5">
-                        <MessageSquare size={16} className="text-yellow-500" />
-                        <h2 className="text-base font-bold text-gray-900">
-                          Student Reviews
-                        </h2>
+                <div className="space-y-8">
+                  {/* ─── FORM GỬI ĐÁNH GIÁ ─── */}
+                  <div className="bg-slate-50 p-6 rounded-lg border">
+                    <h4 className="font-semibold mb-4">Để lại đánh giá của bạn</h4>
+                    <div className="mb-4">
+                      <InteractiveStarRating rating={rating} setRating={setRating} />
+                    </div>
+                    <Textarea 
+                      placeholder="Khóa học này như thế nào? Giảng viên dạy dễ hiểu không?" 
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      className="mb-4"
+                      rows={3}
+                    />
+                    <Button 
+                      onClick={handleSubmitFeedback} 
+                      disabled={submitMutation.isPending}
+                    >
+                      {submitMutation.isPending ? 'Đang gửi...' : 'Gửi Đánh Giá'}
+                    </Button>
+                  </div>
+
+                  {/* ─── THỐNG KÊ ĐÁNH GIÁ ─── */}
+                  {avgRating > 0 && (
+                    <div className="flex items-center gap-6 p-5 bg-gray-50 rounded-xl border border-gray-100">
+                      <div className="text-center shrink-0">
+                        <div className="text-4xl font-bold text-gray-900">
+                          {avgRating.toFixed(1)}
+                        </div>
+                        <StarRating rating={Math.round(avgRating)} />
+                        <div className="text-xs text-gray-400 mt-1">
+                          Course Rating
+                        </div>
                       </div>
-                      <div className="flex items-center gap-8">
-                        <div className="text-center shrink-0 w-24">
-                          <div className="text-5xl font-extrabold text-gray-900 leading-none mb-2">
-                            {avgRating}
-                          </div>
-                          <StarRating
-                            rating={Math.round(avgRating)}
-                            size={15}
-                          />
-                          <div className="text-xs text-gray-400 mt-1.5">
-                            Course Rating
-                          </div>
-                        </div>
-                        <div className="flex-1 space-y-1.5">
-                          {[5, 4, 3, 2, 1].map((star) => {
-                            const pct =
-                              star === 5
-                                ? 68
-                                : star === 4
-                                  ? 22
-                                  : star === 3
-                                    ? 6
-                                    : star === 2
-                                      ? 3
-                                      : 1;
-                            return (
-                              <div
-                                key={star}
-                                className="flex items-center gap-2.5"
-                              >
-                                <span className="text-xs text-gray-500 w-3 text-right shrink-0">
-                                  {star}
-                                </span>
-                                <Star
-                                  size={10}
-                                  className="text-yellow-400 fill-yellow-400 shrink-0"
+                      <div className="flex-1">
+                        {[5, 4, 3, 2, 1].map((star) => {
+                          const count = feedbacks.filter((f: any) => f.rating === star).length;
+                          const pct = feedbacks.length > 0 ? Math.round((count / feedbacks.length) * 100) : 0;
+                          return (
+                            <div
+                              key={star}
+                              className="flex items-center gap-2 mb-1"
+                            >
+                              <span className="text-xs text-gray-500 w-3">
+                                {star}
+                              </span>
+                              <Star
+                                size={10}
+                                className="text-yellow-400 fill-yellow-400"
+                              />
+                              <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                                <div
+                                  className="bg-yellow-400 h-1.5 rounded-full"
+                                  style={{ width: `${pct}%` }}
                                 />
-                                <div className="flex-1 bg-gray-100 rounded-full h-1.5">
-                                  <div
-                                    className="bg-yellow-400 h-1.5 rounded-full transition-all"
-                                    style={{ width: `${pct}%` }}
-                                  />
-                                </div>
-                                <span className="text-xs text-gray-400 w-7 text-right shrink-0">
-                                  {pct}%
-                                </span>
                               </div>
-                            );
-                          })}
-                        </div>
+                              <span className="text-xs text-gray-400 w-8">
+                                {pct}%
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
+                  )}
 
-                    {/* Review cards */}
-                    <div className="space-y-3">
-                      {MOCK_REVIEWS.map((review, i) => (
-                        <div
-                          key={i}
-                          className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5"
-                        >
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-linear-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
-                                {review.name[0]}
+                  {/* ─── DANH SÁCH ĐÁNH GIÁ ─── */}
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 mb-4">
+                      Learner Reviews
+                    </h2>
+                    {feedbackLoading ? (
+                      <div className="flex items-center justify-center py-8 text-gray-400">
+                        <Loader2 className="animate-spin mr-2" size={20} />
+                        Đang tải đánh giá...
+                      </div>
+                    ) : feedbacks.length === 0 ? (
+                      <p className="text-gray-500 italic py-8 text-center">
+                        Chưa có đánh giá nào cho khóa học này. Hãy là người đầu tiên đánh giá!
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {feedbacks.map((feedback: any) => (
+                          <div
+                            key={feedback.id}
+                            className="border border-gray-100 rounded-xl p-4 bg-white"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="w-8 h-8">
+                                  <AvatarFallback className="bg-linear-to-br from-blue-400 to-indigo-500 text-white text-xs font-bold">
+                                    {feedback.studentName?.charAt(0) || 'U'}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-semibold text-sm text-gray-900">
+                                    {feedback.studentName || 'Học viên ẩn danh'}
+                                  </div>
+                                  <div className="text-xs text-gray-400">
+                                    {feedback.createdAt ? new Date(feedback.createdAt).toLocaleDateString('vi-VN') : ''}
+                                  </div>
+                                </div>
                               </div>
-                              <div>
-                                <div className="font-semibold text-sm text-gray-900">
-                                  {review.name}
-                                </div>
-                                <div className="text-xs text-gray-400">
-                                  {review.date}
-                                </div>
+                              <div className="flex items-center gap-2">
+                                <StarRating rating={feedback.rating} />
+                                {isOwnFeedback(feedback) && (
+                                  <div className="flex gap-1 ml-2">
+                                    <button
+                                      onClick={() => handleEditFeedback(feedback)}
+                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                      title="Sửa đánh giá"
+                                    >
+                                      <Edit2 size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteFeedback(feedback.id)}
+                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                      title="Xóa đánh giá"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             </div>
-                            <StarRating rating={review.rating} />
+                            {feedback.comment && (
+                              <p className="text-sm text-gray-600 leading-relaxed">
+                                {feedback.comment}
+                              </p>
+                            )}
                           </div>
-                          <p className="text-sm text-gray-600 leading-relaxed">
-                            {review.comment}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              {/* animate-in */}
-            </div>
-            {/* flex-1 left col */}
-
-            {/* ── Right: Sidebar ─────────────────────────────────────── */}
-            <div className="lg:w-72 xl:w-80 shrink-0 space-y-4 lg:sticky lg:top-6">
-              {/* CTA card */}
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="bg-linear-to-br from-blue-600 to-indigo-600 px-5 py-4">
-                  <p className="text-white font-bold text-base mb-0.5">
-                    Ready to start?
-                  </p>
-                  <p className="text-blue-100 text-xs">
-                    Join thousands of learners today
-                  </p>
-                </div>
-                <div className="p-5">
-                  <button
-                    onClick={() =>
-                      isEnrolled
-                        ? navigate(`/learn/${id}`)
-                        : setShowEnrollModal(true)
-                    }
-                    className={`w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm ${isEnrolled
-                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                      : "bg-blue-700 hover:bg-blue-800 text-white"
-                      }`}
-                  >
-                    {isEnrolled ? (
-                      <>
-                        <Play size={14} /> Continue Learning
-                      </>
-                    ) : (
-                      <>
-                        <Play size={14} /> Go To Course
-                      </>
+                        ))}
+                      </div>
                     )}
-                  </button>
-                  <p className="text-center text-xs text-gray-400 mt-2">
-                    {studentCount.toLocaleString()} already enrolled
-                  </p>
-                </div>
-              </div>
-
-              {/* Course includes */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                <p className="font-bold text-sm text-gray-900 mb-3">
-                  This course includes
-                </p>
-                <ul className="space-y-2.5">
-                  {[
-                    {
-                      icon: <Play size={14} className="text-blue-500" />,
-                      label: "On-demand video lectures",
-                    },
-                    {
-                      icon: <FileText size={14} className="text-indigo-500" />,
-                      label: "Downloadable resources",
-                    },
-                    {
-                      icon: <BookOpen size={14} className="text-emerald-500" />,
-                      label: "Practical exercises",
-                    },
-                    {
-                      icon: <Award size={14} className="text-yellow-500" />,
-                      label: "Certificate of completion",
-                    },
-                    {
-                      icon: <Clock size={14} className="text-gray-400" />,
-                      label: "Full lifetime access",
-                    },
-                  ].map(({ icon, label }) => (
-                    <li
-                      key={label}
-                      className="flex items-center gap-2.5 text-sm text-gray-600"
-                    >
-                      {icon}
-                      <span>{label}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Skills */}
-              {course.topic && (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                  <p className="font-bold text-sm text-gray-900 mb-3">
-                    Skills you'll gain
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      course.topic,
-                      "Problem Solving",
-                      "Best Practices",
-                      "Real-world Projects",
-                      "Collaboration",
-                    ].map((skill) => (
-                      <span
-                        key={skill}
-                        className="text-xs bg-blue-50 text-blue-700 border border-blue-100 font-medium px-2.5 py-1 rounded-full"
-                      >
-                        {skill}
-                      </span>
-                    ))}
                   </div>
-                </div>
+               </div>
               )}
-
-              {/* Instructor mini card */}
-              {course.trainerName && (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                  <p className="font-bold text-sm text-gray-900 mb-3">
-                    Your instructor
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-linear-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-base shrink-0">
-                      {course.trainerName[0]}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm text-gray-900">
-                        {course.trainerName}
-                      </p>
-                      <p className="text-xs text-gray-400">Course Instructor</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
-            {/* sidebar */}
           </div>
           {/* flex-row */}
         </div>
@@ -861,6 +836,109 @@ export default function StudentCourseDetailPage() {
           onClose={() => setShowEnrollModal(false)}
           onEnrolled={handleEnrolled}
         />
+      )}
+
+      {/* Edit Feedback Modal */}
+      {showEditModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          onClick={() => setShowEditModal(false)}
+        >
+          <div
+            className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-linear-to-r from-blue-600 to-blue-500 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-white font-bold text-lg">Chỉnh sửa đánh giá</h2>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-white/80 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                  Đánh giá của bạn
+                </label>
+                <InteractiveStarRating rating={editRating} setRating={setEditRating} />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                  Nhận xét
+                </label>
+                <Textarea 
+                  placeholder="Chia sẻ trải nghiệm của bạn..." 
+                  value={editComment}
+                  onChange={(e) => setEditComment(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1"
+                >
+                  Hủy
+                </Button>
+                <Button 
+                  onClick={handleUpdateFeedback} 
+                  disabled={updateMutation.isPending}
+                  className="flex-1"
+                >
+                  {updateMutation.isPending ? 'Đang cập nhật...' : 'Cập nhật'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {showDeleteConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <div
+            className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-linear-to-r from-red-600 to-red-500 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-white font-bold text-lg">Xác nhận xóa</h2>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="text-white/80 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-5">
+              <p className="text-gray-600">
+                Bạn có chắc chắn muốn xóa đánh giá này? Hành động này không thể hoàn tác.
+              </p>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1"
+                >
+                  Hủy
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={confirmDelete} 
+                  disabled={deleteMutation.isPending}
+                  className="flex-1"
+                >
+                  {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </StudentLayout>
   );
