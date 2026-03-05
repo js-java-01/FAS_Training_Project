@@ -34,26 +34,26 @@ export function TopicCreateModal({ open, onClose, onSuccess, topic }: Props) {
   });
 
   useEffect(() => {
-    if (open) { 
-        if (topic) {
+    if (open) {
+      if (topic) {
         reset({
-            topicName: topic.topicName,
-            topicCode: topic.topicCode,
-            level: topic.level ?? "BEGINNER",
-            status: topic.status ?? "DRAFT",
-            description: topic.description,
+          topicName: topic.topicName,
+          topicCode: topic.topicCode,
+          level: topic.level ?? "BEGINNER",
+          status: topic.status ?? "DRAFT",
+          description: topic.description,
         });
-    } else {
+      } else {
         reset({
-            topicName: "",
-            topicCode: "",
-            level: "BEGINNER",
-            status: "DRAFT",
-            description: "",
+          topicName: "",
+          topicCode: "",
+          level: "BEGINNER",
+          status: "DRAFT",
+          description: "",
         });
-        }
+      }
     }
-    }, [topic, open, reset]);
+  }, [topic, open, reset]);
 
   if (!open) return null;
 
@@ -100,12 +100,12 @@ export function TopicCreateModal({ open, onClose, onSuccess, topic }: Props) {
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <Input icon={<FiBookOpen />} label="Topic Name *" error={errors.topicName?.message} {...register("topicName", { required: "Required" })} />
           <Input icon={<FiHash />} label="Topic Code *" error={errors.topicCode?.message} disabled={isEdit} {...register("topicCode", { required: "Required" })} />
-          <Select
+          {/* <Select
             icon={<FiLayers />}
             label="Level"
             options={TOPIC_LEVELS.map((level) => ({ value: level, label: TOPIC_LEVEL_LABELS[level] }))}
             {...register("level")}
-          />
+          /> */}
 
           {isEdit && (
             <Select

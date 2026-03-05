@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react"
 import { ClassCard } from "./component/ClassCard"
 import { useGetMyClasses } from "./service/queries"
 import { encodeRouteId } from "@/utils/routeIdCodec";
+import { useNavigate } from "react-router-dom";
 
 
 
