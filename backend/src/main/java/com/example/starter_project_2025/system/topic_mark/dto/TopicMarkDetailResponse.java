@@ -30,7 +30,7 @@ public class TopicMarkDetailResponse {
     @Schema(description = "Individual column scores grouped by assessment type")
     private List<AssessmentTypeSection> sections;
 
-    @Schema(description = "Computed final score (null if not all columns are filled)", nullable = true, example = "85.5")
+    @Schema(description = "Computed final score (null if any active column is missing score or missing topic weight config)", nullable = true, example = "8.55")
     private Double finalScore;
 
     @Schema(description = "Whether the student passed", example = "true")
@@ -54,13 +54,10 @@ public class TopicMarkDetailResponse {
         @Schema(description = "Assessment type name", example = "Quiz")
         private String assessmentTypeName;
 
-        @Schema(description = "Weight in final score calculation", example = "0.3")
+        @Schema(description = "Total weight (%) of this assessment type in final score calculation", example = "30")
         private Double weight;
 
-        @Schema(description = "Grading method applied across columns in this section", example = "HIGHEST")
-        private String gradingMethod;
-
-        @Schema(description = "Computed score for this section (via gradingMethod on column scores), null if any column is missing")
+        @Schema(description = "Computed score for this section, null if any column is missing")
         private Double sectionScore;
 
         @Schema(description = "Individual column scores")

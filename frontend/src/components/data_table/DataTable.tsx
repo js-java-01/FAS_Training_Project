@@ -258,23 +258,20 @@ export function DataTable<TData, TValue>({
             "flex gap-2 w-full flex-col lg:flex-row items-center"
           )}
         >
-          {/* Row 1: Columns + Search */}
-          <div className="flex flex-col lg:flex-row justify-start items-center gap-2">
-            {isSearch && (
-              <div className="relative w-full lg:w-[420px]">
-                <Search
-                  size={16}
-                  className="absolute text-gray-500 top-[10px] left-2"
-                />
-                <Input
-                  placeholder="Search value..."
-                  value={searchText}
-                  onChange={(e) => handleSearchInput(e.target.value)}
-                  className="pl-8 w-full"
-                />
-              </div>
-            )}
-          </div>
+          {isSearch && (
+            <div className="relative w-full lg:w-[420px]">
+              <Search
+                size={16}
+                className="absolute text-gray-500 top-[10px] left-2"
+              />
+              <Input
+                placeholder="Search value..."
+                value={searchText}
+                onChange={(e) => handleSearchInput(e.target.value)}
+                className="pl-8 w-full"
+              />
+            </div>
+          )}
 
           {/* Faceted filters */}
           {facetedFilters && (

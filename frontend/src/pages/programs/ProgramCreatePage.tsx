@@ -82,7 +82,11 @@ export default function ProgramCreatePage() {
     const nextErrors: Partial<FormState> = {};
 
     if (!form.name.trim()) nextErrors.name = "Program name is required";
-    if (!form.version.trim()) nextErrors.version = "Version is required";
+    if (!form.version.trim()) {
+      nextErrors.version = "Version is required";
+    } else if (!/^\d+(\.\d+)*$/.test(form.version.trim())) {
+      nextErrors.version = "Version must contain only numbers and dots (e.g. 1.0, 2.0)";
+    }
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -127,8 +131,8 @@ export default function ProgramCreatePage() {
   };
 
   return (
-    <MainLayout pathName={{ programs: "Programs", new: "New" }}>
-      <div className="mx-auto w-full max-w-7xl py-6 space-y-6">
+    <MainLayout pathName={{ programs: "Training Programs", new: "Create New" }}>
+      <div className="mx-auto w-full max-w-7xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Create New Training Program</h1>
           <p className="text-muted-foreground">

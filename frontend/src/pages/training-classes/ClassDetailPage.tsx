@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useGetTrainingClassById } from "./services/queries";
 import { useGetAllSemesters } from "../semesters/services/queries/useSemesters";
+import { useGetAllTrainingPrograms } from "../programs/services/queries";
 import { trainingClassApi } from "@/api/trainingClassApi";
 import { trainingClassKeys } from "./keys";
 import type { TrainingClass } from "@/types/trainingClass";
@@ -39,7 +40,8 @@ const buildFormData = (tc: TrainingClass): ClassInfoFormData => ({
     description: tc.description ?? "",
     startDate: tc.startDate ? tc.startDate.slice(0, 10) : "",
     endDate: tc.endDate ? tc.endDate.slice(0, 10) : "",
-    semesterId: "",
+    semesterId: tc.semesterId ?? "",
+    trainingProgramId: tc.trainingProgramId ?? "",
 });
 
 const validateForm = (data: ClassInfoFormData): Record<string, string> => {
@@ -104,7 +106,7 @@ export default function ClassDetailPage() {
     const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["value"]>("class-info");
     const [formData, setFormData] = useState<ClassInfoFormData>(() =>
         trainingClass ? buildFormData(trainingClass) : {
-            className: "", classCode: "", description: "", startDate: "", endDate: "", semesterId: "",
+            className: "", classCode: "", description: "", startDate: "", endDate: "", semesterId: "", trainingProgramId: "",
         },
     );
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -120,6 +122,12 @@ export default function ClassDetailPage() {
     role,
   );
         const semesters = semestersData?.items ?? [];
+
+    const { data: trainingProgramsData, isLoading: loadingTrainingPrograms } = useGetAllTrainingPrograms({
+        page: 0,
+        pageSize: 100,
+    });
+    const trainingPrograms = trainingProgramsData?.items ?? [];
 
     const handleEdit = useCallback(() => {
         if (!canEditClass) return;
@@ -170,6 +178,7 @@ export default function ClassDetailPage() {
                 startDate: formData.startDate,
                 endDate: formData.endDate,
                 semesterId: formData.semesterId || undefined,
+                trainingProgramId: formData.trainingProgramId || undefined,
             });
             toast.success("Class updated successfully");
             await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(decodedClassId) });
@@ -228,7 +237,7 @@ export default function ClassDetailPage() {
                     {/* ── Page Title Row ── */}
                     <div className="flex items-start justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold tracking-tight">Classes</h1>
+                            <h1 className="text-2xl font-bold tracking-tight">Classes Detail</h1>
                             <p className="text-sm text-muted-foreground">
                                 Classes details and configuration
                             </p>
@@ -290,7 +299,9 @@ export default function ClassDetailPage() {
                         <span className="font-mono text-sm text-muted-foreground">
                             {trainingClass.classCode}
                         </span>
-                        <Badge variant="secondary">Class: {classStatus}</Badge>
+                        {requestStatus === "Approved" && (
+                            <Badge variant="secondary">Class: {classStatus}</Badge>
+                        )}
                         <Badge variant="secondary">Request: {requestStatus}</Badge>
                     </div>
 
@@ -314,6 +325,8 @@ export default function ClassDetailPage() {
                                 errors={formErrors}
                                 semesters={semesters}
                                 loadingSemesters={loadingSemesters}
+                                trainingPrograms={trainingPrograms}
+                                loadingTrainingPrograms={loadingTrainingPrograms}
                                 enrollmentKey={trainingClass.enrollmentKey}
                             />
                         </TabsContent>

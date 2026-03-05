@@ -50,6 +50,20 @@ export const buildGradebookColumns = (
         title: "Student Email",
       },
     }),
+    columnHelper.accessor("topic", {
+      size: 220,
+      header: (info) => (
+        <SortHeader info={info} title="Topic" />
+      ),
+      cell: (info) => (
+        <span>
+          {info.getValue() || "-"}
+        </span>
+      ),
+      meta: {
+        title: "Topic",
+      },
+    }),
   ]
 
   const dynamicColumns = metaColumns.map((col) =>
@@ -70,10 +84,11 @@ export const buildGradebookColumns = (
         ),
         cell: (info) => {
           const value = info.getValue()
+          const isMetaColumn = col.key === "FINAL_SCORE" || col.key === "IS_PASSED"
 
           if (
-            col.weight != null &&
             isEditing &&
+            !isMetaColumn &&
             value !== true &&
             value !== false
           ) {

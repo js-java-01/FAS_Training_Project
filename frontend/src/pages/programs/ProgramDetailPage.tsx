@@ -45,10 +45,14 @@ const buildFormData = (program: TrainingProgram): ProgramFormData => ({
   description: program.description ?? "",
 });
 
-const validateForm = (data: ProgramFormData): Record<string, string> => {
+const validateForm = (data: ProgramFormData) => {
   const errs: Record<string, string> = {};
   if (!data.name.trim()) errs.name = "Program name is required";
-  if (!data.version.trim()) errs.version = "Version is required";
+  if (!data.version.trim()) {
+    errs.version = "Version is required";
+  } else if (!/^\d+(\.\d+)*$/.test(data.version.trim())) {
+    errs.version = "Version must contain only numbers and dots (e.g. 1.0, 2.0)";
+  }
   return errs;
 };
 
@@ -132,7 +136,7 @@ export default function ProgramDetailPage() {
 
   return (
     <MainLayout pathName={id ? { programs: "Programs", [id]: data?.name ?? "Detail" } : { programs: "Programs" }}>
-      <div className="mx-auto w-full max-w-7xl py-6 space-y-5">
+      <div className="mx-auto w-full max-w-7xl space-y-5">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Programs</h1>

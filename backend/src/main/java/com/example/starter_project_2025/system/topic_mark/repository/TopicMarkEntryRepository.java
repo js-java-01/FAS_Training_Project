@@ -46,7 +46,7 @@ public interface TopicMarkEntryRepository extends JpaRepository<TopicMarkEntry, 
     long countNullEntriesForUser(@Param("courseClassId") UUID courseClassId,
                                  @Param("userId") UUID userId);
 
-    /** Get all entries grouped by column for GradingMethod computation. */
+    /** Get all entries grouped by column for section-score computation. */
     @Query("""
         SELECT e FROM TopicMarkEntry e
         JOIN FETCH e.topicMarkColumn col
