@@ -193,7 +193,6 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
         Topic topic = Topic.builder()
                 .topicName((course.getCourseName() != null ? course.getCourseName() : "Course") + " Topic")
                 .topicCode(topicCode)
-                .level(TopicLevel.BEGINNER)
                 .status(TopicStatus.ACTIVE)
                 .description("Auto-created by TopicMarkDataInitializer")
                 .creator(createdBy)

@@ -6,13 +6,17 @@ import { assessmentTypeApi } from "@/api/assessmentTypeApi";
 import { topicAssessmentTypeWeightApi } from "@/api/topicAssessmentTypeWeightApi";
 import { toast } from "sonner";
 import { FiEdit, FiX } from "react-icons/fi";
+import { useSelector } from "react-redux";
 import { AssessmentSchemeTab } from "./topic-detail/AssessmentSchemeTab";
 import { CoursesTab } from "./topic-detail/CoursesTab";
 import { OverviewTab } from "./topic-detail/OverviewTab";
 import { tabs } from "./topic-detail/shared";
 import type { SchemeItem, TopicDetailTab } from "./topic-detail/shared";
+import type { RootState } from "@/store/store";
 
 export function TopicDetail({ topic, onBack, onRefresh }: any) {
+  const { role } = useSelector((state: RootState) => state.auth);
+  const isStudentRole = role === "STUDENT";
   const [activeTab, setActiveTab] = useState<TopicDetailTab>("Overview");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -145,6 +149,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
   };
 
   const saveAssessmentScheme = async () => {
+    if (isStudentRole) return;
     if (!topic?.id) return;
 
     if (schemeItems.some((item) => !item.assessmentTypeId)) {
@@ -184,6 +189,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
   };
 
   const startEdit = () => {
+    if (isStudentRole) return;
     reset({
       topicName: topic.topicName,
       topicCode: topic.topicCode,
@@ -244,7 +250,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
           ))}
         </div>
 
-        {activeTab === "Overview" && (
+        {activeTab === "Overview" && !isStudentRole && (
           <button
             onClick={isEditing ? () => setIsEditing(false) : startEdit}
             className="flex items-center text-sm gap-2 mb-2 bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 transition-colors"
@@ -281,6 +287,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
           updateSchemeWeight={updateSchemeWeight}
           removeSchemeItem={removeSchemeItem}
           saveAssessmentScheme={saveAssessmentScheme}
+          canEdit={!isStudentRole}
         />
       )}
 
