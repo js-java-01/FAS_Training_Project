@@ -1,7 +1,6 @@
 package com.example.starter_project_2025.system.topic.repository;
 
 import com.example.starter_project_2025.system.topic.entity.Topic;
-import com.example.starter_project_2025.system.topic.enums.TopicLevel;
 import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,4 +32,13 @@ public interface TopicRepository extends JpaRepository<Topic, UUID>, JpaSpecific
     Topic findByTopicName(String topicName);
 
     Set<Topic> findByTopicCodeIn(List<String> topicCodes);
+
+    @Query("SELECT DISTINCT t, tc, tp FROM Topic t " +
+            "JOIN t.trainingProgramTopics tpt " +
+            "JOIN tpt.trainingProgram tp " +
+            "JOIN tp.trainingClasses tc " +
+            "JOIN tc.enrollments e " +
+            "WHERE e.user.id = :userId " +
+            "AND (:keyword IS NULL OR LOWER(t.topicName) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Object[]> findMyTopics(UUID userId, String keyword, Pageable pageable);
 }

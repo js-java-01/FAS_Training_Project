@@ -1,6 +1,8 @@
 package com.example.starter_project_2025.system.topic.controller;
 
+import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.topic.dto.TopicCreateRequest;
+import com.example.starter_project_2025.system.topic.dto.TopicDetailResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicResponse;
 import com.example.starter_project_2025.system.topic.dto.UpdateTopicRequest;
 import com.example.starter_project_2025.system.topic.service.TopicService;
@@ -14,8 +16,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -53,6 +57,14 @@ public class TopicController
         return ResponseEntity.ok(topicService.getById(id));
     }
 
+    @GetMapping("/by-ids")
+    @PreAuthorize("hasAuthority('TOPIC_READ')")
+    @Operation(summary = "Get list of topics by their IDs")
+    public ResponseEntity<List<TopicResponse>> getByIds(@RequestParam List<UUID> ids)
+    {
+        return ResponseEntity.ok(topicService.getByIds(ids));
+    }
+
     @GetMapping()
     @PreAuthorize("hasAuthority('TOPIC_READ')")
     @Operation(summary = "Get all topics with search and filters")
@@ -72,5 +84,16 @@ public class TopicController
     {
         topicService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/my-topics")
+    @PreAuthorize("hasAuthority('TOPIC_READ')")
+    @Operation(summary = "Get topics created by current user")
+    public ResponseEntity<Page<TopicDetailResponse>> getMyTopics(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(page = 0, size = 10) Pageable pageable)
+    {
+        return ResponseEntity.ok(topicService.getMyTopics(userDetails.getId(), keyword, pageable));
     }
 }
