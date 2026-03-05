@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Users } from "lucide-react";
+import { Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -64,7 +64,7 @@ export function SkillGroupForm({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-blue-500" />
+            <Layers className="h-4 w-4 text-blue-500" />
             Create Skill Group
           </DialogTitle>
         </DialogHeader>

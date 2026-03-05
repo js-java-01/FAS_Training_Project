@@ -60,10 +60,10 @@ export default function SkillTable() {
   const columns = useMemo(() => getSkillColumns({ onDelete: setDeleting }), []);
 
   /* ── group options for FacetedFilter ───────────────────── */
-  const groupOptions = useMemo(
-    () => groups.map((g) => ({ value: g.name, label: g.name })),
-    [groups],
-  );
+  const groupOptions = useMemo(() => {
+    const unique = [...new Set(skills.map((s) => s.groupName).filter(Boolean))];
+    return unique.map((name) => ({ value: name, label: name }));
+  }, [skills]);
 
   /* ── render ────────────────────────────────────────────── */
   return (

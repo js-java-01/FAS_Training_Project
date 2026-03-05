@@ -58,8 +58,8 @@ export default function RoleTable() {
   const isSuperAdmin = activeRole?.name === ROLES.SUPER_ADMIN;
   const canCreate = hasPermission("ROLE_CREATE") && isSuperAdmin;
   const canUpdate = hasPermission("ROLE_UPDATE") && isSuperAdmin;
-  const canImport = hasPermission("ROLE_IMPORT") && isSuperAdmin;
-  const canExport = hasPermission("ROLE_EXPORT") && isSuperAdmin;
+  const canImport = isSuperAdmin;
+  const canExport = isSuperAdmin;
 
   /* ---------- search + filter ---------- */
   const [searchValue, setSearchValue] = useState("");
@@ -69,7 +69,7 @@ export default function RoleTable() {
     statusFilter.length === 1 ? statusFilter[0] === "ACTIVE" : undefined;
 
   /* ---------- sort param ---------- */
-  const sortParam = useSortParam(sorting, "name,asc")
+  const sortParam = useSortParam(sorting, "name,asc");
 
   /* ---------- query ---------- */
   const {
@@ -237,7 +237,7 @@ export default function RoleTable() {
                 </Button>
               )}
             </div>
-       )
+          )
         }
         facetedFilters={
           <div>

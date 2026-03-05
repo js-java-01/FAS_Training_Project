@@ -113,6 +113,7 @@ public class DataInitializer implements CommandLineRunner {
         private final TopicInitializer topicInitializer;
         private final AssessmentTypeInitializer assessmentTypeInitializer;
         private final SkillInitializer skillInitializer;
+        private final CourseInitializer courseInitializer;
 
         @Override
         public void run(String... args) {
@@ -156,6 +157,7 @@ public class DataInitializer implements CommandLineRunner {
 
                 initializeEnrollments();
                 topicInitializer.init();
+                courseInitializer.init();
                 skillInitializer.init();
         }
 

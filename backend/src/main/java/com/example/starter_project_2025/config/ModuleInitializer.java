@@ -134,7 +134,7 @@ public class ModuleInitializer {
                                                 "TOPIC_READ",
                                                 "Manage training skills"),
 
-                                createModule(trainingGroup, "Skill Groups", "/skillGroups", "users", 9,
+                                createModule(trainingGroup, "Skill Groups", "/skillGroups", "layers", 9,
                                                 "TOPIC_READ",
                                                 "Manage skill groups")));
 
