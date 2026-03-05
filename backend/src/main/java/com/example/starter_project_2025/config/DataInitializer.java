@@ -409,76 +409,67 @@ public class DataInitializer implements CommandLineRunner
 //        }
     //}
 
-    private void initializeAssessments()
-    {
+    private void initializeAssessments() {
 
-        if (assessmentRepository.count() > 0)
-        {
+        if (assessmentRepository.count() > 0) {
             return;
         }
 
         AssessmentType entranceType = assessmentTypeRepository
                 .findByName("Entrance Quiz")
-                .orElseThrow(() -> new RuntimeException("AssessmentType 'Entrance Quiz' not found"));
+                .orElseThrow();
 
         AssessmentType midtermType = assessmentTypeRepository
                 .findByName("Midterm Test")
-                .orElseThrow(() -> new RuntimeException("AssessmentType 'Midterm Test' not found"));
+                .orElseThrow();
 
         AssessmentType finalType = assessmentTypeRepository
                 .findByName("Final Exam")
-                .orElseThrow(() -> new RuntimeException("AssessmentType 'Final Exam' not found"));
+                .orElseThrow();
 
-        Assessment entranceAssessment = new Assessment();
-        entranceAssessment.setAssessmentType(entranceType);
-        entranceAssessment.setCode("JAVA_ENTRANCE_2025");
-        entranceAssessment.setTitle("Java Entrance Quiz 2025");
-        entranceAssessment.setDescription("Entrance assessment for Java trainees");
-        entranceAssessment.setTotalScore(100);
-        entranceAssessment.setPassScore(60);
-        entranceAssessment.setTimeLimitMinutes(60);
-        entranceAssessment.setAttemptLimit(1);
-        entranceAssessment.setIsShuffleQuestion(true);
-        entranceAssessment.setIsShuffleOption(true);
-        entranceAssessment.setStatus(AssessmentStatus.ACTIVE);
+        Assessment entrance = new Assessment();
+        entrance.setAssessmentType(entranceType);
+        entrance.setCode("JAVA_ENTRANCE_2025");
+        entrance.setTitle("Java Entrance Quiz");
+        entrance.setDescription("Entrance test for Java trainees");
+        entrance.setTotalScore(100);
+        entrance.setPassScore(60);
+        entrance.setTimeLimitMinutes(60);
+        entrance.setAttemptLimit(1);
+        entrance.setIsShuffleQuestion(true);
+        entrance.setIsShuffleOption(true);
+        entrance.setStatus(AssessmentStatus.ACTIVE);
 
-        Assessment midtermAssessment = new Assessment();
-        midtermAssessment.setAssessmentType(midtermType);
-        midtermAssessment.setCode("JAVA_MIDTERM_2025");
-        midtermAssessment.setTitle("Java Midterm Test 2025");
-        midtermAssessment.setDescription("Midterm evaluation for Java course");
-        midtermAssessment.setTotalScore(100);
-        midtermAssessment.setPassScore(50);
-        midtermAssessment.setTimeLimitMinutes(90);
-        midtermAssessment.setAttemptLimit(1);
-        midtermAssessment.setIsShuffleQuestion(false);
-        midtermAssessment.setIsShuffleOption(false);
-        midtermAssessment.setStatus(AssessmentStatus.ACTIVE);
+        Assessment midterm = new Assessment();
+        midterm.setAssessmentType(midtermType);
+        midterm.setCode("JAVA_MIDTERM_2025");
+        midterm.setTitle("Java Midterm Test");
+        midterm.setDescription("Midterm evaluation");
+        midterm.setTotalScore(100);
+        midterm.setPassScore(50);
+        midterm.setTimeLimitMinutes(90);
+        midterm.setAttemptLimit(1);
+        midterm.setStatus(AssessmentStatus.ACTIVE);
 
-        Assessment finalAssessment = new Assessment();
-        finalAssessment.setAssessmentType(finalType);
-        finalAssessment.setCode("JAVA_FINAL_2025");
-        finalAssessment.setTitle("Java Final Exam 2025");
-        finalAssessment.setDescription("Final assessment for Java course");
-        finalAssessment.setTotalScore(100);
-        finalAssessment.setPassScore(60);
-        finalAssessment.setTimeLimitMinutes(120);
-        finalAssessment.setAttemptLimit(1);
-        finalAssessment.setIsShuffleQuestion(false);
-        finalAssessment.setIsShuffleOption(false);
-        finalAssessment.setStatus(AssessmentStatus.ACTIVE);
+        Assessment finalExam = new Assessment();
+        finalExam.setAssessmentType(finalType);
+        finalExam.setCode("JAVA_FINAL_2025");
+        finalExam.setTitle("Java Final Exam");
+        finalExam.setDescription("Final evaluation");
+        finalExam.setTotalScore(100);
+        finalExam.setPassScore(60);
+        finalExam.setTimeLimitMinutes(120);
+        finalExam.setAttemptLimit(1);
+        finalExam.setStatus(AssessmentStatus.ACTIVE);
 
-        assessmentRepository.saveAll(
-                List.of(entranceAssessment, midtermAssessment, finalAssessment));
+        assessmentRepository.saveAll(List.of(entrance, midterm, finalExam));
 
-        log.info("Initialized {} assessments", 3);
+        log.info("Initialized 3 assessments");
     }
 
-    private void initializeQuestionCategories()
-    {
+    private void initializeQuestionCategories() {
 
-        if (questionCategoryRepository.count() > 0)
-        {
+        if (questionCategoryRepository.count() > 0) {
             return;
         }
 
@@ -488,15 +479,80 @@ public class DataInitializer implements CommandLineRunner
 
         QuestionCategory oop = new QuestionCategory();
         oop.setName("OOP");
-        oop.setDescription("Object-oriented programming concepts");
+        oop.setDescription("Object oriented programming");
 
         QuestionCategory sql = new QuestionCategory();
         sql.setName("SQL");
-        sql.setDescription("Database and SQL knowledge");
+        sql.setDescription("Database knowledge");
 
         questionCategoryRepository.saveAll(List.of(javaCore, oop, sql));
 
-        log.info("Initialized {} question categories", 3);
+        log.info("Initialized question categories");
+    }
+
+    private void linkQuestionsToAssessments() {
+
+        if (assessmentQuestionRepository.count() > 0) {
+            return;
+        }
+
+        List<Assessment> assessments = assessmentRepository.findAll();
+        List<Question> questions = questionRepository.findAll();
+
+        if (assessments.isEmpty() || questions.isEmpty()) {
+            log.warn("Cannot link questions to assessments - missing data");
+            return;
+        }
+
+        Assessment entrance = assessments.stream()
+                .filter(a -> a.getCode().equals("JAVA_ENTRANCE_2025"))
+                .findFirst()
+                .orElse(null);
+
+        Assessment midterm = assessments.stream()
+                .filter(a -> a.getCode().equals("JAVA_MIDTERM_2025"))
+                .findFirst()
+                .orElse(null);
+
+        Assessment finalExam = assessments.stream()
+                .filter(a -> a.getCode().equals("JAVA_FINAL_2025"))
+                .findFirst()
+                .orElse(null);
+
+        List<AssessmentQuestion> list = new ArrayList<>();
+
+        if (entrance != null) {
+            for (int i = 0; i < Math.min(4, questions.size()); i++) {
+                list.add(createAQ(entrance, questions.get(i), 10.0, i + 1));
+            }
+        }
+
+        if (midterm != null) {
+            for (int i = 2; i < Math.min(7, questions.size()); i++) {
+                list.add(createAQ(midterm, questions.get(i), 10.0, i));
+            }
+        }
+
+        if (finalExam != null) {
+            for (int i = 0; i < questions.size(); i++) {
+                list.add(createAQ(finalExam, questions.get(i), 10.0, i + 1));
+            }
+        }
+
+        assessmentQuestionRepository.saveAll(list);
+
+        log.info("Linked {} assessment questions", list.size());
+    }
+
+    private AssessmentQuestion createAQ(Assessment a, Question q, Double score, int order) {
+
+        AssessmentQuestion aq = new AssessmentQuestion();
+        aq.setAssessment(a);
+        aq.setQuestion(q);
+        aq.setScore(score);
+        aq.setOrderIndex(order);
+
+        return aq;
     }
 
     private void initializeModuleGroups()
@@ -914,80 +970,9 @@ public class DataInitializer implements CommandLineRunner
         return option;
     }
 
-    private void linkQuestionsToAssessments()
-    {
-        if (assessmentQuestionRepository.count() > 0)
-        {
-            return;
-        }
 
-        List<Assessment> assessments = assessmentRepository.findAll();
-        List<Question> questions = questionRepository.findAll();
 
-        if (assessments.isEmpty() || questions.isEmpty())
-        {
-            log.warn("Cannot link questions to assessments - missing data");
-            return;
-        }
 
-        Assessment entranceAssessment = assessments.stream()
-            .filter(a -> a.getCode().equals("JAVA_ENTRANCE_2025"))
-            .findFirst()
-            .orElse(null);
-
-        Assessment midtermAssessment = assessments.stream()
-            .filter(a -> a.getCode().equals("JAVA_MIDTERM_2025"))
-            .findFirst()
-            .orElse(null);
-
-        Assessment finalAssessment = assessments.stream()
-            .filter(a -> a.getCode().equals("JAVA_FINAL_2025"))
-            .findFirst()
-            .orElse(null);
-
-        List<AssessmentQuestion> assessmentQuestions = new ArrayList<>();
-
-        // Link first 4 questions to Entrance Assessment (40 points total)
-        if (entranceAssessment != null && questions.size() >= 4)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                assessmentQuestions.add(createAssessmentQuestion(entranceAssessment, questions.get(i), 10.0, i + 1));
-            }
-        }
-
-        // Link questions 3-7 to Midterm Assessment (50 points total)
-        if (midtermAssessment != null && questions.size() >= 7)
-        {
-            for (int i = 2; i < 7; i++)
-            {
-                assessmentQuestions.add(createAssessmentQuestion(midtermAssessment, questions.get(i), 10.0, i - 1));
-            }
-        }
-
-        // Link all 10 questions to Final Assessment (100 points total)
-        if (finalAssessment != null)
-        {
-            for (int i = 0; i < questions.size(); i++)
-            {
-                assessmentQuestions.add(createAssessmentQuestion(finalAssessment, questions.get(i), 10.0, i + 1));
-            }
-        }
-
-        assessmentQuestionRepository.saveAll(assessmentQuestions);
-
-        log.info("Linked {} questions to {} assessments", questions.size(), assessments.size());
-    }
-
-    private AssessmentQuestion createAssessmentQuestion(Assessment assessment, Question question, Double score, int order)
-    {
-        AssessmentQuestion aq = new AssessmentQuestion();
-        aq.setAssessment(assessment);
-        aq.setQuestion(question);
-        aq.setScore(score);
-        aq.setOrderIndex(order);
-        return aq;
-    }
 
     private void initializeProgrammingLanguages()
     {

@@ -93,8 +93,11 @@ public class AssessmentQuestionServiceImpl extends CrudServiceImpl<AssessmentQue
     }
 
     private void setAssessment(AssessmentQuestion entity, UUID id) {
+        System.out.println("AssessmentId = " + id);
+
         Assessment assessment = assessmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Assessment not found"));
+
         entity.setAssessment(assessment);
     }
 

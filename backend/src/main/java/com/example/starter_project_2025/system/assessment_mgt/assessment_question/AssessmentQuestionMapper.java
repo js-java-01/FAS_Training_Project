@@ -7,5 +7,19 @@ import org.mapstruct.*;
 public interface AssessmentQuestionMapper
         extends BaseCrudMapper<AssessmentQuestion, AssessmentQuestionDTO> {
 
+    @Override
+    @Mapping(target = "assessmentId", source = "assessment.id")
+    @Mapping(target = "questionId", source = "question.id")
+    AssessmentQuestionDTO toResponse(AssessmentQuestion entity);
+
+    @Override
+    @Mapping(target = "assessment", ignore = true)
+    @Mapping(target = "question", ignore = true)
+    AssessmentQuestion toEntity(AssessmentQuestionDTO dto);
+
+    @Override
+    @Mapping(target = "assessment", ignore = true)
+    @Mapping(target = "question", ignore = true)
+    void update(@MappingTarget AssessmentQuestion entity, AssessmentQuestionDTO dto);
 
 }
