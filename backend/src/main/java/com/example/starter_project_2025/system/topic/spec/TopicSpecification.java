@@ -22,8 +22,8 @@ public class TopicSpecification
             {
                 String pattern = "%" + keyword.trim().toUpperCase() + "%";
                 predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("name")), pattern),
-                        cb.like(cb.lower(root.get("code")), pattern)
+                        cb.like(cb.lower(root.get("topicName")), pattern),
+                        cb.like(cb.lower(root.get("topicCode")), pattern)
                 ));
             }
 

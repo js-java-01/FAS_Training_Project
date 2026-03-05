@@ -214,20 +214,20 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
   };
 
   return (
-    <div className="max-w-310 space-y-4">
+    <div className="w-full space-y-4 text-foreground">
       {/* HEADER */}
       <div className="flex justify-between items-start md:items-center gap-3 mb-1">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Topic Details</h1>
-          <p className="text-sm text-gray-500">View and manage topic knowledge base</p>
+          <h1 className="text-2xl font-bold">Topic Details</h1>
+          <p className="text-sm text-muted-foreground">View and manage topic knowledge base</p>
         </div>
-        <button onClick={onBack} className="text-sm text-gray-500 hover:bg-gray-100 px-3 py-1.5 rounded-md border border-gray-200">
+        <button onClick={onBack} className="text-sm text-muted-foreground hover:bg-accent px-3 py-1.5 rounded-md border border-border">
           ← Back to list
         </button>
       </div>
 
       {/* TABS SELECTOR */}
-      <div className="flex justify-between items-center border-b pb-1">
+      <div className="flex justify-between items-center border-b border-border pb-1">
         <div className="flex gap-5 overflow-x-auto pr-2">
           {tabs.map((tab) => (
             <button
@@ -235,8 +235,8 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
               onClick={() => setActiveTab(tab)}
               className={`pb-2 text-sm transition-all ${
                 activeTab === tab
-                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "border-b-2 border-primary text-primary font-medium"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {tab}
@@ -247,7 +247,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
         {activeTab === "Overview" && (
           <button
             onClick={isEditing ? () => setIsEditing(false) : startEdit}
-            className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
+            className="flex items-center text-sm gap-2 mb-2 bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 transition-colors"
           >
             {isEditing ? <><FiX /> Cancel</> : <><FiEdit /> Edit</>}
           </button>

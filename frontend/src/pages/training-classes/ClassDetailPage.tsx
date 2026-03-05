@@ -19,6 +19,7 @@ import ClassTraineesTable from "../classes/component/ClassTraineesTable";
 import type { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
 import ClassCoursesTable from "../classes/component/ClassCoursesTable";
+import ClassTopicsTable from "../classes/component/ClassTopicsTable";
 
 const TABS = [
     { value: "class-info", label: "Class Info" },
@@ -28,6 +29,7 @@ const TABS = [
     { value: "budget-operation", label: "Budget & Operation Info" },
     { value: "activities", label: "Activities" },
     { value: "course-list", label: "Course List" },
+    { value: "topic-list", label: "Topics" },
 ] as const;
 
 /* ── helpers ── */
@@ -74,7 +76,8 @@ export default function ClassDetailPage() {
     const location = useLocation();
     const queryClient = useQueryClient();
     const { role } = useSelector((state: RootState) => state.auth);
-    const canEditClass = role !== "TRAINER";
+    const readOnlyRoles = new Set(["ADMIN", "SUPER_ADMIN", "STUDENT", "TRAINER"]);
+    const canEditClass = !readOnlyRoles.has(role);
 
     /* Data passed from the table via navigate state */
     const stateClass = (location.state as { trainingClass?: TrainingClass })?.trainingClass ?? null;
@@ -323,6 +326,14 @@ export default function ClassDetailPage() {
                         <TabsContent value="course-list" className="pt-6 overflow-y-auto flex-1">
                             <ClassCoursesTable classId={trainingClass.id} />
                         </TabsContent>
+
+                        <TabsContent value="topic-list" className="pt-6 overflow-y-auto flex-1">
+                            <ClassTopicsTable
+                                classId={trainingClass.id}
+                                trainingProgramId={trainingClass.trainingProgramId}
+                            />
+                        </TabsContent>
+
                         <TabsContent value="calendar" className="pt-6 overflow-y-auto flex-1">
                             <PlaceholderTab label="Calendar" />
                         </TabsContent>

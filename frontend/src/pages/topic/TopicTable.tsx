@@ -42,7 +42,9 @@ export default function TopicTable() {
   const debouncedSearch = useDebounce(searchValue, 300);
 
   /* ---------- sort param ---------- */
-  const sortParam = useSortParam(sorting, "createdDate,desc");
+  const rawSort = useSortParam(sorting, "createdDate,desc");
+
+const sortParam = rawSort.replace("name", "topicName");
 
   /* ---------- query (Sử dụng hook useGetAllTopics) ---------- */
   const {
