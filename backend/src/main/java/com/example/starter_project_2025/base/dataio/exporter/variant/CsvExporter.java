@@ -1,8 +1,8 @@
-package com.example.starter_project_2025.system.export.exporter;
+package com.example.starter_project_2025.base.dataio.exporter.variant;
 
-import com.example.starter_project_2025.system.export.ExportFormat;
-import com.example.starter_project_2025.system.export.components.ExportColumn;
-import com.example.starter_project_2025.system.export.components.ExportSheetConfig;
+import com.example.starter_project_2025.base.dataio.common.FileFormat;
+import com.example.starter_project_2025.base.dataio.exporter.component.ExportColumn;
+import com.example.starter_project_2025.base.dataio.exporter.component.ExportSheetConfig;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -11,12 +11,12 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component("systemCsvExporter")
+@Component("baseCsvExporter")
 public class CsvExporter implements Exporter {
 
     @Override
-    public ExportFormat format() {
-        return ExportFormat.CSV;
+    public FileFormat format() {
+        return FileFormat.CSV;
     }
 
     @Override
@@ -30,16 +30,16 @@ public class CsvExporter implements Exporter {
 
         // Header
         writer.println(
-                config.getColumns().stream()
-                        .map(ExportColumn::getHeader)
+                config.columns().stream()
+                        .map(ExportColumn::header)
                         .collect(Collectors.joining(","))
         );
 
         // Data
         for (T item : data) {
-            String line = config.getColumns().stream()
+            String line = config.columns().stream()
                     .map(c -> {
-                        Object v = c.getValueExtractor().apply(item);
+                        Object v = c.valueExtractor().apply(item);
                         return v != null ? v.toString() : "";
                     })
                     .collect(Collectors.joining(","));
