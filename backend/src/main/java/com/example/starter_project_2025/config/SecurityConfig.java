@@ -56,6 +56,8 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/auth/refresh").permitAll()
                                                 .requestMatchers("/api/auth/logout").authenticated()
                                                 .requestMatchers(HttpMethod.GET, "/api/auth/my-roles").authenticated()
+                                                .requestMatchers(HttpMethod.POST, "/api/auth/switch-role")
+                                                .authenticated()
                                                 .requestMatchers("/api/auth/**").permitAll()
                                                 .requestMatchers("/api/assessments/**").permitAll()
                                                 .requestMatchers("/api/files/**").permitAll()
@@ -109,17 +111,25 @@ public class SecurityConfig {
                                                 .hasAnyAuthority("DEPARTMENT_READ", "DEPARTMENT_CREATE",
                                                                 "DEPARTMENT_UPDATE", "DEPARTMENT_DELETE")
 
-                        .requestMatchers(HttpMethod.GET, "/api/courses/**").hasAuthority("COURSE_READ")
-                        .requestMatchers(HttpMethod.POST, "/api/courses").hasAuthority("COURSE_CREATE")
-                        .requestMatchers(HttpMethod.PUT, "/api/courses/**").hasAuthority("COURSE_UPDATE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/courses/**").hasAuthority("COURSE_DELETE")
+                                                .requestMatchers(HttpMethod.GET, "/api/courses/**")
+                                                .hasAuthority("COURSE_READ")
+                                                .requestMatchers(HttpMethod.POST, "/api/courses")
+                                                .hasAuthority("COURSE_CREATE")
+                                                .requestMatchers(HttpMethod.PUT, "/api/courses/**")
+                                                .hasAuthority("COURSE_UPDATE")
+                                                .requestMatchers(HttpMethod.DELETE, "/api/courses/**")
+                                                .hasAuthority("COURSE_DELETE")
 
-                        .requestMatchers(HttpMethod.GET, "/api/course-classes/**").hasAuthority("COURSE_READ")
-                        .requestMatchers(HttpMethod.POST, "/api/course-classes/**").hasAuthority("COURSE_CREATE")
-                        .requestMatchers(HttpMethod.PUT, "/api/course-classes/**").hasAuthority("COURSE_UPDATE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/course-classes/**").hasAuthority("COURSE_DELETE")
+                                                .requestMatchers(HttpMethod.GET, "/api/course-classes/**")
+                                                .hasAuthority("COURSE_READ")
+                                                .requestMatchers(HttpMethod.POST, "/api/course-classes/**")
+                                                .hasAuthority("COURSE_CREATE")
+                                                .requestMatchers(HttpMethod.PUT, "/api/course-classes/**")
+                                                .hasAuthority("COURSE_UPDATE")
+                                                .requestMatchers(HttpMethod.DELETE, "/api/course-classes/**")
+                                                .hasAuthority("COURSE_DELETE")
 
-//                        .anyRequest().authenticated()
+                                                // .anyRequest().authenticated()
 
                                                 .requestMatchers(HttpMethod.GET, "/api/topics/**")
                                                 .hasAuthority("TOPIC_READ")
@@ -135,7 +145,6 @@ public class SecurityConfig {
                                                 .hasAuthority("TOPIC_READ")
                                                 .requestMatchers(HttpMethod.POST, "/api/topics/import")
                                                 .hasAuthority("TOPIC_IMPORT")
-
 
                                                 // Batch outline endpoints
                                                 .requestMatchers(HttpMethod.POST, "/api/batch-outline")
@@ -190,10 +199,15 @@ public class SecurityConfig {
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
                 configuration.setAllowedOrigins(
-                                Arrays.asList("http://localhost:3000", "http://localhost:5173", "http://localhost"));
-                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                configuration.setAllowedHeaders(Arrays.asList("*"));
+                                Arrays.asList("http://localhost:3000", "http://localhost:5173", "http://localhost",
+                                                "http://127.0.0.1:5173"));
+                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+                configuration.setAllowedHeaders(Arrays.asList(
+                                "Authorization", "Content-Type", "Accept",
+                                "X-Requested-With", "Cache-Control", "Origin"));
+                configuration.setExposedHeaders(Arrays.asList("Authorization"));
                 configuration.setAllowCredentials(true);
+                configuration.setMaxAge(3600L);
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/**", configuration);
                 return source;

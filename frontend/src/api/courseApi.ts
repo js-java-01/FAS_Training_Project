@@ -6,6 +6,49 @@ import type {
   UpdateCourseObjectiveRequest,
 } from '../types/courseObjective';
 
+/* ─── Course Assessment Scheme types ──────────────────────── */
+export interface CourseAssessmentSchemeConfig {
+  minGpaToPass: number;
+  minAttendance: number;
+  allowFinalRetake: boolean;
+}
+
+export type CourseAssessmentComponentType =
+  | 'QUIZ'
+  | 'ASSIGNMENT'
+  | 'FINAL_EXAM'
+  | 'LAB'
+  | 'PROJECT';
+
+export const COURSE_ASSESSMENT_TYPES: CourseAssessmentComponentType[] = [
+  'QUIZ',
+  'ASSIGNMENT',
+  'FINAL_EXAM',
+  'LAB',
+  'PROJECT',
+];
+
+export interface CourseAssessmentComponentRequest {
+  name: string;
+  type: CourseAssessmentComponentType;
+  count: number;
+  weight: number;
+  duration?: number | null;
+  displayOrder: number;
+  graded: boolean;
+}
+
+export interface CourseAssessmentComponentResponse {
+  id: string;
+  name: string;
+  type: CourseAssessmentComponentType;
+  count: number;
+  weight: number;
+  duration?: number | null;
+  displayOrder: number;
+  graded: boolean;
+}
+
 export interface CoursePageResponse {
   items: Course[];
   pagination: {
@@ -161,5 +204,88 @@ export const courseApi = {
       formData,
       { headers: { 'Content-Type': 'multipart/form-data' } }
     );
+  },
+
+  cloneObjectivesFromTopic: async (courseId: string, topicId: string): Promise<void> => {
+    await axiosInstance.post(`/courses/${courseId}/objectives/clone-from-topic/${topicId}`);
+  },
+
+  // =============================
+  // COURSE ASSESSMENT SCHEME
+  // =============================
+
+  getSchemeConfig: async (courseId: string): Promise<CourseAssessmentSchemeConfig> => {
+    const res = await axiosInstance.get(`/courses/${courseId}/assessment-scheme/config`);
+    return res.data;
+  },
+
+  updateSchemeConfig: async (
+    courseId: string,
+    payload: CourseAssessmentSchemeConfig,
+  ): Promise<void> => {
+    await axiosInstance.put(`/courses/${courseId}/assessment-scheme/config`, payload);
+  },
+
+  getComponents: async (courseId: string): Promise<CourseAssessmentComponentResponse[]> => {
+    const res = await axiosInstance.get(`/courses/${courseId}/assessment-scheme/components`);
+    return res.data;
+  },
+
+  updateComponents: async (
+    courseId: string,
+    payload: CourseAssessmentComponentRequest[],
+  ): Promise<void> => {
+    await axiosInstance.put(`/courses/${courseId}/assessment-scheme/components`, payload);
+  },
+
+  deleteComponent: async (courseId: string, componentId: string): Promise<void> => {
+    await axiosInstance.delete(
+      `/courses/${courseId}/assessment-scheme/components/${componentId}`,
+    );
+  },
+
+  cloneSchemeFromTopic: async (courseId: string, topicId: string): Promise<void> => {
+    await axiosInstance.post(
+      `/courses/${courseId}/assessment-scheme/clone-from-topic/${topicId}`,
+    );
+  },
+
+  exportComponents: async (courseId: string): Promise<Blob> => {
+    const res = await axiosInstance.get(
+      `/courses/${courseId}/assessment-scheme/components/export`,
+      { responseType: 'blob' },
+    );
+    return res.data;
+  },
+
+  importComponents: async (
+    courseId: string,
+    file: File,
+  ): Promise<import('@/components/modal/import-export/ImportTab').ImportResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await axiosInstance.post(
+      `/courses/${courseId}/assessment-scheme/components/import`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    );
+    return res.data;
+  },
+
+  downloadComponentsTemplate: async (courseId: string): Promise<Blob> => {
+    const res = await axiosInstance.get(
+      `/courses/${courseId}/assessment-scheme/components/template`,
+      { responseType: 'blob' },
+    );
+    return res.data;
+  },
+
+  // =============================
+  // LESSONS (Modules)
+  // =============================
+
+  getLessonsByCourse: async (courseId: string) => {
+    const res = await axiosInstance.get(`/lessons/course/${courseId}`);
+    return res.data;
   },
 };

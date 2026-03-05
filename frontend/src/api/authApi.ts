@@ -48,4 +48,9 @@ export const authApi = {
     const response = await axiosInstance.get<RoleSwitchRole[]>("/auth/my-roles");
     return response.data;
   },
+
+  switchRole: async (roleName: string): Promise<LoginResponse> => {
+    const response = await axiosInstance.post<LoginResponse>("/auth/switch-role", { roleName });
+    return response.data;
+  },
 };

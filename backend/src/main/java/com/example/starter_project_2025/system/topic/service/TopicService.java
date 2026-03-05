@@ -4,14 +4,15 @@ import com.example.starter_project_2025.system.topic.dto.TopicCreateRequest;
 import com.example.starter_project_2025.system.topic.dto.TopicDetailResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicResponse;
 import com.example.starter_project_2025.system.topic.dto.UpdateTopicRequest;
+import com.example.starter_project_2025.system.topic.dto.TopicUpdateRequest;
+import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface TopicService
-{
+public interface TopicService {
 
     TopicResponse create(TopicCreateRequest request);
 
@@ -25,6 +26,7 @@ public interface TopicService
 
     void delete(UUID id);
 
+    Page<TopicDetailResponse> getMyTopics(UUID userId, UUID classId, Pageable pageable);=======
 
-    Page<TopicDetailResponse> getMyTopics(UUID userId, UUID classId, Pageable pageable);
+    ImportResultResponse importTopics(MultipartFile file);>>>>>>>2d 1d 754 b083b3cd60d3e15a24a80dca5410433a2
 }

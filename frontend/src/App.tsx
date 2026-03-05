@@ -28,6 +28,9 @@ import AssessmentManagement from "./pages/AssessmentManagement";
 import CourseManagement from "./pages/course/CourseManagement";
 import CourseDetailPage from "./pages/course/CourseDetailPage";
 import StudentCourseContent from "./pages/learning/StudentCourseContent";
+import StudentHomePage from "./pages/learning/StudentHomePage";
+import StudentMyCoursesPage from "./pages/learning/StudentMyCoursesPage";
+import StudentCoursesPage from "./pages/learning/StudentCoursesPage";
 import { RoleManagement } from "./pages/role/RoleManagement";
 import PermissionsManagement from "./pages/permissions/PermissionsManagement";
 import MfaSettings from "./pages/MfaSettings";
@@ -40,6 +43,16 @@ import ProgramCreatePage from "./pages/programs/ProgramCreatePage";
 import ProgramDetailPage from "./pages/programs/ProgramDetailPage";
 import ClassesDetailComponent from "@/pages/classes/ClassesDetailManagement.tsx";
 import StudentCalendarPage from "./pages/schedule/studentSchedule/StudentCalendarPage";
+
+function RootRedirect() {
+  const role = useSelector((state: RootState) => state.auth.role);
+  return (
+    <Navigate
+      to={role === "STUDENT" ? "/student-home" : "/dashboard"}
+      replace
+    />
+  );
+}
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -69,9 +82,34 @@ function App() {
             <Route path="/login" element={<AuthPage />} />
             <Route path="/logout" element={<Logout />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="/register" element={<AuthPage />} />
-            <Route path="/forgot-password" element={<AuthPage />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} /> */}
+
+            <Route path="/" element={<RootRedirect />} />
+            <Route
+              path="/student-home"
+              element={
+                <ProtectedRoute>
+                  <StudentHomePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student-my-courses"
+              element={
+                <ProtectedRoute>
+                  <StudentMyCoursesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student-courses"
+              element={
+                <ProtectedRoute>
+                  <StudentCoursesPage />
+                </ProtectedRoute>
+              }
+            />
             {moduleGroups.flatMap((group) =>
               group.modules.map((m) => {
                 if (!m.url) return null;
@@ -182,9 +220,9 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            
+
             <Route path="/courses/:id" element={<CourseDetailPage />} />
-            
+
             <Route path="/topics/:id" element={<TopicDetailPage />} />
 
             <Route
@@ -195,7 +233,6 @@ function App() {
               path="/my-topics/:id"
               element={<Navigate to="/topics" replace />}
             />
-
 
             <Route
               path="/teacher-assessment"

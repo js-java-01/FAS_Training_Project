@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.example.starter_project_2025.system.course.entity.Course;
+import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -35,7 +35,7 @@ public class CourseProgrammingLanguage {
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
     @JsonBackReference
-    private Course course;
+    private CourseOnline course;
     @ManyToOne
     @JoinColumn(name = "programming_language_id", nullable = false)
     @JsonBackReference

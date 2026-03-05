@@ -34,6 +34,7 @@ import { ClientDataTable } from "@/components/data_table/ClientDataTable";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { encodeRouteId } from "@/utils/routeIdCodec";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useSortParam } from "@/hooks/useSortParam";
 
 /* ======================================================= */
 interface TrainingClassesTableProps {

@@ -188,10 +188,9 @@ export default function ImportTab({
           }}
           className={`border-2 border-dashed rounded-xl p-6 text-center transition
             ${isDragging ? "border-blue-600 bg-blue-50" : ""}
-            ${
-              error || hasImportError
-                ? "border-red-400 bg-red-50"
-                : "border-gray-300"
+            ${error || hasImportError
+              ? "border-red-400 bg-red-50"
+              : "border-gray-300"
             }
           `}
         >
@@ -275,8 +274,8 @@ export default function ImportTab({
             <div className="flex items-center">
 
               {hasImportError && <AlertCircle className="h-4 w-4 mr-1 text-red-700" />}
-               <p className={`text-sm ${hasImportError ? "text-red-700" : "text-green-700"}`}>{result.message}</p>
-           </div>
+              <p className={`text-sm ${hasImportError ? "text-red-700" : "text-green-700"}`}>{result.message}</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4 text-center">

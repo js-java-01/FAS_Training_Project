@@ -1,200 +1,54 @@
-import { useEffect, useMemo, useState } from "react";
-import type { DragEvent } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { topicApi } from "@/api/topicApi";
-import { assessmentTypeApi } from "@/api/assessmentTypeApi";
-import { topicAssessmentTypeWeightApi } from "@/api/topicAssessmentTypeWeightApi";
+import { PermissionGate } from "@/components/PermissionGate";
 import { toast } from "sonner";
-import { FiEdit, FiX } from "react-icons/fi";
-import { useSelector } from "react-redux";
-import { AssessmentSchemeTab } from "./topic-detail/AssessmentSchemeTab";
-import { CoursesTab } from "./topic-detail/CoursesTab";
-import { OverviewTab } from "./topic-detail/OverviewTab";
-import { tabs } from "./topic-detail/shared";
-import type { SchemeItem, TopicDetailTab } from "./topic-detail/shared";
-import type { RootState } from "@/store/store";
+import {
+  FiEdit,
+  FiBookOpen,
+  FiHash,
+  FiCalendar,
+  FiUser,
+  FiX,
+  FiSave,
+  FiFileText,
+  FiLayers,
+} from "react-icons/fi";
+import TopicObjectivesPage from "@/pages/topic/components/TopicObjectivesPage";
+import { TopicSkillsTab } from "./TopicSkillsTab";
+import { TopicDeliveryPrinciplesTab } from "./TopicDeliveryPrinciplesTab";
+import { TopicAssessmentSchemeTab } from "./TopicAssessmentSchemeTab";
+import { TopicTimeAllocationTab } from "./TopicTimeAllocationTab";
+import { TopicOutlineTab } from "./TopicOutlineTab";
+
+const tabs = [
+  "Overview",
+  "Skills",
+  "Objectives",
+  "Assessment Scheme",
+  "Delivery Principles",
+  "Outline & Schedule",
+  "Time Allocation",
+];
+
+const inputCls =
+  "w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 export function TopicDetail({ topic, onBack, onRefresh }: any) {
-  const { role } = useSelector((state: RootState) => state.auth);
-  const isStudentRole = role === "STUDENT";
-  const [activeTab, setActiveTab] = useState<TopicDetailTab>("Overview");
+  const [activeTab, setActiveTab] = useState("Overview");
   const [isEditing, setIsEditing] = useState(false);
+  const [skillsEditing, setSkillsEditing] = useState(false);
+  const [outlineEditing, setOutlineEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [assessmentTypes, setAssessmentTypes] = useState<Array<{ id: string; name: string; description: string }>>([]);
-  const [schemeItems, setSchemeItems] = useState<SchemeItem[]>([]);
-  const [schemeLoading, setSchemeLoading] = useState(false);
-  const [schemeSaving, setSchemeSaving] = useState(false);
-  const [hasExistingScheme, setHasExistingScheme] = useState(false);
   const { register, handleSubmit, reset } = useForm<any>();
 
-  const mapApiSchemeToUi = (
-    rows: Array<{
-      id: string;
-      assessmentTypeId?: string;
-      accessmentTypeName: string;
-      assessmentTypeDescription?: string;
-      weight: number;
-    }>,
-    typeOptions: Array<{ id: string; name: string; description: string }>,
-  ) => {
-    return rows.map((row) => {
-      const normalizedName = row.accessmentTypeName?.trim().toLowerCase();
-      const matchedType = row.assessmentTypeId
-        ? typeOptions.find((type) => type.id === row.assessmentTypeId)
-        : typeOptions.find((type) => type.name.trim().toLowerCase() === normalizedName);
-      return {
-        localId: row.id,
-        assessmentTypeId: row.assessmentTypeId ?? matchedType?.id ?? "",
-        assessmentTypeName: row.accessmentTypeName,
-        assessmentTypeDescription: row.assessmentTypeDescription ?? matchedType?.description ?? "",
-        weight: Number(row.weight ?? 0),
-      };
-    });
-  };
-
-  useEffect(() => {
-    const loadAssessmentScheme = async () => {
-      if (!topic?.id) return;
-
-      try {
-        setSchemeLoading(true);
-        const [typesResp, weightsResp] = await Promise.all([
-          assessmentTypeApi.getAll({ page: 0, size: 200 }),
-          topicAssessmentTypeWeightApi.getByTopicId(topic.id),
-        ]);
-
-        const typeOptions = (typesResp?.content || []).map((type) => ({
-          id: type.id,
-          name: type.name,
-          description: type.description ?? "",
-        }));
-
-        setAssessmentTypes(typeOptions);
-        setSchemeItems(mapApiSchemeToUi(weightsResp || [], typeOptions));
-        setHasExistingScheme((weightsResp || []).length > 0);
-      } catch {
-        toast.error("Failed to load assessment scheme");
-      } finally {
-        setSchemeLoading(false);
-      }
-    };
-
-    void loadAssessmentScheme();
-  }, [topic?.id]);
-
-  const availableAssessmentTypes = useMemo(() => {
-    const selectedIds = new Set(schemeItems.map((item) => item.assessmentTypeId).filter(Boolean));
-    return assessmentTypes.filter((type) => !selectedIds.has(type.id));
-  }, [assessmentTypes, schemeItems]);
-
-  const totalWeight = useMemo(
-    () => schemeItems.reduce((sum, item) => sum + (Number.isFinite(item.weight) ? item.weight : 0), 0),
-    [schemeItems],
-  );
-
-  const isSchemeWeightValid = totalWeight === 100;
-  const canAddMoreAssessmentType = totalWeight < 100;
-  const remainingWeight = Math.max(0, 100 - totalWeight);
-
-  const addAssessmentTypeToScheme = (assessmentTypeId: string) => {
-    if (!canAddMoreAssessmentType) {
-      toast.error("Total weight has reached 100%. Please adjust current rows before adding.");
-      return;
-    }
-
-    if (schemeItems.some((item) => item.assessmentTypeId === assessmentTypeId)) {
-      return;
-    }
-
-    const selectedType = assessmentTypes.find((type) => type.id === assessmentTypeId);
-    if (!selectedType) return;
-
-    setSchemeItems((prev) => [
-      ...prev,
-      {
-        localId: `${selectedType.id}-${Date.now()}`,
-        assessmentTypeId: selectedType.id,
-        assessmentTypeName: selectedType.name,
-        assessmentTypeDescription: selectedType.description,
-        weight: 0,
-      },
-    ]);
-  };
-
-  const removeSchemeItem = (localId: string) => {
-    setSchemeItems((prev) => prev.filter((item) => item.localId !== localId));
-  };
-
-  const updateSchemeWeight = (localId: string, nextWeight: string) => {
-    const parsed = Number(nextWeight);
-    setSchemeItems((prev) =>
-      prev.map((item) =>
-        item.localId === localId
-          ? { ...item, weight: Number.isNaN(parsed) ? 0 : Math.max(0, Math.min(100, parsed)) }
-          : item,
-      ),
-    );
-  };
-
-  const onTypeDragStart = (event: DragEvent<HTMLDivElement>, assessmentTypeId: string) => {
-    event.dataTransfer.setData("text/plain", assessmentTypeId);
-    event.dataTransfer.effectAllowed = "copy";
-  };
-
-  const onSchemeDrop = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    const assessmentTypeId = event.dataTransfer.getData("text/plain");
-    if (!assessmentTypeId) return;
-    addAssessmentTypeToScheme(assessmentTypeId);
-  };
-
-  const saveAssessmentScheme = async () => {
-    if (isStudentRole) return;
-    if (!topic?.id) return;
-
-    if (schemeItems.some((item) => !item.assessmentTypeId)) {
-      toast.error("Some rows are missing assessment type mapping");
-      return;
-    }
-
-    if (!isSchemeWeightValid) {
-      toast.error("Total weight must be exactly 100% before saving");
-      return;
-    }
-
-    const payload = schemeItems.map((item) => ({
-      topicId: topic.id,
-      assessmentTypeId: item.assessmentTypeId,
-      weight: Number(item.weight),
-    }));
-
-    try {
-      setSchemeSaving(true);
-
-      if (payload.length === 0) {
-        await topicAssessmentTypeWeightApi.deleteAllByTopicId(topic.id);
-      } else if (hasExistingScheme) {
-        await topicAssessmentTypeWeightApi.updateByTopicId(topic.id, payload);
-      } else {
-        await topicAssessmentTypeWeightApi.createByTopicId(topic.id, payload);
-      }
-
-      setHasExistingScheme(true);
-      toast.success("Assessment scheme saved");
-    } catch {
-      toast.error("Failed to save assessment scheme");
-    } finally {
-      setSchemeSaving(false);
-    }
-  };
-
   const startEdit = () => {
-    if (isStudentRole) return;
     reset({
       topicName: topic.topicName,
       topicCode: topic.topicCode,
-      status: topic.status ?? "DRAFT",
+      status: topic.status,
       description: topic.description,
+      note: topic.note,
     });
     setIsEditing(true);
   };
@@ -202,13 +56,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
   const onSubmit = async (data: any) => {
     try {
       setLoading(true);
-      await topicApi.updateTopic(topic.id, {
-        topicName: data.topicName,
-        topicCode: data.topicCode,
-        level: topic.level,
-        status: data.status,
-        description: data.description,
-      });
+      await topicApi.updateTopic(topic.id, data);
       toast.success("Topic updated successfully");
       setIsEditing(false);
       onRefresh?.();
@@ -220,28 +68,33 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
   };
 
   return (
-    <div className="w-full space-y-4 text-foreground">
+    <div>
       {/* HEADER */}
-      <div className="flex justify-between items-start md:items-center gap-3 mb-1">
+      <div className="flex justify-between items-center mb-4">
         <div>
-          <h1 className="text-2xl font-bold">Topic Details</h1>
-          <p className="text-sm text-muted-foreground">View and manage topic knowledge base</p>
+          <h1 className="text-2xl font-bold text-gray-800">Topic Details</h1>
+          <p className="text-sm text-gray-500">
+            Topic Details management and configuration
+          </p>
         </div>
-        <button onClick={onBack} className="text-sm text-muted-foreground hover:bg-accent px-3 py-1.5 rounded-md border border-border">
+        <button
+          onClick={onBack}
+          className="text-sm text-gray-500 hover:bg-gray-100 px-3 py-1.5 rounded-md border border-gray-200"
+        >
           ← Back to list
         </button>
       </div>
 
       {/* TABS SELECTOR */}
-      <div className="flex justify-between items-center border-b border-border pb-1">
-        <div className="flex gap-5 overflow-x-auto pr-2">
+      <div className="flex justify-between items-center border-b mb-6">
+        <div className="flex gap-6">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`pb-2 text-sm transition-all ${activeTab === tab
-                  ? "border-b-2 border-primary text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground"
+                ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                : "text-gray-500 hover:text-gray-700"
                 }`}
             >
               {tab}
@@ -249,48 +102,255 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
           ))}
         </div>
 
-        {activeTab === "Overview" && !isStudentRole && (
+        {activeTab === "Overview" && (
           <button
             onClick={isEditing ? () => setIsEditing(false) : startEdit}
-            className="flex items-center text-sm gap-2 mb-2 bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 transition-colors"
+            className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
           >
-            {isEditing ? <><FiX /> Cancel</> : <><FiEdit /> Edit</>}
+            {isEditing ? (
+              <>
+                <FiX /> Cancel
+              </>
+            ) : (
+              <>
+                <FiEdit /> Edit
+              </>
+            )}
           </button>
+        )}
+        {activeTab === "Skills" && !skillsEditing && (
+          <button
+            onClick={() => setSkillsEditing(true)}
+            className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            <FiEdit /> Edit
+          </button>
+        )}
+        {activeTab === "Skills" && skillsEditing && (
+          <button
+            onClick={() => setSkillsEditing(false)}
+            className="flex items-center text-sm gap-2 mb-2 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors"
+          >
+            Done
+          </button>
+        )}
+        {activeTab === "Outline & Schedule" && !outlineEditing && (
+          <PermissionGate permission="TOPIC_UPDATE">
+            <button
+              onClick={() => setOutlineEditing(true)}
+              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <FiEdit /> Edit
+            </button>
+          </PermissionGate>
+        )}
+        {activeTab === "Outline & Schedule" && outlineEditing && (
+          <PermissionGate permission="TOPIC_UPDATE">
+            <button
+              onClick={() => setOutlineEditing(false)}
+              className="flex items-center text-sm gap-2 mb-2 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              Done
+            </button>
+          </PermissionGate>
         )}
       </div>
 
-      {activeTab === "Overview" && (
-        <OverviewTab
-          topic={topic}
-          isEditing={isEditing}
-          loading={loading}
-          register={register}
-          handleSubmit={handleSubmit}
-          onSubmit={onSubmit}
-        />
+      {/* CONTENT: OVERVIEW - READ ONLY */}
+      {activeTab === "Overview" && !isEditing && (
+        <div className="space-y-5 animate-in fade-in duration-300">
+          {/* Identity card */}
+          <div className="rounded-xl border border-gray-200 p-6">
+            <div className="flex items-start justify-between gap-6">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <FiBookOpen size={14} className="text-blue-500 shrink-0" />
+                  <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
+                    {topic.topicCode}
+                  </span>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 leading-tight">
+                  {topic.topicName}
+                </h2>
+                {topic.description && (
+                  <p className="text-sm text-gray-500 mt-3 leading-relaxed max-w-2xl">
+                    {topic.description}
+                  </p>
+                )}
+              </div>
+              <span
+                className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${topic.status === "ACTIVE"
+                    ? "text-emerald-700 border-emerald-300"
+                    : "text-gray-500 border-gray-300"
+                  }`}
+              >
+                {topic.status}
+              </span>
+            </div>
+          </div>
+
+          {/* Detail grid */}
+          <div className="grid grid-cols-2 gap-5">
+            <div className="rounded-xl border border-gray-200 p-5">
+              <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400 mb-4">
+                Metadata
+              </p>
+              <div className="space-y-4">
+                <Info
+                  icon={<FiCalendar />}
+                  label="Created Date"
+                  value={new Date(topic.createdDate).toLocaleString("vi-VN")}
+                />
+                <Info
+                  icon={<FiUser />}
+                  label="Created By"
+                  value={topic.createdByName}
+                />
+              </div>
+            </div>
+            <div className="rounded-xl border border-gray-200 p-5">
+              <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400 mb-4">
+                Additional
+              </p>
+              <div className="space-y-4">
+                <Info icon={<FiFileText />} label="Note" value={topic.note} />
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
+      {/* CONTENT: OVERVIEW - EDIT MODE */}
+      {activeTab === "Overview" && isEditing && (
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6 animate-in zoom-in-95 duration-200"
+        >
+          <div className="border rounded-lg p-4 bg-gray-50/30">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-semibold text-gray-700">
+                Edit Topic Information
+              </h2>
+              <button
+                disabled={loading}
+                className="flex items-center gap-1.5 text-sm bg-blue-600 text-white rounded-md px-4 py-1.5 hover:bg-blue-700"
+              >
+                <FiSave /> {loading ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field icon={<FiBookOpen />} label="Topic Name">
+                <input
+                  {...register("topicName", { required: true })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field icon={<FiHash />} label="Topic Code">
+                <input
+                  {...register("topicCode", { required: true })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field icon={<FiLayers />} label="Status">
+                <select
+                  {...register("status")}
+                  className={inputCls + " bg-white"}
+                >
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
+              </Field>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <Field icon={<FiFileText />} label="Description">
+                <textarea
+                  rows={3}
+                  {...register("description")}
+                  className={inputCls}
+                />
+              </Field>
+              <Field icon={<FiFileText />} label="Note">
+                <textarea rows={2} {...register("note")} className={inputCls} />
+              </Field>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {/* SKILLS TAB */}
+      {activeTab === "Skills" && (
+        <TopicSkillsTab topicId={topic.id} isEditMode={skillsEditing} />
+      )}
+
+      {/* DELIVERY PRINCIPLES TAB */}
+      {activeTab === "Delivery Principles" && (
+        <TopicDeliveryPrinciplesTab topicId={topic.id} />
+      )}
+
+      {/* ASSESSMENT SCHEME TAB */}
       {activeTab === "Assessment Scheme" && (
-        <AssessmentSchemeTab
-          availableAssessmentTypes={availableAssessmentTypes}
-          schemeItems={schemeItems}
-          totalWeight={totalWeight}
-          remainingWeight={remainingWeight}
-          canAddMoreAssessmentType={canAddMoreAssessmentType}
-          isSchemeWeightValid={isSchemeWeightValid}
-          schemeLoading={schemeLoading}
-          schemeSaving={schemeSaving}
-          onTypeDragStart={onTypeDragStart}
-          onSchemeDrop={onSchemeDrop}
-          addAssessmentTypeToScheme={addAssessmentTypeToScheme}
-          updateSchemeWeight={updateSchemeWeight}
-          removeSchemeItem={removeSchemeItem}
-          saveAssessmentScheme={saveAssessmentScheme}
-          canEdit={!isStudentRole}
+        <TopicAssessmentSchemeTab topicId={topic.id} />
+      )}
+
+      {/* TIME ALLOCATION TAB */}
+      {activeTab === "Time Allocation" && (
+        <TopicTimeAllocationTab topicId={topic.id} />
+      )}
+
+      {/* OUTLINE & SCHEDULE TAB */}
+      {activeTab === "Outline & Schedule" && (
+        <TopicOutlineTab
+          topicId={topic.id}
+          isEditMode={outlineEditing}
         />
       )}
 
-      {activeTab === "Courses" && <CoursesTab />}
+      {activeTab === "Objectives" && (
+        <TopicObjectivesPage topicId={topic.id} />
+      )}
+
+      {/* OTHER TABS PLACEHOLDER */}
+      {activeTab !== "Overview" && activeTab !== "Objectives" &&
+        activeTab !== "Skills" &&
+        activeTab !== "Delivery Principles" &&
+        activeTab !== "Assessment Scheme" &&
+        activeTab !== "Outline & Schedule" &&
+        activeTab !== "Time Allocation" && (
+          <div className="py-20 text-center border-2 border-dashed rounded-xl bg-gray-50 text-gray-400">
+            <FiLayers size={40} className="mx-auto mb-2 opacity-20" />
+            <p>Content for {activeTab} is being updated by the content team.</p>
+          </div>
+        )}
+    </div>
+  );
+}
+
+// Sub-components helpers (Đồng bộ style với Course)
+function Info({ icon, label, value }: any) {
+  return (
+    <div className="flex gap-3">
+      <span className="text-gray-400 mt-0.5 shrink-0">{icon}</span>
+      <div>
+        <p className="text-[11px] uppercase tracking-wider text-gray-400 font-bold">
+          {label}
+        </p>
+        <p className="text-sm font-medium text-gray-900 mt-0.5">
+          {value || "—"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Field({ icon, label, children }: any) {
+  return (
+    <div className="space-y-1">
+      <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 ml-1">
+        {icon} {label}
+      </label>
+      {children}
     </div>
   );
 }

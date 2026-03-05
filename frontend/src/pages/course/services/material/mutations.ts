@@ -50,11 +50,14 @@ export const useDeleteMaterial = (sessionId: string) => {
   });
 };
 
-export const useUploadMaterial = (sessionId: string) => {
+export const useUploadMaterial = (
+  sessionId: string,
+  onProgress?: (percent: number) => void,
+) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (formData: FormData) => materialApi.uploadMaterial(formData),
+    mutationFn: (formData: FormData) => materialApi.uploadMaterial(formData, onProgress),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MATERIAL_QUERY_KEYS.bySession(sessionId) });
       toast.success("Material uploaded successfully");

@@ -24,6 +24,8 @@ type Props = {
   onImport?: (file: File) => Promise<ImportResult | void>;
   onExport?: () => Promise<void>;
   onDownloadTemplate?: () => Promise<void>;
+  acceptedFileTypes?: string;
+  validateFile?: (file: File) => string | null;
 };
 
 export default function ImportExportModal({
@@ -34,6 +36,8 @@ export default function ImportExportModal({
   onImport,
   onExport,
   onDownloadTemplate,
+  acceptedFileTypes,
+  validateFile,
 }: Props) {
   const hasImport = mode !== "export" && !!onImport;
   const hasExport = mode !== "import" && !!onExport;
@@ -94,6 +98,8 @@ export default function ImportExportModal({
             <ImportTab
               onImport={onImport}
               onDownloadTemplate={onDownloadTemplate}
+              acceptedFileTypes={acceptedFileTypes}
+              validateFile={validateFile}
             />
           )}
 

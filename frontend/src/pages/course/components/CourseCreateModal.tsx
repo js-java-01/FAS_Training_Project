@@ -1,33 +1,34 @@
 import { useForm } from "react-hook-form";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { courseApi } from "@/api/courseApi";
 import { userApi } from "@/api/userApi";
+import { topicApi, type Topic } from "@/api/topicApi";
 import type { User } from "@/types/auth";
 import type { Course } from "@/types/course";
 import {
   FiX,
   FiBookOpen,
   FiHash,
-  FiDollarSign,
   FiClock,
   FiLayers,
   FiFileText,
   FiUser,
   FiUpload,
   FiImage,
+  FiTag,
 } from "react-icons/fi";
 
 type FormValues = {
   courseName: string;
   courseCode: string;
-  price?: number;
   estimatedTime?: number;
   level?: string;
   status: string;
   description?: string;
   note?: string;
   trainerId?: string;
+  topicId?: string;
 };
 
 interface Props {
@@ -42,6 +43,7 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
   const isEdit = !!course;
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,19 +64,27 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
       .catch(() => {});
   }, []);
 
+  // Fetch topics once
+  useEffect(() => {
+    topicApi
+      .getTopics({ size: 200 })
+      .then((res) => setTopics(res.items))
+      .catch(() => {});
+  }, []);
+
   // Pre-fill form whenever the target course changes
   useEffect(() => {
     if (course) {
       reset({
         courseName: course.courseName ?? "",
         courseCode: course.courseCode ?? "",
-        price: course.price ?? undefined,
         estimatedTime: course.estimatedTime ?? undefined,
         level: course.level ?? "",
         status: course.status ?? "DRAFT",
         description: course.description ?? "",
         note: course.note ?? "",
         trainerId: course.trainerId ?? "",
+        topicId: course.topicId ?? "",
       });
       setThumbnailPreview(course.thumbnailUrl ?? null);
     } else {
@@ -109,13 +119,13 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
         status: data.status,
       };
 
-      if (data.price && !isNaN(data.price)) payload.price = data.price;
       if (data.estimatedTime && !isNaN(data.estimatedTime))
         payload.estimatedTime = data.estimatedTime;
       if (data.level) payload.level = data.level;
       if (data.description) payload.description = data.description;
       if (data.note) payload.note = data.note;
       if (data.trainerId) payload.trainerId = data.trainerId;
+      if (data.topicId) payload.topicId = data.topicId;
 
       if (isEdit) {
         await courseApi.updateCourse(course!.id, payload);
@@ -143,7 +153,7 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-2xl rounded-xl shadow-xl"
+        className="bg-white w-full max-w-2xl rounded-xl shadow-xl max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* HEADER */}
@@ -168,7 +178,10 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
         </div>
 
         {/* BODY */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-3">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="p-6 space-y-3 overflow-y-auto flex-1"
+        >
           <Input
             icon={<FiBookOpen />}
             label="Course Name *"
@@ -183,21 +196,12 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
             {...register("courseCode", { required: "Required" })}
           />
 
-          <div className="grid grid-cols-2 gap-5">
-            <Input
-              type="number"
-              icon={<FiDollarSign />}
-              label="Price"
-              {...register("price", { valueAsNumber: true })}
-            />
-
-            <Input
-              type="number"
-              icon={<FiClock />}
-              label="Estimated Time (minutes)"
-              {...register("estimatedTime", { valueAsNumber: true })}
-            />
-          </div>
+          <Input
+            type="number"
+            icon={<FiClock />}
+            label="Estimated Time (minutes)"
+            {...register("estimatedTime", { valueAsNumber: true })}
+          />
 
           <div className="grid grid-cols-2 gap-5">
             <Select
@@ -218,6 +222,14 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
             {users.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.email}
+              </option>
+            ))}
+          </Select>
+
+          <Select icon={<FiTag />} label="Topic" {...register("topicId")}>
+            {topics.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.topicCode} – {t.topicName}
               </option>
             ))}
           </Select>
@@ -289,6 +301,7 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
             </button>
 
             <button
+              type="submit"
               disabled={loading}
               className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
             >
@@ -307,55 +320,70 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
   );
 }
 
-const Input = ({ icon, label, error, ...props }: any) => (
-  <div>
-    <label className="flex items-center gap-2 text-sm mb-1 text-gray-700">
-      {icon}
-      {label}
-    </label>
+const Input = React.forwardRef<HTMLInputElement, any>(
+  ({ icon, label, error, ...props }, ref) => (
+    <div>
+      <label className="flex items-center gap-2 text-sm mb-1 text-gray-700">
+        {icon}
+        {label}
+      </label>
 
-    <input
-      {...props}
-      className="w-full border rounded-md px-3 py-2 text-sm
+      <input
+        ref={ref}
+        {...props}
+        className="w-full border rounded-md px-3 py-2 text-sm
+        focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+    </div>
+  ),
+);
+
+Input.displayName = "Input";
+
+const Select = React.forwardRef<HTMLSelectElement, any>(
+  ({ icon, label, options = [], children, ...props }, ref) => (
+    <div>
+      <label className="flex items-center gap-2 text-sm mb-1 text-gray-700">
+        {icon}
+        {label}
+      </label>
+
+      <select
+        ref={ref}
+        {...props}
+        className="w-full border rounded-md px-3 py-1 text-sm
+        focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+      >
+        <option value="">Select</option>
+        {children
+          ? children
+          : options.map((o: string) => <option key={o}>{o}</option>)}
+      </select>
+    </div>
+  ),
+);
+
+Select.displayName = "Select";
+
+const Textarea = React.forwardRef<HTMLTextAreaElement, any>(
+  ({ icon, label, ...props }, ref) => (
+    <div>
+      <label className="flex items-center gap-2 text-sm mb-1 text-gray-700">
+        {icon}
+        {label}
+      </label>
+
+      <textarea
+        ref={ref}
+        rows={3}
+        {...props}
+        className="w-full border rounded-md px-3 py-1 text-sm
       focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-
-    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-  </div>
+      />
+    </div>
+  ),
 );
 
-const Select = ({ icon, label, options = [], children, ...props }: any) => (
-  <div>
-    <label className="flex items-center gap-2 text-sm mb-1 text-gray-700">
-      {icon}
-      {label}
-    </label>
-
-    <select
-      {...props}
-      className="w-full border rounded-md px-3 py-1 text-sm
-      focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-    >
-      <option value="">Select</option>
-      {children
-        ? children
-        : options.map((o: string) => <option key={o}>{o}</option>)}
-    </select>
-  </div>
-);
-
-const Textarea = ({ icon, label, ...props }: any) => (
-  <div>
-    <label className="flex items-center gap-2 text-sm mb-1 text-gray-700">
-      {icon}
-      {label}
-    </label>
-
-    <textarea
-      rows={3}
-      {...props}
-      className="w-full border rounded-md px-3 py-1 text-sm
-      focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-  </div>
-);
+Textarea.displayName = "Textarea";
