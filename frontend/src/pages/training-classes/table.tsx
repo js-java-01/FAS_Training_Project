@@ -79,7 +79,7 @@ export default function TrainingClassesTable({
   const canReviewClass = role === ROLES.SUPER_ADMIN || role === ROLES.MANAGER;
   const showImportExport = !semesterMode;
 
-  /* ===================== DATA ===================== */
+    /* ================= DATA ================= */
   const {
     data: allClassesData,
     isLoading,
@@ -90,7 +90,7 @@ export default function TrainingClassesTable({
     sort: sortParam,
     keyword: semesterMode ? undefined : debouncedKeyword,
     semesterId: semesterMode ? (semesterId ?? undefined) : undefined,
-    classStatus: semesterMode ? statusParam : undefined,
+    classStatus: statusParam,
     enabled: semesterMode ? !!semesterId : true,
   });
 
@@ -208,21 +208,19 @@ export default function TrainingClassesTable({
           isSearch={true}
           searchValue={["className", "classCode"]}
           facetedFilters={
-            role === "MANAGER" && (
-              <div>
-                <FacetedFilter
-                  title="Trạng thái"
-                  options={[
-                    { value: ClassStatus.APPROVED, label: "Approved" },
-                    { value: ClassStatus.PENDING_APPROVAL, label: "Pending Approval" },
-                    { value: ClassStatus.REJECTED, label: "Rejected" },
-                  ]}
-                  value={statusFilter}
-                  setValue={setStatusFilter}
-                  multiple={false}
-                />
-              </div>
-            )
+            <div>
+              <FacetedFilter
+                title="Trạng thái"
+                options={[
+                  { value: ClassStatus.APPROVED, label: "Approved" },
+                  { value: ClassStatus.PENDING_APPROVAL, label: "Pending Approval" },
+                  { value: ClassStatus.REJECTED, label: "Rejected" },
+                ]}
+                value={statusFilter}
+                setValue={setStatusFilter}
+                multiple={false}
+              />
+            </div>
           }
         />
       ) : (
@@ -246,6 +244,21 @@ export default function TrainingClassesTable({
             setSorting(nextSorting);
             setPageIndex(0);
           }}
+          facetedFilters={
+            <div>
+              <FacetedFilter
+                title="Status"
+                options={[
+                  { value: ClassStatus.APPROVED, label: "Approved" },
+                  { value: ClassStatus.PENDING_APPROVAL, label: "Pending Approval" },
+                  { value: ClassStatus.REJECTED, label: "Rejected" },
+                ]}
+                value={statusFilter}
+                setValue={setStatusFilter}
+                multiple={false}
+              />
+            </div>
+          }
           headerActions={
             (showImportExport || canCreate) ? (
               <div className="flex gap-2">
