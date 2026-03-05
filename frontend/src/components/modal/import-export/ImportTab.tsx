@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Upload,
   ImportIcon,
@@ -51,9 +50,7 @@ export default function ImportTab({
 
   const formatSize = (size: number) => {
     const mb = size / (1024 * 1024);
-    return mb >= 1
-      ? `${mb.toFixed(2)} MB`
-      : `${(size / 1024).toFixed(1)} KB`;
+    return mb >= 1 ? `${mb.toFixed(2)} MB` : `${(size / 1024).toFixed(1)} KB`;
   };
 
   /* ================= VALIDATE FILE ================= */
@@ -67,7 +64,9 @@ export default function ImportTab({
       }
     } else {
       if (!selected.name.match(/\.(xlsx|xls)$/i)) {
-        setError("Invalid file format. Only Excel files (.xlsx, .xls) allowed.");
+        setError(
+          "Invalid file format. Only Excel files (.xlsx, .xls) allowed.",
+        );
         return false;
       }
 
@@ -124,7 +123,7 @@ export default function ImportTab({
       } else {
         setError(
           errorData?.message ??
-            "Import failed. Please check your file and try again."
+            "Import failed. Please check your file and try again.",
         );
       }
     } finally {
@@ -228,7 +227,7 @@ export default function ImportTab({
             </div>
           )}
 
-          <Input
+          <input
             ref={fileInputRef}
             type="file"
             accept={acceptedFileTypes}
@@ -299,7 +298,11 @@ export default function ImportTab({
 
           <div className="grid grid-cols-3 gap-4 text-center">
             <StatCard label="Total" value={result.totalRows} />
-            <StatCard label="Success" value={result.successCount} color="green" />
+            <StatCard
+              label="Success"
+              value={result.successCount}
+              color="green"
+            />
             <StatCard label="Failed" value={result.failedCount} color="red" />
           </div>
 
@@ -352,9 +355,7 @@ function StatCard({
     <div className="bg-gray-50 rounded-lg p-4">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p
-        className={`text-xl font-semibold mt-1 ${
-          color ? colorMap[color] : ""
-        }`}
+        className={`text-xl font-semibold mt-1 ${color ? colorMap[color] : ""}`}
       >
         {value}
       </p>

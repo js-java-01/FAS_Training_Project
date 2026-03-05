@@ -36,7 +36,21 @@ export default function EntityImportExportButton({
     document.body.appendChild(link);
     link.click();
     link.remove();
-    window.URL.revokeObjectURL(url);
+    // Delay revoke so browser has time to initiate the download
+    setTimeout(() => window.URL.revokeObjectURL(url), 200);
+  };
+
+  const extractBlobError = async (err: any): Promise<string> => {
+    if (err?.response?.data instanceof Blob) {
+      try {
+        const text = await err.response.data.text();
+        const json = JSON.parse(text);
+        return json.message ?? json.error ?? "Unknown server error";
+      } catch {
+        return "Server error";
+      }
+    }
+    return err?.response?.data?.message ?? err?.message ?? "Unknown error";
   };
 
   const handleImport = async (file: File) => {
@@ -66,8 +80,9 @@ export default function EntityImportExportButton({
         `${title.toLowerCase()}_${dayjs().format("DD-MM-YYYY_HH-mm-ss")}.xlsx`,
       );
       toast.success(`${title} exported successfully`);
-    } catch {
-      toast.error(`Failed to export ${title}`);
+    } catch (err) {
+      const msg = await extractBlobError(err);
+      toast.error(`Failed to export ${title}: ${msg}`);
     }
   };
 
@@ -81,8 +96,9 @@ export default function EntityImportExportButton({
         )}.xlsx`,
       );
       toast.success(`Template downloaded successfully`);
-    } catch {
-      toast.error(`Failed to download template`);
+    } catch (err) {
+      const msg = await extractBlobError(err);
+      toast.error(`Failed to download template: ${msg}`);
     }
   };
 
