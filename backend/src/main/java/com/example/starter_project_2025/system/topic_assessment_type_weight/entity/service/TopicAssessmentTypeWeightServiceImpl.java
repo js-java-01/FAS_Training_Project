@@ -4,6 +4,7 @@ import com.example.starter_project_2025.system.topic_assessment_type_weight.enti
 import com.example.starter_project_2025.system.topic_assessment_type_weight.entity.dto.TopicAssessmentTypeWeightResponse;
 import com.example.starter_project_2025.system.topic_assessment_type_weight.entity.mapper.TopicAssessmentTypeWeightMapper;
 import com.example.starter_project_2025.system.topic_assessment_type_weight.entity.repository.TopicAssessmentTypeWeightRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,13 +26,14 @@ public class TopicAssessmentTypeWeightServiceImpl implements TopicAssessmentType
     }
 
     @Override
+    @Transactional
     public List<TopicAssessmentTypeWeightResponse> createAndUpdateWeightsByTopicId(UUID topicId, List<TopicAssessmentTypeWeightCreateRequest> request)
     {
         if (!validateTotalWeight(request))
         {
             throw new IllegalArgumentException("Total weight must be 100%");
         }
-        topicAssessmentTypeWeightRepository.deleteByTopicId((topicId));
+        topicAssessmentTypeWeightRepository.deleteByTopic_Id((topicId));
 
         var entities = mapper.toEntityList(request);
         var savedEntities = topicAssessmentTypeWeightRepository.saveAll(entities);

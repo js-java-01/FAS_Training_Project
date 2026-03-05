@@ -468,7 +468,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
                 type="button"
                 onClick={saveAssessmentScheme}
                 disabled={schemeSaving || schemeLoading}
-                className="inline-flex items-center gap-2 text-sm bg-blue-600 text-white rounded-md px-4 py-2 hover:bg-blue-700 disabled:opacity-60"
+                className="inline-flex items-center gap-2 text-sm bg-blue-700 text-white rounded-md px-4 py-2 hover:bg-blue-700 disabled:opacity-60"
               >
                 <FiSave /> {schemeSaving ? "Saving..." : "Save Assessment Scheme"}
               </button>

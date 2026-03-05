@@ -12,5 +12,5 @@ public interface TopicAssessmentTypeWeightRepository extends JpaRepository<Topic
 {
     List<TopicAssessmentTypeWeight> findByTopicId(UUID topicId);
 
-    void deleteByTopicId(UUID topicId);
+    void deleteByTopic_Id(UUID topicId);
 }
