@@ -45,10 +45,14 @@ const buildFormData = (program: TrainingProgram): ProgramFormData => ({
   description: program.description ?? "",
 });
 
-const validateForm = (data: ProgramFormData): Record<string, string> => {
+const validateForm = (data: ProgramFormData) => {
   const errs: Record<string, string> = {};
   if (!data.name.trim()) errs.name = "Program name is required";
-  if (!data.version.trim()) errs.version = "Version is required";
+  if (!data.version.trim()) {
+    errs.version = "Version is required";
+  } else if (!/^\d+(\.\d+)*$/.test(data.version.trim())) {
+    errs.version = "Version must contain only numbers and dots (e.g. 1.0, 2.0)";
+  }
   return errs;
 };
 
