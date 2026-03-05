@@ -1,6 +1,5 @@
 package com.example.starter_project_2025.system.topic.service;
 
-import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.classes.mapper.ClassMapper;
 import com.example.starter_project_2025.system.topic.dto.TopicCreateRequest;
 import com.example.starter_project_2025.system.topic.dto.TopicDetailResponse;
@@ -144,14 +143,13 @@ public class TopicServiceImpl implements TopicService
     }
 
     @Override
-    public Page<TopicDetailResponse> getMyTopics(UUID userId, String keyword, Pageable pageable)
+    public Page<TopicDetailResponse> getMyTopics(UUID userId, UUID classId, Pageable pageable)
     {
-        Page<Object[]> rawResults = topicRepository.findMyTopics(userId, keyword, pageable);
+        Page<Object[]> results = topicRepository.findMyTopicsWithProgram(userId, classId, pageable);
 
-        return rawResults.map(result -> {
-            Topic topic = (Topic) result[0];
-            TrainingClass trainingClass = (TrainingClass) result[1];
-            TrainingProgram trainingProgram = (TrainingProgram) result[2];
+        return results.map(row -> {
+            Topic topic = (Topic) row[0];
+            TrainingProgram trainingProgram = (TrainingProgram) row[1];
 
             List<TopicAssessmentTypeWeightResponse> weights = topicAssessmentTypeWeightRepository
                     .findByTopicId(topic.getId())
@@ -161,9 +159,8 @@ public class TopicServiceImpl implements TopicService
 
             return TopicDetailResponse.builder()
                     .topic(mapper.toResponse(topic))
-                    .assessmentTypeWeights(weights)
-                    .trainingClassReponse(classMapper.toTrainingClassResponse(trainingClass))
                     .trainingProgram(programMapper.toResponse(trainingProgram))
+                    .assessmentTypeWeights(weights)
                     .build();
         });
     }
