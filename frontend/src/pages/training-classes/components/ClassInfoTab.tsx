@@ -340,11 +340,15 @@ export default function ClassInfoTab({
                     />
                 </div>
 
-                {/* Row 2: BU Request + Training Program
+                {/* Row 2: BU Request + Training Program */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <SelectField label="BU Request (Optional)" value={null} />
-                    <SelectField label="Training Program" value={null} required />
-                </div> */}
+                    <SelectField
+                        label="Training Program"
+                        value={trainingClass.trainingProgramName}
+                        required
+                    />
+                </div>
 
                 {/* Row 3: Master Trainer / Admin / Location */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

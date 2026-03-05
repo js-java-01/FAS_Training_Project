@@ -228,7 +228,7 @@ export default function ClassDetailPage() {
                     {/* ── Page Title Row ── */}
                     <div className="flex items-start justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold tracking-tight">Classes</h1>
+                            <h1 className="text-2xl font-bold tracking-tight">Classes Detail</h1>
                             <p className="text-sm text-muted-foreground">
                                 Classes details and configuration
                             </p>
