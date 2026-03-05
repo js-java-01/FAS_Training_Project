@@ -59,4 +59,5 @@ public interface TrainingClassRepository
 
        Optional<TrainingClass> findByClassCode(String classCode);
        // List<TrainingClass> findAllByEnrollmentKey(String key);
+       List<TrainingClass> findByEndDateLessThanAndIsActiveTrue(LocalDate today);
 }

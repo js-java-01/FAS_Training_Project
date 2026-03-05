@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useGetTrainingClassById } from "./services/queries";
 import { useGetAllSemesters } from "../semesters/services/queries/useSemesters";
+import { useGetAllTrainingPrograms } from "../programs/services/queries";
 import { trainingClassApi } from "@/api/trainingClassApi";
 import { trainingClassKeys } from "./keys";
 import type { TrainingClass } from "@/types/trainingClass";
@@ -19,6 +20,7 @@ import ClassTraineesTable from "../classes/component/ClassTraineesTable";
 import type { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
 import ClassCoursesTable from "../classes/component/ClassCoursesTable";
+import ClassTopicsTable from "../classes/component/ClassTopicsTable";
 
 const TABS = [
     { value: "class-info", label: "Class Info" },
@@ -28,6 +30,7 @@ const TABS = [
     { value: "budget-operation", label: "Budget & Operation Info" },
     { value: "activities", label: "Activities" },
     { value: "course-list", label: "Course List" },
+    { value: "topic-list", label: "Topics" },
 ] as const;
 
 /* ── helpers ── */
@@ -37,7 +40,8 @@ const buildFormData = (tc: TrainingClass): ClassInfoFormData => ({
     description: tc.description ?? "",
     startDate: tc.startDate ? tc.startDate.slice(0, 10) : "",
     endDate: tc.endDate ? tc.endDate.slice(0, 10) : "",
-    semesterId: "",
+    semesterId: tc.semesterId ?? "",
+    trainingProgramId: tc.trainingProgramId ?? "",
 });
 
 const validateForm = (data: ClassInfoFormData): Record<string, string> => {
@@ -74,7 +78,8 @@ export default function ClassDetailPage() {
     const location = useLocation();
     const queryClient = useQueryClient();
     const { role } = useSelector((state: RootState) => state.auth);
-    const canEditClass = role !== "TRAINER";
+    const readOnlyRoles = new Set(["ADMIN", "SUPER_ADMIN", "STUDENT", "TRAINER"]);
+    const canEditClass = !readOnlyRoles.has(role);
 
     /* Data passed from the table via navigate state */
     const stateClass = (location.state as { trainingClass?: TrainingClass })?.trainingClass ?? null;
@@ -101,7 +106,7 @@ export default function ClassDetailPage() {
     const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["value"]>("class-info");
     const [formData, setFormData] = useState<ClassInfoFormData>(() =>
         trainingClass ? buildFormData(trainingClass) : {
-            className: "", classCode: "", description: "", startDate: "", endDate: "", semesterId: "",
+            className: "", classCode: "", description: "", startDate: "", endDate: "", semesterId: "", trainingProgramId: "",
         },
     );
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -117,6 +122,12 @@ export default function ClassDetailPage() {
     role,
   );
         const semesters = semestersData?.items ?? [];
+
+    const { data: trainingProgramsData, isLoading: loadingTrainingPrograms } = useGetAllTrainingPrograms({
+        page: 0,
+        pageSize: 100,
+    });
+    const trainingPrograms = trainingProgramsData?.items ?? [];
 
     const handleEdit = useCallback(() => {
         if (!canEditClass) return;
@@ -167,6 +178,7 @@ export default function ClassDetailPage() {
                 startDate: formData.startDate,
                 endDate: formData.endDate,
                 semesterId: formData.semesterId || undefined,
+                trainingProgramId: formData.trainingProgramId || undefined,
             });
             toast.success("Class updated successfully");
             await queryClient.invalidateQueries({ queryKey: trainingClassKeys.detail(decodedClassId) });
@@ -223,60 +235,22 @@ export default function ClassDetailPage() {
             ) : (
                 <div className="flex flex-col gap-4 h-full">
                     {/* ── Page Title Row ── */}
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold tracking-tight">Classes</h1>
+                            <h1 className="text-2xl font-bold tracking-tight">Classes Detail</h1>
                             <p className="text-sm text-muted-foreground">
                                 Classes details and configuration
                             </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="gap-1.5"
-                                onClick={() => navigate("/classes")}
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                                Back to list
-                            </Button>
-                            {activeTab === "class-info" && (
-                                isEditing ? (
-                                    <>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-1.5"
-                                            onClick={handleCancel}
-                                            disabled={saving}
-                                        >
-                                            <X className="h-4 w-4" />
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
-                                            onClick={handleSave}
-                                            disabled={saving}
-                                        >
-                                            <Save className="h-4 w-4" />
-                                            {saving ? "Saving..." : "Save"}
-                                        </Button>
-                                    </>
-                                ) : (
-                                    canEditClass && (
-                                        <Button
-                                            size="sm"
-                                            className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
-                                            onClick={handleEdit}
-                                        >
-                                            <Pencil className="h-4 w-4" />
-                                            Edit
-                                        </Button>
-                                    )
-                                )
-                            )}
-                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={() => navigate("/classes")}
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            Back to list
+                        </Button>
                     </div>
 
                     {/* ── Class Name + Code + Badge ── */}
@@ -287,7 +261,9 @@ export default function ClassDetailPage() {
                         <span className="font-mono text-sm text-muted-foreground">
                             {trainingClass.classCode}
                         </span>
-                        <Badge variant="secondary">Class: {classStatus}</Badge>
+                        {requestStatus === "Approved" && (
+                            <Badge variant="secondary">Class: {classStatus}</Badge>
+                        )}
                         <Badge variant="secondary">Request: {requestStatus}</Badge>
                     </div>
 
@@ -311,7 +287,14 @@ export default function ClassDetailPage() {
                                 errors={formErrors}
                                 semesters={semesters}
                                 loadingSemesters={loadingSemesters}
+                                trainingPrograms={trainingPrograms}
+                                loadingTrainingPrograms={loadingTrainingPrograms}
                                 enrollmentKey={trainingClass.enrollmentKey}
+                                onEdit={handleEdit}
+                                onCancel={handleCancel}
+                                onSave={handleSave}
+                                canEditClass={canEditClass}
+                                saving={saving}
                             />
                         </TabsContent>
 
@@ -323,6 +306,11 @@ export default function ClassDetailPage() {
                         <TabsContent value="course-list" className="pt-6 overflow-y-auto flex-1">
                             <ClassCoursesTable classId={trainingClass.id} />
                         </TabsContent>
+
+                        <TabsContent value="topic-list" className="pt-6 overflow-y-auto flex-1">
+                            <ClassTopicsTable classId={trainingClass.id} />
+                        </TabsContent>
+
                         <TabsContent value="calendar" className="pt-6 overflow-y-auto flex-1">
                             <PlaceholderTab label="Calendar" />
                         </TabsContent>

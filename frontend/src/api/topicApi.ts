@@ -26,6 +26,39 @@ export interface TopicPageResponse {
   };
 }
 
+export interface TopicDetailResponse {
+  topic: Topic;
+  assessmentTypeWeights?: Array<{
+    id?: string;
+    assessmentTypeId?: string;
+    accessmentTypeName?: string;
+    weight?: number;
+  }>;
+  trainingClassReponse?: {
+    id?: string;
+    className?: string;
+    classCode?: string;
+    trainingProgramId?: string;
+    trainingProgramName?: string;
+  };
+  trainingProgram?: {
+    id?: string;
+    name?: string;
+    description?: string;
+    version?: string;
+  };
+}
+
+export interface TopicDetailPageResponse {
+  items: TopicDetailResponse[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    totalElements: number;
+  };
+}
+
 export const topicApi = {
   getTopics: async (params: {
     page?: number;
@@ -57,6 +90,43 @@ export const topicApi = {
     const d = response.data;
     return {
       items: d.content, 
+      pagination: {
+        page: d.number,
+        pageSize: d.size,
+        totalPages: d.totalPages,
+        totalElements: d.totalElements,
+      },
+    };
+  },
+
+  getMyTopics: async (params: {
+    classId: string;
+    page?: number;
+    size?: number;
+  } = {}): Promise<TopicDetailPageResponse> => {
+    const { classId, page = 0, size = 10 } = params;
+
+    if (!classId) {
+      throw new Error("classId is required for getMyTopics");
+    }
+
+    const response = await axiosInstance.get<{
+      content: TopicDetailResponse[];
+      number: number;
+      size: number;
+      totalPages: number;
+      totalElements: number;
+    }>(`/topics/my-topics/${classId}`, {
+      params: {
+        page,
+        size,
+        classId,
+      },
+    });
+
+    const d = response.data;
+    return {
+      items: d.content,
       pagination: {
         page: d.number,
         pageSize: d.size,

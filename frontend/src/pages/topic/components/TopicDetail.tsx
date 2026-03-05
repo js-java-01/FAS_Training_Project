@@ -358,131 +358,23 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
       )}
 
       {activeTab === "Assessment Scheme" && (
-        <div className="space-y-4">
-          <div className="border rounded-lg p-4 bg-white space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-              <Field icon={<FiLayers />} label="Assessment Type">
-                <select
-                  className={inputCls + " bg-white"}
-                  value={selectedAssessmentTypeId}
-                  onChange={(event) => setSelectedAssessmentTypeId(event.target.value)}
-                >
-                  <option value="">Select assessment type</option>
-                  {availableAssessmentTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-
-              <Field icon={<FiBarChart2 />} label="Weight (%)">
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  className={inputCls}
-                  value={selectedWeight}
-                  onChange={(event) => setSelectedWeight(event.target.value)}
-                />
-              </Field>
-
-              <button
-                type="button"
-                onClick={addSchemeItem}
-                className="h-10 inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 text-white px-4 text-sm hover:bg-blue-700"
-              >
-                <FiPlus /> Add
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">Drag rows to reorder priority</span>
-              <span
-                className={
-                  totalWeight > 100
-                    ? "text-red-600 font-semibold"
-                    : totalWeight === 100
-                      ? "text-green-600 font-semibold"
-                      : "text-amber-600 font-semibold"
-                }
-              >
-                Total: {totalWeight}%
-              </span>
-            </div>
-
-            <div className="border rounded-md overflow-hidden">
-              <div className="grid grid-cols-[44px_1fr_1fr_120px_54px] bg-gray-50 text-xs uppercase tracking-wider text-gray-500 font-semibold px-3 py-2">
-                <span></span>
-                <span>Assessment Type</span>
-                <span>Description</span>
-                <span>Weight</span>
-                <span></span>
-              </div>
-
-              {schemeLoading ? (
-                <div className="p-4 text-sm text-gray-500">Loading assessment scheme...</div>
-              ) : schemeItems.length === 0 ? (
-                <div className="p-4 text-sm text-gray-500">No assessment type weight configured.</div>
-              ) : (
-                <div>
-                  {schemeItems.map((item) => (
-                    <div
-                      key={item.localId}
-                      draggable
-                      onDragStart={() => setDraggingId(item.localId)}
-                      onDragOver={(event) => event.preventDefault()}
-                      onDrop={() => {
-                        if (draggingId) moveSchemeItem(draggingId, item.localId);
-                        setDraggingId(null);
-                      }}
-                      onDragEnd={() => setDraggingId(null)}
-                      className="grid grid-cols-[44px_1fr_1fr_120px_54px] items-center px-3 py-2 border-t"
-                    >
-                      <div className="text-gray-400 cursor-grab"><FiMenu /></div>
-                      <div className="text-sm font-medium text-gray-800">{item.assessmentTypeName}</div>
-                      <div className="text-sm text-gray-600 line-clamp-2 pr-2">{item.assessmentTypeDescription || "-"}</div>
-                      <input
-                        type="number"
-                        min={0}
-                        max={100}
-                        className="w-24 border rounded-md px-2 py-1 text-sm"
-                        value={item.weight}
-                        onChange={(event) => updateSchemeWeight(item.localId, event.target.value)}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeSchemeItem(item.localId)}
-                        className="inline-flex items-center justify-center text-red-500 hover:text-red-600"
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={saveAssessmentScheme}
-                disabled={schemeSaving || schemeLoading}
-                className="inline-flex items-center gap-2 text-sm bg-blue-600 text-white rounded-md px-4 py-2 hover:bg-blue-700 disabled:opacity-60"
-              >
-                <FiSave /> {schemeSaving ? "Saving..." : "Save Assessment Scheme"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* OTHER TABS PLACEHOLDER */}
-      {activeTab !== "Overview" && activeTab !== "Assessment Scheme" && (
-        <div className="py-20 text-center border-2 border-dashed rounded-xl bg-gray-50 text-gray-400">
-          <FiLayers size={40} className="mx-auto mb-2 opacity-20" />
-          <p>Content for {activeTab} is being updated by the content team.</p>
-        </div>
+        <AssessmentSchemeTab
+          availableAssessmentTypes={availableAssessmentTypes}
+          schemeItems={schemeItems}
+          totalWeight={totalWeight}
+          remainingWeight={remainingWeight}
+          canAddMoreAssessmentType={canAddMoreAssessmentType}
+          isSchemeWeightValid={isSchemeWeightValid}
+          schemeLoading={schemeLoading}
+          schemeSaving={schemeSaving}
+          onTypeDragStart={onTypeDragStart}
+          onSchemeDrop={onSchemeDrop}
+          addAssessmentTypeToScheme={addAssessmentTypeToScheme}
+          updateSchemeWeight={updateSchemeWeight}
+          removeSchemeItem={removeSchemeItem}
+          saveAssessmentScheme={saveAssessmentScheme}
+          canEdit={!isStudentRole}
+        />
       )}
     </div>
   );

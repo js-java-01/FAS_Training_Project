@@ -24,6 +24,7 @@ export default function ClassesDetailComponent() {
       case ROLES.SUPER_ADMIN:
       case ROLES.ADMIN:
       case ROLES.TRAINER:
+      case ROLES.STUDENT:
         return roleComponents.adminDetail;
 
       default:
