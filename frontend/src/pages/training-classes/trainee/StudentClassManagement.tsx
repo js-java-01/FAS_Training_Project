@@ -8,7 +8,7 @@ import { useState } from "react"
 import SearchClass from "./SearchClass"
 
 export default function StudentClassManagement() {
-    const [activeTab, setActiveTab] = useState("search");
+    const [activeTab, setActiveTab] = useState("my-classes");
     return (
         <MainLayout pathName={{ studentClasses: "Classes" }}>
             <div className="container mx-auto py-8 px-4 max-w-7xl animate-in fade-in duration-500">

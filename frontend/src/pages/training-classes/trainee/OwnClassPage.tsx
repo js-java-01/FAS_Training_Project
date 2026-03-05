@@ -1,15 +1,17 @@
 import { useMemo } from "react"
-import { MainLayout } from "@/components/layout/MainLayout"
+import { useNavigate } from "react-router-dom";
 
 
 import { Separator } from "@/components/ui/separator"
-import { GraduationCap, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { ClassCard } from "./component/ClassCard"
 import { useGetMyClasses } from "./service/queries"
+import { encodeRouteId } from "@/utils/routeIdCodec";
 
 
 
 export const OwnClassPage = () => {
+    const navigate = useNavigate();
 
     const { data: apiResponse, isLoading } = useGetMyClasses();
     const semesters = useMemo(() => apiResponse?.data ?? [], [apiResponse]);
@@ -21,7 +23,7 @@ export const OwnClassPage = () => {
         );
     }
     const handleClickClassCard = (classId: string) => {
-        alert(`Chuyển đến trang chi tiết lớp học với ID: ${classId}`);
+        navigate(`/classes/${encodeRouteId("classes", classId)}`);
     }
 
     return (
