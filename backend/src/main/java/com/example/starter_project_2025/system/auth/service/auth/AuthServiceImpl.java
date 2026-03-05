@@ -38,8 +38,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl implements AuthService
-{
+public class AuthServiceImpl implements AuthService {
     private final OtpService otpService;
     private final EmailService emailService;
     private final UserRepository userRepository;
@@ -56,12 +55,10 @@ public class AuthServiceImpl implements AuthService
     private final UserRoleRepository userRoleRepository;
 
     @Override
-    public String registerUser(RegisterCreateDTO registerCreateDTO)
-    {
+    public String registerUser(RegisterCreateDTO registerCreateDTO) {
 
         boolean exists = userRepository.existsByEmail(registerCreateDTO.getEmail());
-        if (exists)
-        {
+        if (exists) {
             throw new IllegalArgumentException("Email already in use");
         }
         String otp = otpService.generatedOtpAndSave(registerCreateDTO.getEmail(), registerCreateDTO);
@@ -71,23 +68,19 @@ public class AuthServiceImpl implements AuthService
                 Optional.ofNullable(registerCreateDTO.getFirstName() + " " + registerCreateDTO.getLastName())
                         .orElse("User"));
         String body = templateEngine.process("otp-email", context);
-        try
-        {
+        try {
             emailService.sendEmail(registerCreateDTO.getEmail(), "Your OTP Code", body);
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to send OTP email", e);
         }
         return "Success";
     }
 
     @Override
-    public boolean verifyEmail(String email, String code)
-    {
+    public boolean verifyEmail(String email, String code) {
         RegisterCreateDTO registerCreateDTO = otpService.verifyAndGetRegistrationData(email, code,
                 RegisterCreateDTO.class);
-        if (registerCreateDTO == null)
-        {
+        if (registerCreateDTO == null) {
             return false;
         }
 
@@ -104,8 +97,7 @@ public class AuthServiceImpl implements AuthService
     }
 
     @Override
-    public String forgotPassword(String email)
-    {
+    public String forgotPassword(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Email not found"));
         String otp = otpService.generatedOtpAndSave(email, email);
@@ -113,25 +105,21 @@ public class AuthServiceImpl implements AuthService
         context.setVariable("otpCode", otp);
         context.setVariable("email", email);
         String body = templateEngine.process("forgotPassword", context);
-        try
-        {
+        try {
             emailService.sendEmail(email, "Password Reset OTP", body);
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to send password reset email", e);
         }
         return "Success";
     }
 
     @Override
-    public boolean verifyForgotPasswordOtpAndSavePassword(ForgotPasswordDTO forgotPasswordDTO)
-    {
+    public boolean verifyForgotPasswordOtpAndSavePassword(ForgotPasswordDTO forgotPasswordDTO) {
         String email = forgotPasswordDTO.getEmail();
         String token = forgotPasswordDTO.getToken();
         String newPassword = forgotPasswordDTO.getNewPassword();
         String savedEmail = otpService.verifyAndGetRegistrationData(email, token, String.class);
-        if (savedEmail == null || !savedEmail.equals(email))
-        {
+        if (savedEmail == null || !savedEmail.equals(email)) {
             throw new IllegalArgumentException("Invalid OTP or email");
         }
         User user = userRepository.findByEmail(email)
@@ -142,8 +130,7 @@ public class AuthServiceImpl implements AuthService
     }
 
     @Override
-    public LoginResponse login(LoginRequest reqData, HttpServletResponse response)
-    {
+    public LoginResponse login(LoginRequest reqData, HttpServletResponse response) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(reqData.getEmail(), reqData.getPassword()));
 
@@ -164,8 +151,7 @@ public class AuthServiceImpl implements AuthService
 
         String at = jwtUtils.generateToken(authentication);
 
-        if (reqData.isRememberedMe())
-        {
+        if (reqData.isRememberedMe()) {
             var rt = refreshTokenService.generateAndSaveRefreshToken(user, Optional.empty());
             cookieUtil.addCookie(response, rt);
         }
@@ -176,11 +162,9 @@ public class AuthServiceImpl implements AuthService
     }
 
     @Override
-    public void logout(HttpServletRequest request, HttpServletResponse response)
-    {
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof UserDetailsImpl userDetails)
-        {
+        if (auth != null && auth.getPrincipal() instanceof UserDetailsImpl userDetails) {
             refreshTokenService.revokeAllByUser(userDetails.getId());
             SecurityContextHolder.clearContext();
         }
@@ -188,11 +172,9 @@ public class AuthServiceImpl implements AuthService
     }
 
     @Override
-    public LoginResponse refresh(String token, HttpServletResponse response)
-    {
+    public LoginResponse refresh(String token, HttpServletResponse response) {
         refreshTokenService.verifyRefreshToken(token);
-        if (jwtUtils.validateToken(token))
-        {
+        if (jwtUtils.validateToken(token)) {
             String email = jwtUtils.getEmailFromToken(token);
             var roleName = jwtUtils.getUserDetailsFromToken(token).getRole();
 
@@ -200,9 +182,9 @@ public class AuthServiceImpl implements AuthService
                     .orElseThrow(() -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
             var userDetails = UserDetailsImpl.build(user);
 
-//            var defaultRole = userRoleRepository.findByUserAndIsDefault(user, true)
-//                    .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND))
-//                    .getRole();
+            // var defaultRole = userRoleRepository.findByUserAndIsDefault(user, true)
+            // .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND))
+            // .getRole();
 
             var role = roleRepository.findByName(roleName)
                     .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND));
@@ -220,26 +202,41 @@ public class AuthServiceImpl implements AuthService
             var res = authMapper.toLoginResponse(userDetails);
             res.setToken(newToken);
             return res;
-        } else
-        {
+        } else {
             throw new RuntimeException(ErrorMessage.REFRESH_TOKEN_HAS_EXPIRED);
         }
     }
 
-
     @Override
-    public LoginResponse switchRole(GetPermissonReqDTO data, String email, HttpServletResponse response)
-    {
+    public LoginResponse switchRole(GetPermissonReqDTO data, String email, HttpServletResponse response) {
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
 
-        var role = roleRepository.findByName(data.roleName)
+        // Load role with permissions eagerly to avoid LazyInitializationException
+        var roleRef = roleRepository.findByName(data.roleName)
+                .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND));
+        var role = roleRepository.findByIdWithPermissions(roleRef.getId())
                 .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND));
 
         var userRoles = userRoleRepository.findByUserAndRole(user, role);
-        if (userRoles == null || userRoles.isEmpty())
-        {
-            throw new RuntimeException(ErrorMessage.USER_DOES_NOT_HAVE_THE_SPECIFIED_ROLE);
+        if (userRoles == null || userRoles.isEmpty()) {
+            // Also allow switching to a role the user can "simulate" via hierarchy level.
+            // This mirrors the logic in getMyRoles: a user with hierarchyLevel=1
+            // (SUPER_ADMIN)
+            // can switch into any active role with hierarchyLevel >= 1.
+            var assigned = userRoleRepository.findByUserIdWithPermissions(user.getId());
+            int userMinLevel = assigned.stream()
+                    .map(ur -> ur.getRole().getHierarchyLevel())
+                    .filter(l -> l != null && l > 0)
+                    .mapToInt(Integer::intValue)
+                    .min()
+                    .orElse(0);
+            int targetLevel = role.getHierarchyLevel() != null ? role.getHierarchyLevel() : 0;
+            boolean canSimulate = userMinLevel > 0 && targetLevel > 0 && targetLevel >= userMinLevel;
+
+            if (!canSimulate) {
+                throw new RuntimeException(ErrorMessage.USER_DOES_NOT_HAVE_THE_SPECIFIED_ROLE);
+            }
         }
 
         var permissions = getPermissionFromRole(role);
@@ -258,8 +255,7 @@ public class AuthServiceImpl implements AuthService
         return res;
     }
 
-    private Set<String> getPermissionFromRole(Role role)
-    {
+    private Set<String> getPermissionFromRole(Role role) {
         return role.getPermissions().stream().map(p -> p.getName()).collect(Collectors.toSet());
     }
 }

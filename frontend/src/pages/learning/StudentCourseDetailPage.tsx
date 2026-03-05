@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { StudentLayout } from "@/components/layout/StudentLayout";
 import { courseApi } from "@/api/courseApi";
-import { enrollmentApi } from "@/api/enrollmentApi";
+import { enrollmentOnlineApi } from "@/api/enrollmentOnlineApi";
 import { courseOnlineFeedbackApi } from "@/api/courseOnlineFeedbackApi";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Course } from "@/types/course";
@@ -75,7 +75,7 @@ function ConfirmEnrollModal({
   const handleEnroll = async () => {
     try {
       setEnrolling(true);
-      await enrollmentApi.enroll(course.id);
+      await enrollmentOnlineApi.enroll(course.id);
       toast.success(`Enrolled in ${course.courseName} successfully!`);
       onEnrolled();
     } catch (err: any) {
@@ -323,7 +323,7 @@ export default function StudentCourseDetailPage() {
     if (!id) return;
     Promise.all([
       courseApi.getCourseById(id),
-      enrollmentApi.getMyEnrolledCourses().catch(() => []),
+      enrollmentOnlineApi.getMyEnrolledCourses().catch(() => []),
       courseApi.getObjectivesByCourse(id),
       courseApi.getLessonsByCourse(id),
     ])
@@ -812,7 +812,6 @@ export default function StudentCourseDetailPage() {
                         Your Rating
                       </p>
                       <InteractiveStarRating
-
                         rating={rating}
                         setRating={setRating}
                       />

@@ -11,6 +11,8 @@ import com.example.starter_project_2025.system.course_class.dto.CourseClassRespo
 import com.example.starter_project_2025.system.course_class.dto.CourseClassResponse.CourseInfo;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
+import com.example.starter_project_2025.system.topic.entity.Topic;
+import com.example.starter_project_2025.system.topic.repository.TopicRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +29,8 @@ public class CourseClassServiceImpl implements CourseClassService {
         private final CourseOnlineRepository courseOnlineRepository;
         private final TrainingClassRepository classRepository;
         private final UserRepository userRepository;
-
         private final CourseClassRepository courseClassRepository;
+        private final TopicRepository topicRepository;
 
         @Override
         @Transactional
@@ -79,12 +81,26 @@ public class CourseClassServiceImpl implements CourseClassService {
         }
 
         private CourseClassResponse toResponse(CourseClass cc) {
-                // CourseClassResponse.CourseInfo courseInfo = cc.getCourse() == null ? null
-                // : new CourseClassResponse.CourseInfo(
-                // cc.getCourse().getId(),
-                // cc.getCourse().getCourseName(),
-                // cc.getCourse().getCourseCode());
-
+                CourseInfo courseInfo = null;
+                if (cc.getCourse() != null) {
+                        var c = cc.getCourse();
+                        String topicName = null;
+                        String topicCode = null;
+                        if (c.getTopicId() != null) {
+                                Topic topic = topicRepository.findById(c.getTopicId()).orElse(null);
+                                if (topic != null) {
+                                        topicName = topic.getTopicName();
+                                        topicCode = topic.getTopicCode();
+                                }
+                        }
+                        courseInfo = new CourseInfo(
+                                        c.getId(),
+                                        c.getCourseName(),
+                                        c.getCourseCode(),
+                                        c.getTopicId(),
+                                        topicName,
+                                        topicCode);
+                }
                 CourseClassResponse.ClassInfo classInfo = cc.getClassInfo() == null ? null
                                 : new CourseClassResponse.ClassInfo(
                                                 cc.getClassInfo().getId(),
@@ -100,7 +116,7 @@ public class CourseClassServiceImpl implements CourseClassService {
 
                 return new CourseClassResponse(
                                 cc.getId(),
-                                new CourseInfo(),
+                                courseInfo,
                                 classInfo,
                                 trainerInfo,
                                 cc.getCreatedDate(),
@@ -109,13 +125,11 @@ public class CourseClassServiceImpl implements CourseClassService {
 
         @Override
         public List<CourseClass> getByUser(User user) {
-                // TODO Auto-generated method stub
                 throw new UnsupportedOperationException("Unimplemented method 'getByUser'");
         }
 
         @Override
         public CourseClassResponse getById(UUID id) {
-                // TODO Auto-generated method stub
                 throw new UnsupportedOperationException("Unimplemented method 'getById'");
         }
 }
