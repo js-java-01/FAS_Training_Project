@@ -14,6 +14,7 @@ export interface TrainingClass {
   creatorName?: string;
   approverName?: string;
   semesterName?: string;
+  trainingProgramName?: string;
   startDate: string;
   endDate: string;
   status: ClassStatusType;
