@@ -235,60 +235,22 @@ export default function ClassDetailPage() {
             ) : (
                 <div className="flex flex-col gap-4 h-full">
                     {/* ── Page Title Row ── */}
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight">Classes Detail</h1>
                             <p className="text-sm text-muted-foreground">
                                 Classes details and configuration
                             </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="gap-1.5"
-                                onClick={() => navigate("/classes")}
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                                Back to list
-                            </Button>
-                            {activeTab === "class-info" && (
-                                isEditing ? (
-                                    <>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-1.5"
-                                            onClick={handleCancel}
-                                            disabled={saving}
-                                        >
-                                            <X className="h-4 w-4" />
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
-                                            onClick={handleSave}
-                                            disabled={saving}
-                                        >
-                                            <Save className="h-4 w-4" />
-                                            {saving ? "Saving..." : "Save"}
-                                        </Button>
-                                    </>
-                                ) : (
-                                    canEditClass && (
-                                        <Button
-                                            size="sm"
-                                            className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
-                                            onClick={handleEdit}
-                                        >
-                                            <Pencil className="h-4 w-4" />
-                                            Edit
-                                        </Button>
-                                    )
-                                )
-                            )}
-                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={() => navigate("/classes")}
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            Back to list
+                        </Button>
                     </div>
 
                     {/* ── Class Name + Code + Badge ── */}
@@ -328,6 +290,11 @@ export default function ClassDetailPage() {
                                 trainingPrograms={trainingPrograms}
                                 loadingTrainingPrograms={loadingTrainingPrograms}
                                 enrollmentKey={trainingClass.enrollmentKey}
+                                onEdit={handleEdit}
+                                onCancel={handleCancel}
+                                onSave={handleSave}
+                                canEditClass={canEditClass}
+                                saving={saving}
                             />
                         </TabsContent>
 
