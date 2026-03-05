@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, FileQuestion, CheckCircle2, XCircle, Save, Trash2, Loader2 } from 'lucide-react';
+import { Plus, FileQuestion, CheckCircle2, XCircle, Save, Trash2, Loader2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AssessmentQuestion } from '@/types/features/assessment/assessment-question';
 
 import { AddQuestionModal } from './AddQuestionModal';
 import { useToast } from '@/hooks/useToast';
-import { assessmentQuestionApi } from '@/api';
+import { assessmentQuestionApi, questionCategoryApi } from '@/api';
+import { questionApi } from '@/api/questionApi';
 
 interface AssessmentQuestionsTabProps {
     assessmentId?: string;
@@ -16,6 +17,19 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [showAddModal, setShowAddModal] = useState(false);
+    const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+    const toggleExpand = (id: string) => {
+        setExpandedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    };
 
     // Fetch assessment questions
     const { data: assessmentQuestions = [], isLoading, error: fetchError } = useQuery<AssessmentQuestion[]>({
@@ -23,6 +37,47 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
         queryFn: () => assessmentQuestionApi.getByAssessmentId(assessmentId!),
         enabled: !!assessmentId,
     });
+
+    // Fetch all questions to enrich the flat assessment question data
+    const { data: allQuestions = [] } = useQuery({
+        queryKey: ['questions-all'],
+        queryFn: () => questionApi.getAllContent(),
+        enabled: !!assessmentId,
+    });
+
+    // Fetch all categories for category name lookup
+    const { data: categoriesResponse } = useQuery({
+        queryKey: ['question-categories'],
+        queryFn: () => questionCategoryApi.getPage({ page: 0, size: 1000 }),
+        enabled: !!assessmentId,
+    });
+
+    const categoryMap = useMemo(() => {
+        const map = new Map<string, string>();
+        (categoriesResponse?.content ?? []).forEach(cat => {
+            if (cat.id) map.set(cat.id, cat.name);
+        });
+        return map;
+    }, [categoriesResponse]);
+
+    // Merge flat assessment questions with full question data
+    const enrichedQuestions = useMemo(() => {
+        const questionMap = new Map(allQuestions.map(q => [q.id, q]));
+        const raw = Array.isArray(assessmentQuestions) ? assessmentQuestions : [];
+        return raw.map(aq => {
+            const q = questionMap.get(aq.questionId);
+            return {
+                ...aq,
+                question: q ? {
+                    id: q.id,
+                    content: q.content,
+                    questionType: q.questionType,
+                    category: { name: categoryMap.get(q.categoryId) ?? '' },
+                    options: q.options,
+                } : undefined,
+            };
+        });
+    }, [assessmentQuestions, allQuestions, categoryMap]);
 
     // Create assessment question mutation
     const createMutation = useMutation({
@@ -77,9 +132,8 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
     }
 
     const handleAddQuestions = async (selected: { questionId: string; score: number }[]) => {
-        const safeQuestions = Array.isArray(assessmentQuestions) ? assessmentQuestions : [];
-        const startOrderIndex = safeQuestions.length > 0
-            ? Math.max(...safeQuestions.map((aq: AssessmentQuestion) => aq.orderIndex)) + 1
+        const startOrderIndex = enrichedQuestions.length > 0
+            ? Math.max(...enrichedQuestions.map(aq => aq.orderIndex)) + 1
             : 0;
 
         let successCount = 0;
@@ -94,10 +148,12 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                     orderIndex: startOrderIndex + i,
                 });
                 successCount++;
-            } catch (error: any) {
+            } catch (error: unknown) {
                 failCount++;
                 console.error('Failed to add question:', error);
-                const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+                const errorMessage = (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message
+                    || (error as Error)?.message
+                    || 'Unknown error';
                 toast({
                     variant: 'destructive',
                     title: 'Failed to add question',
@@ -136,7 +192,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                     <XCircle className="h-12 w-12 text-red-600 mx-auto mb-3" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Questions</h3>
                     <p className="text-sm text-gray-600">
-                        {(fetchError as any)?.response?.data?.message || (fetchError as Error)?.message || 'Unable to fetch assessment questions'}
+                        {(fetchError as { response?: { data?: { message?: string } } })?.response?.data?.message || (fetchError as Error)?.message || 'Unable to fetch assessment questions'}
                     </p>
                     <Button
                         onClick={() => queryClient.invalidateQueries({ queryKey: ['assessmentQuestions', assessmentId] })}
@@ -149,13 +205,12 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
         );
     }
 
-    // Calculate statistics - only after loading is complete and data is available
-    const safeAssessmentQuestions = Array.isArray(assessmentQuestions) ? assessmentQuestions : [];
-    const totalScore = safeAssessmentQuestions.reduce((sum: number, aq: AssessmentQuestion) => sum + aq.score, 0);
-    const questionsWithoutCorrectAnswer = safeAssessmentQuestions.filter(
-        (aq: AssessmentQuestion) => !aq.question.options.some((opt: any) => opt.correct)
+    // Calculate statistics using enriched data
+    const totalScore = enrichedQuestions.reduce((sum, aq) => sum + aq.score, 0);
+    const questionsWithoutCorrectAnswer = enrichedQuestions.filter(
+        aq => !aq.question?.options?.some((opt: { correct: boolean }) => opt.correct)
     ).length;
-    const existingQuestionIds = safeAssessmentQuestions.map((aq: AssessmentQuestion) => aq.question.id);
+    const existingQuestionIds = enrichedQuestions.map(aq => aq.question?.id).filter(Boolean) as string[];
 
     return (
         <div className="max-w-6xl">
@@ -180,7 +235,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-600">Total Questions</p>
-                            <p className="text-2xl font-bold text-gray-900 mt-1">{safeAssessmentQuestions.length}</p>
+                            <p className="text-2xl font-bold text-gray-900 mt-1">{enrichedQuestions.length}</p>
                         </div>
                         <FileQuestion className="h-8 w-8 text-blue-600" />
                     </div>
@@ -208,7 +263,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
             </div>
 
             {/* Empty State */}
-            {safeAssessmentQuestions.length === 0 ? (
+            {enrichedQuestions.length === 0 ? (
                 <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
                     <FileQuestion className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No questions added yet</h3>
@@ -226,15 +281,17 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
             ) : (
                 /* Questions List */
                 <div className="space-y-3">
-                    {safeAssessmentQuestions.map((assessmentQuestion: AssessmentQuestion, index: number) => {
-                        const hasCorrectAnswer = assessmentQuestion.question.options.some((opt: any) => opt.correct);
+                    {enrichedQuestions.map((assessmentQuestion, index) => {
+                        const hasCorrectAnswer = assessmentQuestion.question?.options?.some((opt: { correct: boolean }) => opt.correct) ?? false;
+                        const isExpanded = expandedIds.has(assessmentQuestion.id);
+                        const options = assessmentQuestion.question?.options ?? [];
 
                         return (
                             <div
                                 key={assessmentQuestion.id}
-                                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                                className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                             >
-                                <div className="flex items-start gap-4">
+                                <div className="flex items-start gap-4 p-4">
                                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold flex items-center justify-center text-sm">
                                         {index + 1}
                                     </div>
@@ -242,7 +299,7 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-start justify-between gap-4 mb-2">
                                             <p className="text-sm text-gray-900 font-medium">
-                                                {assessmentQuestion.question.content}
+                                                {assessmentQuestion.question?.content}
                                             </p>
                                             <div className="flex items-center gap-2 flex-shrink-0">
                                                 {hasCorrectAnswer ? (
@@ -255,10 +312,10 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
 
                                         <div className="flex items-center gap-4 text-xs text-gray-600">
                                             <span className="px-2 py-1 rounded-full bg-gray-100">
-                                                {assessmentQuestion.question.category.name}
+                                                {assessmentQuestion.question?.category?.name}
                                             </span>
                                             <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700">
-                                                {assessmentQuestion.question.questionType}
+                                                {assessmentQuestion.question?.questionType}
                                             </span>
                                             <span className="font-medium text-green-700">
                                                 {assessmentQuestion.score} points
@@ -270,6 +327,16 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                                     </div>
 
                                     <div className="flex gap-2 flex-shrink-0">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-gray-500 hover:text-gray-700"
+                                            onClick={() => toggleExpand(assessmentQuestion.id)}
+                                        >
+                                            <ChevronDown
+                                                className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                                            />
+                                        </Button>
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -285,6 +352,39 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                                         </Button>
                                     </div>
                                 </div>
+
+                                {/* Expandable Options */}
+                                {isExpanded && (
+                                    <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Answer Options</p>
+                                        {options.length === 0 ? (
+                                            <p className="text-xs text-gray-400 italic">No options available</p>
+                                        ) : (
+                                            <div className="space-y-1.5">
+                                                {[...options]
+                                                    .sort((a, b) => a.orderIndex - b.orderIndex)
+                                                    .map((opt, optIndex) => (
+                                                        <div
+                                                            key={optIndex}
+                                                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm ${opt.correct
+                                                                    ? 'bg-green-50 border border-green-200 text-green-800'
+                                                                    : 'bg-white border border-gray-200 text-gray-700'
+                                                                }`}
+                                                        >
+                                                            <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${opt.correct ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
+                                                                }`}>
+                                                                {String.fromCharCode(65 + optIndex)}
+                                                            </div>
+                                                            <span className="flex-1">{opt.content}</span>
+                                                            {opt.correct && (
+                                                                <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         );
                     })}

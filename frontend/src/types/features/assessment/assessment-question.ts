@@ -1,10 +1,7 @@
-import type { Assessment } from "./assessment";
-import type { Question } from "./question";
-
 export interface AssessmentQuestion {
     id: string;
-    assessment: Assessment;
-    question: Question;
+    assessmentId: string;
+    questionId: string;
     score: number;
     orderIndex: number;
 }
