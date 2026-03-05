@@ -74,10 +74,6 @@ public class TopicServiceImpl implements TopicService
             topic.setTopicName(req.getTopicName());
         }
 
-        if (req.getLevel() != null)
-        {
-            topic.setLevel(req.getLevel());
-        }
         if (req.getDescription() != null)
         {
             topic.setDescription(req.getDescription());
@@ -107,11 +103,6 @@ public class TopicServiceImpl implements TopicService
     @Override
     public Page<TopicResponse> getAll(String keyword, String level, String status, Pageable pageable)
     {
-        TopicLevel levelEnum = null;
-        if (level != null && !level.isBlank())
-        {
-            levelEnum = TopicLevel.valueOf(level.toUpperCase());
-        }
 
         TopicStatus statusEnum = null;
         if (status != null && !status.isBlank())
@@ -119,7 +110,7 @@ public class TopicServiceImpl implements TopicService
             statusEnum = TopicStatus.valueOf(status.toUpperCase());
         }
 
-        Specification<Topic> spec = TopicSpecification.hasFilters(keyword, levelEnum, statusEnum);
+        Specification<Topic> spec = TopicSpecification.hasFilters(keyword, statusEnum);
 
         return topicRepository.findAll(spec, pageable).map(mapper::toResponse);
     }

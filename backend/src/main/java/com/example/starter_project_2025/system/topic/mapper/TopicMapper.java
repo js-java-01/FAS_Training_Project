@@ -22,7 +22,6 @@ public class TopicMapper
         return Topic.builder()
                 .topicCode(req.getTopicCode().toUpperCase())
                 .topicName(req.getTopicName())
-                .level(req.getLevel())
                 .description(req.getDescription())
                 .build();
     }
@@ -33,7 +32,6 @@ public class TopicMapper
                 .id(t.getId())
                 .topicName(t.getTopicName())
                 .topicCode(t.getTopicCode())
-                .level(t.getLevel())
                 .status(t.getStatus())
                 .version(t.getVersion())
                 .description(t.getDescription())

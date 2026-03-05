@@ -17,7 +17,6 @@ public class TopicResponse
 
     private String topicName;
     private String topicCode;
-    private TopicLevel level;    // Beginner, Intermediate, Advanced
     private TopicStatus status;   // Draft, Active, Rejected, v.v.
     private String version;  // v1.0, v1.1
     private String description;

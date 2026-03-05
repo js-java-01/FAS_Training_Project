@@ -33,9 +33,6 @@ public class Topic
     @Column(nullable = false, unique = true)
     private String topicCode;
 
-    @Enumerated(EnumType.STRING)
-    private TopicLevel level; // Beginner, Intermediate, Advanced
-
     private String version; // v1.0, v1.1...
 
     @Column(columnDefinition = "TEXT")
@@ -43,6 +40,7 @@ public class Topic
 
     @Enumerated(EnumType.STRING)
     private TopicStatus status; // DRAFT, ACTIVE, REJECTED...
+
 
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;

@@ -15,7 +15,7 @@ import {
   TOPIC_STATUSES,
 } from "../constants";
 
-const tabs = ["Overview", "Courses", "Objectives", "Assessment Scheme", "Delivery Principles", "Time Allocation"];
+const tabs = ["Overview", "Courses", "Assessment Scheme"];
 
 const inputCls = "w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
 
@@ -468,7 +468,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
                 type="button"
                 onClick={saveAssessmentScheme}
                 disabled={schemeSaving || schemeLoading}
-                className="inline-flex items-center gap-2 text-sm bg-blue-600 text-white rounded-md px-4 py-2 hover:bg-blue-700 disabled:opacity-60"
+                className="inline-flex items-center gap-2 text-sm bg-blue-700 text-white rounded-md px-4 py-2 hover:bg-blue-700 disabled:opacity-60"
               >
                 <FiSave /> {schemeSaving ? "Saving..." : "Save Assessment Scheme"}
               </button>
