@@ -38,22 +38,38 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     private final UserRoleRepository userRoleRepository;
 
     @Override
-    public String enroll(EnrollmentRequest request, UUID id) {
-        var classes = trainingClassRepository.findById(request.getClassID())
+    public String enroll(EnrollmentRequest request) {
+        var trainingClass = trainingClassRepository.findById(request.getClassID())
                 .orElseThrow(() -> new RuntimeException("Class not found"));
 
-        var user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
-        var existingEnrollment = enrollmentRepository.findByUserIdAndTrainingClassId(id, request.getClassID());
+        var user = userRepository.findByEmail(request.getStudentEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (existingEnrollment.isPresent()) {
-            throw new RuntimeException("Already enrolled in this class");
+        var existing = enrollmentRepository.findByUserIdAndTrainingClassId(user.getId(),
+                trainingClass.getId());
+        if (existing.isPresent()) {
+            return "User has already enrolled in this class.";
         }
 
         var enrollment = new Enrollment();
         enrollment.setUser(user);
-        enrollment.setTrainingClass(classes);
+        enrollment.setTrainingClass(trainingClass);
         enrollmentRepository.save(enrollment);
-        return "Enrollment successful";
+
+        boolean hasStudentRole = user.getUserRoles().stream()
+                .anyMatch(ur -> ur.getRole().getName().equalsIgnoreCase("STUDENT"));
+
+        if (!hasStudentRole) {
+            var studentRole = roleRepository.findByName("STUDENT")
+                    .orElseThrow(() -> new RuntimeException("Role STUDENT missing in DB"));
+
+            UserRole newUserRole = new UserRole();
+            newUserRole.setUser(user);
+            newUserRole.setRole(studentRole);
+            userRoleRepository.save(newUserRole);
+        }
+
+        return "Enrollment successful.";
     }
 
     @Override

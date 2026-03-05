@@ -1,9 +1,5 @@
 import { useMemo } from "react"
-import { MainLayout } from "@/components/layout/MainLayout"
-
-
-import { Separator } from "@/components/ui/separator"
-import { GraduationCap, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { ClassCard } from "./component/ClassCard"
 import { useGetMyClasses } from "./service/queries"
 
@@ -27,17 +23,11 @@ export const OwnClassPage = () => {
     return (
 
         <div className="container mx-auto py-8 px-4 space-y-10">
-
-
-            <Separator className="bg-slate-200" />
-
             {!isLoading && semesters.length === 0 && (
                 <div className="text-center py-20 text-slate-500">
-                    Bạn chưa tham gia lớp học nào.
+                    You are not enrolled in any classes yet. Explore available classes and start learning today!
                 </div>
             )}
-
-
             {semesters.map((semesterGroup) => (
                 <section key={semesterGroup.semesterId} className="space-y-6">
 

@@ -28,10 +28,9 @@ public class EnrollmentController {
 
         @PostMapping("")
         public ResponseEntity<String> enroll(
-                        @Valid @RequestBody EnrollmentRequest request,
-                        @AuthenticationPrincipal UserDetailsImpl userDetails) {
+                        @Valid @RequestBody EnrollmentRequest request) {
 
-                String result = enrollmentService.enroll(request, userDetails.getId());
+                String result = enrollmentService.enroll(request);
                 return ResponseEntity.ok(result);
         }
 
