@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import { EyeIcon, FileBarChartIcon, Plus, Trash } from "lucide-react";
 import TopicMarkModal from "@/pages/topic-mark/TopicMarkManagement";
 import type { TrainingClass } from "@/types/trainingClass";
-import { createBaseColumns } from "@/components/data_table/baseColumns";
 import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import { useExportTrainees, useExportTraineeTemplate, useImportTrainees } from "../service/mutations";
-import ActionBtn from "@/components/data_table/ActionBtn";
-import { getColumns } from "./Columns";
+
+
 import { AddTraineeModal } from "./AddTraineeModal";
+import { getColumns } from "./columns";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
+import { ROLES } from "@/types/role";
 
 interface Props {
   classId: string;
@@ -24,6 +26,9 @@ interface Props {
 
 
 export default function ClassTraineesTable({ classId, trainingClass }: Props) {
+  const { activeRole } = useRoleSwitch();
+  const role = activeRole?.name ?? "";
+
   const [openTopicMark, setOpenTopicMark] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -74,7 +79,7 @@ export default function ClassTraineesTable({ classId, trainingClass }: Props) {
         onSearchChange={handleSearchChange}
 
         headerActions={
-          <div className="flex items-end justify-between gap-2">
+          role !== ROLES.STUDENT && (<div className="flex items-end justify-between gap-2">
             <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon /> Topic mark</Button>
             <EntityImportExportButton
               mode="all" title={"Trainee"}
@@ -91,7 +96,8 @@ export default function ClassTraineesTable({ classId, trainingClass }: Props) {
               <Plus className="h-4 w-4" />
               Add Trainee
             </Button>
-          </div>
+          </div>)
+
         }
       />
 

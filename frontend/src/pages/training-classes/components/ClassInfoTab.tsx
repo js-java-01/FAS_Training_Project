@@ -291,6 +291,11 @@ export default function ClassInfoTab({
     loadingSemesters = false,
     trainingPrograms,
     loadingTrainingPrograms = false,
+    onEdit,
+    onCancel,
+    onSave,
+    canEditClass = false,
+    saving = false,
 }: ClassInfoTabProps) {
     const rawRequestStatus = String(trainingClass.status ?? "").toUpperCase();
     const requestStatusValue = rawRequestStatus === "PENDING_APPROVAL"

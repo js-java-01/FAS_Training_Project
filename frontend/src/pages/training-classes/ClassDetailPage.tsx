@@ -13,7 +13,7 @@ import type { ClassInfoFormData } from "./components/ClassInfoTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft,Pencil, Save, X } from "lucide-react";
+import { ArrowLeft, Pencil, Save, X } from "lucide-react";
 import ClassInfoTab from "./components/ClassInfoTab";
 import { decodeRouteId } from "@/utils/routeIdCodec";
 import ClassTraineesTable from "../classes/component/ClassTraineesTable";
@@ -94,11 +94,11 @@ export default function ClassDetailPage() {
         : "";
     const requestStatus = trainingClass
         ? (() => {
-              const raw = String(trainingClass.status ?? "").toUpperCase();
-              if (raw === "PENDING_APPROVAL") return "Pending";
-              if (raw === "REJECTED") return "Rejected";
-              return "Approved";
-          })()
+            const raw = String(trainingClass.status ?? "").toUpperCase();
+            if (raw === "PENDING_APPROVAL") return "Pending";
+            if (raw === "REJECTED") return "Rejected";
+            return "Approved";
+        })()
         : "";
 
     /* ── Edit mode state ── */
@@ -113,15 +113,15 @@ export default function ClassDetailPage() {
     const [saving, setSaving] = useState(false);
 
     /* Semesters for edit mode */
-        const { data: semestersData, isLoading: loadingSemesters } = useGetAllSemesters(
-    {
-      page: 0,
-      size: 20,
-      unpaged: true,
-    },
-    role,
-  );
-        const semesters = semestersData?.items ?? [];
+    const { data: semestersData, isLoading: loadingSemesters } = useGetAllSemesters(
+        {
+            page: 0,
+            size: 20,
+            unpaged: true,
+        },
+        role,
+    );
+    const semesters = semestersData?.items ?? [];
 
     const { data: trainingProgramsData, isLoading: loadingTrainingPrograms } = useGetAllTrainingPrograms({
         page: 0,
@@ -211,16 +211,16 @@ export default function ClassDetailPage() {
     }, [decodedClassId, formData, queryClient]);
 
     return (
-      <MainLayout
-        pathName={
-          decodedClassId && trainingClass
-            ? {
-                classes: "Classes",
-                [id as string]: trainingClass.className ?? "Detail",
-              }
-            : undefined
-        }
-      >
+        <MainLayout
+            pathName={
+                decodedClassId && trainingClass
+                    ? {
+                        classes: "Classes",
+                        [id as string]: trainingClass.className ?? "Detail",
+                    }
+                    : undefined
+            }
+        >
             {isLoading && !trainingClass ? (
                 <div className="flex items-center justify-center py-20 text-muted-foreground">
                     Loading…
@@ -325,7 +325,7 @@ export default function ClassDetailPage() {
                         </TabsContent>
                     </Tabs>
                 </div>
-        )}
+            )}
 
         </MainLayout>
     );

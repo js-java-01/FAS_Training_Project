@@ -12,8 +12,8 @@ export const getColumns = (actions?: TableActions) => {
     const columnHelper = createColumnHelper<TraineeDetailsResponse>();
     const base = createBaseColumns<TraineeDetailsResponse>();
     return [
-        base.numberColumn,
         base.selectColumn,
+        base.numberColumn,
         columnHelper.accessor("firstName", {
             header: "Full Name",
             cell: (info) => (

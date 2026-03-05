@@ -11,7 +11,8 @@ import { getColumns, type TablePermissions } from "./column";
 import { TrainingClassForm } from "./form";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ClassStatus } from "./enum/ClassStatus";
-import { useGetAllTrainingClasses,
+import {
+  useGetAllTrainingClasses,
   useExportTrainingClasses,
   useImportTrainingClasses,
   useDownloadTrainingClassTemplate,
@@ -78,11 +79,11 @@ export default function TrainingClassesTable({
   const queryClient = useQueryClient();
 
   const semesterMode = mode === "semester";
-  const canCreate = permissions.includes("CLASS_CREATE");
+  const canCreate = permissions.includes("CLASS_CREATE") && role == ROLES.ADMIN;
   const canReviewClass = role === ROLES.SUPER_ADMIN || role === ROLES.MANAGER;
   const showImportExport = !semesterMode;
 
-    /* ================= DATA ================= */
+  /* ================= DATA ================= */
   const {
     data: allClassesData,
     isLoading,
@@ -287,6 +288,7 @@ export default function TrainingClassesTable({
               <div className="flex gap-2">
                 {showImportExport && (
                   <EntityImportExportButton
+                    mode={role === ROLES.ADMIN ? "all" : "export"}
                     title="Classes"
                     useImportHook={useImportTrainingClasses}
                     useExportHook={useExportTrainingClasses}
