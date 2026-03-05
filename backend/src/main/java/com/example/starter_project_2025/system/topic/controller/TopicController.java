@@ -86,14 +86,14 @@ public class TopicController
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/my-topics")
+    @GetMapping("/my-topics/{id}")
     @PreAuthorize("hasAuthority('TOPIC_READ')")
     @Operation(summary = "Get topics created by current user")
     public ResponseEntity<Page<TopicDetailResponse>> getMyTopics(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) UUID classId,
             @PageableDefault(page = 0, size = 10) Pageable pageable)
     {
-        return ResponseEntity.ok(topicService.getMyTopics(userDetails.getId(), keyword, pageable));
+        return ResponseEntity.ok(topicService.getMyTopics(userDetails.getId(), classId, pageable));
     }
 }
