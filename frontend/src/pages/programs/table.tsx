@@ -28,6 +28,7 @@ export default function ProgramsTable() {
 
   const [selectedProgram, setSelectedProgram] = useState<TrainingProgram | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [inUseCount, setInUseCount] = useState(0);
 
   const queryClient = useQueryClient();
 
@@ -64,8 +65,11 @@ export default function ProgramsTable() {
     () =>
       getColumns({
         onView: (program) => navigate(`/programs/${encodeRouteId("programs", program.id)}`),
-        onDelete: (program) => {
+        onDelete: async (program) => {
           setSelectedProgram(program);
+          // Check if program is in use
+          const inUseData = await trainingProgramApi.checkIfInUse(program.id);
+          setInUseCount(inUseData.count);
           setIsDeleteModalOpen(true);
         },
       }),
@@ -75,13 +79,37 @@ export default function ProgramsTable() {
   const handleDelete = async () => {
     if (!selectedProgram) return;
     try {
+      // First, check if the program is in use
+      const inUseData = await trainingProgramApi.checkIfInUse(selectedProgram.id);
+
+      if (inUseData.inUse) {
+        toast.error(
+          `Cannot delete this training program because it is being used by ${inUseData.count} class(es). Please remove or reassign those classes first.`
+        );
+        setIsDeleteModalOpen(false);
+        setSelectedProgram(null);
+        return;
+      }
+
+      // If not in use, proceed with deletion
       await trainingProgramApi.deleteTrainingProgram(selectedProgram.id);
       toast.success("Training program deleted successfully");
       await queryClient.invalidateQueries({ queryKey: ["training-programs"] });
       setIsDeleteModalOpen(false);
       setSelectedProgram(null);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to delete training program");
+      const errorMessage = error?.response?.data?.message || "";
+
+      // Check if it's a foreign key constraint error
+      if (errorMessage.toLowerCase().includes("foreign key") ||
+          errorMessage.toLowerCase().includes("constraint") ||
+          error?.response?.status === 400) {
+        toast.error(
+          "Cannot delete this training program because it is being used by one or more classes. Please remove or reassign those classes first."
+        );
+      } else {
+        toast.error(errorMessage || "Failed to delete training program");
+      }
     }
   };
 
@@ -124,19 +152,35 @@ export default function ProgramsTable() {
         onCancel={() => {
           setIsDeleteModalOpen(false);
           setSelectedProgram(null);
+          setInUseCount(0);
         }}
         onConfirm={handleDelete}
         title="Delete Training Program"
         message={
-          <>
-            This action cannot be undone. This will permanently delete the training
-            program{" "}
-            <span className="font-semibold">
-              &quot;{selectedProgram?.name}&quot;
-            </span>
-            .
-          </>
+          inUseCount > 0 ? (
+            <>
+              <div className="text-sm text-red-600 font-semibold mb-3">
+                ⚠️ Warning: This training program is in use!
+              </div>
+              <div className="text-sm mb-3">
+                This training program is currently being used by <span className="font-semibold">{inUseCount} class(es)</span>. Deleting it will cause issues.
+              </div>
+              <div className="text-sm text-gray-700">
+                Please reassign or delete those classes first before proceeding.
+              </div>
+            </>
+          ) : (
+            <>
+              This action cannot be undone. This will permanently delete the training
+              program{" "}
+              <span className="font-semibold">
+                &quot;{selectedProgram?.name}&quot;
+              </span>
+              .
+            </>
+          )
         }
+        disabled={inUseCount > 0}
       />
     </div>
   );

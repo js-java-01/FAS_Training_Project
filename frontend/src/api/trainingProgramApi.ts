@@ -51,6 +51,18 @@ export const trainingProgramApi = {
     await axiosInstance.delete(`/training-programs/${id}`);
   },
 
+  checkIfInUse: async (id: string): Promise<{ inUse: boolean; count: number }> => {
+    try {
+      const response = await axiosInstance.get<{ inUse: boolean; count: number }>(
+        `/training-programs/${id}/check-in-use`
+      );
+      return response.data;
+    } catch {
+      // If endpoint doesn't exist, return false
+      return { inUse: false, count: 0 };
+    }
+  },
+
   exportTrainingPrograms: async (): Promise<Blob> => {
     const response = await axiosInstance.get("/training-programs/export", {
       responseType: "blob",

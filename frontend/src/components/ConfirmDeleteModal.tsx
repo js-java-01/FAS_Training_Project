@@ -8,6 +8,7 @@ interface Props {
   cancelText?: string;
   onConfirm: () => void;
   onCancel: () => void;
+  disabled?: boolean;
 }
 
 export const ConfirmDeleteModal = ({
@@ -18,6 +19,7 @@ export const ConfirmDeleteModal = ({
   cancelText = "Cancel",
   onConfirm,
   onCancel,
+  disabled = false,
 }: Props) => {
   if (!open) return null;
 
@@ -47,7 +49,12 @@ export const ConfirmDeleteModal = ({
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            disabled={disabled}
+            className={`px-4 py-2 text-white rounded-md ${
+              disabled 
+                ? "bg-gray-400 cursor-not-allowed" 
+                : "bg-red-600 hover:bg-red-700"
+            }`}
           >
             {confirmText}
           </button>
