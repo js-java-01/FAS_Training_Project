@@ -1,6 +1,8 @@
 import type { SemesterResponse, TrainingClass } from "@/types/trainingClass";
 import dayjs from "dayjs";
 import type { PagedData } from "@/types/response";
+import { Button } from "@/components/ui/button";
+import { Pencil, Save, X } from "lucide-react";
 
 /* ── editable form data ── */
 export interface ClassInfoFormData {
@@ -272,6 +274,11 @@ interface ClassInfoTabProps {
     trainingPrograms?: PagedData<any> | any[];
     loadingTrainingPrograms?: boolean;
     enrollmentKey?: string;
+    onEdit?: () => void;
+    onCancel?: () => void;
+    onSave?: () => void;
+    canEditClass?: boolean;
+    saving?: boolean;
 }
 
 export default function ClassInfoTab({
@@ -284,7 +291,11 @@ export default function ClassInfoTab({
     loadingSemesters = false,
     trainingPrograms,
     loadingTrainingPrograms = false,
-
+    onEdit,
+    onCancel,
+    onSave,
+    canEditClass = false,
+    saving = false,
 }: ClassInfoTabProps) {
     const rawRequestStatus = String(trainingClass.status ?? "").toUpperCase();
     const requestStatusValue = rawRequestStatus === "PENDING_APPROVAL"
@@ -328,7 +339,43 @@ export default function ClassInfoTab({
         <div className="space-y-8 w-full">
             {/* ── Basic Information ── */}
             <section className="space-y-5">
-                <h2 className="text-lg font-semibold">Basic Information</h2>
+                <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Basic Information</h2>
+                    {isEditing ? (
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1.5"
+                                onClick={onCancel}
+                                disabled={saving}
+                            >
+                                <X className="h-4 w-4" />
+                                Cancel
+                            </Button>
+                            <Button
+                                size="sm"
+                                className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                                onClick={onSave}
+                                disabled={saving}
+                            >
+                                <Save className="h-4 w-4" />
+                                {saving ? "Saving..." : "Save"}
+                            </Button>
+                        </div>
+                    ) : (
+                        canEditClass && (
+                            <Button
+                                size="sm"
+                                className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                                onClick={onEdit}
+                            >
+                                <Pencil className="h-4 w-4" />
+                                Edit
+                            </Button>
+                        )
+                    )}
+                </div>
 
                 {/* Row 1: Name + Code */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
