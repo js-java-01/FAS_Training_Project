@@ -1,32 +1,32 @@
 package com.example.starter_project_2025.system.topic.service;
 
 import com.example.starter_project_2025.system.topic.dto.TopicCreateRequest;
-import com.example.starter_project_2025.system.topic.dto.TopicDetailResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicResponse;
-import com.example.starter_project_2025.system.topic.dto.UpdateTopicRequest;
 import com.example.starter_project_2025.system.topic.dto.TopicUpdateRequest;
 import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.UUID;
 
 public interface TopicService {
 
     TopicResponse create(TopicCreateRequest request);
 
-    TopicResponse update(UUID id, UpdateTopicRequest request);
+    TopicResponse update(UUID id, TopicUpdateRequest request);
 
     TopicResponse getById(UUID id);
-
-    List<TopicResponse> getByIds(List<UUID> ids);
 
     Page<TopicResponse> getAll(String keyword, String level, String status, Pageable pageable);
 
     void delete(UUID id);
 
-    Page<TopicDetailResponse> getMyTopics(UUID userId, UUID classId, Pageable pageable);=======
+    ByteArrayInputStream exportTopics() throws IOException;
 
-    ImportResultResponse importTopics(MultipartFile file);>>>>>>>2d 1d 754 b083b3cd60d3e15a24a80dca5410433a2
+    ByteArrayInputStream downloadTemplate() throws IOException;
+
+    ImportResultResponse importTopics(MultipartFile file);
 }

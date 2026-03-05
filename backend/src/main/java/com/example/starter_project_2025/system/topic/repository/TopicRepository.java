@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.topic.repository;
 
 import com.example.starter_project_2025.system.topic.entity.Topic;
+import com.example.starter_project_2025.system.topic.enums.TopicLevel;
 import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,18 +20,20 @@ public interface TopicRepository extends JpaRepository<Topic, UUID>, JpaSpecific
 
         boolean existsByTopicCode(String topicCode);
 
-        @Query("SELECT t FROM Topic t WHERE " +
-                        "(:keyword IS NULL OR LOWER(t.topicName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-                        "OR LOWER(t.topicCode) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-                        "AND (:status IS NULL OR t.status = :status)")
-        Page<Topic> findAllByFilters(
-                        @Param("keyword") String keyword,
-                        @Param("status") TopicStatus status,
-                        Pageable pageable);
-
         Topic findByTopicName(String topicName);
 
         Set<Topic> findByTopicCodeIn(List<String> topicCodes);
+
+        @Query("SELECT t FROM Topic t WHERE " +
+                        "(:keyword IS NULL OR LOWER(t.topicName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+                        "OR LOWER(t.topicCode) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+                        "AND (:level IS NULL OR t.level = :level) " +
+                        "AND (:status IS NULL OR t.status = :status)")
+        Page<Topic> findAllByFilters(
+                        @Param("keyword") String keyword,
+                        @Param("level") TopicLevel level,
+                        @Param("status") TopicStatus status,
+                        Pageable pageable);
 
         @Query("SELECT DISTINCT t, tp FROM Topic t " +
                         "JOIN t.trainingProgramTopics tpt " +

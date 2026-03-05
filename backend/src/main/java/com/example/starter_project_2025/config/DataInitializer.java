@@ -11,8 +11,9 @@ import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
+import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
-import com.example.starter_project_2025.system.common.enums.LocationStatus;i
+import com.example.starter_project_2025.system.common.enums.LocationStatus;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
@@ -24,14 +25,14 @@ import com.example.starter_project_2025.system.course_online.enums.CourseStatusO
 import com.example.starter_project_2025.system.course_online.repository.CourseLessonOnlineRepository;
 import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeightRepository;
-import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;>>>>>>>2d 1d 754 b083b3cd60d3e15a24a80dca5410433a2
+import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.location.data.entity.Commune;
 import com.example.starter_project_2025.system.location.data.entity.Province;
 import com.example.starter_project_2025.system.location.data.repository.CommuneRepository;
 import com.example.starter_project_2025.system.location.data.repository.ProvinceRepository;
 import com.example.starter_project_2025.system.location.entity.Location;
-import com.example.starter_project_2025.system.location.repository.LocationRepository;<<<<<<<HEAD=======
+import com.example.starter_project_2025.system.location.repository.LocationRepository;
 import com.example.starter_project_2025.system.topic.entity.Topic;
 import com.example.starter_project_2025.system.skill.entity.Skill;
 import com.example.starter_project_2025.system.skill.entity.SkillGroup;
@@ -45,7 +46,7 @@ import com.example.starter_project_2025.system.menu.repository.MenuRepository;
 import com.example.starter_project_2025.system.modulegroups.entity.Module;
 import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
-import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;>>>>>>>2d 1d 754 b083b3cd60d3e15a24a80dca5410433a2
+import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
 import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
 import com.example.starter_project_2025.system.semester.entity.Semester;
@@ -149,7 +150,7 @@ public class DataInitializer implements CommandLineRunner {
 
                 {
                         userRoleInitializer.initializeUserRoles();
-                        initializeLessons();
+                        // initializeLessons();
                 }
 
                 initializeEnrollments();
@@ -613,7 +614,7 @@ public class DataInitializer implements CommandLineRunner {
                 User student4 = userRepository.findByEmail("manager2@example.com").orElse(null);
                 User student5 = userRepository.findByEmail("trainer1@example.com").orElse(null);
 
-                List<TrainingClass> classes = trainingClassRepository.findAll();
+                List<TrainingClass> classes = new ArrayList<>();
 
                 if (classes.isEmpty() || student1 == null) {
                         log.warn("Missing Students or Training Classes! Please run their initializers first.");

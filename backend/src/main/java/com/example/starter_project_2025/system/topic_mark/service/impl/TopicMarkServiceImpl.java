@@ -174,9 +174,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         Map<UUID, TopicMark> marksByUser = topicMarkRepository.findAllByCourseClassId(courseClassId)
                 .stream().collect(Collectors.toMap(m -> m.getUser().getId(), m -> m, (left, right) -> right));
 
-        final String topicLabel = (courseClass.getCourse() != null && courseClass.getCourse().getTopic() != null)
-            ? courseClass.getCourse().getTopic().getTopicName()
-            : null;
+        final String topicLabel = null;
 
         List<TopicMarkGradebookResponse.Row> rows = enrollments.stream().map(enrollment -> {
             User user = enrollment.getUser();
@@ -280,33 +278,33 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     public TopicMarkDetailResponse getStudentDetail(UUID courseClassId, UUID userId) {
         CourseClass courseClass = loadCourseClass(courseClassId);
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
         List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
 
         UUID topicId = resolveTopicId(courseClass);
         Map<String, Double> weightByAssessmentTypeId = topicId == null
-            ? Collections.emptyMap()
-            : topicAssessmentTypeWeightRepository.findByTopicId(topicId)
-                .stream()
-                .filter(w -> w.getAssessmentType() != null && w.getWeight() != null)
-                .collect(Collectors.toMap(
-                    w -> w.getAssessmentType().getId(),
-                    w -> w.getWeight(),
-                    (left, right) -> right));
+                ? Collections.emptyMap()
+                : topicAssessmentTypeWeightRepository.findByTopicId(topicId)
+                        .stream()
+                        .filter(w -> w.getAssessmentType() != null && w.getWeight() != null)
+                        .collect(Collectors.toMap(
+                                w -> w.getAssessmentType().getId(),
+                                w -> w.getWeight(),
+                                (left, right) -> right));
 
         List<TopicMarkEntry> entries = topicMarkEntryRepository.findByCourseClassIdAndUserId(courseClassId, userId);
         Map<UUID, Double> scoreByColumnId = entries.stream()
-            .collect(Collectors.toMap(
-                e -> e.getTopicMarkColumn().getId(),
-                TopicMarkEntry::getScore,
-                (left, right) -> right));
+                .collect(Collectors.toMap(
+                        e -> e.getTopicMarkColumn().getId(),
+                        TopicMarkEntry::getScore,
+                        (left, right) -> right));
 
         Map<String, List<TopicMarkColumn>> columnsByType = columns.stream()
-            .collect(Collectors.groupingBy(
-                c -> c.getAssessmentType().getId(),
-                LinkedHashMap::new,
-                Collectors.toList()));
+                .collect(Collectors.groupingBy(
+                        c -> c.getAssessmentType().getId(),
+                        LinkedHashMap::new,
+                        Collectors.toList()));
 
         List<TopicMarkDetailResponse.AssessmentTypeSection> sections = new ArrayList<>();
         for (Map.Entry<String, List<TopicMarkColumn>> grouped : columnsByType.entrySet()) {
@@ -314,59 +312,60 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             List<TopicMarkColumn> typeCols = grouped.getValue();
 
             List<TopicMarkDetailResponse.ColumnScore> colScores = typeCols.stream()
-                .map(col -> TopicMarkDetailResponse.ColumnScore.builder()
-                    .columnId(col.getId())
-                    .columnLabel(col.getColumnLabel())
-                    .columnIndex(col.getColumnIndex())
-                    .score(scoreByColumnId.get(col.getId()))
-                    .build())
-                .collect(Collectors.toList());
+                    .map(col -> TopicMarkDetailResponse.ColumnScore.builder()
+                            .columnId(col.getId())
+                            .columnLabel(col.getColumnLabel())
+                            .columnIndex(col.getColumnIndex())
+                            .score(scoreByColumnId.get(col.getId()))
+                            .build())
+                    .collect(Collectors.toList());
 
             boolean sectionHasNull = colScores.stream().anyMatch(col -> col.getScore() == null);
             Double sectionScore = null;
             if (!sectionHasNull && !colScores.isEmpty()) {
-            sectionScore = colScores.stream()
-                .map(TopicMarkDetailResponse.ColumnScore::getScore)
-                .mapToDouble(Double::doubleValue)
-                .average()
-                .orElse(0.0);
+                sectionScore = colScores.stream()
+                        .map(TopicMarkDetailResponse.ColumnScore::getScore)
+                        .mapToDouble(Double::doubleValue)
+                        .average()
+                        .orElse(0.0);
             }
 
             sections.add(TopicMarkDetailResponse.AssessmentTypeSection.builder()
-                .assessmentTypeId(typeId)
-                .assessmentTypeName(typeCols.get(0).getAssessmentType().getName())
-                .weight(weightByAssessmentTypeId.get(typeId))
-                .sectionScore(sectionScore)
-                .columns(colScores)
-                .build());
+                    .assessmentTypeId(typeId)
+                    .assessmentTypeName(typeCols.get(0).getAssessmentType().getName())
+                    .weight(weightByAssessmentTypeId.get(typeId))
+                    .sectionScore(sectionScore)
+                    .columns(colScores)
+                    .build());
         }
 
         TopicMark mark = topicMarkRepository.findByCourseClassIdAndUserId(courseClassId, userId).orElse(null);
 
         List<TopicMarkEntryHistory> historyList = topicMarkEntryHistoryRepository
-            .findByTopicMarkEntry_CourseClass_IdAndTopicMarkEntry_User_IdOrderByUpdatedAtDesc(courseClassId, userId);
+                .findByTopicMarkEntry_CourseClass_IdAndTopicMarkEntry_User_IdOrderByUpdatedAtDesc(courseClassId,
+                        userId);
 
         List<TopicMarkDetailResponse.HistoryEntry> history = historyList.stream()
-            .map(h -> TopicMarkDetailResponse.HistoryEntry.builder()
-                .columnLabel(h.getTopicMarkEntry().getTopicMarkColumn().getColumnLabel())
-                .oldScore(h.getOldScore())
-                .newScore(h.getNewScore())
-                .changeType(h.getChangeType() != null ? h.getChangeType().name() : null)
-                .reason(h.getReason())
-                .updatedBy(h.getUpdatedBy().getFirstName() + " " + h.getUpdatedBy().getLastName())
-                .updatedAt(h.getUpdatedAt())
-                .build())
-            .collect(Collectors.toList());
+                .map(h -> TopicMarkDetailResponse.HistoryEntry.builder()
+                        .columnLabel(h.getTopicMarkEntry().getTopicMarkColumn().getColumnLabel())
+                        .oldScore(h.getOldScore())
+                        .newScore(h.getNewScore())
+                        .changeType(h.getChangeType() != null ? h.getChangeType().name() : null)
+                        .reason(h.getReason())
+                        .updatedBy(h.getUpdatedBy().getFirstName() + " " + h.getUpdatedBy().getLastName())
+                        .updatedAt(h.getUpdatedAt())
+                        .build())
+                .collect(Collectors.toList());
 
         return TopicMarkDetailResponse.builder()
-            .userId(userId)
-            .fullName(user.getFirstName() + " " + user.getLastName())
-            .sections(sections)
-            .finalScore(mark != null ? mark.getFinalScore() : null)
-            .isPassed(mark != null ? mark.getIsPassed() : false)
-            .history(history)
-            .build();
-        }
+                .userId(userId)
+                .fullName(user.getFirstName() + " " + user.getLastName())
+                .sections(sections)
+                .finalScore(mark != null ? mark.getFinalScore() : null)
+                .isPassed(mark != null ? mark.getIsPassed() : false)
+                .history(history)
+                .build();
+    }
 
     @Override
     public TopicMarkDetailResponse updateScores(UUID courseClassId, UUID userId,
@@ -391,7 +390,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 .orElseGet(() -> topicMarkRepository.save(TopicMark.builder()
                         .courseClass(courseClass)
                         .user(user)
-                .topicId(resolveTopicId(courseClass))
+                        .topicId(resolveTopicId(courseClass))
                         .isPassed(false)
                         .build()));
 
@@ -510,7 +509,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 .orElseGet(() -> topicMarkRepository.save(TopicMark.builder()
                         .courseClass(courseClass)
                         .user(user)
-                .topicId(resolveTopicId(courseClass))
+                        .topicId(resolveTopicId(courseClass))
                         .isPassed(false)
                         .build()));
 
@@ -579,7 +578,8 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             return;
         }
 
-        List<TopicMarkEntry> entries = topicMarkEntryRepository.findByCourseClassIdAndUserId(courseClass.getId(), userId);
+        List<TopicMarkEntry> entries = topicMarkEntryRepository.findByCourseClassIdAndUserId(courseClass.getId(),
+                userId);
         Map<UUID, Double> scoreByColumnId = entries.stream()
                 .collect(Collectors.toMap(
                         e -> e.getTopicMarkColumn().getId(),
@@ -623,7 +623,8 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         Set<String> activeAssessmentTypeIds = activeColumns.stream()
                 .map(c -> c.getAssessmentType().getId())
                 .collect(Collectors.toSet());
-        boolean hasMissingWeight = activeAssessmentTypeIds.stream().anyMatch(typeId -> !weightByAssessmentTypeId.containsKey(typeId));
+        boolean hasMissingWeight = activeAssessmentTypeIds.stream()
+                .anyMatch(typeId -> !weightByAssessmentTypeId.containsKey(typeId));
         if (hasMissingWeight) {
             mark.setFinalScore(null);
             mark.setIsPassed(false);
@@ -889,10 +890,11 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     }
 
     private UUID resolveTopicId(CourseClass courseClass) {
-        if (courseClass == null || courseClass.getCourse() == null || courseClass.getCourse().getTopic() == null) {
+        if (courseClass == null || courseClass.getCourse() == null) {
             return null;
         }
-        return courseClass.getCourse().getTopic().getId();
+        return null;
+        // return courseClass.getCourse().getTopic().getId();
     }
 
     private ChangeType determineChangeType(Double oldScore, Double newScore) {

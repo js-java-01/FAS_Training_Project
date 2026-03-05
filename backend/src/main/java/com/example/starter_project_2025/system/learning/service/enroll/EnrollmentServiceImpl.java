@@ -53,7 +53,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         var enrollment = new Enrollment();
         enrollment.setUser(user);
-        enrollment.setTrainingClass(trainingClass);
+        // enrollment.setTrainingClass(trainingClass);
         enrollmentRepository.save(enrollment);
 
         boolean hasStudentRole = user.getUserRoles().stream()
@@ -190,7 +190,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
                     var enrollment = new Enrollment();
                     enrollment.setUser(user);
-                    enrollment.setTrainingClass(trainingClass);
+                    // enrollment.setTrainingClass(trainingClass);
                     enrollmentRepository.save(enrollment);
                     result.setSuccessCount(result.getSuccessCount() + 1);
 

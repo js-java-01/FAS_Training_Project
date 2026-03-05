@@ -50,6 +50,8 @@ public class Topic {
     @ManyToOne
     @JoinColumn(name = "creator_id")
     private User creator;
+    @Enumerated(EnumType.STRING)
+    private TopicLevel level;
 
     @ManyToOne
     @JoinColumn(name = "updater_id")

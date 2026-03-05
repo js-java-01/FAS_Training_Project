@@ -1,16 +1,16 @@
-package com.example.starter_project_2025.system.course_class.service.impl;
+package com.example.starter_project_2025.system.course_class.services;
 
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
-import com.example.starter_project_2025.system.classes.repository.ClassRepository;
+import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
 import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
 import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
 import com.example.starter_project_2025.system.course_class.dto.CourseClassRequest;
 import com.example.starter_project_2025.system.course_class.dto.CourseClassResponse;
+import com.example.starter_project_2025.system.course_class.dto.CourseClassResponse.CourseInfo;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
-import com.example.starter_project_2025.system.course_class.service.CourseClassService;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -79,11 +79,11 @@ public class CourseClassServiceImpl implements CourseClassService {
         }
 
         private CourseClassResponse toResponse(CourseClass cc) {
-                CourseClassResponse.CourseInfo courseInfo = cc.getCourse() == null ? null
-                                : new CourseClassResponse.CourseInfo(
-                                                cc.getCourse().getId(),
-                                                cc.getCourse().getCourseName(),
-                                                cc.getCourse().getCourseCode());
+                // CourseClassResponse.CourseInfo courseInfo = cc.getCourse() == null ? null
+                // : new CourseClassResponse.CourseInfo(
+                // cc.getCourse().getId(),
+                // cc.getCourse().getCourseName(),
+                // cc.getCourse().getCourseCode());
 
                 CourseClassResponse.ClassInfo classInfo = cc.getClassInfo() == null ? null
                                 : new CourseClassResponse.ClassInfo(
@@ -100,10 +100,22 @@ public class CourseClassServiceImpl implements CourseClassService {
 
                 return new CourseClassResponse(
                                 cc.getId(),
-                                courseInfo,
+                                new CourseInfo(),
                                 classInfo,
                                 trainerInfo,
                                 cc.getCreatedDate(),
                                 cc.getUpdatedDate());
+        }
+
+        @Override
+        public List<CourseClass> getByUser(User user) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'getByUser'");
+        }
+
+        @Override
+        public CourseClassResponse getById(UUID id) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'getById'");
         }
 }
