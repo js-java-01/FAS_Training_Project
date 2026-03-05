@@ -1,25 +1,12 @@
-package com.example.starter_project_2025.system.topic_assessment_type_weight.entity;
-
-import java.util.UUID;
+package com.example.starter_project_2025.system.topic_assessment_type_weight.entity.entity;
 
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
-
 import com.example.starter_project_2025.system.topic.entity.Topic;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
+import lombok.*;
 
-import jakarta.persistence.Entity;
-
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.UUID;
 
 @Entity
 @Table(name = "topic_assessment_type_weights")
@@ -28,7 +15,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TopicAssessmentTypeWeight {
+public class TopicAssessmentTypeWeight
+{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

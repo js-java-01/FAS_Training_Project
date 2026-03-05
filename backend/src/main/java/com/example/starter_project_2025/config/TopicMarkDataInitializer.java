@@ -1,625 +1,484 @@
-// package com.example.starter_project_2025.config;
+package com.example.starter_project_2025.config;
 
-// import
-// com.example.starter_project_2025.system.assessment.entity.AssessmentType;
-// import
-// com.example.starter_project_2025.system.assessment.enums.GradingMethod;
-// import
-// com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
-// import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
+import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
+import com.example.starter_project_2025.system.course.entity.Course;
+import com.example.starter_project_2025.system.course.repository.CourseRepository;
+import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
+import com.example.starter_project_2025.system.learning.entity.Enrollment;
+import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
+import com.example.starter_project_2025.system.topic.entity.Topic;
+import com.example.starter_project_2025.system.topic.enums.TopicLevel;
+import com.example.starter_project_2025.system.topic.enums.TopicStatus;
+import com.example.starter_project_2025.system.topic.repository.TopicRepository;
+import com.example.starter_project_2025.system.topic_assessment_type_weight.entity.repository.TopicAssessmentTypeWeightRepository;
+import com.example.starter_project_2025.system.topic_assessment_type_weight.entity.entity.TopicAssessmentTypeWeight;
+import com.example.starter_project_2025.system.topic_mark.entity.TopicMark;
+import com.example.starter_project_2025.system.topic_mark.entity.TopicMarkColumn;
+import com.example.starter_project_2025.system.topic_mark.entity.TopicMarkEntry;
+import com.example.starter_project_2025.system.topic_mark.repository.TopicMarkColumnRepository;
+import com.example.starter_project_2025.system.topic_mark.repository.TopicMarkEntryRepository;
+import com.example.starter_project_2025.system.topic_mark.repository.TopicMarkRepository;
+import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-// import com.example.starter_project_2025.system.learning.entity.Enrollment;
-// import
-// com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
-// import com.example.starter_project_2025.system.topic_mark.enums.ChangeType;
-// import com.example.starter_project_2025.system.semester.entity.Semester;
-// import com.example.starter_project_2025.system.topic_mark.entity.*;
-// import com.example.starter_project_2025.system.topic_mark.repository.*;
-// import com.example.starter_project_2025.system.user.entity.User;
-// import
-// com.example.starter_project_2025.system.user.repository.UserRepository;
-// import lombok.RequiredArgsConstructor;
-// import lombok.extern.slf4j.Slf4j;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.CommandLineRunner;
-// import org.springframework.context.annotation.Lazy;
-// import org.springframework.core.annotation.Order;
-// import org.springframework.security.crypto.password.PasswordEncoder;
-// import org.springframework.stereotype.Component;
-// import org.springframework.transaction.annotation.Transactional;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Locale;
+import java.util.UUID;
 
-// import jakarta.persistence.EntityManager;
-// import jakarta.persistence.PersistenceContext;
+@Component
+@Order(2)
+@RequiredArgsConstructor
+@Slf4j
+public class TopicMarkDataInitializer implements CommandLineRunner {
 
-// import java.math.BigDecimal;
-// import java.sql.Date;
-// import java.util.List;
+    private final CourseClassRepository courseClassRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final AssessmentTypeRepository assessmentTypeRepository;
+    private final TopicMarkRepository topicMarkRepository;
+    private final TopicMarkColumnRepository topicMarkColumnRepository;
+    private final TopicMarkEntryRepository topicMarkEntryRepository;
+    private final UserRepository userRepository;
+    private final TrainingClassRepository trainingClassRepository;
+    private final TopicAssessmentTypeWeightRepository topicAssessmentTypeWeightRepository;
+    private final TopicRepository topicRepository;
+    private final CourseRepository courseRepository;
 
-// /**
-// * Seed demo data for the manual-entry Topic Mark system.
-// *
-// * Structure created:
-// * Course DEMO-COURSE-TM (minGpaToPass = 6.0, scale 0-10)
-// * CourseAssessmentTypeWeight Entrance Quiz 30% HIGHEST
-// * Midterm Test 50% LATEST
-// * Final Exam 20% AVERAGE
-// * <<<<<<< HEAD
-// * TrainingClass TC-DEMO-01 (DEMO-COURSE-TM + JBM-01, scores seeded
-// separately)
-// * =======
-// * TrainingClass TC-DEMO-01 (Course x TC-DEMO-01, scores seeded)
-// * >>>>>>> 7e4a873955d2a5f2ac1985c813b16a1b91a8d845
-// * TrainingClass TC-DEMO-02 (JBM-01 + RFP-01, no scores)
-// * TrainingClass TC-DEMO-03 (JBM-01 + DEMO-COURSE-TM, no scores)
-// * TrainingClass TC-DEMO-04 (DEMO-COURSE-TM, scores seeded)
-// * Students: john, alice, bob, carol, david, eva (enrolled in TC-DEMO-01 &
-// * TC-DEMO-04)
-// * TopicMarkColumns (4 per scored class: Quiz Ch1, Quiz Ch2, Midterm, Final)
-// * TopicMarkEntries (all filled for TC-DEMO-01 and TC-DEMO-04)
-// * TopicMarkEntryHistory (one audit record per entry)
-// * TopicMark (finalScore computed, pass/fail set)
-// *
-// * TC-DEMO-01 results: John 7.90 PASS | Alice 8.15 PASS | Bob 4.80 FAIL |
-// Carol
-// * 9.39 PASS | David 5.83 FAIL | Eva 8.12 PASS
-// * TC-DEMO-04 results: John 8.05 PASS | Alice 9.06 PASS | Bob 4.60 FAIL |
-// Carol
-// * 9.40 PASS | David 5.80 FAIL | Eva 8.61 PASS
-// */
-// @Component
-// @Order(2)
-// @RequiredArgsConstructor
-// @Slf4j
-// public class TopicMarkDataInitializer implements CommandLineRunner {
+    @Override
+    @Transactional
+    public void run(String... args) {
+        initialize();
+    }
 
-// @PersistenceContext
-// private EntityManager em;
+    private void initialize() {
+        List<CourseClass> courseClasses = courseClassRepository.findAll();
+        if (courseClasses.isEmpty()) {
+            log.info("TopicMarkDataInitializer skipped: no course classes found");
+            return;
+        }
 
-// @Lazy
-// @Autowired
-// private TopicMarkDataInitializer self;
+        User createdBy = userRepository.findByEmail("admin@example.com")
+                .orElseGet(() -> userRepository.findAll().stream()
+                        .filter(u -> Boolean.TRUE.equals(u.getIsActive()))
+                        .findFirst()
+                        .orElse(null));
 
-// private final UserRepository userRepository;
-// private final PasswordEncoder passwordEncoder;
-// private final AssessmentTypeRepository assessmentTypeRepository;
-// // private final CourseRepository courseRepository;
-// // private final CourseAssessmentTypeWeightRepository weightRepository;
-// // private final TopicMarkColumnRepository columnRepository;
-// // private final TopicMarkEntryRepository entryRepository;
-// // private final TopicMarkEntryHistoryRepository historyRepository;
-// // private final TopicMarkRepository topicMarkRepository;
-// private final EnrollmentRepository enrollmentRepository;
+        if (createdBy == null) {
+            log.warn("TopicMarkDataInitializer skipped: no active user found");
+            return;
+        }
 
-// // Entry point
+        AssessmentType quizType = findOrCreateAssessmentType("Entrance Quiz", "Short entry quizzes");
+        AssessmentType midtermType = findOrCreateAssessmentType("Midterm Test", "Comprehensive midterm exam");
+        AssessmentType finalType = findOrCreateAssessmentType("Final Exam", "End-of-course final exam");
 
-// @Override
-// public void run(String... args) {
-// try {
-// self.initialize();
-// } catch (Exception e) {
-// log.error("Failed to initialize topic mark seed data", e);
-// }
-// }
+        int createdColumns = 0;
+        int createdTopics = 0;
+        int createdWeights = 0;
+        int createdTopicMarks = 0;
+        int createdEntries = 0;
+        int createdEnrollments = 0;
+        int updatedFinalScores = 0;
 
-// @Transactional
-// public void initialize() {
-// log.info("=== TopicMarkDataInitializer: starting ===");
+        for (CourseClass courseClass : courseClasses) {
+            if (ensureCourseTopic(courseClass, createdBy)) {
+                createdTopics++;
+            }
 
-// // 1. Shared infrastructure
+            List<TopicMarkColumn> activeColumns = topicMarkColumnRepository.findActiveByCourseClassId(courseClass.getId());
+            if (activeColumns.isEmpty()) {
+                createdColumns += createDefaultColumns(courseClass, createdBy, quizType, midtermType, finalType);
+                activeColumns = topicMarkColumnRepository.findActiveByCourseClassId(courseClass.getId());
+            }
 
-// // Use admin@example.com as seed actor; fall back to first active user.
-// // If no user exists yet, skip gracefully (DB not seeded yet).
-// User admin = userRepository.findByEmail("admin@example.com")
-// .or(() -> userRepository.findAll().stream()
-// .filter(u -> Boolean.TRUE.equals(u.getIsActive()))
-// .findFirst())
-// .orElse(null);
+            createdWeights += ensureTopicWeights(courseClass, activeColumns);
 
-// if (admin == null) {
-// log.warn(
-// "No active user found - TopicMark seed skipped. Will seed on next restart
-// after UserDataInitializer runs.");
-// return;
-// }
+            List<Enrollment> enrollments = enrollmentRepository.findByTrainingClassId(courseClass.getClassInfo().getId());
+            if (enrollments.isEmpty()) {
+                List<Enrollment> seededEnrollments = seedDemoEnrollments(courseClass.getClassInfo().getId());
+                createdEnrollments += seededEnrollments.size();
+                enrollments = enrollmentRepository.findByTrainingClassId(courseClass.getClassInfo().getId());
+                if (enrollments.isEmpty()) {
+                    continue;
+                }
+            }
 
-// AssessmentType quizType = findOrCreateAssessmentType("Entrance Quiz", "Short
-// entry quizzes");
-// AssessmentType midtermType = findOrCreateAssessmentType("Midterm Test",
-// "Comprehensive midterm exam");
-// AssessmentType finalType = findOrCreateAssessmentType("Final Exam",
-// "End-of-course final exam");
+            for (Enrollment enrollment : enrollments) {
+                User student = enrollment.getUser();
 
-// Course course = findOrCreateCourse(admin);
+                boolean topicMarkExists = topicMarkRepository
+                        .findByCourseClassIdAndUserId(courseClass.getId(), student.getId())
+                        .isPresent();
 
-// findOrCreateWeight(course, quizType, 0.30, GradingMethod.HIGHEST);
-// findOrCreateWeight(course, midtermType, 0.50, GradingMethod.LATEST);
-// findOrCreateWeight(course, finalType, 0.20, GradingMethod.AVERAGE);
-// log.info("Weights: Quiz 30% HIGHEST | Midterm 50% LATEST | Final 20%
-// AVERAGE");
+                if (!topicMarkExists) {
+                    topicMarkRepository.save(TopicMark.builder()
+                            .courseClass(courseClass)
+                            .user(student)
+                            .topicId(resolveTopicId(courseClass))
+                            .finalScore(null)
+                            .isPassed(false)
+                            .build());
+                    createdTopicMarks++;
+                }
 
-// Semester semester = findOrCreateSemester();
-// TrainingClass trainingClass = findOrCreateTrainingClass(semester, admin);
-// CourseClass courseClass = findOrCreateCourseClass(course, trainingClass,
-// admin);
+                for (TopicMarkColumn column : activeColumns) {
+                    var existingEntry = topicMarkEntryRepository
+                            .findByTopicMarkColumnIdAndUserId(column.getId(), student.getId());
 
-// // Extra classes: TC-DEMO-02 and TC-DEMO-03, each linked to 2 courses
-// Course javaCourse = findCourseByCode("JBM-01");
-// Course reactCourse = findCourseByCode("RFP-01");
+                    Double seedScore = generateSeedScore(student, column);
+                    if (existingEntry.isEmpty()) {
+                        topicMarkEntryRepository.save(TopicMarkEntry.builder()
+                                .topicMarkColumn(column)
+                                .courseClass(courseClass)
+                                .user(student)
+                                .score(seedScore)
+                                .build());
+                        createdEntries++;
+                    } else if (existingEntry.get().getScore() == null) {
+                        TopicMarkEntry entry = existingEntry.get();
+                        entry.setScore(seedScore);
+                        topicMarkEntryRepository.save(entry);
+                    }
+                }
 
-// CourseClass courseClass01Extra = null;
-// if (javaCourse != null) {
-// findOrCreateWeight(javaCourse, quizType, 0.30, GradingMethod.HIGHEST);
-// findOrCreateWeight(javaCourse, midtermType, 0.50, GradingMethod.LATEST);
-// findOrCreateWeight(javaCourse, finalType, 0.20, GradingMethod.AVERAGE);
-// courseClass01Extra = findOrCreateCourseClass(javaCourse, trainingClass,
-// admin);
-// log.info("TC-DEMO-01 extra course class linked: {}",
-// javaCourse.getCourseCode());
-// } else {
-// log.warn("JBM-01 not found - skip extra course class seed for TC-DEMO-01");
-// }
+                if (recomputeFinalScore(courseClass, student)) {
+                    updatedFinalScores++;
+                }
+            }
+        }
 
-// TrainingClass tc02 = findOrCreateTrainingClassByCode("TC-DEMO-02", "Demo
-// Training Class 02", semester, admin);
-// CourseClass courseClass02Java = null;
-// CourseClass courseClass02React = null;
-// if (javaCourse != null) {
-// findOrCreateWeight(javaCourse, quizType, 0.30, GradingMethod.HIGHEST);
-// findOrCreateWeight(javaCourse, midtermType, 0.50, GradingMethod.LATEST);
-// findOrCreateWeight(javaCourse, finalType, 0.20, GradingMethod.AVERAGE);
-// courseClass02Java = findOrCreateCourseClass(javaCourse, tc02, admin);
-// }
-// if (reactCourse != null) {
-// findOrCreateWeight(reactCourse, quizType, 0.30, GradingMethod.HIGHEST);
-// findOrCreateWeight(reactCourse, midtermType, 0.50, GradingMethod.LATEST);
-// findOrCreateWeight(reactCourse, finalType, 0.20, GradingMethod.AVERAGE);
-// courseClass02React = findOrCreateCourseClass(reactCourse, tc02, admin);
-// }
+        log.info("TopicMarkDataInitializer completed: createdColumns={}, createdTopics={}, createdWeights={}, createdTopicMarks={}, createdEntries={}, updatedFinalScores={}",
+                createdColumns, createdTopics, createdWeights, createdTopicMarks, createdEntries, updatedFinalScores);
+        log.info("TopicMarkDataInitializer enrollments seeded: {}", createdEnrollments);
+    }
 
-// TrainingClass tc03 = findOrCreateTrainingClassByCode("TC-DEMO-03", "Demo
-// Training Class 03", semester, admin);
-// if (javaCourse != null)
-// findOrCreateCourseClass(javaCourse, tc03, admin);
-// findOrCreateCourseClass(course, tc03, admin); // DEMO-COURSE-TM
+    private boolean ensureCourseTopic(CourseClass courseClass, User createdBy) {
+        if (courseClass == null || courseClass.getCourse() == null) {
+            return false;
+        }
 
-// TrainingClass tc04 = findOrCreateTrainingClassByCode("TC-DEMO-04", "Demo
-// Training Class 04", semester, admin);
-// CourseClass courseClass04 = findOrCreateCourseClass(course, tc04, admin);
+        Course course = courseClass.getCourse();
+        if (course.getTopic() != null) {
+            return false;
+        }
 
-// log.info("Extra classes TC-DEMO-02, TC-DEMO-03, TC-DEMO-04 initialized");
+        String sanitizedCode = course.getCourseCode() == null
+                ? "AUTO"
+                : course.getCourseCode().replaceAll("[^A-Za-z0-9]", "").toUpperCase(Locale.ROOT);
+        if (sanitizedCode.isBlank()) {
+            sanitizedCode = "AUTO";
+        }
 
-// // 2. Students + enrollments
+        String baseTopicCode = "AUTO-" + sanitizedCode;
+        String topicCode = baseTopicCode;
+        int suffix = 1;
+        while (topicRepository.existsByTopicCode(topicCode)) {
+            topicCode = baseTopicCode + "-" + suffix;
+            suffix++;
+        }
 
-// User john = findOrCreateStudent("student@test.com", "John", "Doe");
-// User alice = findOrCreateStudent("alice.johnson@test.com", "Alice",
-// "Johnson");
-// User bob = findOrCreateStudent("bob.wilson@test.com", "Bob", "Wilson");
-// User carol = findOrCreateStudent("carol.davis@test.com", "Carol", "Davis");
-// User david = findOrCreateStudent("david.lee@test.com", "David", "Lee");
-// User eva = findOrCreateStudent("eva.chen@test.com", "Eva", "Chen");
+        Topic topic = Topic.builder()
+                .topicName((course.getCourseName() != null ? course.getCourseName() : "Course") + " Topic")
+                .topicCode(topicCode)
+                .level(TopicLevel.BEGINNER)
+                .status(TopicStatus.ACTIVE)
+                .description("Auto-created by TopicMarkDataInitializer")
+                .creator(createdBy)
+                .updater(createdBy)
+                .build();
 
-// for (User s : List.of(john, alice, bob, carol, david, eva)) {
-// findOrCreateEnrollment(s, courseClass.getClassInfo());
-// findOrCreateEnrollment(s, tc02);
-// findOrCreateEnrollment(s, courseClass04.getClassInfo());
-// }
-// log.info("6 students enrolled in TC-DEMO-01, TC-DEMO-02 and TC-DEMO-04");
+        topic = topicRepository.save(topic);
+        course.setTopic(topic);
+        courseRepository.save(course);
+        return true;
+    }
 
-// List<User> tc02Students = List.of(john, alice, bob, carol, david, eva);
-// seedCourseClassWithoutScores(courseClass02Java, quizType, midtermType,
-// finalType, admin, tc02Students,
-// "TC-DEMO-02 (JBM-01)");
-// seedCourseClassWithoutScores(courseClass02React, quizType, midtermType,
-// finalType, admin, tc02Students,
-// "TC-DEMO-02 (RFP-01)");
+    private AssessmentType findOrCreateAssessmentType(String name, String description) {
+        return assessmentTypeRepository.findByName(name)
+                .orElseGet(() -> {
+                    AssessmentType type = new AssessmentType();
+                    type.setName(name);
+                    type.setDescription(description);
+                    return assessmentTypeRepository.save(type);
+                });
+    }
 
-// double minGpa = course.getMinGpaToPass() != null ? course.getMinGpaToPass() :
-// 6.0;
-// record SD(User user, double q1, double q2, double mid, double fin, double
-// total) {
-// }
+    private int createDefaultColumns(
+            CourseClass courseClass,
+            User createdBy,
+            AssessmentType quizType,
+            AssessmentType midtermType,
+            AssessmentType finalType
+    ) {
+        TopicMarkColumn quiz1 = TopicMarkColumn.builder()
+                .courseClass(courseClass)
+                .assessmentType(quizType)
+                .columnLabel("Quiz Chapter 1")
+                .columnIndex(1)
+                .isDeleted(false)
+                .createdBy(createdBy)
+                .build();
 
-// // 3. Seed TC-DEMO-01 (guard: skip if columns already exist)
-// // John: Quiz[8.0,9.0] HIGHEST=9.0 *0.30=2.70 | Mid 7.0 *0.50=3.50 | Final
-// 8.50
-// // *0.20=1.70 => 7.90 PASS
-// // Alice: Quiz[8.0,8.5] HIGHEST=8.5 *0.30=2.55 | Mid 8.2 *0.50=4.10 | Final
-// 7.50
-// // *0.20=1.50 => 8.15 PASS
-// // Bob: Quiz[5.5,4.8] HIGHEST=5.5 *0.30=1.65 | Mid 4.0 *0.50=2.00 | Final
-// 5.75
-// // *0.20=1.15 => 4.80 FAIL
-// // Carol: Quiz[9.5,9.8] HIGHEST=9.8 *0.30=2.94 | Mid 9.2 *0.50=4.60 | Final
-// 9.25
-// // *0.20=1.85 => 9.39 PASS
-// // David: Quiz[6.2,5.5] HIGHEST=6.2 *0.30=1.86 | Mid 5.5 *0.50=2.75 | Final
-// 6.10
-// // *0.20=1.22 => 5.83 FAIL
-// // Eva: Quiz[8.5,8.8] HIGHEST=8.8 *0.30=2.64 | Mid 7.6 *0.50=3.80 | Final
-// 8.40
-// // *0.20=1.68 => 8.12 PASS
+        TopicMarkColumn quiz2 = TopicMarkColumn.builder()
+                .courseClass(courseClass)
+                .assessmentType(quizType)
+                .columnLabel("Quiz Chapter 2")
+                .columnIndex(2)
+                .isDeleted(false)
+                .createdBy(createdBy)
+                .build();
 
-// if
-// (columnRepository.findActiveByCourseClassId(courseClass.getId()).isEmpty()) {
-// TopicMarkColumn quizCol1 = createColumn(courseClass, quizType, "Quiz Chapter
-// 1", 1, admin);
-// TopicMarkColumn quizCol2 = createColumn(courseClass, quizType, "Quiz Chapter
-// 2", 2, admin);
-// TopicMarkColumn midtermCol = createColumn(courseClass, midtermType, "Midterm
-// Exam", 1, admin);
-// TopicMarkColumn finalCol = createColumn(courseClass, finalType, "Final Exam",
-// 1, admin);
+        TopicMarkColumn midterm = TopicMarkColumn.builder()
+                .courseClass(courseClass)
+                .assessmentType(midtermType)
+                .columnLabel("Midterm Exam")
+                .columnIndex(1)
+                .isDeleted(false)
+                .createdBy(createdBy)
+                .build();
 
-// List.of(
-// new SD(john, 8.0, 9.0, 7.0, 8.50, 7.90),
-// new SD(alice, 8.0, 8.5, 8.2, 7.50, 8.15),
-// new SD(bob, 5.5, 4.8, 4.0, 5.75, 4.80),
-// new SD(carol, 9.5, 9.8, 9.2, 9.25, 9.39),
-// new SD(david, 6.2, 5.5, 5.5, 6.10, 5.83),
-// new SD(eva, 8.5, 8.8, 7.6, 8.40, 8.12)).forEach(sd -> {
-// saveEntry(quizCol1, sd.user(), sd.q1(), admin);
-// saveEntry(quizCol2, sd.user(), sd.q2(), admin);
-// saveEntry(midtermCol, sd.user(), sd.mid(), admin);
-// saveEntry(finalCol, sd.user(), sd.fin(), admin);
-// upsertTopicMark(courseClass, sd.user(), sd.total(), minGpa);
-// });
-// log.info(
-// "TC-DEMO-01 seeded: John 7.90 PASS | Alice 8.15 PASS | Bob 4.80 FAIL | Carol
-// 9.39 PASS | David 5.83 FAIL | Eva 8.12 PASS");
-// } else {
-// log.info("TC-DEMO-01 columns already exist - skipped");
-// }
+        TopicMarkColumn finalExam = TopicMarkColumn.builder()
+                .courseClass(courseClass)
+                .assessmentType(finalType)
+                .columnLabel("Final Exam")
+                .columnIndex(1)
+                .isDeleted(false)
+                .createdBy(createdBy)
+                .build();
 
-// // 3b. Seed extra CourseClass in TC-DEMO-01 (JBM-01) with separate gradebook
-// if (courseClass01Extra != null) {
-// final CourseClass extraCourseClass = courseClass01Extra;
+        topicMarkColumnRepository.saveAll(List.of(quiz1, quiz2, midterm, finalExam));
+        return 4;
+    }
 
-// double minGpaExtra = extraCourseClass.getCourse().getMinGpaToPass() != null
-// ? extraCourseClass.getCourse().getMinGpaToPass()
-// : 5.0;
+    private int ensureTopicWeights(CourseClass courseClass, List<TopicMarkColumn> activeColumns) {
+        UUID topicId = resolveTopicId(courseClass);
+        if (topicId == null || activeColumns == null || activeColumns.isEmpty()) {
+            return 0;
+        }
 
-// if
-// (columnRepository.findActiveByCourseClassId(extraCourseClass.getId()).isEmpty())
-// {
-// TopicMarkColumn quizCol1Extra = createColumn(extraCourseClass, quizType, "JBM
-// Quiz Chapter 1", 1,
-// admin);
-// TopicMarkColumn quizCol2Extra = createColumn(extraCourseClass, quizType, "JBM
-// Quiz Chapter 2", 2,
-// admin);
-// TopicMarkColumn midtermColExtra = createColumn(extraCourseClass, midtermType,
-// "JBM Midterm", 1, admin);
-// TopicMarkColumn finalColExtra = createColumn(extraCourseClass, finalType,
-// "JBM Final", 1, admin);
+        List<TopicAssessmentTypeWeight> existingWeights = topicAssessmentTypeWeightRepository.findByTopicId(topicId);
+        if (!existingWeights.isEmpty()) {
+            return 0;
+        }
 
-// List.of(
-// new SD(john, 7.2, 8.1, 7.8, 8.0, 7.86),
-// new SD(alice, 8.6, 8.9, 9.0, 8.8, 8.94),
-// new SD(bob, 4.5, 5.2, 4.8, 4.9, 4.94),
-// new SD(carol, 9.2, 9.4, 9.1, 9.0, 9.25),
-// new SD(david, 5.8, 6.0, 5.4, 5.6, 5.64),
-// new SD(eva, 8.1, 8.3, 8.0, 8.2, 8.26)).forEach(sd -> {
-// saveEntry(quizCol1Extra, sd.user(), sd.q1(), admin);
-// saveEntry(quizCol2Extra, sd.user(), sd.q2(), admin);
-// saveEntry(midtermColExtra, sd.user(), sd.mid(), admin);
-// saveEntry(finalColExtra, sd.user(), sd.fin(), admin);
-// upsertTopicMark(extraCourseClass, sd.user(), sd.total(), minGpaExtra);
-// });
-// log.info(
-// "TC-DEMO-01 (JBM-01) seeded: John 7.86 PASS | Alice 8.94 PASS | Bob 4.94 FAIL
-// | Carol 9.25 PASS | David 5.64 PASS | Eva 8.26 PASS");
-// } else {
-// log.info("TC-DEMO-01 (JBM-01) columns already exist - skipped");
-// }
-// }
+        Map<String, AssessmentType> assessmentTypeMap = new LinkedHashMap<>();
+        for (TopicMarkColumn column : activeColumns) {
+            if (column.getAssessmentType() != null) {
+                assessmentTypeMap.putIfAbsent(column.getAssessmentType().getId(), column.getAssessmentType());
+            }
+        }
 
-// // 4. Seed TC-DEMO-04 (guard: skip if columns already exist)
-// // John: Quiz[7.5,8.0] HIGHEST=8.0 *0.30=2.40 | Mid 8.5 *0.50=4.25 | Final
-// 7.0
-// // *0.20=1.40 => 8.05 PASS
-// // Alice: Quiz[9.0,9.2] HIGHEST=9.2 *0.30=2.76 | Mid 8.8 *0.50=4.40 | Final
-// 9.5
-// // *0.20=1.90 => 9.06 PASS
-// // Bob: Quiz[3.5,4.0] HIGHEST=4.0 *0.30=1.20 | Mid 5.0 *0.50=2.50 | Final 4.5
-// // *0.20=0.90 => 4.60 FAIL
-// // Carol: Quiz[9.8,9.5] HIGHEST=9.8 *0.30=2.94 | Mid 9.0 *0.50=4.50 | Final
-// 9.8
-// // *0.20=1.96 => 9.40 PASS
-// // David: Quiz[5.0,6.0] HIGHEST=6.0 *0.30=1.80 | Mid 5.8 *0.50=2.90 | Final
-// 5.5
-// // *0.20=1.10 => 5.80 FAIL
-// // Eva: Quiz[8.0,8.5] HIGHEST=8.5 *0.30=2.55 | Mid 9.0 *0.50=4.50 | Final 7.8
-// // *0.20=1.56 => 8.61 PASS
+        if (assessmentTypeMap.isEmpty()) {
+            return 0;
+        }
 
-// if
-// (columnRepository.findActiveByCourseClassId(courseClass04.getId()).isEmpty())
-// {
-// TopicMarkColumn q1c4 = createColumn(courseClass04, quizType, "Quiz Chapter
-// 1", 1, admin);
-// TopicMarkColumn q2c4 = createColumn(courseClass04, quizType, "Quiz Chapter
-// 2", 2, admin);
-// TopicMarkColumn midc4 = createColumn(courseClass04, midtermType, "Midterm
-// Exam", 1, admin);
-// TopicMarkColumn finc4 = createColumn(courseClass04, finalType, "Final Exam",
-// 1, admin);
+        List<TopicAssessmentTypeWeight> toCreate = new ArrayList<>();
+        for (AssessmentType assessmentType : assessmentTypeMap.values()) {
+            toCreate.add(TopicAssessmentTypeWeight.builder()
+                    .topic(courseClass.getCourse().getTopic())
+                    .assessmentType(assessmentType)
+                    .weight(defaultWeightForAssessmentType(assessmentTypeMap.size(), assessmentType.getName()))
+                    .build());
+        }
 
-// List.of(
-// new SD(john, 7.5, 8.0, 8.5, 7.0, 8.05),
-// new SD(alice, 9.0, 9.2, 8.8, 9.5, 9.06),
-// new SD(bob, 3.5, 4.0, 5.0, 4.5, 4.60),
-// new SD(carol, 9.8, 9.5, 9.0, 9.8, 9.40),
-// new SD(david, 5.0, 6.0, 5.8, 5.5, 5.80),
-// new SD(eva, 8.0, 8.5, 9.0, 7.8, 8.61)).forEach(sd -> {
-// saveEntry(q1c4, sd.user(), sd.q1(), admin);
-// saveEntry(q2c4, sd.user(), sd.q2(), admin);
-// saveEntry(midc4, sd.user(), sd.mid(), admin);
-// saveEntry(finc4, sd.user(), sd.fin(), admin);
-// upsertTopicMark(courseClass04, sd.user(), sd.total(), minGpa);
-// });
-// log.info(
-// "TC-DEMO-04 seeded: John 8.05 PASS | Alice 9.06 PASS | Bob 4.60 FAIL | Carol
-// 9.40 PASS | David 5.80 FAIL | Eva 8.61 PASS");
-// } else {
-// log.info("TC-DEMO-04 columns already exist - skipped");
-// }
+        topicAssessmentTypeWeightRepository.saveAll(toCreate);
+        return toCreate.size();
+    }
 
-// log.info("=== TopicMarkDataInitializer: completed ===");
-// }
+    private double defaultWeightForAssessmentType(int typeCount, String assessmentTypeName) {
+        if (assessmentTypeName == null) {
+            return Math.round((100.0 / typeCount) * 100.0) / 100.0;
+        }
 
-// // Helpers
+        String lowered = assessmentTypeName.toLowerCase();
+        if (lowered.contains("final")) {
+            return 50.0;
+        }
+        if (lowered.contains("mid")) {
+            return 30.0;
+        }
+        if (lowered.contains("quiz")) {
+            return 20.0;
+        }
 
-// private AssessmentType findOrCreateAssessmentType(String name, String
-// description) {
-// return em.createQuery("SELECT a FROM AssessmentType a WHERE a.name = :n",
-// AssessmentType.class)
-// .setParameter("n", name)
-// .getResultStream().findFirst()
-// .orElseGet(() -> {
-// AssessmentType t = new AssessmentType();
-// t.setName(name);
-// t.setDescription(description);
-// return assessmentTypeRepository.save(t);
-// });
-// }
+        return Math.round((100.0 / typeCount) * 100.0) / 100.0;
+    }
 
-// private Course findOrCreateCourse(User admin) {
-// return em.createQuery("SELECT c FROM Course c WHERE c.courseCode = :code",
-// Course.class)
-// .setParameter("code", "DEMO-COURSE-TM")
-// .getResultStream().findFirst()
-// .orElseGet(() -> courseRepository.save(Course.builder()
-// .courseName("Demo Course for Topic Marks")
-// .courseCode("DEMO-COURSE-TM")
-// .price(BigDecimal.valueOf(5_000_000))
-// .discount(0.0)
-// .level(CourseLevel.BEGINNER)
-// .estimatedTime(30 * 24 * 60)
-// .thumbnailUrl("https://example.com/demo-tm.jpg")
-// .status(CourseStatus.ACTIVE)
-// .description("Demo course for testing manual Topic Mark entry")
-// .note("Seed data")
-// .minGpaToPass(6.0)
-// .minAttendancePercent(70.0)
-// .allowFinalRetake(true)
-// .creator(admin)
-// .build()));
-// }
+    private UUID resolveTopicId(CourseClass courseClass) {
+        if (courseClass == null || courseClass.getCourse() == null || courseClass.getCourse().getTopic() == null) {
+            return null;
+        }
+        return courseClass.getCourse().getTopic().getId();
+    }
 
-// private void findOrCreateWeight(Course course, AssessmentType type, double
-// weight, GradingMethod gm) {
-// Long count = em.createQuery(
-// "SELECT COUNT(w) FROM CourseAssessmentTypeWeight w WHERE w.course.id = :c AND
-// w.assessmentType.id = :t",
-// Long.class)
-// .setParameter("c", course.getId())
-// .setParameter("t", type.getId())
-// .getSingleResult();
-// if (count == 0) {
-// CourseAssessmentTypeWeight w = new CourseAssessmentTypeWeight();
-// w.setCourse(course);
-// w.setAssessmentType(type);
-// w.setWeight(weight);
-// w.setGradingMethod(gm);
-// weightRepository.save(w);
-// }
-// }
+    private Double generateSeedScore(User student, TopicMarkColumn column) {
+        int base = Math.abs((student.getEmail() + column.getColumnLabel()).hashCode());
+        double raw = 5.0 + (base % 50) / 10.0; // 5.0 -> 9.9
+        return Math.round(raw * 10.0) / 10.0;
+    }
 
-// private Semester findOrCreateSemester() {
-// return em.createQuery("SELECT s FROM Semester s WHERE s.name = :n",
-// Semester.class)
-// .setParameter("n", "Demo Semester 2026")
-// .getResultStream().findFirst()
-// .orElseGet(() -> {
-// Semester s = new Semester();
-// s.setName("Demo Semester 2026");
-// s.setStartDate(Date.valueOf("2026-01-01").toLocalDate());
-// s.setEndDate(Date.valueOf("2026-12-31").toLocalDate());
-// em.persist(s);
-// return s;
-// });
-// }
+    private List<Enrollment> seedDemoEnrollments(UUID trainingClassId) {
+        TrainingClass trainingClass = trainingClassRepository.findById(trainingClassId).orElse(null);
+        if (trainingClass == null) {
+            return List.of();
+        }
 
-// private TrainingClass findOrCreateTrainingClass(Semester semester, User
-// admin) {
-// return findOrCreateTrainingClassByCode("TC-DEMO-01", "Demo Training Class
-// 01", semester, admin);
-// }
+        List<String> demoStudentEmails = List.of(
+                "student1@example.com",
+                "student2@example.com",
+                "student3@example.com",
+                "student4@example.com",
+                "student5@example.com"
+        );
 
-// private TrainingClass findOrCreateTrainingClassByCode(String code, String
-// name, Semester semester, User admin) {
-// return em.createQuery("SELECT tc FROM TrainingClass tc WHERE tc.classCode =
-// :c", TrainingClass.class)
-// .setParameter("c", code)
-// .getResultStream().findFirst()
-// .orElseGet(() -> {
-// TrainingClass tc = new TrainingClass();
-// tc.setClassCode(code);
-// tc.setClassName(name);
-// tc.setCreator(admin);
-// tc.setSemester(semester);
-// tc.setIsActive(true);
-// tc.setStartDate(Date.valueOf("2026-01-01").toLocalDate());
-// tc.setEndDate(Date.valueOf("2026-06-30").toLocalDate());
-// em.persist(tc);
-// return tc;
-// });
-// }
+        List<Enrollment> created = new ArrayList<>();
+        for (String email : demoStudentEmails) {
+            User student = userRepository.findByEmail(email).orElse(null);
+            if (student == null) {
+                continue;
+            }
 
-// private Course findCourseByCode(String code) {
-// return em.createQuery("SELECT c FROM Course c WHERE c.courseCode = :code",
-// Course.class)
-// .setParameter("code", code)
-// .getResultStream().findFirst()
-// .orElse(null);
-// }
+            boolean exists = enrollmentRepository.existsByUserIdAndTrainingClassId(student.getId(), trainingClassId);
+            if (!exists) {
+                Enrollment enrollment = Enrollment.builder()
+                        .user(student)
+                        .trainingClass(trainingClass)
+                        .build();
+                created.add(enrollmentRepository.save(enrollment));
+            }
+        }
 
-// private CourseClass findOrCreateCourseClass(Course course, TrainingClass tc,
-// User trainer) {
-// return em.createQuery(
-// "SELECT cc FROM CourseClass cc WHERE cc.course.id = :c AND cc.classInfo.id =
-// :t", CourseClass.class)
-// .setParameter("c", course.getId())
-// .setParameter("t", tc.getId())
-// .getResultStream().findFirst()
-// .orElseGet(() -> {
-// CourseClass cc = new CourseClass();
-// cc.setCourse(course);
-// cc.setClassInfo(tc);
-// cc.setTrainer(trainer);
-// em.persist(cc);
-// return cc;
-// });
-// }
+        return created;
+    }
 
-// private User findOrCreateStudent(String email, String firstName, String
-// lastName) {
-// return userRepository.findByEmail(email)
-// .orElseGet(() -> userRepository.save(User.builder()
-// .email(email)
-// .firstName(firstName)
-// .lastName(lastName)
-// .passwordHash(passwordEncoder.encode("password123"))
-// .isActive(true)
-// .build()));
-// }
+    private boolean recomputeFinalScore(CourseClass courseClass, User student) {
+        TopicMark topicMark = topicMarkRepository
+            .findByCourseClassIdAndUserId(courseClass.getId(), student.getId())
+            .orElseGet(() -> topicMarkRepository.save(TopicMark.builder()
+                .courseClass(courseClass)
+                .user(student)
+                .topicId(resolveTopicId(courseClass))
+                .isPassed(false)
+                .build()));
 
-// private void findOrCreateEnrollment(User user, TrainingClass trainingClass) {
-// boolean exists = enrollmentRepository.findByUserIdAndTrainingClassId(
-// user.getId(), trainingClass.getId()).isPresent();
-// if (!exists) {
-// enrollmentRepository.save(Enrollment.builder()
-// .user(user)
-// .trainingClass(trainingClass)
-// .build());
-// }
-// }
+        List<TopicMarkEntry> entries = topicMarkEntryRepository
+            .findByCourseClassIdAndUserId(courseClass.getId(), student.getId())
+            .stream()
+            .filter(e -> e.getTopicMarkColumn() != null && !Boolean.TRUE.equals(e.getTopicMarkColumn().getIsDeleted()))
+            .sorted(Comparator.comparing((TopicMarkEntry e) -> e.getTopicMarkColumn().getAssessmentType().getName())
+                .thenComparing(e -> e.getTopicMarkColumn().getColumnIndex()))
+            .toList();
 
-// private TopicMarkColumn createColumn(CourseClass courseClass, AssessmentType
-// type,
-// String label, int index, User createdBy) {
-// return columnRepository.save(TopicMarkColumn.builder()
-// .courseClass(courseClass)
-// .assessmentType(type)
-// .columnLabel(label)
-// .columnIndex(index)
-// .isDeleted(false)
-// .createdBy(createdBy)
-// .build());
-// }
+        if (entries.isEmpty() || entries.stream().anyMatch(e -> e.getScore() == null)) {
+            boolean changed = topicMark.getFinalScore() != null || Boolean.TRUE.equals(topicMark.getIsPassed());
+            topicMark.setFinalScore(null);
+            topicMark.setIsPassed(false);
+            topicMark.setTopicId(resolveTopicId(courseClass));
+            topicMarkRepository.save(topicMark);
+            return changed;
+        }
 
-// private void saveEntry(TopicMarkColumn column, User student, double score,
-// User seeder) {
-// TopicMarkEntry entry = entryRepository.save(TopicMarkEntry.builder()
-// .topicMarkColumn(column)
-// .user(student)
-// .courseClass(column.getCourseClass())
-// .score(score)
-// .build());
+        UUID topicId = resolveTopicId(courseClass);
+        if (topicId == null) {
+            topicMark.setFinalScore(null);
+            topicMark.setIsPassed(false);
+            topicMark.setTopicId(null);
+            topicMarkRepository.save(topicMark);
+            return true;
+        }
 
-// historyRepository.save(TopicMarkEntryHistory.builder()
-// .topicMarkEntry(entry)
-// .oldScore(null)
-// .newScore(score)
-// // .changeType(ChangeType.INCREASE)
-// .reason("Initial seed data")
-// .updatedBy(seeder)
-// .build());
-// }
+        var weightByAssessmentTypeId = topicAssessmentTypeWeightRepository.findByTopicId(topicId)
+                .stream()
+                .filter(w -> w.getAssessmentType() != null && w.getWeight() != null)
+                .collect(java.util.stream.Collectors.toMap(
+                        w -> w.getAssessmentType().getId(),
+                        w -> w.getWeight(),
+                        (left, right) -> right));
 
-// private void seedCourseClassWithoutScores(CourseClass courseClass,
-// AssessmentType quizType,
-// AssessmentType midtermType,
-// AssessmentType finalType,
-// User createdBy,
-// List<User> students,
-// String seedLabel) {
-// if (courseClass == null) {
-// return;
-// }
+        if (weightByAssessmentTypeId.isEmpty()) {
+            topicMark.setFinalScore(null);
+            topicMark.setIsPassed(false);
+            topicMark.setTopicId(topicId);
+            topicMarkRepository.save(topicMark);
+            return true;
+        }
 
-// if
-// (!columnRepository.findActiveByCourseClassId(courseClass.getId()).isEmpty())
-// {
-// log.info("{} columns already exist - skipped", seedLabel);
-// return;
-// }
+        var activeAssessmentTypeIds = entries.stream()
+                .map(e -> e.getTopicMarkColumn().getAssessmentType().getId())
+                .collect(java.util.stream.Collectors.toSet());
 
-// TopicMarkColumn quizCol1 = createColumn(courseClass, quizType, "Quiz Chapter
-// 1", 1, createdBy);
-// TopicMarkColumn quizCol2 = createColumn(courseClass, quizType, "Quiz Chapter
-// 2", 2, createdBy);
-// TopicMarkColumn midtermCol = createColumn(courseClass, midtermType, "Midterm
-// Exam", 1, createdBy);
-// TopicMarkColumn finalCol = createColumn(courseClass, finalType, "Final Exam",
-// 1, createdBy);
+        boolean hasMissingWeight = activeAssessmentTypeIds.stream()
+                .anyMatch(typeIdKey -> !weightByAssessmentTypeId.containsKey(typeIdKey));
+        if (hasMissingWeight) {
+            topicMark.setFinalScore(null);
+            topicMark.setIsPassed(false);
+            topicMark.setTopicId(topicId);
+            topicMarkRepository.save(topicMark);
+            return true;
+        }
 
-// for (User student : students) {
-// entryRepository.save(TopicMarkEntry.builder()
-// .topicMarkColumn(quizCol1)
-// .user(student)
-// .courseClass(courseClass)
-// .score(null)
-// .build());
-// entryRepository.save(TopicMarkEntry.builder()
-// .topicMarkColumn(quizCol2)
-// .user(student)
-// .courseClass(courseClass)
-// .score(null)
-// .build());
-// entryRepository.save(TopicMarkEntry.builder()
-// .topicMarkColumn(midtermCol)
-// .user(student)
-// .courseClass(courseClass)
-// .score(null)
-// .build());
-// entryRepository.save(TopicMarkEntry.builder()
-// .topicMarkColumn(finalCol)
-// .user(student)
-// .courseClass(courseClass)
-// .score(null)
-// .build());
-// }
+        var columnCountByType = entries.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        e -> e.getTopicMarkColumn().getAssessmentType().getId(),
+                        java.util.stream.Collectors.counting()));
 
-// log.info("{} seeded with {} students and null scores", seedLabel,
-// students.size());
-// }
+        var scoresByType = entries.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        e -> e.getTopicMarkColumn().getAssessmentType().getId(),
+                        java.util.stream.Collectors.mapping(TopicMarkEntry::getScore, java.util.stream.Collectors.toList())));
 
-// private void upsertTopicMark(CourseClass courseClass, User user, double
-// finalScore, double minGpa) {
-// boolean passed = finalScore >= minGpa;
-// topicMarkRepository.findByCourseClassIdAndUserId(courseClass.getId(),
-// user.getId())
-// .ifPresentOrElse(tm -> {
-// tm.setFinalScore(finalScore);
-// tm.setIsPassed(passed);
-// topicMarkRepository.save(tm);
-// }, () -> topicMarkRepository.save(TopicMark.builder()
-// .courseClass(courseClass)
-// .user(user)
-// .finalScore(finalScore)
-// .isPassed(passed)
-// .build()));
-// log.info(" {} {} -> {} {}", user.getFirstName(), user.getLastName(),
-// String.format("%.2f", finalScore), passed ? "PASS" : "FAIL");
-// }
-// }
+        double weightedScore = 0.0;
+        for (var scoreEntry : scoresByType.entrySet()) {
+            Double typeWeight = weightByAssessmentTypeId.get(scoreEntry.getKey());
+            if (typeWeight == null) {
+                continue;
+            }
+
+            long columnCount = columnCountByType.getOrDefault(scoreEntry.getKey(), 0L);
+            if (columnCount <= 0) {
+                continue;
+            }
+
+            var sectionScores = scoreEntry.getValue();
+            if (sectionScores.isEmpty()) {
+                continue;
+            }
+
+            double columnWeightFactor = (typeWeight / 100.0) / columnCount;
+            for (Double score : sectionScores) {
+                weightedScore += score * columnWeightFactor;
+            }
+        }
+
+        double roundedFinalScore = Math.round(weightedScore * 100.0) / 100.0;
+        double minGpa = courseClass.getCourse() != null && courseClass.getCourse().getMinGpaToPass() != null
+            ? courseClass.getCourse().getMinGpaToPass()
+            : 5.0;
+
+        boolean passed = roundedFinalScore >= minGpa;
+        boolean changed = !Double.valueOf(roundedFinalScore).equals(topicMark.getFinalScore())
+            || !Boolean.valueOf(passed).equals(topicMark.getIsPassed())
+                || (topicMark.getTopicId() == null && resolveTopicId(courseClass) != null);
+
+        topicMark.setFinalScore(roundedFinalScore);
+        topicMark.setIsPassed(passed);
+        topicMark.setTopicId(resolveTopicId(courseClass));
+        topicMarkRepository.save(topicMark);
+
+        return changed;
+    }
+
+}

@@ -89,7 +89,7 @@ export default function SemestersTable({ onSelectSemester, role }: SemestersTabl
         ...formData,
         id: editingSemester.id,
       } as UpdateSemesterRequest);
-      toast.success("Cập nhật thành công");
+      toast.success("Update successfully");
       setIsFormOpen(false);
       await invalidateAll();
     } catch (error) {
@@ -101,7 +101,7 @@ export default function SemestersTable({ onSelectSemester, role }: SemestersTabl
   const handleCreate = async (formData: Partial<SemesterResponse>) => {
     try {
       await semesterApi.createSemester(formData as CreateSemesterRequest);
-      toast.success("Tạo mới thành công");
+      toast.success("Create successfully");
       setIsFormOpen(false);
       await invalidateAll();
     } catch (error) {
@@ -114,10 +114,10 @@ export default function SemestersTable({ onSelectSemester, role }: SemestersTabl
     if (!deletingSemester) return;
     try {
       await semesterApi.deleteSemester(deletingSemester.id);
-      toast.success("Đã xóa học kỳ");
+      toast.success("Delete successfully");
       await invalidateAll();
     } catch {
-      toast.error("Không thể xóa học kỳ");
+      toast.error("Cannot delete this semester");
     } finally {
       setDeletingSemester(null);
     }
@@ -178,7 +178,7 @@ export default function SemestersTable({ onSelectSemester, role }: SemestersTabl
 
   /* ===================== RENDER ===================== */
   return (
-    <div className="relative flex flex-col gap-4 h-full flex-1">
+    <div className="relative flex flex-col h-full flex-1">
       {/* TOOLBAR */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
@@ -186,7 +186,7 @@ export default function SemestersTable({ onSelectSemester, role }: SemestersTabl
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Tìm kiếm học kỳ..."
+              placeholder="Search semester..."
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               className="pl-9 h-10"

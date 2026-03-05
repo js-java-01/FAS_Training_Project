@@ -93,7 +93,10 @@ public class CourseClassServiceImpl implements CourseClassService
                 new CourseClassResponse.CourseInfo(
                         cc.getCourse().getId(),
                         cc.getCourse().getCourseName(),
-                        cc.getCourse().getCourseCode()
+                        cc.getCourse().getCourseCode(),
+                        cc.getCourse().getTopic() != null ? cc.getCourse().getTopic().getId() : null,
+                        cc.getCourse().getTopic() != null ? cc.getCourse().getTopic().getTopicName() : null,
+                        cc.getCourse().getTopic() != null ? cc.getCourse().getTopic().getTopicCode() : null
                 );
 
         CourseClassResponse.ClassInfo classInfo = cc.getClassInfo() == null ? null :

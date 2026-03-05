@@ -27,11 +27,8 @@ public class TopicMarkColumnResponse {
     @Schema(description = "Name of the AssessmentType", example = "Quiz")
     private String assessmentTypeName;
 
-    @Schema(description = "Weight of the assessment type in the final score calculation", example = "0.3")
+    @Schema(description = "Total weight (%) of this assessment type in final score calculation", example = "30")
     private Double weight;
-
-    @Schema(description = "Grading method applied across all columns of this type", example = "HIGHEST")
-    private String gradingMethod;
 
     @Schema(description = "Display label for this column", example = "Quiz 1")
     private String columnLabel;

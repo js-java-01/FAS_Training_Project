@@ -18,7 +18,7 @@ export const studentCalendarAdapter: CalendarAdapter<StudentSchedule> =
     item
   ): CalendarEvent<StudentSchedule> => ({
     id: item.id,
-    title: item.subject,
+    title: item.topicName,
     start: new Date(`${item.date}T${item.startTime}`),
     end: new Date(`${item.date}T${item.endTime}`),
     color: STATUS_COLOR[item.attendanceStatus],
@@ -29,7 +29,7 @@ export const studentCalendarAdapter: CalendarAdapter<StudentSchedule> =
     <div className="space-y-4">
       <div className="space-x-1">
         <h3 className="text-xl font-semibold">
-          {item.subject}
+          [{item.topicCode}] {item.topicName}
         </h3>
         <p className="text-sm text-muted-foreground">
           {dayjs(item.date).format("MMMM D, YYYY")}

@@ -14,10 +14,9 @@ import java.util.UUID;
  * Gradebook view response with dynamic columns per CourseClass.
  *
  * Column keys in {@link Row#values}:
- *  - UUID string  → score for a TopicMarkColumn
+ *  - UUID string   → score for a TopicMarkColumn
  *  - "FINAL_SCORE" → computed final score (Double or null)
- *  - "IS_PASSED"  → Boolean
- *  - "COMMENT"    → String
+ *  - "IS_PASSED"   → Boolean
  */
 @Data
 @Builder
@@ -41,7 +40,7 @@ public class TopicMarkGradebookResponse {
     @Schema(description = "Column definition for the gradebook table")
     public static class Column {
 
-        @Schema(description = "Unique key: UUID of TopicMarkColumn or a reserved key (FINAL_SCORE, IS_PASSED, COMMENT)",
+        @Schema(description = "Unique key: UUID of TopicMarkColumn or reserved key (FINAL_SCORE, IS_PASSED)",
                 example = "123e4567-e89b-12d3-a456-426614174000")
         private String key;
 
@@ -56,13 +55,9 @@ public class TopicMarkGradebookResponse {
                 nullable = true, example = "Quiz")
         private String assessmentTypeName;
 
-        @Schema(description = "Weight of the whole assessment type (same for all columns under the same type)",
-                nullable = true, example = "0.3")
+        @Schema(description = "Total weight (%) of the assessment type; each column contribution is this weight divided by number of active columns in that type",
+                nullable = true, example = "30")
         private Double weight;
-
-        @Schema(description = "Grading method used across this assessment type's columns",
-                nullable = true, example = "HIGHEST")
-        private String gradingMethod;
 
         @Schema(description = "Column order index within its assessment type, null for meta columns",
                 nullable = true, example = "1")
@@ -91,12 +86,14 @@ public class TopicMarkGradebookResponse {
         @Schema(description = "Student email", example = "john.doe@example.com")
         private String email;
 
+        @Schema(description = "Topic name of the course class", example = "Java Backend")
+        private String topic;
+
         /**
          * Map of column key → value.
          * - UUID key      → Double score (nullable = not entered yet)
          * - FINAL_SCORE   → Double (nullable)
          * - IS_PASSED     → Boolean
-         * - COMMENT       → String (nullable)
          */
         @Schema(description = "Score / meta values keyed by column key")
         private Map<String, Object> values;

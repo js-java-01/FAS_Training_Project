@@ -98,8 +98,9 @@ export const topicApi = {
   importTopics: async (file: File): Promise<void> => {
     const formData = new FormData();
     formData.append('file', file);
-    await axiosInstance.post('/topics/import', formData, {
+    const response = await axiosInstance.post('/topics/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return response.data;
   },
 };

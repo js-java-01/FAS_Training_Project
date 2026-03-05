@@ -56,7 +56,7 @@ export function BigCalendar<T>({
   onRangeChange,
   renderDetail,
 }: Props<T>) {
-  const [view, setView] = useState<View>(Views.WEEK);
+  const [view, setView] = useState<View>(Views.MONTH);
   const [date, setDate] = useState<Date>(new Date());
   const [selected, setSelected] = useState<T | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -70,7 +70,7 @@ export function BigCalendar<T>({
     ToolbarProps<CalendarEvent<T>, object>
   > = (toolbar) => {
     return (
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 p-4 rounded-2xl
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-3 p-3 rounded-2xl
                       bg-white dark:bg-gray-900
                       border border-gray-200 dark:border-gray-700
                       shadow-sm">
@@ -148,7 +148,7 @@ export function BigCalendar<T>({
 
           {/* Label */}
           <div className="text-xl font-semibold
-                          text-blue-900 dark:text-blue-400
+                          text-blue-900 dark:text-white
                           tracking-tight">
             {toolbar.label}
           </div>

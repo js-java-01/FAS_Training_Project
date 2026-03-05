@@ -42,8 +42,12 @@ public class TopicMark {
     @Schema(description = "Student user")
     private User user;
 
+    @Column(name = "topic_id")
+    @Schema(description = "Topic ID of the related course class", nullable = true)
+    private UUID topicId;
+
     @Column(name = "final_score")
-    @Schema(description = "Final computed score (0-100), null if not yet calculated", example = "85.5", nullable = true)
+    @Schema(description = "Final computed score (0-10), null if not yet calculated", example = "8.5", nullable = true)
     private Double finalScore;
 
     @Column(name = "is_passed", nullable = false)
