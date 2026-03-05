@@ -279,7 +279,7 @@ export default function ClassInfoTab({
     errors = {},
     semesters ,
     loadingSemesters = false,
-    enrollmentKey,
+
 }: ClassInfoTabProps) {
     const rawRequestStatus = String(trainingClass.status ?? "").toUpperCase();
     const requestStatusValue = rawRequestStatus === "PENDING_APPROVAL"
@@ -315,7 +315,7 @@ export default function ClassInfoTab({
                 <h2 className="text-lg font-semibold">Basic Information</h2>
 
                 {/* Row 1: Name + Code */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <Field
                         label="Name"
                         value={displayName}
@@ -338,38 +338,18 @@ export default function ClassInfoTab({
                         name="classCode"
                         error={errors.classCode}
                     />
+                    <SelectField label="Admin" value={trainingClass.approverName} />
+
                 </div>
 
-                {/* Row 2: BU Request + Training Program */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <SelectField label="BU Request (Optional)" value={null} />
+                {/* Status */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
                     <SelectField
                         label="Training Program"
                         value={trainingClass.trainingProgramName}
                         required
                     />
-                </div>
-
-                {/* Row 3: Master Trainer / Admin / Location */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <SelectField label="Master Trainer" value={trainingClass.creatorName} />
-                    <SelectField label="Admin" value={trainingClass.approverName} />
-                    <Field label="Enrollment Key" value={enrollmentKey ?? trainingClass.enrollmentKey} />
-                    {/* <SelectField label="Location" value={null} required /> */}
-                </div>
-
-                {/* Row 4: Format / Delivery / Subject / Scope / Trainee / Technical */}
-                {/* <div className="grid grid-cols-2 md:grid-cols-6 gap-5">
-                    <SelectField label="Format Type" value={null} />
-                    <SelectField label="Delivery Type" value={null} />
-                    <SelectField label="Subject Type" value={null} />
-                    <SelectField label="Scope" value={null} />
-                    <SelectField label="Trainee Type" value={null} required />
-                    <SelectField label="Technical Group" value={null} required />
-                </div> */}
-
-                {/* Status */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <StatusSelector
                         label="Class Status"
                         current={classStatusValue}
@@ -385,9 +365,8 @@ export default function ClassInfoTab({
 
             {/* ── Additional Details ── */}
             <section className="space-y-5">
-                <h2 className="text-lg font-semibold">Additional Details</h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <SelectField
                         label="Semester"
                         value={trainingClass.semesterName}
@@ -398,20 +377,6 @@ export default function ClassInfoTab({
                         selectedValue={formData?.semesterId}
                         loading={loadingSemesters}
                     />
-                    {/* <Field
-                        label="Description"
-                        value={
-                            isEditing
-                                ? formData?.description
-                                : trainingClass.description
-                        }
-                        isEditing={isEditing}
-                        onChange={onFieldChange}
-                        name="description"
-                    /> */}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <DateField
                         label="Start Date"
                         value={
@@ -438,6 +403,7 @@ export default function ClassInfoTab({
                         error={errors.endDate}
                         min={minEndDate}
                     />
+
                 </div>
             </section>
         </div>
