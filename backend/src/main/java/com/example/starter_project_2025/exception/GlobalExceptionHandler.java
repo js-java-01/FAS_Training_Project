@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -97,6 +98,16 @@ public class GlobalExceptionHandler
                 LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
+
+    // @ExceptionHandler(ResponseStatusException.class)
+    // public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex)
+    // {
+    //     ErrorResponse error = new ErrorResponse(
+    //             ex.getStatusCode().value(),
+    //             ex.getReason() != null ? ex.getReason() : ex.getMessage(),
+    //             LocalDateTime.now());
+    //     return new ResponseEntity<>(error, ex.getStatusCode();
+    // }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex)

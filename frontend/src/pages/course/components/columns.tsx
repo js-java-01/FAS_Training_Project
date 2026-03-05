@@ -37,12 +37,6 @@ export const getColumns = (
       meta: { title: "Trainer" },
     },
     {
-      accessorKey: "price",
-      header: "Price",
-      cell: (info) => <div>{info.getValue() ?? "-"}</div>,
-      meta: { title: "Price" },
-    },
-    {
       accessorKey: "createdByName",
       header: (info) => <SortHeader title="Created by" info={info} />,
       cell: (info) => <div className="text-sm">{info.getValue() ?? "-"}</div>,

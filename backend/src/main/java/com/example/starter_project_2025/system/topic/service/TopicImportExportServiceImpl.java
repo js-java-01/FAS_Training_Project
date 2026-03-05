@@ -132,7 +132,6 @@ public class TopicImportExportServiceImpl implements TopicImportExportService
                     Topic topic = new Topic();
                     topic.setTopicName(name.trim());
                     topic.setTopicCode(code.trim());
-                    topic.setLevel(level);
                     topic.setStatus(status != null ? status : TopicStatus.DRAFT);
                     topic.setVersion(version != null ? version.trim() : "v1.0");
                     topic.setDescription(description);
@@ -178,7 +177,6 @@ public class TopicImportExportServiceImpl implements TopicImportExportService
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(t.getTopicName());
                 row.createCell(1).setCellValue(t.getTopicCode());
-                row.createCell(2).setCellValue(t.getLevel() != null ? t.getLevel().name() : "");
                 row.createCell(3).setCellValue(t.getStatus() != null ? t.getStatus().name() : "");
                 row.createCell(4).setCellValue(t.getVersion());
                 row.createCell(5).setCellValue(t.getDescription());

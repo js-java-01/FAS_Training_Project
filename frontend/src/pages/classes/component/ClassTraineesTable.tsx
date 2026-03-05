@@ -5,72 +5,41 @@ import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
 import type { TraineeDetailsResponse } from "@/types/trainerClass";
 import { useGetClassTrainees } from "@/pages/training-classes/trainer/services/queries";
 import { Button } from "@/components/ui/button";
-import { EyeIcon, FileBarChartIcon } from "lucide-react";
+import { EyeIcon, FileBarChartIcon, Plus, Trash } from "lucide-react";
 import TopicMarkModal from "@/pages/topic-mark/TopicMarkManagement";
 import type { TrainingClass } from "@/types/trainingClass";
-import { createBaseColumns } from "@/components/data_table/baseColumns";
 import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import { useExportTrainees, useExportTraineeTemplate, useImportTrainees } from "../service/mutations";
-import { useExportTemplate } from "@/pages/topic-mark/services/mutations";
-import ActionBtn from "@/components/data_table/ActionBtn";
+
+
+import { AddTraineeModal } from "./AddTraineeModal";
+import { getColumns } from "./columns";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
+import { ROLES } from "@/types/role";
 
 interface Props {
   classId: string;
   trainingClass: TrainingClass | null;
+
 }
 
-const EMPTY_DATA: TraineeDetailsResponse[] = [];
 
-const columnHelper = createColumnHelper<TraineeDetailsResponse>();
-const base = createBaseColumns<TraineeDetailsResponse>();
-
-const columns = [
-  base.numberColumn,
-  columnHelper.accessor("firstName", {
-    header: "Full Name",
-    cell: (info) => (
-      <span className="font-semibold">
-        {info.row.original.firstName} {info.row.original.lastName}
-      </span>
-    ),
-    meta: {
-      title: "Full Name"
-    }
-  }),
-  columnHelper.accessor("email", {
-    header: "Email",
-    meta: {
-      title: "Email"
-    }
-  }),
-  columnHelper.display({
-    id: "actions",
-    header: "Actions",
-    size: 120,
-    cell: ({ row }) => (
-      <div className="flex gap-2">
-        <ActionBtn
-          tooltipText="View"
-          icon={<EyeIcon size={12} />}
-          onClick={() => console.log("View", row.original)}
-        />
-      </div>
-    ),
-    enableSorting: false,
-    meta: {
-      title: "Actions"
-    }
-  }),
-  base.columnControl,
-];
 
 export default function ClassTraineesTable({ classId, trainingClass }: Props) {
+  const { activeRole } = useRoleSwitch();
+  const role = activeRole?.name ?? "";
+
   const [openTopicMark, setOpenTopicMark] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-
+  const EMPTY_DATA: TraineeDetailsResponse[] = [];
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
+  const [isOpeningAddModal, setIsOpeningAddModal] = useState(false);
+  const columns = useMemo(() => getColumns({
+    onView: (row) => { },
+    onDelete: (row) => { },
+  }), []);
 
   const {
     data: tableData,
@@ -110,7 +79,7 @@ export default function ClassTraineesTable({ classId, trainingClass }: Props) {
         onSearchChange={handleSearchChange}
 
         headerActions={
-          <div className="flex items-end justify-between gap-2">
+          role !== ROLES.STUDENT && (<div className="flex items-end justify-between gap-2">
             <Button variant='outline' onClick={() => setOpenTopicMark(true)}><FileBarChartIcon /> Topic mark</Button>
             <EntityImportExportButton
               mode="all" title={"Trainee"}
@@ -118,7 +87,17 @@ export default function ClassTraineesTable({ classId, trainingClass }: Props) {
               useImportHook={() => useImportTrainees({ classCode: trainingClass?.classCode || "", classId: trainingClass?.id || "" })}
               useTemplateHook={() => useExportTraineeTemplate()}
             />
-          </div>
+            <Button
+              onClick={() => {
+                setIsOpeningAddModal(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Trainee
+            </Button>
+          </div>)
+
         }
       />
 
@@ -127,6 +106,14 @@ export default function ClassTraineesTable({ classId, trainingClass }: Props) {
           open={openTopicMark}
           onOpenChange={setOpenTopicMark}
           trainingClass={trainingClass}
+        />
+      )}
+      {isOpeningAddModal && (
+        <AddTraineeModal
+          open={isOpeningAddModal}
+          onOpenChange={setIsOpeningAddModal}
+          onConfirm={(email) => { }}
+          isLoading={false}
         />
       )}
     </div>

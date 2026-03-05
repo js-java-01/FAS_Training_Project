@@ -1,6 +1,18 @@
 import type { CourseClasses, GradebookTableResponse, GradeHistoryItem, GradeHistoryPageResponse } from "@/types/topicMark";
 import axiosInstance from "./axiosInstance";
 
+export type TopicMarkImportResult = {
+  message: string;
+  totalRows: number;
+  successCount: number;
+  failedCount: number;
+  errors: Array<{
+    row: number;
+    field: string;
+    message: string;
+  }>;
+};
+
 export const topicMarkApi = {
   getCoursesByClassId: async (id: string): Promise<CourseClasses[]> => {
     const response = await axiosInstance.get<CourseClasses[]>(
@@ -75,37 +87,29 @@ export const topicMarkApi = {
   },
 
     exportTopicMark: async (id: string): Promise<Blob> => {
-      const res = await axiosInstance.get(`/course-classes/${id}/topic-marks/export`, {
+      const response = await axiosInstance.get(`/course-classes/${id}/topic-marks/export`, {
         responseType: "blob",
       });
 
-      if (res.status !== 200) {
-         const text = await res.data.text();
-         console.log("Error response:", text);
-      }
-
-      return res.data;
+      return response.data;
   },
 
   exportTemplate: async (id: string): Promise<Blob> => {
-    const res = await axiosInstance.get(`/course-classes/${id}/topic-marks/export/template`, {
+    const response = await axiosInstance.get(`/course-classes/${id}/topic-marks/export/template`, {
       responseType: "blob",
     });
 
-    if (res.status !== 200) {
-       const text = await res.data.text();
-       console.log("Error response:", text);
-    }
-
-    return res.data;
+    return response.data;
   },
 
-  importTopicMark: async (formData: FormData, id: string) => {
-    return axiosInstance.post(`/course-classes/${id}/topic-marks/import`, formData, {
+  importTopicMark: async (formData: FormData, id: string): Promise<TopicMarkImportResult> => {
+    const response = await axiosInstance.post<TopicMarkImportResult>(`/course-classes/${id}/topic-marks/import`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
+
+    return response.data;
   },
 
 };

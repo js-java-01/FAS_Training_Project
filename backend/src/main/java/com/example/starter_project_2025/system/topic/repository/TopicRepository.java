@@ -16,23 +16,31 @@ import java.util.Set;
 import java.util.UUID;
 
 @Repository
-public interface TopicRepository extends JpaRepository<Topic, UUID>, JpaSpecificationExecutor<Topic>
-{
+public interface TopicRepository extends JpaRepository<Topic, UUID>, JpaSpecificationExecutor<Topic> {
 
-    boolean existsByTopicCode(String topicCode);
+        boolean existsByTopicCode(String topicCode);
 
-    @Query("SELECT t FROM Topic t WHERE " +
-            "(:keyword IS NULL OR LOWER(t.topicName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-            "OR LOWER(t.topicCode) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "AND (:level IS NULL OR t.level = :level) " +
-            "AND (:status IS NULL OR t.status = :status)")
-    Page<Topic> findAllByFilters(
-            @Param("keyword") String keyword,
-            @Param("level") TopicLevel level,
-            @Param("status") TopicStatus status,
-            Pageable pageable);
+        Topic findByTopicName(String topicName);
 
-    Topic findByTopicName(String topicName);
+        Set<Topic> findByTopicCodeIn(List<String> topicCodes);
 
-    Set<Topic> findByTopicCodeIn(List<String> topicCodes);
+        @Query("SELECT t FROM Topic t WHERE " +
+                        "(:keyword IS NULL OR LOWER(t.topicName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+                        "OR LOWER(t.topicCode) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+                        "AND (:level IS NULL OR t.level = :level) " +
+                        "AND (:status IS NULL OR t.status = :status)")
+        Page<Topic> findAllByFilters(
+                        @Param("keyword") String keyword,
+                        @Param("level") TopicLevel level,
+                        @Param("status") TopicStatus status,
+                        Pageable pageable);
+
+        @Query("SELECT DISTINCT t, tp FROM Topic t " +
+                        "JOIN t.trainingProgramTopics tpt " +
+                        "JOIN tpt.trainingProgram tp " +
+                        "JOIN tp.trainingClasses tc " +
+                        "JOIN tc.enrollments e " +
+                        "WHERE e.user.id = :userId " +
+                        "AND (:classId IS NULL OR tc.id = :classId)")
+        Page<Object[]> findMyTopicsWithProgram(UUID userId, UUID classId, Pageable pageable);
 }

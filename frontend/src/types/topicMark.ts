@@ -8,6 +8,9 @@ export interface Course {
   id: string
   courseName: string
   courseCode: string
+  topicId?: string | null
+  topicName?: string | null
+  topicCode?: string | null
 }
 
 export interface Trainer {
@@ -42,7 +45,6 @@ export interface GradebookColumnMeta {
   assessmentTypeId: string | null
   assessmentTypeName: string | null
   weight: number | null
-  gradingMethod: string | null
   columnIndex: number | null
 }
 
@@ -51,6 +53,7 @@ export interface GradebookRow {
   courseClassId: string
   fullName: string
   email: string
+  topic: string | null
   values: Record<string, number | boolean | null>
 }
 

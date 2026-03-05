@@ -8,12 +8,15 @@ import { useMemo, useState } from "react"
 import { useGetAllTrainingClasses, useGetMyClasses } from "./service/queries"
 import { EnrollModal } from "./component/EnrollModal"
 import CustomPagination from "./component/StudentPagination"
+import { useNavigate } from "react-router-dom"
+import { encodeRouteId } from "@/utils/routeIdCodec"
 
 interface Props {
     onEnrollSuccess: () => void;
 }
 
 export default function SearchClass({ onEnrollSuccess }: Props) {
+    const navigate = useNavigate();
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(6);
     const [searchValue, setSearchValue] = useState("");
@@ -46,7 +49,7 @@ export default function SearchClass({ onEnrollSuccess }: Props) {
 
     const handleEnrollForm = (classId: string) => {
         if (myClassIds.has(classId)) {
-            alert("Bạn đã đăng ký lớp học này rồi! chuyển đến trang xem chi tiết...");
+            navigate(`/classes/${encodeRouteId("classes", classId)}`);
             return;
         }
         setIsOpenEnrollModal(true);

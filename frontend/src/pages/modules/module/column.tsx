@@ -102,17 +102,17 @@ export const getColumns = (
     /* ================= STATUS ================= */
     columnHelper.accessor("isActive", {
       header: (info) => <SortHeader info={info} title="Status" />,
-        size: 120,
-        cell: (info) => (
-          <Badge
-            className={
-              info.getValue()
-                ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none"
-                : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none"
-            }
-          >
-            {info.getValue() ? "Active" : "Inactive"}
-          </Badge>
+      size: 120,
+      cell: (info) => (
+        <Badge
+          className={
+            info.getValue()
+              ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none"
+              : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none"
+          }
+        >
+          {info.getValue() ? "Active" : "Inactive"}
+        </Badge>
       ),
       meta: {
         title: "Status"
@@ -135,32 +135,32 @@ export const getColumns = (
       header: "Actions",
       size: 120,
       cell: ({ row }) => (
-             <div className="flex gap-2">
-               {actions?.onView && (
-                 <ActionBtn
-                   tooltipText="View"
-                   icon={<EyeIcon size={12} />}
-                   onClick={() => actions.onView!(row.original)}
-                 />
-               )}
+        <div className="flex gap-2">
+          {actions?.onView && (
+            <ActionBtn
+              tooltipText="View"
+              icon={<EyeIcon size={12} />}
+              onClick={() => actions.onView!(row.original)}
+            />
+          )}
 
-               {permissions?.canUpdate && actions?.onEdit && (
-                 <ActionBtn
-                   tooltipText="Edit"
-                   icon={<EditIcon size={12} />}
-                   onClick={() => actions.onEdit!(row.original)}
-                 />
-               )}
+          {permissions?.canUpdate && actions?.onEdit && (
+            <ActionBtn
+              tooltipText="Edit"
+              icon={<EditIcon size={12} />}
+              onClick={() => actions.onEdit!(row.original)}
+            />
+          )}
 
-               {permissions?.canDelete && actions?.onDelete && (
-                 <ActionBtn
-                   tooltipText="Delete"
-                   icon={<Trash size={12} />}
-                   onClick={() => actions.onDelete!(row.original)}
-                 />
-               )}
-             </div>
-           ),
+          {permissions?.canDelete && actions?.onDelete && (
+            <ActionBtn
+              tooltipText="Delete"
+              icon={<Trash size={12} />}
+              onClick={() => actions.onDelete!(row.original)}
+            />
+          )}
+        </div>
+      ),
       enableSorting: false,
       meta: {
         title: "Actions"

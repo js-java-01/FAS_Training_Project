@@ -120,20 +120,55 @@ export default function MaterialPreview({
             </audio>
           </div>
         );
-      case "DOCUMENT":
-        // Try to render PDF inline, fallback to link
-        if (resolvedUrl.toLowerCase().endsWith(".pdf") || resolvedUrl.includes("/pdf")) {
+      case "DOCUMENT": {
+        // Detect whether this is an uploaded file (served by backend) vs external URL
+        const isUploaded = sourceUrl.startsWith("/api/files/materials/") ||
+          sourceUrl.startsWith("/files/materials/") ||
+          sourceUrl.startsWith("/uploads/");
+        const ext = resolvedUrl.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
+
+        if (isUploaded) {
+          if (ext === "pdf") {
+            // PDF → inline iframe (trình duyệt render trực tiếp)
+            return (
+              <div className="w-full mb-4 rounded-lg overflow-hidden border border-gray-200" style={{ height: "520px" }}>
+                <iframe
+                  src={`${resolvedUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                  title={material.title}
+                  className="w-full h-full"
+                  frameBorder="0"
+                />
+              </div>
+            );
+          }
+          // DOCX / XLSX / DOC → không thể preview inline khi file ở localhost
+          // Hiển thị card file + nút mở
+          const extIconMap: Record<string, string> = {
+            docx: "📝", doc: "📝",
+            xlsx: "📊", xls: "📊",
+            pptx: "📋", ppt: "📋",
+          };
+          const icon = extIconMap[ext] ?? "📄";
+          const displayName = decodeURIComponent(sourceUrl.split("/").pop() ?? sourceUrl);
           return (
-            <div className="w-full mb-4 rounded-lg overflow-hidden border border-gray-200" style={{ height: "500px" }}>
-              <iframe
-                src={resolvedUrl}
-                title={material.title}
-                className="w-full h-full"
-                frameBorder="0"
-              />
+            <div className="w-full mb-4 rounded-xl border border-gray-200 bg-gray-50 p-5 flex items-center gap-4">
+              <span className="text-4xl">{icon}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 truncate">{displayName}</p>
+                <p className="text-xs text-gray-400 uppercase mt-0.5">{ext} file</p>
+              </div>
+              <a
+                href={resolvedUrl}
+                download
+                className="shrink-0 flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <FiExternalLink size={13} /> Download File
+              </a>
             </div>
           );
         }
+
+        // URL-based document → show external link (downloadable)
         return (
           <div className="w-full p-4 mb-4 bg-gray-100 rounded-lg border border-gray-200">
             <p className="text-sm text-gray-600 mb-2">Document</p>
@@ -148,6 +183,7 @@ export default function MaterialPreview({
             </a>
           </div>
         );
+      }
       case "LINK":
         return (
           <div className="w-full p-4 mb-4 bg-blue-50 rounded-lg border border-blue-200">

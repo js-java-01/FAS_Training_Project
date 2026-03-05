@@ -1,10 +1,11 @@
 import { MainLayout } from "@/components/layout/MainLayout";
 import TrainingClassesTable from "@/pages/training-classes/table";
-import type { RootState } from "@/store/store";
-import { useSelector } from "react-redux";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 
 export default function TrainingClassesManagement() {
-  const { role, permissions } = useSelector((state: RootState) => state.auth);
+  const { activeRole, activePermissions } = useRoleSwitch();
+  const role = activeRole?.name ?? "";
+  const permissions = activePermissions;
 
   return (
     <MainLayout pathName={{ classes: "Classes" }}>

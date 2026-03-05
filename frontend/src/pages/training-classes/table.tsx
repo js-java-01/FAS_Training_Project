@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -11,9 +11,16 @@ import { getColumns, type TablePermissions } from "./column";
 import { TrainingClassForm } from "./form";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { ClassStatus } from "./enum/ClassStatus";
-import { useGetAllTrainingClasses } from "./services/queries";
+import {
+  useGetAllTrainingClasses,
+  useExportTrainingClasses,
+  useImportTrainingClasses,
+  useDownloadTrainingClassTemplate,
+} from "./services/queries";
 import { ReviewActionModal } from "@/components/ReviewActionModal";
 import { trainingClassApi } from "@/api/trainingClassApi";
+import { semesterApi } from "@/api/semesterApi";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import { ROLES } from "@/types/role";
 import {
   Breadcrumb,
@@ -27,6 +34,7 @@ import { ClientDataTable } from "@/components/data_table/ClientDataTable";
 import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { encodeRouteId } from "@/utils/routeIdCodec";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useSortParam } from "@/hooks/useSortParam";
 
 /* ======================================================= */
 interface TrainingClassesTableProps {
@@ -55,6 +63,8 @@ export default function TrainingClassesTable({
   /* ---------- faceted filter ---------- */
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const statusParam = statusFilter.length === 1 ? statusFilter[0] : undefined;
+  const [semesterFilter, setSemesterFilter] = useState<string[]>([]);
+  const semesterFilterParam = semesterFilter.length === 1 ? semesterFilter[0] : undefined;
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -70,10 +80,11 @@ export default function TrainingClassesTable({
   const queryClient = useQueryClient();
 
   const semesterMode = mode === "semester";
-  const canCreate = permissions.includes("CLASS_CREATE");
+  const canCreate = permissions.includes("CLASS_CREATE") && role == ROLES.ADMIN;
   const canReviewClass = role === ROLES.SUPER_ADMIN || role === ROLES.MANAGER;
+  const showImportExport = !semesterMode;
 
-  /* ===================== DATA ===================== */
+  /* ================= DATA ================= */
   const {
     data: allClassesData,
     isLoading,
@@ -83,10 +94,23 @@ export default function TrainingClassesTable({
     pageSize: semesterMode ? 200 : pageSize,
     sort: sortParam,
     keyword: semesterMode ? undefined : debouncedKeyword,
-    semesterId: semesterMode ? (semesterId ?? undefined) : undefined,
-    classStatus: semesterMode ? statusParam : undefined,
+    semesterId: semesterMode ? (semesterId ?? undefined) : semesterFilterParam,
+    classStatus: statusParam,
     enabled: semesterMode ? !!semesterId : true,
   });
+
+  const { data: semestersData } = useQuery({
+    queryKey: ["semesters-filter"],
+    queryFn: () => semesterApi.getAllSemesters({ page: 0, size: 100, unpaged: false }),
+    enabled: !semesterMode,
+  });
+
+  const semesterOptions = useMemo(() => {
+    return (semestersData?.data?.items || []).map((s) => ({
+      label: s.name,
+      value: s.id,
+    }));
+  }, [semestersData]);
 
   const safeTableData = useMemo(() => allClassesData?.items || [], [allClassesData?.items]);
   const totalPages = allClassesData?.pagination?.totalPages ?? 0;
@@ -202,21 +226,19 @@ export default function TrainingClassesTable({
           isSearch={true}
           searchValue={["className", "classCode"]}
           facetedFilters={
-            role === "MANAGER" && (
-              <div>
-                <FacetedFilter
-                  title="Trạng thái"
-                  options={[
-                    { value: ClassStatus.APPROVED, label: "Approved" },
-                    { value: ClassStatus.PENDING_APPROVAL, label: "Pending Approval" },
-                    { value: ClassStatus.REJECTED, label: "Rejected" },
-                  ]}
-                  value={statusFilter}
-                  setValue={setStatusFilter}
-                  multiple={false}
-                />
-              </div>
-            )
+            <div className="flex gap-2">
+              <FacetedFilter
+                title="Trạng thái"
+                options={[
+                  { value: ClassStatus.APPROVED, label: "Approved" },
+                  { value: ClassStatus.PENDING_APPROVAL, label: "Pending Approval" },
+                  { value: ClassStatus.REJECTED, label: "Rejected" },
+                ]}
+                value={statusFilter}
+                setValue={setStatusFilter}
+                multiple={false}
+              />
+            </div>
           }
         />
       ) : (
@@ -240,16 +262,48 @@ export default function TrainingClassesTable({
             setSorting(nextSorting);
             setPageIndex(0);
           }}
+          facetedFilters={
+            <div className="flex gap-2">
+              <FacetedFilter
+                title="Semester"
+                options={semesterOptions}
+                value={semesterFilter}
+                setValue={setSemesterFilter}
+                multiple={false}
+              />
+              <FacetedFilter
+                title="Status"
+                options={[
+                  { value: ClassStatus.APPROVED, label: "Approved" },
+                  { value: ClassStatus.PENDING_APPROVAL, label: "Pending Approval" },
+                  { value: ClassStatus.REJECTED, label: "Rejected" },
+                ]}
+                value={statusFilter}
+                setValue={setStatusFilter}
+                multiple={false}
+              />
+            </div>
+          }
           headerActions={
-            canCreate &&
-            (role === "ADMIN" || role === "MANAGER") && (
+            (showImportExport || canCreate) ? (
               <div className="flex gap-2">
-                <Button onClick={() => setOpenForm(true)} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
-                  <Plus className="h-4 w-4" />
-                  Open Class Request
-                </Button>
+                {showImportExport && (
+                  <EntityImportExportButton
+                    mode={role === ROLES.ADMIN ? "all" : "export"}
+                    title="Classes"
+                    useImportHook={useImportTrainingClasses}
+                    useExportHook={useExportTrainingClasses}
+                    useTemplateHook={useDownloadTrainingClassTemplate}
+                  />
+                )}
+                {canCreate && (
+                  <Button onClick={() => setOpenForm(true)} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                    <Plus className="h-4 w-4" />
+                    Open Class Request
+                  </Button>
+                )}
               </div>
-            )
+            ) : undefined
           }
         />
       )}

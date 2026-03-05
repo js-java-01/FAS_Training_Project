@@ -86,11 +86,16 @@ export default function GradebookTable({ classId }: Props) {
 
   const safeTableData = useMemo(() => {
     const rows = tableData?.data?.rows
+    const topicDisplay =
+      classCourse?.course?.topicCode && classCourse?.course?.topicName
+        ? `${classCourse.course.topicCode} - ${classCourse.course.topicName}`
+        : classCourse?.course?.topicName || classCourse?.course?.topicCode || null
 
     const mappedItems =
       rows?.items?.map((r) => ({
         ...r,
         courseClassId: selectedCourseClassId,
+        topic: topicDisplay,
       })) ?? []
 
     return {
@@ -100,7 +105,7 @@ export default function GradebookTable({ classId }: Props) {
       totalPages: rows?.pagination?.totalPages ?? 0,
       columns: tableData?.data?.columns ?? [],
     }
-  }, [tableData, pageIndex, pageSize, selectedCourseClassId])
+  }, [tableData, classCourse, pageIndex, pageSize, selectedCourseClassId])
 
   /* ================= COLUMNS ================= */
 

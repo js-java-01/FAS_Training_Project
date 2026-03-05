@@ -4,18 +4,17 @@ import { courseApi } from "@/api/courseApi";
 import { userApi } from "@/api/userApi";
 import type { User } from "@/types/auth";
 import { toast } from "sonner";
-import { CohortTab } from "./CohortTab";
+
 import { OutlineTab } from "./OutlineTab";
 import CourseObjectivesTab from "./CourseObjectivesTab";
 import { TimeAllocationTab } from "./TimeAllocationTab";
 import { MaterialTab } from "./material/MaterialTab";
+import { CourseAssessmentSchemeTab } from "./CourseAssessmentSchemeTab";
 import {
   FiEdit,
   FiBookOpen,
   FiHash,
   FiTag,
-  FiDollarSign,
-  FiPercent,
   FiBarChart2,
   FiClock,
   FiImage,
@@ -31,8 +30,6 @@ import {
 type EditForm = {
   courseName: string;
   courseCode: string;
-  price?: number;
-  discount?: number;
   level?: string;
   estimatedTime?: number;
   status: string;
@@ -54,7 +51,6 @@ function formatDate(value?: string) {
 
 const tabs = [
   "Overview",
-  "Cohort",
   "Assessment Scheme",
   "Outline",
   "Objectives",
@@ -77,8 +73,8 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
   useEffect(() => {
     userApi
-      .getAllUsers(0, 100)
-      .then((res) => setUsers(res?.content ?? []))
+      .getAllUsers({ page: 0, size: 100 })
+      .then((res) => setUsers(res?.items ?? []))
       .catch(() => {});
   }, []);
 
@@ -86,8 +82,6 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
     reset({
       courseName: course.courseName ?? "",
       courseCode: course.courseCode ?? "",
-      price: course.price ?? undefined,
-      discount: course.discount ?? undefined,
       level: course.level ?? "",
       estimatedTime: course.estimatedTime ?? undefined,
       status: course.status ?? "DRAFT",
@@ -112,9 +106,6 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
         courseCode: data.courseCode,
         status: data.status,
       };
-      if (data.price && !isNaN(data.price)) payload.price = Number(data.price);
-      if (data.discount !== undefined && !isNaN(Number(data.discount)))
-        payload.discount = Number(data.discount);
       if (data.estimatedTime && !isNaN(data.estimatedTime))
         payload.estimatedTime = Number(data.estimatedTime);
       if (data.level) payload.level = data.level;
@@ -152,12 +143,11 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
       {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h1 className="text-2xl font-bold">Course Details</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Course Details</h1>
           <p className="text-sm text-gray-500">
-            Course Details management and configuration
+            Course details management and configuration
           </p>
         </div>
-
         <button
           onClick={onBack}
           className="text-sm text-gray-500 hover:bg-gray-100 px-3 py-1.5 rounded-md border border-gray-200"
@@ -166,17 +156,17 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
         </button>
       </div>
 
-      {/* TABS + EDIT / DONE BUTTON */}
+      {/* TABS SELECTOR */}
       <div className="flex justify-between items-center border-b mb-6">
         <div className="flex gap-6">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 text-sm ${
+              className={`pb-2 text-sm transition-all ${
                 activeTab === tab
                   ? "border-b-2 border-blue-600 text-blue-600 font-medium"
-                  : "text-gray-500"
+                  : "text-gray-500 hover:text-gray-700"
               }`}
             >
               {tab}
@@ -189,52 +179,46 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
             <button
               type="button"
               onClick={cancelEdit}
-              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1 rounded-md cursor-pointer hover:bg-blue-700"
+              className="flex items-center text-sm gap-2 mb-2 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors"
             >
-              <FiX size={14} />
-              Done
+              <FiX /> Cancel
             </button>
           ) : (
             <button
               type="button"
               onClick={startEdit}
-              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1 rounded-md cursor-pointer hover:bg-blue-700"
+              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
             >
-              <FiEdit size={14} />
-              Edit
+              <FiEdit /> Edit
             </button>
           ))}
       </div>
 
       {/* READ-ONLY */}
       {activeTab === "Overview" && !isEditing && (
-        <OverviewTab course={course} />
+        <div className="animate-in fade-in duration-200">
+          <OverviewTab course={course} />
+        </div>
       )}
 
       {/* INLINE EDIT FORM */}
       {activeTab === "Overview" && isEditing && (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6 animate-in fade-in duration-200"
+        >
           {/* Basic Information */}
           <div className="border rounded-lg p-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold text-gray-700">Basic Information</h2>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="flex items-center gap-1.5 text-sm border rounded-md px-3 py-1.5 hover:bg-gray-100 cursor-pointer"
-                >
-                  <FiX size={13} /> Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex items-center gap-1.5 text-sm bg-blue-600 text-white rounded-md px-3 py-1.5 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
-                >
-                  <FiSave size={13} />
-                  {loading ? "Saving..." : "Save"}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-1.5 text-sm bg-blue-600 text-white rounded-md px-3 py-1.5 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+              >
+                <FiSave size={13} />
+                {loading ? "Saving..." : "Save"}
+              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -255,23 +239,6 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
                   disabled
                   value={course.topic ?? "-"}
                   className={inputCls + " bg-gray-50 text-gray-400"}
-                />
-              </Field>
-              <Field icon={<FiDollarSign />} label="Price">
-                <input
-                  type="number"
-                  min={0}
-                  {...register("price", { valueAsNumber: true })}
-                  className={inputCls}
-                />
-              </Field>
-              <Field icon={<FiPercent />} label="Discount (%)">
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  {...register("discount", { valueAsNumber: true })}
-                  className={inputCls}
                 />
               </Field>
             </div>
@@ -419,7 +386,9 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
         </form>
       )}
 
-      {activeTab === "Cohort" && <CohortTab courseId={course.id} />}
+      {activeTab === "Assessment Scheme" && (
+        <CourseAssessmentSchemeTab courseId={course.id} />
+      )}
 
       {activeTab === "Outline" && (
         <OutlineTab courseId={course.id} course={course} />
@@ -427,95 +396,105 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
 
       {activeTab === "Materials" && <MaterialTab courseId={course.id} />}
 
+      {activeTab === "Objectives" && (
+        <CourseObjectivesTab courseId={course.id} />
+      )}
+
       {activeTab === "Time Allocation" && (
         <TimeAllocationTab courseId={course.id} />
       )}
 
       {![
         "Overview",
-        "Cohort",
+        "Assessment Scheme",
         "Outline",
         "Objectives",
+        "Materials",
         "Time Allocation",
       ].includes(activeTab) && (
-        <div className="text-gray-400 text-sm">
-          This tab is implemented by another team.
+        <div className="text-gray-400 text-sm py-10 text-center border-2 border-dashed rounded-lg">
+          This tab ({activeTab}) is being developed by another team.
         </div>
       )}
-      {activeTab !== "Overview" &&
-        activeTab !== "Cohort" &&
-        activeTab !== "Outline" &&
-        activeTab !== "Materials" && (
-          <div className="text-gray-400 text-sm py-10 text-center border-2 border-dashed rounded-lg">
-            This tab ({activeTab}) is being developed by another team.
-          </div>
-        )}
     </div>
   );
 }
 
 /* ─── Read-only Overview ─────────────────────────────────── */
 function OverviewTab({ course }: any) {
-  return (
-    <div className="space-y-6">
-      <Block title="Basic Information">
-        <Grid>
-          <Info
-            icon={<FiBookOpen />}
-            label="Course Name"
-            value={course.courseName}
-          />
-          <Info
-            icon={<FiHash />}
-            label="Course Code"
-            value={course.courseCode}
-          />
-          <Info icon={<FiTag />} label="Topic" value={course.topic} />
-          <Info
-            icon={<FiDollarSign />}
-            label="Price"
-            value={course.price != null ? `${course.price} VND` : undefined}
-          />
-          <Info
-            icon={<FiPercent />}
-            label="Discount"
-            value={`${course.discount ?? 0}%`}
-          />
-        </Grid>
-      </Block>
+  const statusCls: Record<string, string> = {
+    ACTIVE: "text-emerald-700 border-emerald-300",
+    DRAFT: "text-amber-700 border-amber-300",
+    UNDER_REVIEW: "text-blue-700 border-blue-300",
+    INACTIVE: "text-gray-500 border-gray-300",
+  };
 
-      <div className="grid grid-cols-2 gap-6">
+  return (
+    <div className="space-y-5 animate-in fade-in duration-300">
+      {/* Identity card */}
+      <div className="rounded-xl border border-gray-200 p-6">
+        <div className="flex items-start justify-between gap-6">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <FiBookOpen size={14} className="text-blue-500 shrink-0" />
+              <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
+                {course.courseCode}
+              </span>
+              {course.topic && (
+                <span className="text-xs text-gray-400">· {course.topic}</span>
+              )}
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 leading-tight">
+              {course.courseName}
+            </h2>
+            {course.description && (
+              <p className="text-sm text-gray-500 mt-3 leading-relaxed max-w-2xl">
+                {course.description}
+              </p>
+            )}
+          </div>
+          {course.status && (
+            <span
+              className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${
+                statusCls[course.status] ?? "text-gray-500 border-gray-300"
+              }`}
+            >
+              {course.status}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Duration strip */}
+      <div className="grid grid-cols-1 gap-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+            Duration
+          </p>
+          <p className="text-lg font-bold text-gray-900">
+            {course.estimatedTime != null ? `${course.estimatedTime} min` : "—"}
+          </p>
+        </div>
+      </div>
+
+      {/* Details + Metadata */}
+      <div className="grid grid-cols-2 gap-5">
         <Block title="Course Details">
-          <Grid>
+          <div className="space-y-4">
             <Info icon={<FiBarChart2 />} label="Level" value={course.level} />
             <Info
-              icon={<FiClock />}
-              label="Estimated Time"
-              value={
-                course.estimatedTime != null
-                  ? `${course.estimatedTime} minutes`
-                  : undefined
-              }
+              icon={<FiUser />}
+              label="Trainer"
+              value={course.trainerName ?? course.trainerId ?? undefined}
             />
-            {course.thumbnailUrl ? (
-              <div className="col-span-2">
-                <p className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                  <FiImage size={13} /> Thumbnail
-                </p>
-                <img
-                  src={course.thumbnailUrl}
-                  alt="thumbnail"
-                  className="w-full max-h-40 object-cover rounded-md border"
-                />
-              </div>
-            ) : (
-              <Info icon={<FiImage />} label="Thumbnail" value={undefined} />
+            {course.note && (
+              <Info icon={<FiFileText />} label="Note" value={course.note} />
             )}
-          </Grid>
+          </div>
         </Block>
 
         <Block title="Metadata">
-          <Grid>
+          <div className="space-y-4">
             <Info
               icon={<FiCalendar />}
               label="Date Created"
@@ -536,7 +515,7 @@ function OverviewTab({ course }: any) {
               label="Updater"
               value={course.updatedByName ?? course.updatedBy}
             />
-          </Grid>
+          </div>
         </Block>
       </div>
     </div>
@@ -569,24 +548,26 @@ function InfoRO({ icon, label, value }: any) {
 
 function Block({ title, children }: any) {
   return (
-    <div className="border rounded-lg p-4">
-      <h2 className="font-semibold text-gray-700 mb-4">{title}</h2>
+    <div className="rounded-xl border border-gray-200 p-5">
+      <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400 mb-4">
+        {title}
+      </p>
       {children}
     </div>
   );
 }
 
-function Grid({ children }: any) {
-  return <div className="grid grid-cols-2 gap-4">{children}</div>;
-}
-
 function Info({ icon, label, value }: any) {
   return (
-    <div className="flex gap-2">
-      <div className="text-gray-400 mt-1 shrink-0">{icon}</div>
+    <div className="flex gap-3">
+      <span className="text-gray-400 mt-0.5 shrink-0">{icon}</span>
       <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="font-medium">{value || "-"}</p>
+        <p className="text-[11px] uppercase tracking-wider text-gray-400 font-bold">
+          {label}
+        </p>
+        <p className="text-sm font-medium text-gray-900 mt-0.5">
+          {value || "—"}
+        </p>
       </div>
     </div>
   );

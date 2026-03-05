@@ -33,20 +33,20 @@ export const getColumns = (role: string, _permissions: TablePermissions, actions
     /* ================= NUMBER ================= */
     base.numberColumn,
 
-    /* ================= CLASS NAME ================= */
-    columnHelper.accessor("className", {
-      header: (info) => <SortHeader title="Class Name" info={info} />,
-      size: 200,
-      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
-      meta: { title: "Class Name" },
-    }),
-
     /* ================= CLASS CODE ================= */
     columnHelper.accessor("classCode", {
       header: (info) => <SortHeader title="Class Code" info={info} />,
       size: 140,
       cell: (info) => <span className="font-mono text-sm">{info.getValue()}</span>,
       meta: { title: "Class Code" },
+    }),
+
+    /* ================= CLASS NAME ================= */
+    columnHelper.accessor("className", {
+      header: (info) => <SortHeader title="Class Name" info={info} />,
+      size: 200,
+      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+      meta: { title: "Class Name" },
     }),
 
     /* ================= SEMESTER ================= */
