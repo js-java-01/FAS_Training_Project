@@ -33,9 +33,9 @@ public class TopicInitializer
         TrainingProgram tp2 = createProgram("Data Science & AI", "Khám phá thế giới dữ liệu và trí tuệ nhân tạo");
         trainingProgramRepository.saveAll(Arrays.asList(tp1, tp2));
 
-        Topic t1 = createTopic("Spring Boot Basic", "TOPIC-001", TopicLevel.BEGINNER, "Hướng dẫn cơ bản về Spring Framework");
-        Topic t2 = createTopic("ReactJS Advanced", "TOPIC-002", TopicLevel.ADVANCED, "Làm chủ Hook và State Management");
-        Topic t3 = createTopic("Python for Data", "TOPIC-003", TopicLevel.INTERMEDIATE, "Sử dụng Pandas và Numpy");
+        Topic t1 = createTopic("Spring Boot Basic", "TOPIC-001",  "Hướng dẫn cơ bản về Spring Framework");
+        Topic t2 = createTopic("ReactJS Advanced", "TOPIC-002", "Làm chủ Hook và State Management");
+        Topic t3 = createTopic("Python for Data", "TOPIC-003", "Sử dụng Pandas và Numpy");
         topicRepository.saveAll(Arrays.asList(t1, t2, t3));
 
         linkTopicToProgram(t1, tp1);
@@ -55,12 +55,11 @@ public class TopicInitializer
         return tp;
     }
 
-    private Topic createTopic(String name, String code, TopicLevel level, String desc)
+    private Topic createTopic(String name, String code,  String desc)
     {
         Topic topic = new Topic();
         topic.setTopicName(name);
         topic.setTopicCode(code);
-        topic.setLevel(level);
         topic.setDescription(desc);
         topic.setStatus(TopicStatus.ACTIVE);
         topic.setVersion("v1.0");

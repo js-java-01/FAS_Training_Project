@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 public class TopicSpecification
 {
-    public static Specification<Topic> hasFilters(String keyword, TopicLevel level, TopicStatus status)
+    public static Specification<Topic> hasFilters(String keyword, TopicStatus status)
     {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -25,11 +25,6 @@ public class TopicSpecification
                         cb.like(cb.lower(root.get("name")), pattern),
                         cb.like(cb.lower(root.get("code")), pattern)
                 ));
-            }
-
-            if (level != null)
-            {
-                predicates.add(cb.equal(root.get("level"), level));
             }
 
             if (status != null)
