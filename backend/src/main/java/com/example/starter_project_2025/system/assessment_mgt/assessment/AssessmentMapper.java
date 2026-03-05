@@ -16,5 +16,15 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 
 public interface AssessmentMapper extends BaseCrudMapper<Assessment, AssessmentDTO> {
+    @Override
+    @Mapping(target = "assessmentTypeId", source = "assessmentType.id")
+    AssessmentDTO toResponse(Assessment entity);
 
+    @Override
+    @Mapping(target = "assessmentType", ignore = true)
+    Assessment toEntity(AssessmentDTO dto);
+
+    @Override
+    @Mapping(target = "assessmentType", ignore = true)
+    void update(@MappingTarget Assessment entity, AssessmentDTO dto);
 }

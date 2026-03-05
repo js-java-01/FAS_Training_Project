@@ -39,7 +39,7 @@ public class AssessmentServiceImpl extends CrudServiceImpl<Assessment, UUID, Ass
 
     @Override
     protected String[] searchableFields() {
-        return new String[]{"code", "title", " difficulty"};
+        return new String[]{"code", "title", "difficulty"};
     }
 
     @Override
