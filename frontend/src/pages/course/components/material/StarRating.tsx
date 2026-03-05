@@ -12,7 +12,7 @@ export function StarRating({ rating, setRating, readonly = false }: StarRatingPr
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
           key={star}
-          className={`h-6 w-6 ${!readonly && 'cursor-pointer'} transition-colors ${
+          className={`h-5 w-5 ${!readonly && 'cursor-pointer'} transition-colors ${
             star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
           }`}
           onClick={() => !readonly && setRating && setRating(star)}
