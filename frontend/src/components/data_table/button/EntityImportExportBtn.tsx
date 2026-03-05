@@ -14,6 +14,7 @@ type Props = {
   useImportHook: MutationHook<File, any>;
   useExportHook: MutationHook<void, Blob>;
   useTemplateHook: MutationHook<void, Blob>;
+  onImportSuccess?: () => void;
 };
 
 export default function EntityImportExportButton({
@@ -21,6 +22,7 @@ export default function EntityImportExportButton({
   useImportHook,
   useExportHook,
   useTemplateHook,
+  onImportSuccess,
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -58,6 +60,7 @@ export default function EntityImportExportButton({
       const res = await importMutate(file);
       if (!res || res.failedCount === 0) {
         toast.success(`${title} imported successfully`);
+        onImportSuccess?.();
       }
       return res;
     } catch (err: any) {

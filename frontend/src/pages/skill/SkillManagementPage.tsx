@@ -112,6 +112,10 @@ export default function SkillManagementPage() {
             useImportHook={useImportSkills}
             useExportHook={useExportSkills}
             useTemplateHook={useDownloadSkillTemplate}
+            onImportSuccess={() => {
+              fetchGroups();
+              fetchSkills();
+            }}
           />
         </div>
 

@@ -1,3 +1,5 @@
+
+
 package com.example.starter_project_2025.system.programminglanguage.specification;
 
 import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
