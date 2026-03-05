@@ -21,7 +21,7 @@ public class AssessmentDTO implements CrudDto<UUID> {
 
     UUID assessmentTypeId;
 
-    Long programmingLanguageId;
+    UUID programmingLanguageId;
 
     String code;
 

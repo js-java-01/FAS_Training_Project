@@ -10,7 +10,7 @@ const path = "/assessment-questions";
 const base = createBaseApiService<AssessmentQuestion, null>({ path: path });
 
 export const assessmentQuestionApi = Object.assign({}, base, {
-  getByAssessmentId: async (assessmentId: number): Promise<AssessmentQuestion[]> => {
+  getByAssessmentId: async (assessmentId: string): Promise<AssessmentQuestion[]> => {
     try {
       const response = await axiosInstance.get<AssessmentQuestion[]>(
         `${path}/${assessmentId}`,
@@ -70,7 +70,7 @@ export const assessmentQuestionApi = Object.assign({}, base, {
   },
 
   reorder: async (
-    assessmentId: number,
+    assessmentId: string,
     questionOrders: { id: string; orderIndex: number }[],
   ): Promise<void> => {
     await axiosInstance.put(

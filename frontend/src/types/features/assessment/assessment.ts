@@ -1,7 +1,7 @@
 import type { AssessmentStatus } from "@/types";
 
 export interface Assessment {
-  id: number;
+  id: string;
   code: string;
   title: string;
   description: string;

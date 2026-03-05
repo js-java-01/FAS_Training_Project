@@ -10,7 +10,7 @@ export interface AssessmentQuestion {
 }
 
 export interface AssessmentQuestionCreateRequest {
-    assessmentId: number;
+    assessmentId: string;
     questionId: string;
     score: number;
     orderIndex: number;

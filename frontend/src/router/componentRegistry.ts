@@ -5,7 +5,6 @@ import ModuleGroupsManagement from "@/pages/modules/module_groups/ModuleGroupsMa
 import NotFoundPage from "@/pages/NotFoundPage.tsx";
 import { LocationManagement } from "@/pages/LocationManagement";
 import CourseManagement from "@/pages/course/CourseManagement";
-import { TeacherAssessmentPage } from "@/pages/teacher-assessment";
 import { QuestionCategoryManagement } from "@/pages/question-category";
 
 
@@ -20,7 +19,6 @@ import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 // Parameterized route components
 import CourseDetailPage from "@/pages/course/CourseDetailPage";
 import StudentCourseContent from "@/pages/learning/StudentCourseContent";
-import { AssessmentFormPage } from "@/pages/teacher-assessment";
 import UserManagement from "@/pages/user/management";
 import { AttemptHistoryPage, QuizPage, ResultPage, SelectAssessmentPage } from "@/pages/assessment";
 import { RoleManagementPage } from "@/pages/role";
@@ -28,6 +26,8 @@ import ProgrammingLanguageManagement from "@/pages/programming-language";
 import AssessmentTypeManagementPage from "@/pages/assessment-type/management";
 import ProTableQuestionManagementPage from "@/pages/assessment/question/management";
 import { CreateQuestionPage, EditQuestionPage } from "@/pages/assessment/question";
+import { AssessmentFormPage } from "@/pages/assessment/teacher-assessment";
+import ProTableAssessmentManagementPage from "@/pages/assessment/teacher-assessment/management";
 
 // ── Route Configuration Types ─────────────────────────────────────────────────
 export interface RouteConfig {
@@ -52,7 +52,7 @@ export const routes: RouteConfig[] = [
     { path: "/courses", component: CourseManagement, isModuleDriven: true },
     { path: "/my-courses", component: CourseManagement, isModuleDriven: true },
     { path: "/assessments", component: SelectAssessmentPage, isModuleDriven: true },
-    { path: "/teacher-assessment", component: TeacherAssessmentPage, isModuleDriven: true },
+    { path: "/teacher-assessment", component: ProTableAssessmentManagementPage, isModuleDriven: true },
     { path: "/question-categories", component: QuestionCategoryManagement, isModuleDriven: true },
     { path: "/questions", component: ProTableQuestionManagementPage, isModuleDriven: true },
     
