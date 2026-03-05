@@ -287,7 +287,9 @@ export default function ClassDetailPage() {
                         <span className="font-mono text-sm text-muted-foreground">
                             {trainingClass.classCode}
                         </span>
-                        <Badge variant="secondary">Class: {classStatus}</Badge>
+                        {requestStatus === "Approved" && (
+                            <Badge variant="secondary">Class: {classStatus}</Badge>
+                        )}
                         <Badge variant="secondary">Request: {requestStatus}</Badge>
                     </div>
 
