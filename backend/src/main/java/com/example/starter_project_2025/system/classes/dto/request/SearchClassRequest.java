@@ -1,6 +1,8 @@
 package com.example.starter_project_2025.system.classes.dto.request;
 
 import com.example.starter_project_2025.system.classes.entity.ClassStatus;
+
+import java.util.List;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -13,7 +15,9 @@ import lombok.NoArgsConstructor;
 public class SearchClassRequest {
     private String keyword;
     private Boolean isActive;
-    private ClassStatus classStatus;
-    private UUID semesterId;
+    private List<ClassStatus> classStatus;
+
+    private List<UUID> semesterId;
+    private UUID creatorId;
 
 }

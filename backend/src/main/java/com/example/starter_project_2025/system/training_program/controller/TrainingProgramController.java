@@ -37,8 +37,7 @@ public class TrainingProgramController {
     @Operation(summary = "Search training programs with pagination")
     @PreAuthorize("hasAuthority('TRAINING_PROGRAM_READ')")
     public ResponseEntity<ApiResponse<PageResponse<TrainingProgramResponse>>> searchTrainingPrograms(
-
-            @Valid @ParameterObject   @ModelAttribute SearchTrainingProgramRequest request
+            @Valid @ParameterObject @ModelAttribute SearchTrainingProgramRequest request
     ) {
 
         String sortField = request.getSort()[0];
@@ -57,9 +56,9 @@ public class TrainingProgramController {
         Page<TrainingProgramResponse> pageResult =
                 service.searchTrainingPrograms(
                         request.getKeyword(),
+                        request.getVersion(),
                         pageable
                 );
-
         return ResponseEntity.ok(
                 ApiResponse.success(
                         PageResponse.from(pageResult),

@@ -12,6 +12,7 @@ import com.example.starter_project_2025.system.training_program.mapper.TrainingP
 import com.example.starter_project_2025.system.training_program.repository.TrainingProgramRepository;
 import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
 import com.example.starter_project_2025.system.training_program_topic.entity.repository.TrainingProgramTopicRepository;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
+import jakarta.persistence.criteria.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,20 +43,51 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
     @Override
     public Page<TrainingProgramResponse> searchTrainingPrograms(
             String keyword,
+            List<String> versions,
             Pageable pageable) {
 
         Specification<TrainingProgram> spec = (root, query, cb) -> {
 
-            if (keyword != null && !keyword.isEmpty()) {
-                return cb.like(
-                        cb.lower(root.get("name")),
-                        "%" + keyword.toLowerCase() + "%");
+            List<Predicate> predicates = new ArrayList<>();
+
+            // keyword search
+            if (keyword != null && !keyword.trim().isEmpty()) {
+
+                String likeKeyword = "%" + keyword.toLowerCase().trim() + "%";
+
+                Predicate searchByName =
+                        cb.like(cb.lower(root.get("name")), likeKeyword);
+
+                Predicate searchByDescription =
+                        cb.like(cb.lower(root.get("description")), likeKeyword);
+
+                Predicate searchByVersion =
+                        cb.like(cb.lower(root.get("version")), likeKeyword);
+
+                predicates.add(cb.or(
+                        searchByName,
+                        searchByDescription,
+                        searchByVersion
+                ));
             }
 
-            return cb.conjunction();
+            // multiple version filter
+            if (versions != null && !versions.isEmpty()) {
+
+                CriteriaBuilder.In<String> inClause = cb.in(root.get("version"));
+
+                for (String v : versions) {
+                    inClause.value(v);
+                }
+
+                predicates.add(inClause);
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        return trainingProgramRepository.findAll(spec, pageable)
+        return trainingProgramRepository
+                .findAll(spec, pageable)
                 .map(mapper::toResponse);
     }
 
@@ -291,63 +324,76 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
 
                 if (row == null) continue;
 
-                try {
+                boolean hasError = false;
 
-                    String name = getCellValue(row.getCell(0));
-                    String version = getCellValue(row.getCell(1));
-                    String description = getCellValue(row.getCell(2));
-                    String topicCodes = getCellValue(row.getCell(3));
+                String name = getCellValue(row.getCell(0));
+                String version = getCellValue(row.getCell(1));
+                String description = getCellValue(row.getCell(2));
+                String topicCodes = getCellValue(row.getCell(3));
 
-                    if (name.isBlank()) {
-                        errors.add(new ImportErrorResponse(i + 1,"name","Program name is required"));
-                        continue;
-                    }
-
-                    if (trainingProgramRepository.existsByNameIgnoreCase(name)) {
-                        errors.add(new ImportErrorResponse(i + 1,"name","Training program already exists"));
-                        continue;
-                    }
-
-                    TrainingProgram program = new TrainingProgram();
-                    program.setName(name);
-                    program.setVersion(version);
-                    program.setDescription(description);
-
-                    TrainingProgram savedProgram = trainingProgramRepository.saveAndFlush(program);
-
-                    if (topicCodes == null || topicCodes.isBlank()) {
-                        errors.add(new ImportErrorResponse(i + 1,"topics","Training program must contain topics"));
-                        continue;
-                    }
-
-                    List<String> codes = Arrays.stream(topicCodes.split(","))
-                            .map(String::trim)
-                            .toList();
-
-                    Set<Topic> topics = topicRepository.findByTopicCodeIn(codes);
-
-                    if (topics.size() != codes.size()) {
-                        errors.add(new ImportErrorResponse(i + 1,"topics","Some topics not found"));
-                        continue;
-                    }
-
-                    Set<TrainingProgramTopic> relations = topics.stream()
-                            .map(topic -> TrainingProgramTopic.builder()
-                                    .trainingProgram(savedProgram)
-                                    .topic(topic)
-                                    .build())
-                            .collect(Collectors.toSet());
-
-                    savedProgram.setTrainingProgramTopics(relations);
-
-                    successCount++;
-
-                } catch (Exception ex) {
-
-                    errors.add(new ImportErrorResponse(i + 1,"system",ex.getMessage()));
-
+                if (name == null || name.isBlank()) {
+                    errors.add(new ImportErrorResponse(i + 1, "name", "Program name is required"));
+                    hasError = true;
                 }
 
+                if (!name.isBlank() && trainingProgramRepository.existsByNameIgnoreCase(name)) {
+                    errors.add(new ImportErrorResponse(i + 1, "name", "Training program already exists"));
+                    hasError = true;
+                }
+
+                // validate version
+                if (version == null || !version.matches("^\\d+(\\.\\d+)*$")) {
+                    errors.add(new ImportErrorResponse(i + 1, "version",
+                            "Version must contain only numbers separated by dots (e.g., 1.0 or 1.2.3)"));
+                    hasError = true;
+                }
+
+                if (topicCodes == null || topicCodes.isBlank()) {
+                    errors.add(new ImportErrorResponse(i + 1, "topics", "Training program must contain topics"));
+                    hasError = true;
+                }
+
+                List<String> codes = new ArrayList<>();
+
+                if (!hasError) {
+                    codes = Arrays.stream(topicCodes.split(","))
+                            .map(String::trim)
+                            .filter(s -> !s.isBlank())
+                            .toList();
+                }
+
+                Set<Topic> topics = new HashSet<>();
+
+                if (!hasError) {
+                    topics = topicRepository.findByTopicCodeIn(codes);
+
+                    if (topics.size() != codes.size()) {
+                        errors.add(new ImportErrorResponse(i + 1, "topics", "Some topics not found"));
+                        hasError = true;
+                    }
+                }
+
+                if (hasError) {
+                    continue;
+                }
+
+                TrainingProgram program = new TrainingProgram();
+                program.setName(name.trim());
+                program.setVersion(version.trim());
+                program.setDescription(description);
+
+                TrainingProgram savedProgram = trainingProgramRepository.save(program);
+
+                Set<TrainingProgramTopic> relations = topics.stream()
+                        .map(topic -> TrainingProgramTopic.builder()
+                                .trainingProgram(savedProgram)
+                                .topic(topic)
+                                .build())
+                        .collect(Collectors.toSet());
+
+                trainingProgramTopicRepository.saveAll(relations);
+
+                successCount++;
             }
         }
 
