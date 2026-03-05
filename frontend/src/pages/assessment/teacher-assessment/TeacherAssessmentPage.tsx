@@ -7,7 +7,8 @@ import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { DataTable } from '@/components/data_table/DataTable';
 import { PermissionGate } from '@/components/PermissionGate';
-import { assessmentApi } from '@/api';
+import { assessmentApi, assessmentTypeApi } from '@/api';
+import type { AssessmentTypeDTO } from '@/types';
 
 import { AssessmentGrid } from './AssessmentGrid';
 import { getColumns } from './columns';
@@ -48,6 +49,18 @@ export default function TeacherAssessmentPage() {
     // ========================================
     // Data Loading (Queries)
     // ========================================
+    const { data: assessmentTypesData } = useQuery({
+        queryKey: ['assessment-types-all'],
+        queryFn: () => assessmentTypeApi.getPage({ page: 0, size: 1000 }),
+    });
+
+    const assessmentTypeLookup = useMemo(() => {
+        const types: AssessmentTypeDTO[] = assessmentTypesData?.items ?? assessmentTypesData?.content ?? [];
+        const map = new Map<string, AssessmentTypeDTO>();
+        types.forEach(t => { if (t.id) map.set(t.id, t); });
+        return map;
+    }, [assessmentTypesData]);
+
     const { data: tableData, isLoading, isFetching } = useQuery({
         queryKey: ['assessments', page, size, keyword, statusFilter, assessmentTypeFilter],
         queryFn: () => assessmentApi.getPage({
@@ -60,13 +73,20 @@ export default function TeacherAssessmentPage() {
     });
 
     // Safe table data with defaults
-    const safeTableData = useMemo(() => ({
-        items: tableData?.items ?? [],
-        page: tableData?.number ?? page,
-        pageSize: tableData?.size ?? size,
-        totalPages: tableData?.totalPages ?? 0,
-        totalElements: tableData?.totalElements ?? 0,
-    }), [tableData, page, size]);
+    const safeTableData = useMemo(() => {
+        const rawItems = tableData?.items ?? [];
+        const enrichedItems = rawItems.map((item: Assessment) => ({
+            ...item,
+            assessmentTypeName: item.assessmentTypeName ?? assessmentTypeLookup.get(item.assessmentTypeId)?.name,
+        }));
+        return {
+            items: enrichedItems,
+            page: tableData?.number ?? page,
+            pageSize: tableData?.size ?? size,
+            totalPages: tableData?.totalPages ?? 0,
+            totalElements: tableData?.totalElements ?? 0,
+        };
+    }, [tableData, page, size, assessmentTypeLookup]);
 
     // ========================================
     // CRUD Mutations
@@ -198,7 +218,7 @@ export default function TeacherAssessmentPage() {
                     isOpen={showDeleteDialog}
                     onClose={() => setShowDeleteDialog(false)}
                     assessment={selectedAssessment}
-                    onConfirm={() => selectedAssessment && deleteMutation.mutate(String(selectedAssessment.id))}
+                    onConfirm={() => selectedAssessment && deleteMutation.mutate(selectedAssessment.id)}
                     isPending={deleteMutation.isPending}
                 />
             </div>

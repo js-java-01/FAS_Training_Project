@@ -5,7 +5,7 @@ import type { Assessment } from "@/types/feature/assessment/assessment";
 import { Badge } from "@/components/ui/badge";
 import { Eye, SquarePen, Trash2 } from "lucide-react";
 import { PermissionGate } from "@/components/PermissionGate";
-import SortHeader from "../../components/data_table/SortHeader";
+import SortHeader from "../../../components/data_table/SortHeader";
 
 export type AssessmentTableActions = {
     onView?: (row: Assessment) => void;

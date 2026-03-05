@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Modal } from '@/components/modal/Modal';
 import { AssessmentFormFields } from './AssessmentFormFields';
-import type { Assessment, AssessmentCreateRequest, AssessmentUpdateRequest } from '../../types/feature/assessment/assessment';
+import type { Assessment, AssessmentCreateRequest, AssessmentUpdateRequest } from '../../../types/features/assessment/assessment';
 
 interface UpdateAssessmentModalProps {
     isOpen: boolean;
     onClose: () => void;
     assessment: Assessment | null;
-    onSubmit: (id: number, data: AssessmentUpdateRequest) => void;
+    onSubmit: (id: string, data: AssessmentUpdateRequest) => void;
     isPending: boolean;
 }
 

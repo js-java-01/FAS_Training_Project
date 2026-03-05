@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/useToast';
 import { assessmentQuestionApi } from '@/api';
 
 interface AssessmentQuestionsTabProps {
-    assessmentId?: number;
+    assessmentId?: string;
 }
 
 export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabProps) {

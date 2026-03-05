@@ -42,14 +42,14 @@ export default function AssessmentFormPage() {
     // Fetch assessment data (only in edit mode)
     const { data: assessment, isLoading } = useQuery({
         queryKey: ['assessment', id],
-        queryFn: () => assessmentApi.getById(Number(id)),
+        queryFn: () => assessmentApi.getById(id!),
         enabled: isEditMode,
     });
 
     // Fetch assessment questions count (only in edit mode)
     const { data: assessmentQuestions = [] } = useQuery({
         queryKey: ['assessmentQuestions', id],
-        queryFn: () => assessmentQuestionApi.getByAssessmentId(Number(id)),
+        queryFn: () => assessmentQuestionApi.getByAssessmentId(id!),
         enabled: isEditMode && !!id,
     });
 
@@ -89,7 +89,7 @@ export default function AssessmentFormPage() {
 
     // Update mutation
     const updateMutation = useMutation({
-        mutationFn: (data: AssessmentUpdateRequest) => assessmentApi.update(Number(id), data),
+        mutationFn: (data: AssessmentUpdateRequest) => assessmentApi.update(id!, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['assessments'] });
             queryClient.invalidateQueries({ queryKey: ['assessment', id] });
