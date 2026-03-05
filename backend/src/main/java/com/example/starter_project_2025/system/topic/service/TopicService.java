@@ -26,5 +26,5 @@ public interface TopicService
     void delete(UUID id);
 
 
-    Page<TopicDetailResponse> getMyTopics(UUID userId, UUID classId, String keyword, Pageable pageable);
+    Page<TopicDetailResponse> getMyTopics(UUID userId, UUID classId, Pageable pageable);
 }

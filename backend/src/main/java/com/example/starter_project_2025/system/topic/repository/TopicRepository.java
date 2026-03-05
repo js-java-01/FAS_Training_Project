@@ -43,5 +43,5 @@ public interface TopicRepository extends JpaRepository<Topic, UUID>, JpaSpecific
             "AND (:keyword IS NULL OR " +
             "LOWER(t.topicName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(t.topicCode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<Object[]> findMyTopicsWithProgram(UUID userId, UUID classId, String keyword, Pageable pageable);
+    Page<Object[]> findMyTopicsWithProgram(UUID userId, UUID classId, Pageable pageable);
 }
