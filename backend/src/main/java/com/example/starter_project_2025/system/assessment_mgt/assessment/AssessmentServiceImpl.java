@@ -59,6 +59,7 @@ public class AssessmentServiceImpl extends CrudServiceImpl<Assessment, UUID, Ass
 
     @Override
     public AssessmentDTO update(UUID id, AssessmentDTO request) {
+        request.setId(id);
         return super.updateEntity(id, request);
     }
 

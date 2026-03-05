@@ -10,10 +10,11 @@ import com.example.starter_project_2025.system.assessment_mgt.assessment_type.As
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 
 public interface AssessmentMapper extends BaseCrudMapper<Assessment, AssessmentDTO> {
     @Override

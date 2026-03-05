@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -35,5 +36,12 @@ public class AssessmentQuestionController
     @Override
     protected Class<AssessmentQuestion> getEntityClass() {
         return AssessmentQuestion.class;
+    }
+
+    @GetMapping("/assessment/{assessmentId}")
+    public List<AssessmentQuestionDTO> getByAssessment(
+            @PathVariable UUID assessmentId
+    ) {
+        return assessmentQuestionService.getByAssessmentId(assessmentId);
     }
 }

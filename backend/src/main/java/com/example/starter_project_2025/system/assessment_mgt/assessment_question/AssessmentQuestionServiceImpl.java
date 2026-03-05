@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -105,5 +106,18 @@ public class AssessmentQuestionServiceImpl extends CrudServiceImpl<AssessmentQue
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
         entity.setQuestion(question);
+    }
+
+    public List<AssessmentQuestionDTO>getByAssessmentId(UUID assessmentId) {
+
+        if (!assessmentRepository.existsById(assessmentId)) {
+            throw new ResourceNotFoundException("Assessment not found");
+        }
+
+        return assessmentQuestionRepository
+                .findByAssessmentId(assessmentId)
+                .stream()
+                .map(assessmentQuestionMapper::toResponse)
+                .toList();
     }
 }
