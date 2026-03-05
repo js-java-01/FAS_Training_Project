@@ -98,6 +98,7 @@ export function AssessmentSchemeTab({
               <span className="text-xs text-muted-foreground">{availableAssessmentTypes.length} items</span>
             </div>
 
+
             <div className="space-y-2 max-h-90 overflow-auto pr-1">
               {availableAssessmentTypes.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No more assessment type to add.</p>
