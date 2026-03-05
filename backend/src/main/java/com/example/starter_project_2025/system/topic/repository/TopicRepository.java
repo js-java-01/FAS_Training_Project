@@ -39,9 +39,6 @@ public interface TopicRepository extends JpaRepository<Topic, UUID>, JpaSpecific
             "JOIN tp.trainingClasses tc " +
             "JOIN tc.enrollments e " +
             "WHERE e.user.id = :userId " +
-            "AND (:classId IS NULL OR tc.id = :classId) " +
-            "AND (:keyword IS NULL OR " +
-            "LOWER(t.topicName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(t.topicCode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<Object[]> findMyTopicsWithProgram(UUID userId, UUID classId, String keyword, Pageable pageable);
+            "AND (:classId IS NULL OR tc.id = :classId)")
+    Page<Object[]> findMyTopicsWithProgram(UUID userId, UUID classId, Pageable pageable);
 }

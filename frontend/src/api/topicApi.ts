@@ -100,11 +100,15 @@ export const topicApi = {
   },
 
   getMyTopics: async (params: {
+    classId: string;
     page?: number;
     size?: number;
-    keyword?: string;
   } = {}): Promise<TopicDetailPageResponse> => {
-    const { page = 0, size = 10, keyword } = params;
+    const { classId, page = 0, size = 10 } = params;
+
+    if (!classId) {
+      throw new Error("classId is required for getMyTopics");
+    }
 
     const response = await axiosInstance.get<{
       content: TopicDetailResponse[];
@@ -112,11 +116,11 @@ export const topicApi = {
       size: number;
       totalPages: number;
       totalElements: number;
-    }>("/topics/my-topics", {
+    }>(`/topics/my-topics/${classId}`, {
       params: {
         page,
         size,
-        ...(keyword?.trim() ? { keyword: keyword.trim() } : {}),
+        classId,
       },
     });
 

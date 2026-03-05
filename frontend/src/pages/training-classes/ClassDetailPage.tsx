@@ -328,10 +328,7 @@ export default function ClassDetailPage() {
                         </TabsContent>
 
                         <TabsContent value="topic-list" className="pt-6 overflow-y-auto flex-1">
-                            <ClassTopicsTable
-                                classId={trainingClass.id}
-                                trainingProgramId={trainingClass.trainingProgramId}
-                            />
+                            <ClassTopicsTable classId={trainingClass.id} />
                         </TabsContent>
 
                         <TabsContent value="calendar" className="pt-6 overflow-y-auto flex-1">

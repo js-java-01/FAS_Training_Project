@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useDebounce } from "@uidotdev/usehooks";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
@@ -12,7 +11,6 @@ import { topicApi, type TopicDetailResponse } from "@/api/topicApi";
 
 interface Props {
   classId: string;
-  trainingProgramId?: string;
 }
 
 const EMPTY_DATA: TopicDetailResponse[] = [];
@@ -20,41 +18,25 @@ const EMPTY_DATA: TopicDetailResponse[] = [];
 const columnHelper = createColumnHelper<TopicDetailResponse>();
 const base = createBaseColumns<TopicDetailResponse>();
 
-export default function ClassTopicsTable({ classId, trainingProgramId }: Props) {
+export default function ClassTopicsTable({ classId }: Props) {
   const navigate = useNavigate();
 
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [searchValue, setSearchValue] = useState("");
-  const debouncedSearch = useDebounce(searchValue, 300);
 
   const { data: tableData, isLoading, isFetching } = useQuery({
-    queryKey: ["class-topics", classId, pageIndex, pageSize, debouncedSearch],
+    queryKey: ["class-topics", classId, pageIndex, pageSize],
     queryFn: () =>
       topicApi.getMyTopics({
+        classId,
         page: pageIndex,
         size: pageSize,
-        keyword: debouncedSearch,
       }),
     enabled: !!classId,
     placeholderData: (prev) => prev,
   });
 
-  const safeRawData = useMemo(() => tableData?.items ?? EMPTY_DATA, [tableData]);
-
-  const safeData = useMemo(() => {
-    return safeRawData.filter((item) => {
-      const topicClassId = item.trainingClassReponse?.id;
-      if (topicClassId && topicClassId === classId) return true;
-
-      const topicProgramId = item.trainingProgram?.id ?? item.trainingClassReponse?.trainingProgramId;
-      if (topicProgramId && trainingProgramId) {
-        return topicProgramId === trainingProgramId;
-      }
-
-      return !topicClassId && !trainingProgramId;
-    });
-  }, [safeRawData, classId, trainingProgramId]);
+  const safeData = useMemo(() => tableData?.items ?? EMPTY_DATA, [tableData]);
 
   const columns = useMemo(() => {
     return [
@@ -107,14 +89,11 @@ export default function ClassTopicsTable({ classId, trainingProgramId }: Props) 
         isLoading={isLoading}
         isFetching={isFetching}
         manualPagination
-        manualSearch
         pageIndex={tableData?.pagination?.page ?? pageIndex}
         pageSize={tableData?.pagination?.pageSize ?? pageSize}
         totalPage={tableData?.pagination?.totalPages ?? 0}
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
-        isSearch
-        onSearchChange={setSearchValue}
       />
     </div>
   );
