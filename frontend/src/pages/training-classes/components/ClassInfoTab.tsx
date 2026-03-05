@@ -10,6 +10,7 @@ export interface ClassInfoFormData {
     startDate: string;
     endDate: string;
     semesterId: string;
+    trainingProgramId: string;
 }
 
 /* ── read-only / editable field ── */
@@ -268,6 +269,8 @@ interface ClassInfoTabProps {
     errors?: Record<string, string>;
     semesters?: PagedData<SemesterResponse> | SemesterResponse[];
     loadingSemesters?: boolean;
+    trainingPrograms?: PagedData<any> | any[];
+    loadingTrainingPrograms?: boolean;
     enrollmentKey?: string;
 }
 
@@ -279,6 +282,8 @@ export default function ClassInfoTab({
     errors = {},
     semesters ,
     loadingSemesters = false,
+    trainingPrograms,
+    loadingTrainingPrograms = false,
 
 }: ClassInfoTabProps) {
     const rawRequestStatus = String(trainingClass.status ?? "").toUpperCase();
@@ -307,6 +312,17 @@ export default function ClassInfoTab({
       id: semester.id,
       label: semester.name,
     }));
+
+    const trainingProgramList = Array.isArray(trainingPrograms)
+        ? trainingPrograms
+        : (trainingPrograms?.items ?? []);
+
+    const trainingProgramOptions = trainingProgramList.map((tp) => ({
+        id: tp.id,
+        label: tp.name,
+    }));
+
+    const canEditTrainingProgram = isEditing && requestStatusValue === "PENDING_APPROVAL";
 
     return (
         <div className="space-y-8 w-full">
@@ -349,6 +365,12 @@ export default function ClassInfoTab({
                         label="Training Program"
                         value={trainingClass.trainingProgramName}
                         required
+                        isEditing={canEditTrainingProgram}
+                        onChange={onFieldChange}
+                        name="trainingProgramId"
+                        options={trainingProgramOptions}
+                        selectedValue={formData?.trainingProgramId}
+                        loading={loadingTrainingPrograms}
                     />
                     <StatusSelector
                         label="Class Status"
