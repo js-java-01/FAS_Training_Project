@@ -20,6 +20,7 @@ type AssessmentSchemeTabProps = {
   updateSchemeWeight: (localId: string, value: string) => void;
   removeSchemeItem: (localId: string) => void;
   saveAssessmentScheme: () => void;
+  canEdit: boolean;
 };
 
 export function AssessmentSchemeTab({
@@ -37,7 +38,56 @@ export function AssessmentSchemeTab({
   updateSchemeWeight,
   removeSchemeItem,
   saveAssessmentScheme,
+  canEdit,
 }: AssessmentSchemeTabProps) {
+  if (!canEdit) {
+    return (
+      <div className="space-y-4">
+        <div className="border border-border rounded-lg p-4 bg-card text-card-foreground space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">Selected Assessment Scheme</h3>
+            <span
+              className={
+                totalWeight > 100
+                  ? "text-red-600 font-semibold text-sm"
+                  : totalWeight === 100
+                    ? "text-green-600 font-semibold text-sm"
+                    : "text-amber-600 font-semibold text-sm"
+              }
+            >
+              Total: {totalWeight}%
+            </span>
+          </div>
+
+          {schemeLoading ? (
+            <div className="text-sm text-muted-foreground">Loading assessment scheme...</div>
+          ) : schemeItems.length === 0 ? (
+            <div className="text-sm text-muted-foreground border border-dashed border-border rounded-md p-4 text-center">
+              No assessment scheme has been configured yet.
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-90 overflow-auto pr-1">
+              {schemeItems.map((item) => (
+                <div
+                  key={item.localId}
+                  className="rounded-md border border-border bg-muted/30 px-3 py-2.5 grid grid-cols-1 md:grid-cols-[1fr_140px] gap-3 items-center"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{item.assessmentTypeName}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {item.assessmentTypeDescription || "No description"}
+                    </p>
+                  </div>
+                  <div className="text-sm font-medium text-right md:text-left">{item.weight}%</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="border border-border rounded-lg p-4 bg-card text-card-foreground space-y-4">
@@ -55,7 +105,7 @@ export function AssessmentSchemeTab({
                 availableAssessmentTypes.map((type) => (
                   <div
                     key={type.id}
-                    draggable={canAddMoreAssessmentType}
+                    draggable={canEdit && canAddMoreAssessmentType}
                     onDragStart={(event) => onTypeDragStart(event, type.id)}
                     className="rounded-md border border-border bg-card px-3 py-2.5 flex items-start justify-between gap-3"
                   >
@@ -63,7 +113,7 @@ export function AssessmentSchemeTab({
                       <p className="text-sm font-medium truncate">{type.name}</p>
                       <p className="text-xs text-muted-foreground line-clamp-2">{type.description || "No description"}</p>
                     </div>
-                    {canAddMoreAssessmentType && (
+                    {canEdit && canAddMoreAssessmentType && (
                       <button
                         type="button"
                         onClick={() => addAssessmentTypeToScheme(type.id)}
@@ -79,8 +129,12 @@ export function AssessmentSchemeTab({
           </div>
 
           <div
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={onSchemeDrop}
+            onDragOver={(event) => {
+              if (canEdit) event.preventDefault();
+            }}
+            onDrop={(event) => {
+              if (canEdit) onSchemeDrop(event);
+            }}
             className="border border-border rounded-lg p-3 bg-card space-y-3"
           >
             <div className="flex items-center justify-between">
@@ -101,7 +155,9 @@ export function AssessmentSchemeTab({
             <div className="space-y-2 max-h-90 overflow-auto pr-1">
               {schemeItems.length === 0 ? (
                 <div className="text-sm text-muted-foreground border border-dashed border-border rounded-md p-4 text-center">
-                  Drop assessment type here or click Add from the left panel.
+                  {canEdit
+                    ? "Drop assessment type here or click Add from the left panel."
+                    : "Assessment scheme is read-only for your role."}
                 </div>
               ) : (
                 schemeItems.map((item) => (
@@ -118,14 +174,16 @@ export function AssessmentSchemeTab({
                         max={100}
                         className="w-full border border-border bg-background rounded-md px-2 py-1 text-sm"
                         value={item.weight}
+                        disabled={!canEdit}
                         onChange={(event) => updateSchemeWeight(item.localId, event.target.value)}
                       />
                     </Field>
 
                     <button
                       type="button"
+                      disabled={!canEdit}
                       onClick={() => removeSchemeItem(item.localId)}
-                      className="self-end md:self-center inline-flex items-center justify-center text-red-500 hover:text-red-600"
+                      className="self-end md:self-center inline-flex items-center justify-center text-red-500 hover:text-red-600 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <FiTrash2 />
                     </button>
@@ -151,14 +209,18 @@ export function AssessmentSchemeTab({
             <div className="text-sm text-muted-foreground">Adjust weights to reach exactly 100% before saving.</div>
           )}
 
-          <button
-            type="button"
-            onClick={saveAssessmentScheme}
-            disabled={schemeSaving || schemeLoading || !isSchemeWeightValid}
-            className="inline-flex items-center gap-2 text-sm bg-primary text-primary-foreground rounded-md px-4 py-2 hover:bg-primary/90 disabled:opacity-60"
-          >
-            <FiSave /> {schemeSaving ? "Saving..." : "Save Assessment Scheme"}
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={saveAssessmentScheme}
+              disabled={schemeSaving || schemeLoading || !isSchemeWeightValid}
+              className="inline-flex items-center gap-2 text-sm bg-primary text-primary-foreground rounded-md px-4 py-2 hover:bg-primary/90 disabled:opacity-60"
+            >
+              <FiSave /> {schemeSaving ? "Saving..." : "Save Assessment Scheme"}
+            </button>
+          ) : (
+            <div className="text-sm text-muted-foreground">Read-only mode</div>
+          )}
         </div>
       </div>
     </div>
