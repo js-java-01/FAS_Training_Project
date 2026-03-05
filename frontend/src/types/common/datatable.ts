@@ -139,6 +139,31 @@ export interface FieldSchema {
    * bold: true
    */
   bold?: boolean;
+
+  /**
+   * Đánh dấu field này là nội dung mở rộng (expandable).
+   * Khi `true`, ProTable sẽ tự động hiển thị nút expand ở đầu mỗi hàng.
+   * Cột này sẽ bị ẩn khỏi bảng chính và chỉ hiển thị trong hàng mở rộng.
+   * Mặc định: `false`.
+   *
+   * @example
+   * { name: "options", label: "Options", type: "text", expandable: true }
+   */
+  expandable?: boolean;
+
+  /**
+   * Custom render function for the expanded row content.
+   * Called with `(value, row)` where `value` is the field’s value and `row` is the full row object.
+   * When provided alongside `expandable: true`, this replaces the default CellRenderer fallback.
+   *
+   * @example
+   * renderExpanded: (options, row) => (
+   *   <div className="p-4 space-y-2">
+   *     {options.map((opt, i) => <div key={opt.id}>{opt.content}</div>)}
+   *   </div>
+   * )
+   */
+  renderExpanded?: (value: any, row: any) => React.ReactNode;
 }
 
 export interface EntitySchema {

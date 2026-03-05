@@ -70,6 +70,34 @@ const questionSchema: EntitySchema = {
             label: "Options",
             type: "text",
             editable: false,
+            visible: false,
+            expandable: true,
+            renderExpanded: (options: QuestionOption[]) =>
+                Array.isArray(options) && options.length > 0 ? (
+                    <div className="p-4 space-y-2">
+                        {[...options]
+                            .sort((a, b) => a.orderIndex - b.orderIndex)
+                            .map((opt, i) => (
+                                <div
+                                    key={opt.id}
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${opt.correct
+                                            ? "bg-green-50 border border-green-200 text-green-800"
+                                            : "bg-muted"
+                                        }`}
+                                >
+                                    <span className="font-medium min-w-[1.25rem]">
+                                        {String.fromCharCode(65 + i)}.
+                                    </span>
+                                    <span className="flex-1">{opt.content}</span>
+                                    {opt.correct && (
+                                        <span className="text-green-600 font-semibold text-xs">✓</span>
+                                    )}
+                                </div>
+                            ))}
+                    </div>
+                ) : (
+                    <p className="p-4 text-sm text-muted-foreground italic">No options available.</p>
+                ),
         },
         {
             name: "isActive",
@@ -121,36 +149,6 @@ const ProTableQuestionManagementPage = () => {
                     </div>
                 }
                 onEdit={(row) => navigate(`/questions/${row.id}/edit`)}
-                expandable={{
-                    enabled: true,
-                    renderExpandedRow: (row) => (
-                        <div className="p-4 space-y-2">
-                            {Array.isArray(row.options) && row.options.length > 0 ? (
-                                [...row.options]
-                                    .sort((a: QuestionOption, b: QuestionOption) => a.orderIndex - b.orderIndex)
-                                    .map((opt: QuestionOption, i: number) => (
-                                        <div
-                                            key={opt.id}
-                                            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${opt.correct
-                                                    ? "bg-green-50 border border-green-200 text-green-800"
-                                                    : "bg-muted"
-                                                }`}
-                                        >
-                                            <span className="font-medium min-w-[1.25rem]">
-                                                {String.fromCharCode(65 + i)}.
-                                            </span>
-                                            <span className="flex-1">{opt.content}</span>
-                                            {opt.correct && (
-                                                <span className="text-green-600 font-semibold text-xs">✓</span>
-                                            )}
-                                        </div>
-                                    ))
-                            ) : (
-                                <p className="text-sm text-muted-foreground italic">No options available.</p>
-                            )}
-                        </div>
-                    ),
-                }}
             />
         </MainLayout>
     );

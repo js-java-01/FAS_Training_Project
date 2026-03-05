@@ -88,11 +88,14 @@ interface ProTableProps<TData = any> {
   /** Hide default actions completely (for display-only tables) */
   hideActions?: boolean;
 
-  /** Optional: Expandable row configuration */
+  /**
+   * Optional: Expandable row configuration.
+   * Expansion is auto-enabled when any field in the schema has `expandable: true`.
+   * Use `renderExpandedRow` to customise the expanded content; if omitted,
+   * the expandable field's value is rendered automatically via CellRenderer.
+   */
   expandable?: {
-    /** Whether expandable rows are enabled */
-    enabled: boolean;
-    /** Render the expanded content row below a given row */
+    /** Custom renderer for the expanded content below a row */
     renderExpandedRow?: (row: TData) => React.ReactNode;
   };
 }
@@ -112,6 +115,9 @@ export function ProTable<TData = any>({
   expandable,
 }: ProTableProps<TData>) {
   const { schema } = table;
+
+  // Auto-detect expandable from schema — true when any field is marked expandable: true
+  const isExpandable: boolean = schema.fields.some((f: any) => f.expandable === true);
 
   const [isAutoSize, setIsAutoSize] = useState(autoPageSize);
 
@@ -236,7 +242,7 @@ export function ProTable<TData = any>({
           <>
             <Table className="table-fixed">
               <colgroup>
-                {expandable?.enabled && <col style={{ width: 40 }} />}
+                {isExpandable && <col style={{ width: 40 }} />}
                 <col style={{ width: 20 }} />
                 <col style={{ width: 50 }} />
                 {table.visibleFields.map((f: any) => (
@@ -246,7 +252,7 @@ export function ProTable<TData = any>({
               </colgroup>
               <TableHeader className="bg-background z-10 sticky top-0 shadow-xs">
                 <TableRow>
-                  {expandable?.enabled && <TableHead style={{ width: 40 }} />}
+                  {isExpandable && <TableHead style={{ width: 40 }} />}
                   <TableHead style={{ width: 20 }}>
                     <SelectAllCheckbox table={table} idField={schema.idField} />
                   </TableHead>
@@ -273,9 +279,9 @@ export function ProTable<TData = any>({
                 <TableBody className={table.isFetching ? "opacity-50 transition-opacity" : "transition-opacity"}>
                   {table.data.map((row: any, index: number) => {
                     const id = row[schema.idField];
-                    const isExpanded = expandable?.enabled && expandedRows.has(id);
+                    const isExpanded = isExpandable && expandedRows.has(id);
                     const expandColSpan =
-                      (expandable?.enabled ? 1 : 0) + 1 + 1 +
+                      (isExpandable ? 1 : 0) + 1 + 1 +
                       table.visibleFields.length +
                       (showActionsColumn ? 1 : 0);
 
@@ -295,7 +301,7 @@ export function ProTable<TData = any>({
                             if (onRowClick) onRowClick(row);
                           }}
                         >
-                          {expandable?.enabled && (
+                          {isExpandable && (
                             <TableCell className="p-0 text-center">
                               <button
                                 className="flex items-center justify-center w-full h-full p-2 text-muted-foreground hover:text-foreground transition-colors"
@@ -338,10 +344,31 @@ export function ProTable<TData = any>({
                           )}
                         </TableRow>
 
-                        {isExpanded && expandable?.renderExpandedRow && (
+                        {isExpanded && (
                           <TableRow key={`${id}-expanded`} className="bg-background hover:bg-background">
                             <TableCell colSpan={expandColSpan} className="p-0 border-b">
-                              {expandable.renderExpandedRow(row)}
+                              {expandable?.renderExpandedRow
+                                ? expandable.renderExpandedRow(row)
+                                : schema.fields
+                                  .filter((f: any) => f.expandable)
+                                  .map((f: any) =>
+                                    f.renderExpanded
+                                      ? f.renderExpanded(row[f.name], row)
+                                      : (
+                                        <div key={f.name} className="p-3">
+                                          <CellRenderer
+                                            field={f}
+                                            value={row[f.name]}
+                                            relationOptions={table.relationOptions}
+                                            onBooleanToggle={(fieldName, newValue) =>
+                                              table.patchField(id, fieldName, newValue)
+                                            }
+                                            dateFormat={f.type === "date" ? (dateFormats[f.name] ?? "datetime") : undefined}
+                                          />
+                                        </div>
+                                      )
+                                  )
+                              }
                             </TableCell>
                           </TableRow>
                         )}
