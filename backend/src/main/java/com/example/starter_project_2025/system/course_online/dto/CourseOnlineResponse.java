@@ -3,7 +3,6 @@ package com.example.starter_project_2025.system.course_online.dto;
 import lombok.Builder;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -18,9 +17,6 @@ public class CourseOnlineResponse {
 
     private String courseName;
     private String courseCode;
-
-    private BigDecimal price;
-    private Double discount;
 
     private CourseLevelOnline level;
     private Integer estimatedTime;

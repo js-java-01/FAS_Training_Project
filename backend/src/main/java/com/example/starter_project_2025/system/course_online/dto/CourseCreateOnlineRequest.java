@@ -3,7 +3,6 @@ package com.example.starter_project_2025.system.course_online.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 import com.example.starter_project_2025.system.course_online.enums.CourseLevelOnline;
@@ -16,10 +15,6 @@ public class CourseCreateOnlineRequest {
 
     @NotBlank
     private String courseCode;
-
-    private BigDecimal price;
-
-    private Double discount;
 
     private CourseLevelOnline level;
 

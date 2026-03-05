@@ -27,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -66,10 +65,6 @@ public class CourseOnlineServiceImpl implements CourseOnlineService {
         CourseOnline course = courseRepository.findById(id).orElseThrow();
         if (req.getCourseName() != null)
             course.setCourseName(req.getCourseName());
-        if (req.getPrice() != null)
-            course.setPrice(req.getPrice());
-        if (req.getDiscount() != null)
-            course.setDiscount(req.getDiscount());
         if (req.getLevel() != null)
             course.setLevel(req.getLevel());
         if (req.getEstimatedTime() != null)
@@ -81,7 +76,7 @@ public class CourseOnlineServiceImpl implements CourseOnlineService {
         if (req.getStatus() != null)
             course.setStatus(req.getStatus());
         if (req.getTrainerId() != null) {
-            // course.setTrainer(userRepository.findById(req.getTrainerId()).orElseThrow());
+            course.setTrainerId(req.getTrainerId());
         }
         if (req.getTopicId() != null) {
             course.setTopicId(req.getTopicId());
@@ -144,7 +139,7 @@ public class CourseOnlineServiceImpl implements CourseOnlineService {
     public ByteArrayInputStream exportCourses() throws IOException {
         // Columns match the import template (no ID column)
         String[] columns = {"CourseOnline Name", "CourseOnline Code", "Level", "Status",
-                "Estimated Time (min)", "Price", "Discount (%)", "Trainer Email", "Description", "Note"};
+                "Estimated Time (min)", "Trainer Email", "Description", "Note"};
 
         List<CourseOnline> courses = courseRepository.findAll();
 
@@ -174,12 +169,10 @@ public class CourseOnlineServiceImpl implements CourseOnlineService {
                 row.createCell(2).setCellValue(c.getLevel() != null ? c.getLevel().name() : "");
                 row.createCell(3).setCellValue(c.getStatus() != null ? c.getStatus().name() : "");
                 row.createCell(4).setCellValue(c.getEstimatedTime() != null ? c.getEstimatedTime() : 0);
-                row.createCell(5).setCellValue(c.getPrice() != null ? c.getPrice().doubleValue() : 0);
-                row.createCell(6).setCellValue(c.getDiscount() != null ? c.getDiscount() : 0);
-                // row.createCell(7).setCellValue(c.getTrainer() != null ?
-                // c.getTrainer().getEmail() : "");
-                row.createCell(8).setCellValue(c.getDescription() != null ? c.getDescription() : "");
-                row.createCell(9).setCellValue(c.getNote() != null ? c.getNote() : "");
+                row.createCell(5).setCellValue(c.getTrainerId() != null
+                        ? userRepository.findById(c.getTrainerId()).map(u -> u.getEmail()).orElse("") : "");
+                row.createCell(6).setCellValue(c.getDescription() != null ? c.getDescription() : "");
+                row.createCell(7).setCellValue(c.getNote() != null ? c.getNote() : "");
             }
             for (int i = 0; i < columns.length; i++)
                 sheet.autoSizeColumn(i);
@@ -193,7 +186,7 @@ public class CourseOnlineServiceImpl implements CourseOnlineService {
     @Override
     public ByteArrayInputStream downloadTemplate() throws IOException {
         String[] columns = {"CourseOnline Name", "CourseOnline Code", "Level", "Status",
-                "Estimated Time (min)", "Price", "Discount (%)", "Trainer Email", "Description", "Note"};
+                "Estimated Time (min)", "Trainer Email", "Description", "Note"};
 
         try (Workbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = wb.createSheet("Courses Template");
@@ -217,11 +210,9 @@ public class CourseOnlineServiceImpl implements CourseOnlineService {
             sample.createCell(2).setCellValue("BEGINNER"); // BEGINNER|INTERMEDIATE|ADVANCED
             sample.createCell(3).setCellValue("DRAFT"); // DRAFT|UNDER_REVIEW|ACTIVE
             sample.createCell(4).setCellValue(120);
-            sample.createCell(5).setCellValue(5000000);
-            sample.createCell(6).setCellValue(10);
-            sample.createCell(7).setCellValue("trainer@example.com");
-            sample.createCell(8).setCellValue("CourseOnline description");
-            sample.createCell(9).setCellValue("Note");
+            sample.createCell(5).setCellValue("trainer@example.com");
+            sample.createCell(6).setCellValue("CourseOnline description");
+            sample.createCell(7).setCellValue("Note");
 
             for (int i = 0; i < columns.length; i++)
                 sheet.autoSizeColumn(i);
@@ -296,33 +287,17 @@ public class CourseOnlineServiceImpl implements CourseOnlineService {
                     }
                 }
 
-                String priceStr = getCellValue(row.getCell(5));
-                if (priceStr != null && !priceStr.isBlank()) {
-                    try {
-                        course.setPrice(new BigDecimal(priceStr.trim()));
-                    } catch (NumberFormatException ignored) {
-                    }
-                }
-
-                String discountStr = getCellValue(row.getCell(6));
-                if (discountStr != null && !discountStr.isBlank()) {
-                    try {
-                        course.setDiscount(Double.parseDouble(discountStr.trim()));
-                    } catch (NumberFormatException ignored) {
-                    }
-                }
-
-                String trainerEmail = getCellValue(row.getCell(7));
+                String trainerEmail = getCellValue(row.getCell(5));
                 if (trainerEmail != null && !trainerEmail.isBlank()) {
-                    // userRepository.findByEmail(trainerEmail.trim())
-                    // .ifPresent(course::setTrainer);
+                    userRepository.findByEmail(trainerEmail.trim())
+                            .ifPresent(u -> course.setTrainerId(u.getId()));
                 }
 
-                String description = getCellValue(row.getCell(8));
+                String description = getCellValue(row.getCell(6));
                 if (description != null && !description.isBlank())
                     course.setDescription(description);
 
-                String note = getCellValue(row.getCell(9));
+                String note = getCellValue(row.getCell(7));
                 if (note != null && !note.isBlank())
                     course.setNote(note);
 

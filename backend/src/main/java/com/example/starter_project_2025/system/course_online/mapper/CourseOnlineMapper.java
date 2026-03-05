@@ -6,6 +6,8 @@ import com.example.starter_project_2025.system.course_online.entity.CourseOnline
 import com.example.starter_project_2025.system.course_online.enums.CourseStatusOnline;
 import com.example.starter_project_2025.system.topic.entity.Topic;
 import com.example.starter_project_2025.system.topic.repository.TopicRepository;
+import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,14 +16,14 @@ import org.springframework.stereotype.Component;
 public class CourseOnlineMapper {
 
         private final TopicRepository topicRepo;
+        private final UserRepository userRepository;
 
         // CREATE → ENTITY
         public CourseOnline toEntity(CourseCreateOnlineRequest req) {
                 return CourseOnline.builder()
                                 .courseName(req.getCourseName())
                                 .courseCode(req.getCourseCode())
-                                .price(req.getPrice())
-                                .discount(req.getDiscount())
+                                .trainerId(req.getTrainerId())
                                 .level(req.getLevel())
                                 .estimatedTime(req.getEstimatedTime())
                                 // .thumbnailUrl(req.getThumbnailUrl())
@@ -44,9 +46,6 @@ public class CourseOnlineMapper {
                                 .courseName(c.getCourseName())
                                 .courseCode(c.getCourseCode())
 
-                                .price(c.getPrice())
-                                .discount(c.getDiscount())
-
                                 // DETAILS
                                 .level(c.getLevel())
                                 .estimatedTime(c.getEstimatedTime())
@@ -65,6 +64,12 @@ public class CourseOnlineMapper {
                                 .allowFinalRetake(c.getAllowFinalRetake())
 
                                 // TRAINER
+                                .trainerId(c.getTrainerId())
+                                .trainerName(c.getTrainerId() != null
+                                                ? userRepository.findById(c.getTrainerId())
+                                                                .map(User::getEmail)
+                                                                .orElse(null)
+                                                : null)
 
                                 // TOPIC
                                 .topicId(c.getTopicId())

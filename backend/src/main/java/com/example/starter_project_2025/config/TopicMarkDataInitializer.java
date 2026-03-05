@@ -269,8 +269,6 @@ public class TopicMarkDataInitializer implements CommandLineRunner {
                 .orElseGet(() -> courseOnlineRepository.save(CourseOnline.builder()
                         .courseName("Demo Course for Topic Marks")
                         .courseCode("DEMO-COURSE-TM")
-                        .price(BigDecimal.valueOf(5_000_000))
-                        .discount(0.0)
                         .level(CourseLevelOnline.BEGINNER)
                         .estimatedTime(30 * 24 * 60)
                         .thumbnailUrl("https://example.com/demo-tm.jpg")

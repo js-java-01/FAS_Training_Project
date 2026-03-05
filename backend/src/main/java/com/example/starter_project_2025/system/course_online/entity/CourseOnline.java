@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import java.util.Set;
@@ -41,9 +40,7 @@ public class CourseOnline {
     private String courseCode;
 
     private UUID topicId;
-
-    private BigDecimal price;
-    private Double discount;
+    private UUID trainerId;
 
     // ===== DETAILS =====
     @Enumerated(EnumType.STRING)

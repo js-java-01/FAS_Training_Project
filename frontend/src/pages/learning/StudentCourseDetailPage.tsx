@@ -158,7 +158,6 @@ function ConfirmEnrollModal({
                     `${Math.round(course.estimatedTime / 60)} hours`,
                   ]
                   : null,
-                ["Price", course.price ? "Paid" : "Free"],
               ] as ([string, string] | null)[]
             )
               .filter((x): x is [string, string] => x !== null)

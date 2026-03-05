@@ -2,7 +2,6 @@ package com.example.starter_project_2025.system.course_online.dto;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 import com.example.starter_project_2025.system.course_online.enums.CourseLevelOnline;
@@ -13,8 +12,6 @@ public class CourseUpdateOnlineRequest {
 
     private String courseName;
     private String courseCode;
-    private BigDecimal price;
-    private Double discount;
     private CourseLevelOnline level;
     private CourseStatusOnline status;
     private Integer estimatedTime;

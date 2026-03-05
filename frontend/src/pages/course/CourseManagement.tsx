@@ -10,7 +10,6 @@ import {
   BookOpen,
   Clock,
   User,
-  Tag,
   Loader2,
   GraduationCap,
   Play,
@@ -37,15 +36,6 @@ function LevelBadge({ level }: { level?: string }) {
       {level}
     </span>
   );
-}
-
-function fmtPrice(price?: number, discount?: number) {
-  if (!price) return "Free";
-  const final = discount ? price * (1 - discount / 100) : price;
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(final);
 }
 
 function CourseCard({
@@ -110,12 +100,6 @@ function CourseCard({
             <span className="flex items-center gap-1">
               <Clock size={11} />
               {hours}h
-            </span>
-          )}
-          {course.price !== undefined && (
-            <span className="flex items-center gap-1 font-semibold text-blue-600 ml-auto">
-              <Tag size={11} />
-              {fmtPrice(course.price, course.discount)}
             </span>
           )}
         </div>

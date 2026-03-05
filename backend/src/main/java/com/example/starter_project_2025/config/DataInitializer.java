@@ -1027,8 +1027,8 @@ public class DataInitializer implements CommandLineRunner {
                 CourseOnline javaCourse = CourseOnline.builder()
                                 .courseName("Java Backend Master")
                                 .courseCode("JBM-01")
-                                .price(BigDecimal.valueOf(15_000_000))
-                                .discount(10.0)
+//                                .price(BigDecimal.valueOf(15_000_000))
+//                                .discount(10.0)
                                 .level(CourseLevelOnline.ADVANCED)
                                 .estimatedTime(90 * 24 * 60) // 3 months ≈ minutes
                                 .thumbnailUrl("https://example.com/java.jpg")
@@ -1052,8 +1052,6 @@ public class DataInitializer implements CommandLineRunner {
                 CourseOnline reactCourse = CourseOnline.builder()
                                 .courseName("React Frontend Pro")
                                 .courseCode("RFP-01")
-                                .price(BigDecimal.valueOf(12_000_000))
-                                .discount(5.0)
                                 .level(CourseLevelOnline.INTERMEDIATE)
                                 .estimatedTime(60 * 24 * 60) // 2 months
                                 .thumbnailUrl("https://example.com/react.jpg")

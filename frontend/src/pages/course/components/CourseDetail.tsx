@@ -15,8 +15,6 @@ import {
   FiBookOpen,
   FiHash,
   FiTag,
-  FiDollarSign,
-  FiPercent,
   FiBarChart2,
   FiClock,
   FiImage,
@@ -32,8 +30,6 @@ import {
 type EditForm = {
   courseName: string;
   courseCode: string;
-  price?: number;
-  discount?: number;
   level?: string;
   estimatedTime?: number;
   status: string;
@@ -86,8 +82,6 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
     reset({
       courseName: course.courseName ?? "",
       courseCode: course.courseCode ?? "",
-      price: course.price ?? undefined,
-      discount: course.discount ?? undefined,
       level: course.level ?? "",
       estimatedTime: course.estimatedTime ?? undefined,
       status: course.status ?? "DRAFT",
@@ -112,9 +106,6 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
         courseCode: data.courseCode,
         status: data.status,
       };
-      if (data.price && !isNaN(data.price)) payload.price = Number(data.price);
-      if (data.discount !== undefined && !isNaN(Number(data.discount)))
-        payload.discount = Number(data.discount);
       if (data.estimatedTime && !isNaN(data.estimatedTime))
         payload.estimatedTime = Number(data.estimatedTime);
       if (data.level) payload.level = data.level;
@@ -248,23 +239,6 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
                   disabled
                   value={course.topic ?? "-"}
                   className={inputCls + " bg-gray-50 text-gray-400"}
-                />
-              </Field>
-              <Field icon={<FiDollarSign />} label="Price">
-                <input
-                  type="number"
-                  min={0}
-                  {...register("price", { valueAsNumber: true })}
-                  className={inputCls}
-                />
-              </Field>
-              <Field icon={<FiPercent />} label="Discount (%)">
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  {...register("discount", { valueAsNumber: true })}
-                  className={inputCls}
                 />
               </Field>
             </div>
@@ -491,26 +465,8 @@ function OverviewTab({ course }: any) {
         </div>
       </div>
 
-      {/* Pricing + Duration strip */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-            Price
-          </p>
-          <p className="text-lg font-bold text-gray-900">
-            {course.price != null
-              ? `${Number(course.price).toLocaleString()} VND`
-              : "Free"}
-          </p>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-            Discount
-          </p>
-          <p className="text-lg font-bold text-gray-900">
-            {course.discount != null ? `${course.discount}%` : "0%"}
-          </p>
-        </div>
+      {/* Duration strip */}
+      <div className="grid grid-cols-1 gap-4">
         <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
           <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
             Duration

@@ -10,7 +10,6 @@ import {
   FiX,
   FiBookOpen,
   FiHash,
-  FiDollarSign,
   FiClock,
   FiLayers,
   FiFileText,
@@ -18,14 +17,11 @@ import {
   FiUpload,
   FiImage,
   FiTag,
-  FiPercent,
 } from "react-icons/fi";
 
 type FormValues = {
   courseName: string;
   courseCode: string;
-  price?: number;
-  discount?: number;
   estimatedTime?: number;
   level?: string;
   status: string;
@@ -82,8 +78,6 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
       reset({
         courseName: course.courseName ?? "",
         courseCode: course.courseCode ?? "",
-        price: course.price ?? undefined,
-        discount: course.discount ?? undefined,
         estimatedTime: course.estimatedTime ?? undefined,
         level: course.level ?? "",
         status: course.status ?? "DRAFT",
@@ -125,9 +119,6 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
         status: data.status,
       };
 
-      if (data.price && !isNaN(data.price)) payload.price = data.price;
-      if (data.discount !== undefined && !isNaN(data.discount))
-        payload.discount = Number(data.discount);
       if (data.estimatedTime && !isNaN(data.estimatedTime))
         payload.estimatedTime = data.estimatedTime;
       if (data.level) payload.level = data.level;
@@ -204,24 +195,6 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
             error={errors.courseCode?.message}
             {...register("courseCode", { required: "Required" })}
           />
-
-          <div className="grid grid-cols-2 gap-5">
-            <Input
-              type="number"
-              icon={<FiDollarSign />}
-              label="Price"
-              {...register("price", { valueAsNumber: true })}
-            />
-
-            <Input
-              type="number"
-              icon={<FiPercent />}
-              label="Discount (%)"
-              min={0}
-              max={100}
-              {...register("discount", { valueAsNumber: true })}
-            />
-          </div>
 
           <Input
             type="number"

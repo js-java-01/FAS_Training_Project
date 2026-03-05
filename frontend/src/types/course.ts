@@ -5,8 +5,6 @@ export interface Course {
   id: string;
   courseName: string;
   courseCode: string;
-  price?: number;
-  discount?: number;
   level?: CourseLevel;
   estimatedTime?: number;
   thumbnailUrl?: string;
@@ -33,8 +31,6 @@ export interface Course {
 export interface CreateCourseRequest {
   courseName: string;
   courseCode: string;
-  price?: number;
-  discount?: number;
   level?: CourseLevel;
   estimatedTime?: number;
   note?: string;
