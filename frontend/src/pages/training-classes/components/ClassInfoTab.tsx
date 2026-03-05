@@ -205,7 +205,7 @@ const getStatusActiveStyle = (value: string) => {
         };
     }
 
-    if ( value === "ACTIVE" || value === "INACTIVE") {
+    if (value === "ACTIVE" || value === "INACTIVE") {
         return {
             container: "border-blue-400 bg-blue-50 text-blue-700",
             dot: "bg-blue-500",
@@ -287,15 +287,10 @@ export default function ClassInfoTab({
     formData,
     onFieldChange,
     errors = {},
-    semesters ,
+    semesters,
     loadingSemesters = false,
     trainingPrograms,
     loadingTrainingPrograms = false,
-    onEdit,
-    onCancel,
-    onSave,
-    canEditClass = false,
-    saving = false,
 }: ClassInfoTabProps) {
     const rawRequestStatus = String(trainingClass.status ?? "").toUpperCase();
     const requestStatusValue = rawRequestStatus === "PENDING_APPROVAL"
@@ -320,8 +315,8 @@ export default function ClassInfoTab({
         : (semesters?.items ?? []);
 
     const semesterOptions = semesterList.map((semester) => ({
-      id: semester.id,
-      label: semester.name,
+        id: semester.id,
+        label: semester.name,
     }));
 
     const trainingProgramList = Array.isArray(trainingPrograms)
