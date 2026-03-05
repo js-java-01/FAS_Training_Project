@@ -22,7 +22,7 @@ import {
 import { FacetedFilter } from "@/components/FacedFilter";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import { ROLES } from "@/types/role";
-import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import { useSortParam } from "@/hooks/useSortParam";
 
 /* ===================== MAIN ===================== */
@@ -206,7 +206,6 @@ export default function ModulesTable() {
         /* Search */
         isSearch
         manualSearch
-        searchPlaceholder="module name"
         onSearchChange={setSearchValue}
         /* Sorting */
         sorting={sorting}

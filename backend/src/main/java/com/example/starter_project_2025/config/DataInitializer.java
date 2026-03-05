@@ -11,6 +11,12 @@ import com.example.starter_project_2025.system.auth.entity.Role;
 import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
+import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
+import com.example.starter_project_2025.system.common.enums.LocationStatus;
+import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
+import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.common.enums.LocationStatus;
 import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
 import com.example.starter_project_2025.system.course_online.entity.CourseLessonOnline;
@@ -53,18 +59,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.annotation.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -78,87 +84,86 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
-
         @PersistenceContext
         private EntityManager entityManager;
-
-        private final RoleRepository roleRepository;
         private final PermissionRepository permissionRepository;
-        private final MenuRepository menuRepository;
-        private final MenuItemRepository menuItemRepository;
         private final ProvinceRepository provinceRepository;
         private final CommuneRepository communeRepository;
         private final ObjectMapper objectMapper;
-        private final ModuleGroupsRepository moduleGroupsRepository;
-        private final ModuleRepository moduleRepository;
         private final ProgrammingLanguageRepository programmingLanguageRepository;
         private final UserRepository userRepository;
         private final PasswordEncoder passwordEncoder;
         private final AssessmentTypeRepository assessmentTypeRepository;
-        private final CourseOnlineRepository courseOnlineRepository;
         private final AssessmentRepository assessmentRepository;
         private final QuestionCategoryRepository questionCategoryRepository;
         private final QuestionRepository questionRepository;
-        private final CourseLessonOnlineRepository courseLessonOnlineRepository;
         private final UserRoleRepository userRoleRepository;
+        private final RoleRepository roleRepository;
         private final SemesterRepository semesterRepository;
-        private final LocationRepository locationRepository;
-        // private final SubmissionRepository submissionRepository;
-        private final CourseAssessmentTypeWeightRepository courseAssessmentTypeWeightRepository;
-        // private final TrainingClassRepository trainingClassRepository;
+        private final TrainingClassRepository trainingClassRepository;
         private final CourseClassRepository courseClassRepository;
         private final EnrollmentRepository enrollmentRepository;
-        private final TopicRepository topicRepository;
-        private final SkillGroupRepository skillGroupRepository;
-        private final SkillRepository skillRepository;
+        private final LocationRepository locationRepository;
+        private final ModuleInitializer moduleInitializer;
+        private final UserRoleInitializer userRoleInitializer;
+        private final TrainingClassInitializer trainingClassInitializer;
+        private final TrainingProgramInitializer trainingProgramInitializer;
+        private final RoleInitializer roleInitializer;
+        private final UserInitializer userInitializer;
+        private final TopicInitializer topicInitializer;
+        private final AssessmentTypeInitializer assessmentTypeInitializer;
 
         @Override
-        @Transactional
         public void run(String... args) {
                 log.info("Initializing database with sample data...");
 
                 if (roleRepository.count() == 0) {
                         initializePermissions();
-                        initializeRoles();
-                        initializeUsers();
-                        // initializeMenus();
+                        roleInitializer.initializeRoles();
+                        userInitializer.initializeUsers();
                         // initializeLocationData();
-                        // initializeLocations();
-                        initializeModuleGroups();
-                        initializeAssessmentType();
+
+                        initializeLocations();
+                        moduleInitializer.initializeModuleGroups();
+                        assessmentTypeInitializer.init();
                         initializeAssessments();
                         initializeQuestionCategories();
                         initializeQuestions();
-                        initializeCourses();
+                        // initializeCourses();
                         // initializeCohorts(); // disabled - cohort feature temporarily not in use
-                        initializeUserRoles();
-                        initializeSemester();
+                        userRoleInitializer.initializeUserRoles();
+                        // initializeSemester();
                         ensureProgrammingLanguagePermissions();
                         initializeProgrammingLanguages();
-                        initializeTopics();
-                        initializeSkills();
-                        log.info("Full database initialization completed!");
+                        // initializeCourses();
+                        trainingProgramInitializer.initializeTrainingProgram();
+                        trainingClassInitializer.initializeTrainingClasses();
+                        // initializeCourseClasses();
+                        log.info("Database initialization completed successfully!");
                 } else {
-                        log.info("Database exists, ensuring new features are added...");
+                        log.info("Database already initialized, checking for missing permissions...");
+                        // Check if programming language permissions exist, if not, add them
 
                 }
                 ensureOutlinePermissions();
-                ensurePermissionManagementPermissions();
-                ensureTopicsModule();
-                ensureSkillsModule();
                 if (userRoleRepository.count() == 0)
 
                 {
-                        initializeUserRoles();
-                        initializeLessons();
-                        initializeTopics();
-
-                        log.info("Database updates completed!");
+                        userRoleInitializer.initializeUserRoles();
+                        // initializeLessons();
                 }
+
+                initializeEnrollments();
+                topicInitializer.init();
         }
 
         private void initializePermissions() {
                 List<Permission> permissions = Arrays.asList(
+                                createPermission("DASHBOARD_READ", "AHIHI", "DASHBOARD",
+                                                "READ"),
+                                createPermission("SIDEBAR_READ", "View Sidebar", "SIDEBAR", "READ"),
+                                createPermission("SEMESTER_ADMIN_READ", "View semesters as admin", "SEMESTER",
+                                                "ADMIN_READ"),
                                 /* ================= MODULE GROUP ================= */
                                 createPermission("MODULE_GROUP_CREATE", "Create new module groups", "MODULE_GROUP",
                                                 "CREATE"),
@@ -184,15 +189,11 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("USER_UPDATE", "Update existing users", "USER", "UPDATE"),
                                 createPermission("USER_DELETE", "Delete users", "USER", "DELETE"),
                                 createPermission("USER_ACTIVATE", "Activate/deactivate users", "USER", "ACTIVATE"),
-                                createPermission("USER_IMPORT", "Import users", "USER", "IMPORT"),
-                                createPermission("USER_EXPORT", "Export users", "USER", "EXPORT"),
                                 createPermission("ROLE_CREATE", "Create new roles", "ROLE", "CREATE"),
                                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
                                 createPermission("ROLE_DELETE", "Delete roles", "ROLE", "DELETE"),
                                 createPermission("ROLE_ASSIGN", "Assign roles to users", "ROLE", "ASSIGN"),
-                                createPermission("ROLE_IMPORT", "Import roles", "ROLE", "IMPORT"),
-                                createPermission("ROLE_EXPORT", "Export roles", "ROLE", "EXPORT"),
                                 createPermission("LOCATION_CREATE", "Create new locations", "LOCATION", "CREATE"),
                                 createPermission("LOCATION_READ", "View locations", "LOCATION", "READ"),
                                 createPermission("LOCATION_UPDATE", "Update existing locations", "LOCATION", "UPDATE"),
@@ -280,10 +281,11 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("CLASS_CREATE", "Create new classes", "CLASS", "CREATE"),
                                 createPermission("CLASS_READ", "View classes", "CLASS", "READ"),
                                 createPermission("CLASS_UPDATE", "Update existing classes", "CLASS", "UPDATE"),
-                                createPermission("CLASS_USER_READ", "User can view classes", "CLASS_USER", "READ"),
+                                createPermission("SEMESTER_CREATE", "Create new semesters", "SEMESTER", "CREATE"),
+                                createPermission("SEMESTER_READ", "View semesters", "SEMESTER", "READ"),
+                                createPermission("SEMESTER_UPDATE", "Update semesters", "SEMESTER", "UPDATE"),
+                                createPermission("SEMESTER_DELETE", "Delete semesters", "SEMESTER", "DELETE"),
                                 createPermission("SWITCH_ROLE", "Switch to another role view", "ROLE", "SWITCH"),
-                                createPermission("DASHBOARD_READ", "View Dashboard", "DASHBOARD", "READ"),
-                                createPermission("SIDEBAR_READ", "View Sidebar", "SIDEBAR", "READ"),
 
                                 /* ================= PERMISSION ================= */
                                 createPermission("PERMISSION_CREATE", "Create new permissions", "PERMISSION", "CREATE"),
@@ -293,6 +295,14 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("PERMISSION_DELETE", "Delete permissions", "PERMISSION", "DELETE"),
                                 createPermission("PERMISSION_IMPORT", "Import permissions", "PERMISSION", "IMPORT"),
                                 createPermission("PERMISSION_EXPORT", "Export permissions", "PERMISSION", "EXPORT"),
+                                createPermission("TRAINING_PROGRAM_CREATE", "Create training programs",
+                                                "TRAINING_PROGRAM", "CREATE"),
+                                createPermission("TRAINING_PROGRAM_READ", "View training programs", "TRAINING_PROGRAM",
+                                                "READ"),
+                                createPermission("TRAINING_PROGRAM_UPDATE", "Update training programs",
+                                                "TRAINING_PROGRAM", "UPDATE"),
+                                createPermission("TRAINING_PROGRAM_DELETE", "Delete training programs",
+                                                "TRAINING_PROGRAM", "DELETE"),
                                 createPermission("TOPIC_CREATE", "Create new topics", "TOPIC", "CREATE"),
                                 createPermission("TOPIC_READ", "View topics", "TOPIC", "READ"),
                                 createPermission("TOPIC_UPDATE", "Update existing topics", "TOPIC", "UPDATE"),
@@ -312,57 +322,25 @@ public class DataInitializer implements CommandLineRunner {
                 return permission;
         }
 
-        private void initializeRoles() {
-                // ADMIN
-                Role adminRole = new Role();
-                adminRole.setName("ADMIN");
-                adminRole.setDescription("Administrator with full system access");
-                adminRole.setHierarchyLevel(2);
-                List<String> excludedPermissions = List.of(
-                                "MODULE_GROUP_CREATE",
-                                "MODULE_CREATE");
+        private void initializeTrainerRole() {
 
-                List<Permission> adminPermissions = permissionRepository.findAll()
-                                .stream()
-                                .filter(p -> !excludedPermissions.contains(p.getName()))
-                                .toList();
+                if (roleRepository.findByName("TRAINER").isPresent()) {
+                        return;
+                }
 
-                adminRole.setPermissions(new HashSet<>(adminPermissions));
-                roleRepository.save(adminRole);
+                List<Permission> allPermissions = permissionRepository.findAll();
 
-                // DEPARTMENT_MANAGER
-                Role departmentManagerRole = new Role();
-                departmentManagerRole.setName("DEPARTMENT_MANAGER");
-                departmentManagerRole.setDescription("Department Manager with class management permissions");
-                departmentManagerRole.setHierarchyLevel(3);
+                Set<Permission> trainerPermissions = allPermissions.stream()
+                                .filter(p -> ("READ".equals(p.getAction())
+                                                && Arrays.asList("SIDEBAR", "CLASS", "COURSE", "SEMESTER", "STUDENT",
+                                                                "MODULE", "DASHBOARD")
+                                                                .contains(p.getResource())
+                                                || "CREATE".equals(p.getAction()) && Arrays.asList("CLASS")
+                                                                .contains(p.getResource())))
+                                .collect(Collectors.toSet());
 
-                List<Permission> departmentPermissions = permissionRepository.findAll()
-                                .stream()
-                                .filter(p -> "CLASS".equals(p.getResource()))
-                                .toList();
-
-                departmentManagerRole.setPermissions(new HashSet<>(departmentPermissions));
-                roleRepository.save(departmentManagerRole);
-
-                // STUDENT
-                Role studentRole = new Role();
-                studentRole.setName("STUDENT");
-                studentRole.setDescription("Student with limited access to educational resources");
-                studentRole.setHierarchyLevel(5);
-                List<Permission> studentPermissions = new java.util.ArrayList<>(
-                                permissionRepository.findByAction("READ"));
-                permissionRepository.findByName("ENROLL_COURSE").ifPresent(studentPermissions::add);
-                studentRole.setPermissions(new HashSet<>(studentPermissions));
-                roleRepository.save(studentRole);
-
-                // TRAINER
-                Role trainerRole = new Role();
-                trainerRole.setName("TRAINER");
-                trainerRole.setDescription("Trainer with course/lesson/assessment management access");
-                trainerRole.setHierarchyLevel(4);
-                List<Permission> trainerPermissions = new java.util.ArrayList<>(
-                                permissionRepository.findByAction("READ"));
-                for (String pn : Arrays.asList(
+                List<String> extraPermissionNames = Arrays.asList(
+                                "CLASS_CREATE",
                                 "LESSON_CREATE", "LESSON_UPDATE", "LESSON_DELETE",
                                 "SESSION_CREATE", "SESSION_UPDATE", "SESSION_DELETE",
                                 "COURSE_OUTLINE_EDIT",
@@ -370,111 +348,34 @@ public class DataInitializer implements CommandLineRunner {
                                 "ASSESSMENT_ASSIGN", "ASSESSMENT_PUBLISH", "ASSESSMENT_SUBMIT",
                                 "QUESTION_CREATE", "QUESTION_UPDATE", "QUESTION_DELETE",
                                 "QUESTION_CATEGORY_CREATE", "QUESTION_CATEGORY_UPDATE", "QUESTION_CATEGORY_DELETE",
-                                "ENROLL_COURSE")) {
-                        permissionRepository.findByName(pn).ifPresent(trainerPermissions::add);
+                                "ENROLL_COURSE");
+
+                for (String name : extraPermissionNames) {
+                        permissionRepository.findByName(name)
+                                        .ifPresent(trainerPermissions::add);
                 }
-                trainerRole.setPermissions(new HashSet<>(trainerPermissions));
+
+                Role trainerRole = new Role();
+                trainerRole.setName("TRAINER");
+                trainerRole.setHierarchyLevel(4);
+                trainerRole.setDescription("Trainer with course/lesson/assessment management access");
+                trainerRole.setPermissions(trainerPermissions);
+
                 roleRepository.save(trainerRole);
 
-                // SUPER_ADMIN
-                Role superAdminRole = new Role();
-                superAdminRole.setName("SUPER_ADMIN");
-                superAdminRole.setDescription("Super Administrator with all permissions and role-switch capability");
-                superAdminRole.setHierarchyLevel(1);
-                superAdminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
-                roleRepository.save(superAdminRole);
-
-                log.info("Initialized 4 roles: ADMIN, DEPARTMENT_MANAGER, STUDENT, TRAINER, SUPER_ADMIN");
+                log.info("Initialized TRAINER role with {} permissions", trainerPermissions.size());
         }
 
-        private void initializeUsers() {
-                User admin = new User();
-                admin.setEmail("admin@example.com");
-                admin.setPasswordHash(passwordEncoder.encode("password123"));
-                admin.setFirstName("Admin");
-                admin.setLastName("User");
-                admin.setIsActive(true);
-                userRepository.save(admin);
-
-                User superAdmin = new User();
-                superAdmin.setEmail("superadmin@example.com");
-                superAdmin.setPasswordHash(passwordEncoder.encode("password123"));
-                superAdmin.setFirstName("Super");
-                superAdmin.setLastName("Admin");
-                superAdmin.setIsActive(true);
-                userRepository.save(superAdmin);
-
-                User trainer = new User();
-                trainer.setEmail("trainer@example.com");
-                trainer.setPasswordHash(passwordEncoder.encode("password123"));
-                trainer.setFirstName("Trainer");
-                trainer.setLastName("User");
-                trainer.setIsActive(true);
-                userRepository.save(trainer);
-
-                User student1 = new User();
-                student1.setEmail("student@example.com");
-                student1.setPasswordHash(passwordEncoder.encode("password123"));
-                student1.setFirstName("John");
-                student1.setLastName("Doe");
-                student1.setIsActive(true);
-                userRepository.save(student1);
-
-                User student2 = new User();
-                student2.setEmail("jane.smith@example.com");
-                student2.setPasswordHash(passwordEncoder.encode("password123"));
-                student2.setFirstName("Jane");
-                student2.setLastName("Smith");
-                student2.setIsActive(true);
-                userRepository.save(student2);
-
-                log.info("Initialized 5 users: admin, superadmin, trainer, student, jane.smith");
-        }
-
-        private void initializeUserRoles() {
-                Role adminRole = roleRepository.findByName("ADMIN")
-                                .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
-                Role superAdminRole = roleRepository.findByName("SUPER_ADMIN")
-                                .orElseThrow(() -> new RuntimeException("Role SUPER_ADMIN not found"));
-                Role trainerRole = roleRepository.findByName("TRAINER")
-                                .orElseThrow(() -> new RuntimeException("Role TRAINER not found"));
-                Role departmentManagerRole = roleRepository.findByName("DEPARTMENT_MANAGER")
-                                .orElseThrow(() -> new RuntimeException("Role DEPARTMENT_MANAGER not found"));
-                Role studentRole = roleRepository.findByName("STUDENT")
-                                .orElseThrow(() -> new RuntimeException("Role STUDENT not found"));
-
-                User adminUser = userRepository.findByEmail("admin@example.com")
-                                .orElseThrow(() -> new RuntimeException("Admin user not found"));
-                User superAdminUser = userRepository.findByEmail("superadmin@example.com")
-                                .orElseThrow(() -> new RuntimeException("Super admin user not found"));
-                User trainerUser = userRepository.findByEmail("trainer@example.com")
-                                .orElseThrow(() -> new RuntimeException("Trainer user not found"));
-                User student1 = userRepository.findByEmail("student@example.com")
-                                .orElseThrow(() -> new RuntimeException("Student 1 not found"));
-                User student2 = userRepository.findByEmail("jane.smith@example.com")
-                                .orElseThrow(() -> new RuntimeException("Student 2 not found"));
-
-                // Admin user: all roles, ADMIN is default
-                saveUserRole(adminUser, adminRole, true);
-                saveUserRole(adminUser, trainerRole, false);
-                saveUserRole(adminUser, departmentManagerRole, false);
-                saveUserRole(adminUser, studentRole, false);
-
-                // Super Admin user: all roles, SUPER_ADMIN is default
-                saveUserRole(superAdminUser, superAdminRole, true);
-                saveUserRole(superAdminUser, adminRole, false);
-                saveUserRole(superAdminUser, trainerRole, false);
-                saveUserRole(superAdminUser, departmentManagerRole, false);
-                saveUserRole(superAdminUser, studentRole, false);
-
-                // Trainer user: only TRAINER
-                saveUserRole(trainerUser, trainerRole, true);
-
-                // Student users
-                saveUserRole(student1, studentRole, true);
-                saveUserRole(student2, studentRole, true);
-
-                log.info("Successfully assigned roles to users in UserRole table.");
+        private void createUserIfNotFound(String email, String firstName, String lastName) {
+                if (!userRepository.existsByEmail(email)) {
+                        User user = new User();
+                        user.setEmail(email);
+                        user.setPasswordHash(passwordEncoder.encode("password123"));
+                        user.setFirstName(firstName);
+                        user.setLastName(lastName);
+                        user.setIsActive(true);
+                        userRepository.save(user);
+                }
         }
 
         private void saveUserRole(User user, Role role, boolean isDefault) {
@@ -483,97 +384,6 @@ public class DataInitializer implements CommandLineRunner {
                 ur.setRole(role);
                 ur.setDefault(isDefault);
                 userRoleRepository.save(ur);
-        }
-
-        // private void initializeMenus() {
-        // Menu mainMenu = new Menu();
-        // mainMenu.setName("Main Menu");
-        // mainMenu.setDescription("Primary navigation menu");
-        // mainMenu.setIsActive(true);
-        // mainMenu.setDisplayOrder(1);
-        // mainMenu = menuRepository.save(mainMenu);
-        //
-        // MenuItem dashboard = createMenuItem(mainMenu, null, "Dashboard",
-        // "/dashboard", "dashboard", 1, null);
-        // menuItemRepository.save(dashboard);
-        //
-        // Menu adminMenu = new Menu();
-        // adminMenu.setName("Administration");
-        // adminMenu.setDescription("Administrative functions menu");
-        // adminMenu.setIsActive(true);
-        // adminMenu.setDisplayOrder(2);
-        // adminMenu = menuRepository.save(adminMenu);
-        //
-        // MenuItem userManagement = createMenuItem(adminMenu, null, "User Management",
-        // "/users", "people", 1,
-        // "USER_READ");
-        // MenuItem roleManagement = createMenuItem(adminMenu, null, "Role Management",
-        // "/roles", "security", 2,
-        // "ROLE_READ");
-        // MenuItem locationManagement = createMenuItem(adminMenu, null, "Location
-        // Management", "/locations",
-        // "location", 3, "LOCATION_READ");
-        // MenuItem departmentManagement = createMenuItem(adminMenu, null, "Department
-        // Management", "/departments",
-        // "department", 4, "DEPARTMENT_READ");
-        // menuItemRepository.saveAll(Arrays.asList(userManagement, roleManagement,
-        // locationManagement,
-        // departmentManagement));
-        // MenuItem courseManagement = createMenuItem(adminMenu, null, "Course
-        // Management", "/courses", "security",
-        // 4,
-        // "COURSE_READ");
-        //
-        // menuItemRepository.saveAll(
-        // Arrays.asList(userManagement, roleManagement, locationManagement,
-        // courseManagement, topicManagement));
-        //
-        // log.info("Initialized 2 menus with menu items");
-        // }
-        //
-        // private MenuItem createMenuItem(Menu menu, MenuItem parent, String title,
-        // String url, String icon, int order,
-        // String permission) {
-        // MenuItem item = new MenuItem();
-        // item.setMenu(menu);
-        // item.setParent(parent);
-        // item.setTitle(title);
-        // item.setUrl(url);
-        // item.setIcon(icon);
-        // item.setDisplayOrder(order);
-        // item.setIsActive(true);
-        // item.setRequiredPermission(permission);
-        // return item;
-        // }
-
-        private void initializeLocationData() {
-                if (provinceRepository.count() > 0 || communeRepository.count() > 0) {
-                        log.info("Location data already initialized, skipping location data import.");
-                        return;
-                }
-
-                try (InputStream inputStream = new ClassPathResource("LocationData.json").getInputStream()) {
-                        LocationDataJson locationData = objectMapper.readValue(inputStream, LocationDataJson.class);
-
-                        List<Province> provinces = locationData.province().stream()
-                                        .map(p -> new Province(p.idProvince(), p.name()))
-                                        .toList();
-                        provinceRepository.saveAll(provinces);
-
-                        Map<String, Province> provinceById = provinces.stream()
-                                        .collect(Collectors.toMap(Province::getId, Function.identity()));
-
-                        List<Commune> communes = locationData.commune().stream()
-                                        .map(c -> new Commune(c.idCommune(), c.name(),
-                                                        provinceById.get(c.idProvince())))
-                                        .toList();
-                        communeRepository.saveAll(communes);
-
-                        log.info("Location data initialized: {} provinces, {} communes",
-                                        provinces.size(), communes.size());
-                } catch (IOException e) {
-                        log.error("Failed to load location data from JSON", e);
-                }
         }
 
         private void initializeAssessments() {
@@ -662,174 +472,6 @@ public class DataInitializer implements CommandLineRunner {
                 log.info("Initialized {} question categories", 3);
         }
 
-        private void initializeModuleGroups() {
-
-                /*
-                 * =======================================================
-                 * MODULE GROUP: Main Menu
-                 * =======================================================
-                 */
-                ModuleGroups mainGroup = new ModuleGroups();
-                mainGroup.setName("Main Menu");
-                mainGroup.setDescription("Main navigation menu of the application");
-                mainGroup.setDisplayOrder(1);
-                mainGroup.setIsActive(true);
-                mainGroup = moduleGroupsRepository.save(mainGroup);
-
-                moduleRepository.save(
-                                createModule(
-                                                mainGroup,
-                                                "Dashboard",
-                                                "/dashboard",
-                                                "home",
-                                                1,
-                                                "DASHBOARD_READ",
-                                                "System dashboard overview"));
-
-                /*
-                 * =======================================================
-                 * MODULE GROUP: System Management
-                 * =======================================================
-                 */
-                ModuleGroups systemGroup = new ModuleGroups();
-                systemGroup.setName("System Management");
-                systemGroup.setDescription("System configuration and administration");
-                systemGroup.setDisplayOrder(4);
-                systemGroup.setIsActive(true);
-                systemGroup = moduleGroupsRepository.save(systemGroup);
-
-                moduleRepository.saveAll(Arrays.asList(
-
-                                createModule(systemGroup, "Modules", "/modules", "menu", 1,
-                                                "MODULE_CREATE",
-                                                "Manage system modules"),
-
-                                createModule(systemGroup, "Module Groups", "/moduleGroups", "layers", 2,
-                                                "MODULE_GROUP_CREATE",
-                                                "Manage module groups"),
-
-                                createModule(systemGroup, "Users", "/users", "users", 3,
-                                                "USER_READ",
-                                                "Manage system users"),
-
-                                createModule(systemGroup, "Roles", "/roles", "shield", 4,
-                                                "ROLE_READ",
-                                                "Manage roles and permissions"),
-
-                                createModule(systemGroup, "Permissions", "/permissions", "key", 5,
-                                                "PERMISSION_READ",
-                                                "Manage system permissions"),
-
-                                createModule(systemGroup, "Locations", "/locations", "map-pin", 6,
-                                                "LOCATION_READ",
-                                                "Manage office locations"),
-
-                                createModule(systemGroup, "Departments", "/departments", "university", 7,
-                                                "DEPARTMENT_READ",
-                                                "Manage departments")));
-
-                /*
-                 * =======================================================
-                 * MODULE GROUP: Training
-                 * =======================================================
-                 */
-                ModuleGroups trainingGroup = new ModuleGroups();
-                trainingGroup.setName("Training");
-                trainingGroup.setDescription("Manage training programs and related activities");
-                trainingGroup.setDisplayOrder(5);
-                trainingGroup.setIsActive(true);
-                trainingGroup = moduleGroupsRepository.save(trainingGroup);
-
-                moduleRepository.saveAll(Arrays.asList(
-
-                                createModule(trainingGroup, "Courses", "/courses", "book-open", 1,
-                                                "COURSE_READ",
-                                                "Manage training courses"),
-
-                                createModule(trainingGroup, "Course Catalog", "/my-courses", "graduation-cap", 2,
-                                                "ENROLL_COURSE",
-                                                "Browse and enroll in available courses"),
-
-                                createModule(trainingGroup, "Programming Languages", "/programming-languages", "code",
-                                                3,
-                                                "PROGRAMMING_LANGUAGE_READ",
-                                                "Manage programming languages"),
-
-                                createModule(trainingGroup, "Students", "/v1/student", "person", 4,
-                                                "STUDENT_READ",
-                                                "Manage students"),
-
-                                createModule(trainingGroup, "Classes", "/classes", "people", 5,
-                                                "CLASS_READ",
-                                                "Manage Classes and Open Class Requests"),
-
-                                createModule(trainingGroup, "Topics", "/topics", "book-open", 6,
-                                                "TOPIC_READ",
-                                                "Manage training topics")));
-
-                /*
-                 * =======================================================
-                 * MODULE GROUP: Assessment
-                 * =======================================================
-                 */
-                ModuleGroups assessmentGroup = new ModuleGroups();
-                assessmentGroup.setName("Assessment");
-                assessmentGroup.setDescription("Manage assessments and related permissions");
-                assessmentGroup.setDisplayOrder(6);
-                assessmentGroup.setIsActive(true);
-                assessmentGroup = moduleGroupsRepository.save(assessmentGroup);
-
-                moduleRepository.save(
-                                createModule(
-                                                assessmentGroup,
-                                                "Assessment Type",
-                                                "/assessment-type",
-                                                "shield",
-                                                1,
-                                                "ASSESSMENTTYPE_READ",
-                                                "Manage assessment types"));
-
-                log.info("Initialized module groups and modules successfully.");
-
-        }
-
-        private Module createModule(ModuleGroups group, String title, String url, String icon,
-                        int order, String permission, String description) {
-                Module module = new Module();
-                module.setModuleGroup(group); // Gán quan hệ group_id
-                module.setTitle(title);
-                module.setUrl(url);
-                module.setIcon(icon);
-                module.setDisplayOrder(order);
-                module.setRequiredPermission(permission);
-                module.setDescription(description);
-                module.setIsActive(true);
-                return module;
-        }
-
-        private void initializeAssessmentType() {
-
-                if (assessmentTypeRepository.count() > 0) {
-                        return;
-                }
-
-                AssessmentType a1 = new AssessmentType();
-                a1.setName("Entrance Quiz");
-                a1.setDescription("Assessment for entrance examination");
-
-                AssessmentType a2 = new AssessmentType();
-                a2.setName("Midterm Test");
-                a2.setDescription("Midterm evaluation assessment");
-
-                AssessmentType a3 = new AssessmentType();
-                a3.setName("Final Exam");
-                a3.setDescription("Final assessment of the course");
-
-                assessmentTypeRepository.saveAll(List.of(a1, a2, a3));
-
-                log.info("Initialized {} assessments", 3);
-        }
-
         private void ensureProgrammingLanguagePermissions() {
                 boolean hasProgLangPerms = permissionRepository.existsByName("PROGRAMMING_LANGUAGE_READ");
 
@@ -838,15 +480,12 @@ public class DataInitializer implements CommandLineRunner {
 
                         List<Permission> progLangPermissions = Arrays.asList(
                                         createPermission("PROGRAMMING_LANGUAGE_CREATE",
-
                                                         "Create new programming languages",
                                                         "PROGRAMMING_LANGUAGE", "CREATE"),
                                         createPermission("PROGRAMMING_LANGUAGE_READ", "View programming languages",
-
                                                         "PROGRAMMING_LANGUAGE",
                                                         "READ"),
                                         createPermission("PROGRAMMING_LANGUAGE_UPDATE",
-
                                                         "Update existing programming languages",
                                                         "PROGRAMMING_LANGUAGE", "UPDATE"),
                                         createPermission("PROGRAMMING_LANGUAGE_DELETE", "Delete programming languages",
@@ -861,85 +500,6 @@ public class DataInitializer implements CommandLineRunner {
                                 roleRepository.save(adminRole);
                                 log.info("Added programming language permissions to ADMIN role");
                         }
-                }
-        }
-
-        private void ensureOutlinePermissions() {
-                boolean hasOutlinePerm = permissionRepository.existsByName("COURSE_OUTLINE_EDIT");
-
-                if (!hasOutlinePerm) {
-                        log.info("Course outline permissions not found, adding them...");
-
-                        List<Permission> outlinePermissions = Arrays.asList(
-                                        createPermission("COURSE_OUTLINE_EDIT", "Edit course outline", "COURSE",
-                                                        "EDIT"));
-
-                        permissionRepository.saveAll(outlinePermissions);
-
-                        // Add to all existing roles that have COURSE_UPDATE
-                        List<Role> roles = roleRepository.findAll();
-                        for (Role role : roles) {
-                                boolean hasCourseUpdate = role.getPermissions().stream()
-                                                .anyMatch(p -> "COURSE_UPDATE".equals(p.getName()));
-                                if (hasCourseUpdate || "ADMIN".equals(role.getName())) {
-                                        role.getPermissions().addAll(outlinePermissions);
-                                        roleRepository.save(role);
-                                        log.info("Added outline permissions to role: {}", role.getName());
-                                }
-                        }
-                }
-        }
-
-        private void ensurePermissionManagementPermissions() {
-                boolean hasPermPerm = permissionRepository.existsByName("PERMISSION_READ");
-
-                if (!hasPermPerm) {
-                        log.info("Permission management permissions not found, adding them...");
-
-                        List<Permission> permPermissions = Arrays.asList(
-                                        createPermission("PERMISSION_CREATE", "Create new permissions", "PERMISSION",
-                                                        "CREATE"),
-                                        createPermission("PERMISSION_READ", "View permissions", "PERMISSION", "READ"),
-                                        createPermission("PERMISSION_UPDATE", "Update existing permissions",
-                                                        "PERMISSION", "UPDATE"),
-                                        createPermission("PERMISSION_DELETE", "Delete permissions", "PERMISSION",
-                                                        "DELETE"),
-                                        createPermission("PERMISSION_IMPORT", "Import permissions", "PERMISSION",
-                                                        "IMPORT"),
-                                        createPermission("PERMISSION_EXPORT", "Export permissions", "PERMISSION",
-                                                        "EXPORT"));
-
-                        permissionRepository.saveAll(permPermissions);
-
-                        // Add to SUPER_ADMIN role
-                        roleRepository.findByName("SUPER_ADMIN").ifPresent(superAdmin -> {
-                                superAdmin.getPermissions().addAll(permPermissions);
-                                roleRepository.save(superAdmin);
-                                log.info("Added permission management permissions to SUPER_ADMIN role");
-                        });
-
-                        // Add sidebar module for permissions in System Management group
-                        moduleGroupsRepository.findByName("System Management").ifPresent(systemGroup -> {
-                                boolean moduleExists = moduleRepository.existsByUrl("/permissions");
-                                if (!moduleExists) {
-                                        moduleRepository.save(createModule(
-                                                        systemGroup, "Permissions", "/permissions", "key", 5,
-                                                        "PERMISSION_READ", "Manage system permissions"));
-                                        log.info("Added Permissions module to System Management group");
-                                }
-                        });
-                }
-        }
-
-        private void ensureTopicsModule() {
-                boolean moduleExists = moduleRepository.existsByUrl("/topics");
-                if (!moduleExists) {
-                        moduleGroupsRepository.findByName("Training").ifPresent(trainingGroup -> {
-                                moduleRepository.save(createModule(
-                                                trainingGroup, "Topics", "/topics", "book-open", 6,
-                                                "TOPIC_READ", "Manage training topics"));
-                                log.info("Added Topics module to Training group");
-                        });
                 }
         }
 
@@ -978,7 +538,7 @@ public class DataInitializer implements CommandLineRunner {
 
                 q1.setOptions(options);
 
-                questionRepository.save(q1); // cascade save options
+                questionRepository.save(q1);
 
                 log.info("Initialized 1 question with options");
         }
@@ -1013,94 +573,103 @@ public class DataInitializer implements CommandLineRunner {
                         boolean isSupported) {
                 ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
                 return language;
+
         }
 
-        private void initializeCourses() {
+        private void ensureOutlinePermissions() {
+                boolean hasOutlinePerm = permissionRepository.existsByName("COURSE_OUTLINE_EDIT");
 
-                if (courseOnlineRepository.count() > 0) {
-                        log.info("Courses already exist, skipping initialization");
+                if (!hasOutlinePerm) {
+                        log.info("Course outline permissions not found, adding them...");
+
+                        List<Permission> outlinePermissions = Arrays.asList(
+                                        createPermission("COURSE_OUTLINE_EDIT", "Edit course outline", "COURSE",
+                                                        "EDIT"));
+
+                        permissionRepository.saveAll(outlinePermissions);
+
+                        // Add to all existing roles that have COURSE_UPDATE
+                        List<Role> roles = roleRepository.findAll();
+                        for (Role role : roles) {
+                                boolean hasCourseUpdate = role.getPermissions().stream()
+                                                .anyMatch(p -> "COURSE_UPDATE".equals(p.getName()));
+                                if (hasCourseUpdate || "ADMIN".equals(role.getName())) {
+                                        role.getPermissions().addAll(outlinePermissions);
+                                        roleRepository.save(role);
+                                        log.info("Added outline permissions to role: {}", role.getName());
+                                }
+                        }
+                }
+        }
+
+        private void initializeEnrollments() {
+                if (enrollmentRepository.count() > 0) {
+                        log.info("Enrollments already exist, skipping initialization");
                         return;
                 }
 
-                User admin = userRepository.findByEmail("admin@example.com").orElseThrow();
+                User student1 = userRepository.findByEmail("student@example.com").orElse(null);
+                User student2 = userRepository.findByEmail("jane.smith@example.com").orElse(null);
+                User student3 = userRepository.findByEmail("manager1@example.com").orElse(null);
+                User student4 = userRepository.findByEmail("manager2@example.com").orElse(null);
+                User student5 = userRepository.findByEmail("trainer1@example.com").orElse(null);
 
-                CourseOnline javaCourse = CourseOnline.builder()
-                                .courseName("Java Backend Master")
-                                .courseCode("JBM-01")
-//                                .price(BigDecimal.valueOf(15_000_000))
-//                                .discount(10.0)
-                                .level(CourseLevelOnline.ADVANCED)
-                                .estimatedTime(90 * 24 * 60) // 3 months ≈ minutes
-                                .thumbnailUrl("https://example.com/java.jpg")
-                                .status(CourseStatusOnline.DRAFT)
+                List<TrainingClass> classes = new ArrayList<>();
 
-                                .creator(admin)
-                                // .trainer(admin)
-
-                                .description("Java Spring Boot from basic to advanced")
-                                .note("Core backend course")
-
-                                .minGpaToPass(5.0)
-                                .minAttendancePercent(80.0)
-                                .allowFinalRetake(true)
-
-                                .creator(admin)
-                                // .trainer(admin)
-
-                                .build();
-
-                CourseOnline reactCourse = CourseOnline.builder()
-                                .courseName("React Frontend Pro")
-                                .courseCode("RFP-01")
-                                .level(CourseLevelOnline.INTERMEDIATE)
-                                .estimatedTime(60 * 24 * 60) // 2 months
-                                .thumbnailUrl("https://example.com/react.jpg")
-
-                                .status(CourseStatusOnline.ACTIVE)
-
-                                .description("React from zero to hero")
-                                .note("Frontend track")
-
-                                .minGpaToPass(5.0)
-                                .minAttendancePercent(75.0)
-                                .allowFinalRetake(true)
-
-                                .creator(admin)
-                                // .trainer(admin)
-
-                                .build();
-
-                courseOnlineRepository.saveAll(List.of(javaCourse, reactCourse));
-
-                log.info("Initialized {} courses", 2);
-        }
-
-        private void initializeSemester() {
-
-                if (semesterRepository.count() > 0) {
+                if (classes.isEmpty() || student1 == null) {
+                        log.warn("Missing Students or Training Classes! Please run their initializers first.");
                         return;
                 }
 
-                Semester spring2026 = new Semester();
-                spring2026.setName("Spring 2026");
-                spring2026.setStartDate(LocalDate.of(2026, 1, 5));
-                spring2026.setEndDate(LocalDate.of(2026, 4, 30));
+                List<Enrollment> enrollments = new ArrayList<>();
 
-                semesterRepository.save(spring2026);
+                int totalClasses = classes.size();
 
-                log.info("Initialized Semester: Spring 2026");
+                if (totalClasses > 0) {
+                        enrollments.add(buildEnrollment(student1, classes.get(0)));
+                        enrollments.add(buildEnrollment(student2, classes.get(0)));
+                        enrollments.add(buildEnrollment(student3, classes.get(0)));
+                }
+
+                if (totalClasses > 1) {
+                        enrollments.add(buildEnrollment(student4, classes.get(1)));
+                        enrollments.add(buildEnrollment(student5, classes.get(1)));
+                }
+
+                if (totalClasses > 2) {
+                        enrollments.add(buildEnrollment(student1, classes.get(2)));
+                        enrollments.add(buildEnrollment(student2, classes.get(2)));
+                        enrollments.add(buildEnrollment(student4, classes.get(2)));
+                        enrollments.add(buildEnrollment(student5, classes.get(2)));
+                }
+
+                if (totalClasses > 3) {
+                        enrollments.add(buildEnrollment(student3, classes.get(3)));
+                }
+
+                if (totalClasses > 4) {
+                        enrollments.add(buildEnrollment(student1, classes.get(4)));
+                }
+                if (totalClasses > 5) {
+                        enrollments.add(buildEnrollment(student2, classes.get(5)));
+                }
+                if (totalClasses > 6) {
+                        enrollments.add(buildEnrollment(student3, classes.get(6)));
+                }
+                if (totalClasses > 7) {
+                        enrollments.add(buildEnrollment(student4, classes.get(7)));
+                }
+
+                enrollmentRepository.saveAll(enrollments);
+
+                log.info("Initialized {} Enrollments successfully. Students are now in classes!", enrollments.size());
         }
 
-        @JsonIgnoreProperties(ignoreUnknown = true)
-        private record LocationDataJson(List<ProvinceJson> province, List<CommuneJson> commune) {
-        }
-
-        @JsonIgnoreProperties(ignoreUnknown = true)
-        private record ProvinceJson(String idProvince, String name) {
-        }
-
-        @JsonIgnoreProperties(ignoreUnknown = true)
-        private record CommuneJson(String idProvince, String idCommune, String name) {
+        private Enrollment buildEnrollment(User student, TrainingClass trainingClass) {
+                Enrollment enrollment = new Enrollment();
+                enrollment.setUser(student);
+                // enrollment.setTrainingClass(trainingClass);
+                return enrollment;
         }
 
         // -----------------------------------------------------------------------
@@ -1153,248 +722,19 @@ public class DataInitializer implements CommandLineRunner {
                         return;
                 }
 
-                Location fptHcm = Location.builder()
-                                .name("FPT Software - TP. Ho Chi Minh")
-                                .address("Lo E2a-7, Duong D1, Khu Cong nghe cao, Phuong Tang Nhon Phu")
-                                .communeId("26842")
-                                .locationStatus(LocationStatus.ACTIVE)
-                                .build();
-
-                Location xavaloShtp = Location.builder()
-                                .name("Xavalo - Khu Cong Nghe Cao Sai Gon")
-                                .address("Duong So 8, Khu Cong nghe cao, Phuong Linh Xuan, TP. Thu Duc")
-                                .communeId("26800")
-                                .locationStatus(LocationStatus.INACTIVE)
-                                .build();
-
-                Location fptHanoi = Location.builder()
-                                .name("FPT Software - Ha Noi")
-                                .address("Toa nha FPT Cau Giay, Phuong Cau Giay, Quan Cau Giay")
-                                .communeId("00166")
-                                .locationStatus(LocationStatus.ACTIVE)
-                                .build();
-
-                Location fptDanang = Location.builder()
-                                .name("FPT Software - Da Nang")
-                                .address("Lo D26, Duong So 2, Khu Cong nghe cao Da Nang, Phuong Hoa Khanh")
-                                .communeId("20200")
-                                .locationStatus(LocationStatus.ACTIVE)
-                                .build();
-
-                locationRepository.saveAll(List.of(fptHcm, xavaloShtp, fptHanoi, fptDanang));
-                log.info("Initialized {} locations", 4);
-        }
-
-        private void initializeLessons() {
-                if (courseLessonOnlineRepository.count() > 0) {
-                        log.info("Lessons already exist, skipping initialization");
-                        return;
-                }
-
-                // Tìm khóa học Java
-                CourseOnline java01 = courseOnlineRepository.findAll().stream()
-                                .filter(c -> "JBM-01".equals(c.getCourseCode()))
-                                .findFirst().orElse(null);
-
-                // Tìm khóa học React
-                CourseOnline react01 = courseOnlineRepository.findAll().stream()
-                                .filter(c -> "RFP-01".equals(c.getCourseCode()))
-                                .findFirst().orElse(null);
-
-                if (java01 != null) {
-                        List<CourseLessonOnline> javaLessons = Arrays.asList(
-                                        createLesson(java01, "Introduction to Spring Boot",
-                                                        "Overview of Spring ecosystem and setup.", 1),
-                                        createLesson(java01, "Spring Data JPA & Hibernate",
-                                                        "Deep dive into database ORM mapping.", 2),
-                                        createLesson(java01, "Spring Security & JWT",
-                                                        "Securing APIs with token-based authentication.", 3));
-                        courseLessonOnlineRepository.saveAll(javaLessons);
-                }
-
-                if (react01 != null) {
-                        List<CourseLessonOnline> reactLessons = Arrays.asList(
-                                        createLesson(react01, "React Fundamentals",
-                                                        "Components, Props, and State basics.", 1),
-                                        createLesson(react01, "Hooks & Context API",
-                                                        "Managing global state and side effects.", 2),
-                                        createLesson(react01, "TanStack Query & Axios",
-                                                        "Handling server-side state and API calls.", 3));
-                        courseLessonOnlineRepository.saveAll(reactLessons);
-                }
-
                 log.info("Initialized lessons for Java and React courses");
         }
 
-        private CourseLessonOnline createLesson(CourseOnline course, String name, String desc, int order) {
-                return CourseLessonOnline.builder()
-                                .course(course)
-                                .lessonName(name)
-                                .description(desc)
-                                .sortOrder(order)
-                                .build();
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        private record LocationDataJson(List<ProvinceJson> province, List<CommuneJson> commune) {
         }
 
-        private void initializeTopics() {
-                if (topicRepository.count() > 0) {
-                        log.info("Topics already exist, skipping initialization");
-                        return;
-                }
-
-                User admin = userRepository.findByEmail("admin@example.com").orElseThrow();
-
-                Topic javaTopic = Topic.builder()
-                                .topicName("Java Spring Boot Master")
-                                .topicCode("TOPIC-JAVA-01")
-                                .level(TopicLevel.ADVANCED)
-                                .status(TopicStatus.ACTIVE)
-                                .version("v2.1")
-                                .description("Lộ trình học Java chuyên sâu từ Spring Core đến Microservices.")
-                                .creator(admin)
-                                // .trainer(admin)
-                                .build();
-
-                Topic frontendTopic = Topic.builder()
-                                .topicName("Frontend React Pro")
-                                .topicCode("TOPIC-FE-01")
-                                .level(TopicLevel.INTERMEDIATE)
-                                .status(TopicStatus.ACTIVE)
-                                .version("v1.5")
-                                .description("Học React, Next.js và tối ưu hóa hiệu năng ứng dụng Client-side.")
-                                .build();
-
-                Topic databaseTopic = Topic.builder()
-                                .topicName("Database Design & SQL")
-                                .topicCode("TOPIC-DB-01")
-                                .level(TopicLevel.BEGINNER)
-                                .status(TopicStatus.ACTIVE)
-                                .version("v1.0")
-                                .description("Thiết kế cơ sở dữ liệu chuẩn hóa và tối ưu truy vấn SQL.")
-                                .build();
-
-                topicRepository.saveAll(List.of(javaTopic, frontendTopic, databaseTopic));
-
-                log.info("Initialized {} topics (Same style as Courses)", 3);
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        private record ProvinceJson(String idProvince, String name) {
         }
 
-        private void initializeSkills() {
-                if (skillGroupRepository.count() > 0) {
-                        return;
-                }
-
-                // ─── Skill Groups ───
-                SkillGroup creativeGroup = SkillGroup.builder()
-                                .name("Creative Group")
-                                .code("CREA")
-                                .build();
-                SkillGroup managementGroup = SkillGroup.builder()
-                                .name("Management Group")
-                                .code("MGMT")
-                                .build();
-                SkillGroup softSkillGroup = SkillGroup.builder()
-                                .name("Soft Skill Group")
-                                .code("SOFT")
-                                .build();
-                SkillGroup languageGroup = SkillGroup.builder()
-                                .name("Language Group")
-                                .code("LANG")
-                                .build();
-                SkillGroup technicalGroup = SkillGroup.builder()
-                                .name("Technical Group")
-                                .code("TECH")
-                                .build();
-
-                skillGroupRepository.saveAll(
-                                List.of(creativeGroup, managementGroup, softSkillGroup, languageGroup, technicalGroup));
-
-                // ─── Skills ───
-                List<Skill> skills = List.of(
-                                // Creative
-                                Skill.builder().code("PHOTO").name("Photography")
-                                                .description("Digital photography and photo editing")
-                                                .group(creativeGroup).build(),
-                                Skill.builder().code("WRITING").name("Creative Writing")
-                                                .description("Writing creative content, stories, and scripts")
-                                                .group(creativeGroup).build(),
-                                Skill.builder().code("DESIGN").name("Design Thinking")
-                                                .description("Human-centered design approach and prototyping")
-                                                .group(creativeGroup).build(),
-                                Skill.builder().code("ART").name("Digital Art")
-                                                .description("Illustration and digital artwork creation")
-                                                .group(creativeGroup).build(),
-                                Skill.builder().code("UIUX").name("UI/UX Design")
-                                                .description("User interface and experience design")
-                                                .group(creativeGroup).build(),
-                                // Management
-                                Skill.builder().code("STRAT").name("Strategic Thinking")
-                                                .description("Long-term strategic planning and analysis")
-                                                .group(managementGroup).build(),
-                                Skill.builder().code("RISK").name("Risk Management")
-                                                .description("Identifying and mitigating project risks")
-                                                .group(managementGroup).build(),
-                                Skill.builder().code("HRM").name("Human Resource Management")
-                                                .description("Managing people and organizational resources")
-                                                .group(managementGroup).build(),
-                                Skill.builder().code("TIME").name("Time Management")
-                                                .description("Efficient use of time and prioritization")
-                                                .group(managementGroup).build(),
-                                Skill.builder().code("PM").name("Project Management")
-                                                .description("Managing project scope, schedule, and budget")
-                                                .group(managementGroup).build(),
-                                // Soft Skills
-                                Skill.builder().code("LEADER").name("Leadership")
-                                                .description("Inspiring and guiding teams").group(softSkillGroup)
-                                                .build(),
-                                Skill.builder().code("PROB").name("Problem Solving")
-                                                .description("Analytical thinking and solution design")
-                                                .group(softSkillGroup).build(),
-                                Skill.builder().code("LEARN").name("Continuous Learning")
-                                                .description("Adapting to new knowledge and skills")
-                                                .group(softSkillGroup).build(),
-                                Skill.builder().code("COMM").name("Communication")
-                                                .description("Effective verbal and written communication")
-                                                .group(softSkillGroup).build(),
-                                Skill.builder().code("TEAMWORK").name("Teamwork")
-                                                .description("Collaboration and team dynamics").group(softSkillGroup)
-                                                .build(),
-                                // Language
-                                Skill.builder().code("VIE").name("Vietnamese")
-                                                .description("Vietnamese language proficiency").group(languageGroup)
-                                                .build(),
-                                Skill.builder().code("JPN").name("Japanese")
-                                                .description("Japanese language proficiency").group(languageGroup)
-                                                .build(),
-                                Skill.builder().code("CHN").name("Chinese")
-                                                .description("Chinese Mandarin language proficiency")
-                                                .group(languageGroup).build(),
-                                Skill.builder().code("ENG").name("English").description("English language proficiency")
-                                                .group(languageGroup).build(),
-                                // Technical
-                                Skill.builder().code("JAVA").name("Java")
-                                                .description("Java programming and Spring Boot development")
-                                                .group(technicalGroup).build(),
-                                Skill.builder().code("REACT").name("React").description("React.js frontend development")
-                                                .group(technicalGroup).build(),
-                                Skill.builder().code("SQL").name("SQL").description("Relational database query writing")
-                                                .group(technicalGroup).build(),
-                                Skill.builder().code("DOCKER").name("Docker")
-                                                .description("Containerization with Docker and Docker Compose")
-                                                .group(technicalGroup).build());
-
-                skillRepository.saveAll(skills);
-                log.info("Initialized {} skill groups and {} skills", 5, skills.size());
-        }
-
-        private void ensureSkillsModule() {
-                boolean moduleExists = moduleRepository.existsByUrl("/skills");
-                if (!moduleExists) {
-                        moduleGroupsRepository.findByName("Training").ifPresent(trainingGroup -> {
-                                moduleRepository.save(createModule(
-                                                trainingGroup, "Skills", "/skills", "award", 7,
-                                                "TOPIC_READ", "Manage skills and skill groups"));
-                                log.info("Added Skills module to Training group");
-                        });
-                }
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        private record CommuneJson(String idProvince, String idCommune, String name) {
         }
 
 }

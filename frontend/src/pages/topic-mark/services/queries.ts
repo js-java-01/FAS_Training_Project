@@ -1,10 +1,20 @@
-import { useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { topicMarkApi } from "@/api/topicMarkApi"
 
-export const useGetCourseByClassId = (id: string) => {
+export const useGetCoursesByClassId = (id: string) => {
   return useQuery({
     queryKey: ["course-by-class", id],
-    queryFn: () => topicMarkApi.getCourseByClassId(id),
+    queryFn: () => topicMarkApi.getCoursesByClassId(id),
+    enabled: !!id,
+    placeholderData: (prev) => prev,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export const useGetClassCourseById = (id: string) => {
+  return useQuery({
+    queryKey: ["course-by-class", id],
+    queryFn: () => topicMarkApi.getClassCourseById(id),
     enabled: !!id,
     placeholderData: (prev) => prev,
     staleTime: 5 * 60 * 1000,
@@ -56,5 +66,23 @@ export const useGetGradebookTable = ({
     enabled: enabled && !!id,
     placeholderData: (prev) => prev,
     staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function useInfiniteGradeHistory(id?: string) {
+  return useInfiniteQuery({
+    queryKey: ["grade-history", id],
+    queryFn: ({ pageParam = 0 }) =>
+      topicMarkApi.getHistoryUpdateById({
+        id: id!,
+        page: pageParam,
+        pageSize: 10,
+      }),
+    getNextPageParam: (lastPage) =>
+      lastPage.page + 1 < lastPage.totalPages
+        ? lastPage.page + 1
+        : undefined,
+    initialPageParam: 0,
+    enabled: !!id,
   })
 }

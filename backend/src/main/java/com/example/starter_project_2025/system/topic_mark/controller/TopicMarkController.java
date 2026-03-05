@@ -33,6 +33,7 @@ import java.util.UUID;
  *   GET    /api/course-classes/{courseClassId}/topic-marks/search         → paginated search
  *   GET    /api/course-classes/{courseClassId}/topic-marks/{userId}       → student detail
  *   PUT    /api/course-classes/{courseClassId}/topic-marks/{userId}       → update scores
+ *   GET    /api/course-classes/{courseClassId}/topic-marks/history        → score change history
  *
  * Import / Export:
  *   GET    /api/course-classes/{courseClassId}/topic-marks/export          → export gradebook (scores)
@@ -47,16 +48,23 @@ import java.util.UUID;
  */
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Topic Marks (Gradebook)", description = "APIs for managing gradebook columns and student scores in course classes")
+@Tag(name = "Topic Marks (Gradebook)", description = "APIs for managing gradebook columns and student scores by course class topic")
 @SecurityRequirement(name = "bearerAuth")
 public class TopicMarkController {
 
     private final TopicMarkService topicMarkService;
+
+    @Schema(name = "TopicMarkImportRequest", description = "Multipart payload for gradebook import")
+    static class TopicMarkImportRequest {
+        @Schema(description = "Excel file (.xlsx)", type = "string", format = "binary", requiredMode = Schema.RequiredMode.REQUIRED)
+        public MultipartFile file;
+    }
     private final UserRepository userRepository;
 
     @GetMapping("/api/course-classes/{courseClassId}/topic-marks")
     @Operation(summary = "Get full gradebook for a course class",
-               description = "Returns all active column definitions and one row per enrolled student with their current scores, final score, and pass/fail status.")
+               description = "Returns active score columns and one row per enrolled student with column scores, final score, and pass/fail status. " +
+                             "Final score is derived from topic assessment-type weights and distributed per column.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Gradebook retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "CourseClass not found", content = @Content)
@@ -87,7 +95,7 @@ public class TopicMarkController {
 
     @GetMapping("/api/course-classes/{courseClassId}/topic-marks/{userId}")
     @Operation(summary = "Get detailed scores for a single student",
-               description = "Returns per-section scores (with grading method applied), individual column scores, and full audit history.")
+               description = "Returns per-assessment-type sections, individual column scores, and full audit history for one student.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Detail retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "CourseClass or User not found", content = @Content)
@@ -102,7 +110,7 @@ public class TopicMarkController {
     @Operation(summary = "Save / update scores for a student",
                description = "Updates one or more column scores for a student. " +
                              "A reason is required for audit trail. " +
-                             "If all columns are filled after saving, the final score is automatically computed.")
+                             "If all active columns have scores and all assessment types have topic weights, final score is auto-computed.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Scores saved successfully"),
         @ApiResponse(responseCode = "400", description = "Validation error (score out of range, deleted column, etc.)", content = @Content),
@@ -115,6 +123,21 @@ public class TopicMarkController {
             Authentication authentication) {
         UUID editorId = resolveCurrentUserId(authentication);
         return ResponseEntity.ok(topicMarkService.updateScores(courseClassId, userId, request, editorId));
+    }
+
+    @GetMapping("/api/course-classes/{courseClassId}/topic-marks/history")
+    @Operation(
+            summary = "Get score change history for a course class",
+            description = "Returns a paginated list of all score change records for the course class. " +
+                          "Default sort is updatedAt,desc. Supports ?page=0&size=10&sort=updatedAt,desc")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "History retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "CourseClass not found", content = @Content)
+    })
+    public ResponseEntity<ScoreHistoryResponse> getScoreHistory(
+            @Parameter(description = "Course class ID", required = true) @PathVariable UUID courseClassId,
+            @ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(topicMarkService.getScoreHistory(courseClassId, pageable));
     }
 
     @GetMapping("/api/course-classes/{courseClassId}/topic-marks/export")
@@ -154,23 +177,31 @@ public class TopicMarkController {
                           "- Row 0 (meta): column UUIDs for matching\n" +
                           "- Column 1 (hidden): user UUID for matching\n" +
                           "- Blank cells = keep existing score, filled cells = update\n" +
-                          "- Final scores are auto-recomputed after import")
+                  "- Final scores are auto-recomputed after import using topic assessment-type weights distributed by number of columns",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                required = true,
+                content = @Content(
+                    mediaType = "multipart/form-data",
+                    schema = @Schema(implementation = TopicMarkImportRequest.class))))
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Import completed (all rows succeeded)"),
-        @ApiResponse(responseCode = "400", description = "Import completed with some failures"),
+        @ApiResponse(responseCode = "400", description = "Import failed (validation or row errors)"),
         @ApiResponse(responseCode = "404", description = "CourseClass not found", content = @Content)
     })
     public ResponseEntity<ImportResultResponse> importGradebook(
             @Parameter(description = "Course class ID", required = true) @PathVariable UUID courseClassId,
+            @Parameter(description = "Excel file (.xlsx)", required = true) 
             @RequestParam("file") MultipartFile file,
             Authentication authentication) {
         UUID editorId = resolveCurrentUserId(authentication);
         ImportResultResponse response = topicMarkService.importGradebook(courseClassId, file, editorId);
-        if (response.getFailedCount() > 0) {
-            response.setMessage("Import completed. Some rows failed.");
-            return ResponseEntity.badRequest().body(response);
+        if (response.getMessage() == null || response.getMessage().isBlank()) {
+            if (response.getFailedCount() > 0) {
+                response.setMessage("Import completed with some failed rows. Please review errors.");
+            } else {
+                response.setMessage("Import gradebook scores successfully");
+            }
         }
-        response.setMessage("Import gradebook scores successfully");
         return ResponseEntity.ok(response);
     }
 
@@ -178,7 +209,7 @@ public class TopicMarkController {
     @Operation(summary = "Add a new gradebook column",
                description = "Creates a new column under the specified AssessmentType for this course class. " +
                              "Automatically creates null-score entries for all currently enrolled students. " +
-                             "The AssessmentType must already have a weight configured for the course.")
+                             "Final-score computation requires topic assessment-type weights to exist for this course's topic.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Column created successfully"),
         @ApiResponse(responseCode = "400", description = "No weight configured for the AssessmentType", content = @Content),

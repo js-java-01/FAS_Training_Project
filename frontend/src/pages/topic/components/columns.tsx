@@ -3,46 +3,17 @@ import ActionBtn from "@/components/data_table/ActionBtn";
 import { FiEye, FiEdit, FiTrash2 } from "react-icons/fi";
 import type { ColumnDef } from "@tanstack/react-table";
 import SortHeader from "@/components/data_table/SortHeader";
-import { Checkbox } from "@/components/ui/checkbox";
+import { createBaseColumns } from "@/components/data_table/baseColumns";
 
 export const getColumns = (handlers: {
   onView?: (t: Topic) => void;
   onEdit?: (t: Topic) => void;
   onDelete?: (t: Topic) => void;
 }) => {
+  const base = createBaseColumns<Topic>();
   const columns: ColumnDef<Topic, any>[] = [
-    {
-      id: "select",
-      size: 50,
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(v) => row.toggleSelected(!!v)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      id: "number",
-      header: "#",
-      size: 60,
-      cell: ({ row, table }) =>
-        row.index +
-        1 +
-        table.getState().pagination.pageIndex *
-          table.getState().pagination.pageSize,
-      enableSorting: false,
-      enableHiding: false,
-    },
+    base.selectColumn,
+    base.numberColumn,
     {
       accessorKey: "topicName",
       header: (info) => <SortHeader title="Topic name" info={info} />,
@@ -145,11 +116,6 @@ export const getColumns = (handlers: {
               onClick={() => handlers.onView?.(t)}
             />
             <ActionBtn
-              icon={<FiEdit />}
-              tooltipText="Edit"
-              onClick={() => handlers.onEdit?.(t)}
-            />
-            <ActionBtn
               icon={<FiTrash2 />}
               tooltipText="Delete"
               onClick={() => handlers.onDelete?.(t)}
@@ -160,6 +126,9 @@ export const getColumns = (handlers: {
       meta: { title: "Actions" },
       size: 120,
     },
+
+    /* ================= COLUMN CONTROL ================= */
+    base.columnControl,
   ];
 
   return columns;

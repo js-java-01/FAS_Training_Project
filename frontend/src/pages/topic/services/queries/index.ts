@@ -19,6 +19,7 @@ export const useGetAllTopics = (params: {
         size: params.pageSize,
         sort: params.sort,
         keyword: params.keyword,
+        level: params.level,
         status: params.status,
       }),
     placeholderData: (prev) => prev,

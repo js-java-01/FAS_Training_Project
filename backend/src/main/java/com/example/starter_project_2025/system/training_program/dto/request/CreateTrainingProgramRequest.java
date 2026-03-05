@@ -1,0 +1,34 @@
+package com.example.starter_project_2025.system.training_program.dto.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+@Data
+public class CreateTrainingProgramRequest {
+
+    @NotBlank
+    @Schema (example = "Java Developer Training Program")
+    private String name;
+
+    @NotBlank
+    @Pattern(
+            regexp = "^\\d+(\\.\\d+)*$",
+            message = "Version must contain only numbers separated by dots (e.g., 1.0 or 1.2.3)"
+    )
+    @Schema(example = "1.0.0")
+    private String version;
+
+    @Schema (example = "This training program is designed to help developers master Java programming language and related technologies.")
+    private String description;
+
+    @NotEmpty(message = "Training program must contain at least one topic")
+    private Set<UUID> topicIds;
+}

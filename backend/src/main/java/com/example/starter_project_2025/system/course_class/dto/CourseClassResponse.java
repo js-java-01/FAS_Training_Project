@@ -11,7 +11,7 @@ public record CourseClassResponse(
         LocalDateTime createdDate,
         LocalDateTime updatedDate
 ) {
-    public record CourseInfo(UUID id, String courseName, String courseCode) {}
+    public record CourseInfo(UUID id, String courseName, String courseCode, UUID topicId, String topicName, String topicCode) {}
     public record ClassInfo(UUID id, String className, String classCode) {}
     public record TrainerInfo(UUID id, String firstName, String lastName, String email) {}
 }

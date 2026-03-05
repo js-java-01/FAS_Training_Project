@@ -23,7 +23,7 @@ import {
   useImportDepartments,
   useDownloadDepartmentTemplate,
 } from "./services/mutations";
-import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { useSortParam } from "@/hooks/useSortParam";
@@ -174,7 +174,6 @@ export default function DepartmentsTable() {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        searchPlaceholder="name, code, location"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}

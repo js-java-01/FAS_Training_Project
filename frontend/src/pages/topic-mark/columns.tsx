@@ -2,53 +2,25 @@ import {
   createColumnHelper,
   type ColumnDef,
 } from "@tanstack/react-table"
-import { Checkbox } from "@/components/ui/checkbox"
 import SortHeader from "@/components/data_table/SortHeader"
 import { Badge } from "@/components/ui/badge"
 import type {
   GradebookColumnMeta,
   GradebookRow,
 } from "@/types/topicMark"
+import { EditableGradeCell } from "./EditableGradeCell"
+import { createBaseColumns } from "@/components/data_table/baseColumns"
 
 export const buildGradebookColumns = (
-  metaColumns: GradebookColumnMeta[]
+  metaColumns: GradebookColumnMeta[],
+  isEditing: boolean
 ): ColumnDef<GradebookRow, any>[] => {
   const columnHelper = createColumnHelper<GradebookRow>()
-
+  const base = createBaseColumns<GradebookRow>()
   const baseColumns: ColumnDef<GradebookRow, any>[] = [
-    columnHelper.display({
-      id: "select",
-      size: 50,
-      enableSorting: false,
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(v) =>
-            table.toggleAllPageRowsSelected(!!v)
-          }
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(v) =>
-            row.toggleSelected(!!v)
-          }
-        />
-      ),
-    }),
+    base.selectColumn,
 
-    columnHelper.display({
-      id: "number",
-      header: "#",
-      size: 60,
-      enableSorting: false,
-      cell: ({ row, table }) =>
-        row.index +
-        1 +
-        table.getState().pagination.pageIndex *
-          table.getState().pagination.pageSize,
-    }),
+    base.numberColumn,
 
     columnHelper.accessor("fullName", {
       size: 220,
@@ -60,6 +32,9 @@ export const buildGradebookColumns = (
           {info.getValue()}
         </span>
       ),
+      meta: {
+        title: "Student Name",
+      },
     }),
     columnHelper.accessor("email", {
       size: 220,
@@ -71,6 +46,23 @@ export const buildGradebookColumns = (
           {info.getValue()}
         </Badge>
       ),
+      meta: {
+        title: "Student Email",
+      },
+    }),
+    columnHelper.accessor("topic", {
+      size: 220,
+      header: (info) => (
+        <SortHeader info={info} title="Topic" />
+      ),
+      cell: (info) => (
+        <span>
+          {info.getValue() || "-"}
+        </span>
+      ),
+      meta: {
+        title: "Topic",
+      },
     }),
   ]
 
@@ -92,10 +84,30 @@ export const buildGradebookColumns = (
         ),
         cell: (info) => {
           const value = info.getValue()
+          const isMetaColumn = col.key === "FINAL_SCORE" || col.key === "IS_PASSED"
+
+          if (
+            isEditing &&
+            !isMetaColumn &&
+            value !== true &&
+            value !== false
+          ) {
+            const rowData = info.row.original
+
+            return (
+              <EditableGradeCell
+                value={value ?? null}
+                courseClassId={rowData.courseClassId}
+                userId={rowData.userId}
+                columnId={col.key}
+                isTableEditing={isEditing}
+              />
+            )
+          }
 
           if (value == null)
             return (
-              <span className="text-muted-foreground">
+              <span className="text-muted-foreground flex items-center justify-center">
                 -
               </span>
             )
@@ -116,13 +128,18 @@ export const buildGradebookColumns = (
 
           return (
             <span className="text-center block">
-              {value}
+              {typeof value === "number"
+                ? Number(value).toFixed(2)
+                : value}
             </span>
           )
+        },
+        meta: {
+          title: col.label,
         },
       }
     )
   )
 
-  return [...baseColumns, ...dynamicColumns]
+  return [...baseColumns, ...dynamicColumns, base.columnControl]
 }

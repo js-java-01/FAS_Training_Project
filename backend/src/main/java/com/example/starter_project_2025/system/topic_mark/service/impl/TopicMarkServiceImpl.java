@@ -1,18 +1,18 @@
 package com.example.starter_project_2025.system.topic_mark.service.impl;
 
+import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
-import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
-import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
-import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeightRepository;
+import com.example.starter_project_2025.system.topic_assessment_type_weight.entity.repository.TopicAssessmentTypeWeightRepository;
+
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
-import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.topic_mark.dto.*;
 import com.example.starter_project_2025.system.topic_mark.entity.*;
+import com.example.starter_project_2025.system.topic_mark.enums.ChangeType;
 import com.example.starter_project_2025.system.topic_mark.repository.*;
 import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
 import com.example.starter_project_2025.system.user.entity.User;
@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -37,7 +38,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import com.example.starter_project_2025.system.modulegroups.dto.response.PageResponse;
 
 @Service
@@ -53,54 +56,62 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     private final CourseClassRepository courseClassRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final AssessmentTypeRepository assessmentTypeRepository;
-    private final CourseAssessmentTypeWeightRepository courseAssessmentTypeWeightRepository;
+    private final TopicAssessmentTypeWeightRepository topicAssessmentTypeWeightRepository;
     private final UserRepository userRepository;
 
     @Override
     public TopicMarkColumnResponse addColumn(UUID courseClassId, TopicMarkColumnRequest request, UUID editorId) {
-        CourseClass courseClass = loadCourseClass(courseClassId);
-        assessmentTypeRepository.findById(request.getAssessmentTypeId())
-                .orElseThrow(() -> new ResourceNotFoundException("AssessmentType not found: " + request.getAssessmentTypeId()));
+        return null;
+        // CourseClass courseClass = loadCourseClass(courseClassId);
+        // assessmentTypeRepository.findById(request.getAssessmentTypeId())
+        // .orElseThrow(() -> new ResourceNotFoundException(
+        // "AssessmentType not found: " + request.getAssessmentTypeId()));
 
-        CourseAssessmentTypeWeight weight = courseAssessmentTypeWeightRepository
-                .findByCourseIdAndAssessmentTypeId(courseClass.getCourse().getId(), request.getAssessmentTypeId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No weight configured for AssessmentType [" + request.getAssessmentTypeId()
-                                + "] in course [" + courseClass.getCourse().getId() + "]. Configure it first."));
+        // CourseAssessmentTypeWeight weight = courseAssessmentTypeWeightRepository
+        // .findByCourseIdAndAssessmentTypeId(courseClass.getCourse().getId(),
+        // request.getAssessmentTypeId())
+        // .orElseThrow(() -> new IllegalArgumentException(
+        // "No weight configured for AssessmentType [" + request.getAssessmentTypeId()
+        // + "] in course [" + courseClass.getCourse().getId() + "]. Configure it
+        // first."));
 
-        int nextIndex = topicMarkColumnRepository.nextColumnIndex(courseClassId, request.getAssessmentTypeId());
+        // int nextIndex = topicMarkColumnRepository.nextColumnIndex(courseClassId,
+        // request.getAssessmentTypeId());
 
-        User editor = userRepository.findById(editorId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + editorId));
+        // User editor = userRepository.findById(editorId)
+        // .orElseThrow(() -> new ResourceNotFoundException("User not found: " +
+        // editorId));
 
-        TopicMarkColumn column = TopicMarkColumn.builder()
-                .courseClass(courseClass)
-                .assessmentType(weight.getAssessmentType())
-                .columnLabel(request.getColumnLabel())
-                .columnIndex(nextIndex)
-                .isDeleted(false)
-                .createdBy(editor)
-                .build();
-        column = topicMarkColumnRepository.save(column);
+        // TopicMarkColumn column = TopicMarkColumn.builder()
+        // .courseClass(courseClass)
+        // .assessmentType(weight.getAssessmentType())
+        // .columnLabel(request.getColumnLabel())
+        // .columnIndex(nextIndex)
+        // .isDeleted(false)
+        // .createdBy(editor)
+        // .build();
+        // column = topicMarkColumnRepository.save(column);
 
-        createNullEntriesForColumn(column, courseClass);
+        // createNullEntriesForColumn(column, courseClass);
 
-        return mapToColumnResponse(column, weight);
+        // return mapToColumnResponse(column, weight);
     }
 
     @Override
-    public TopicMarkColumnResponse updateColumnLabel(UUID courseClassId, UUID columnId, String newLabel, UUID editorId) {
-        TopicMarkColumn column = loadColumn(courseClassId, columnId);
-        column.setColumnLabel(newLabel);
-        column = topicMarkColumnRepository.save(column);
+    public TopicMarkColumnResponse updateColumnLabel(UUID courseClassId, UUID columnId, String newLabel,
+            UUID editorId) {
+        return null;
+        // TopicMarkColumn column = loadColumn(courseClassId, columnId);
+        // column.setColumnLabel(newLabel);
+        // column = topicMarkColumnRepository.save(column);
 
-        CourseAssessmentTypeWeight weight = courseAssessmentTypeWeightRepository
-                .findByCourseIdAndAssessmentTypeId(
-                        column.getCourseClass().getCourse().getId(),
-                        column.getAssessmentType().getId())
-                .orElse(null);
+        // CourseAssessmentTypeWeight weight = courseAssessmentTypeWeightRepository
+        // .findByCourseIdAndAssessmentTypeId(
+        // column.getCourseClass().getCourse().getId(),
+        // column.getAssessmentType().getId())
+        // .orElse(null);
 
-        return mapToColumnResponse(column, weight);
+        // return mapToColumnResponse(column, weight);
     }
 
     @Override
@@ -124,38 +135,46 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         CourseClass courseClass = loadCourseClass(courseClassId);
 
         List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
-        Map<String, CourseAssessmentTypeWeight> weightMap = buildWeightMap(courseClass);
 
+        UUID topicId = resolveTopicId(courseClass);
+        Map<String, Double> weightByAssessmentTypeId = topicId == null
+                ? Collections.emptyMap()
+                : topicAssessmentTypeWeightRepository.findByTopicId(topicId)
+                        .stream()
+                        .filter(w -> w.getAssessmentType() != null && w.getWeight() != null)
+                        .collect(Collectors.toMap(
+                                w -> w.getAssessmentType().getId(),
+                                w -> w.getWeight(),
+                                (left, right) -> right));
 
         List<TopicMarkGradebookResponse.Column> columnDefs = new ArrayList<>();
         for (TopicMarkColumn col : columns) {
-            CourseAssessmentTypeWeight w = weightMap.get(col.getAssessmentType().getId());
             columnDefs.add(TopicMarkGradebookResponse.Column.builder()
                     .key(col.getId().toString())
                     .label(col.getColumnLabel())
                     .assessmentTypeId(col.getAssessmentType().getId())
                     .assessmentTypeName(col.getAssessmentType().getName())
-                    .weight(w != null ? w.getWeight() : null)
-                    .gradingMethod(w != null && w.getGradingMethod() != null ? w.getGradingMethod().name() : null)
+                    .weight(weightByAssessmentTypeId.get(col.getAssessmentType().getId()))
                     .columnIndex(col.getColumnIndex())
                     .build());
         }
         columnDefs.add(new TopicMarkGradebookResponse.Column("FINAL_SCORE", "Final Score"));
         columnDefs.add(new TopicMarkGradebookResponse.Column("IS_PASSED", "Passed"));
 
-        List<Enrollment> enrollments = enrollmentRepository
-                .findByCourseIdAndStatus(courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
+        List<Enrollment> enrollments = enrollmentRepository.findByTrainingClassId(courseClass.getClassInfo().getId());
 
         List<TopicMarkEntry> allEntries = topicMarkEntryRepository.findByCourseClassId(courseClassId);
         Map<UUID, Map<UUID, Double>> scoresByUser = new HashMap<>();
         for (TopicMarkEntry entry : allEntries) {
             UUID uid = entry.getUser().getId();
             UUID cid = entry.getTopicMarkColumn().getId();
-            scoresByUser.computeIfAbsent(uid, k -> new HashMap<>()).put(cid, entry.getScore());
+            scoresByUser.computeIfAbsent(uid, key -> new HashMap<>()).put(cid, entry.getScore());
         }
 
         Map<UUID, TopicMark> marksByUser = topicMarkRepository.findAllByCourseClassId(courseClassId)
-                .stream().collect(Collectors.toMap(m -> m.getUser().getId(), m -> m));
+                .stream().collect(Collectors.toMap(m -> m.getUser().getId(), m -> m, (left, right) -> right));
+
+        final String topicLabel = null;
 
         List<TopicMarkGradebookResponse.Row> rows = enrollments.stream().map(enrollment -> {
             User user = enrollment.getUser();
@@ -163,7 +182,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
             Map<UUID, Double> userScores = scoresByUser.getOrDefault(user.getId(), Collections.emptyMap());
             for (TopicMarkColumn col : columns) {
-                values.put(col.getId().toString(), userScores.getOrDefault(col.getId(), null));
+                values.put(col.getId().toString(), userScores.get(col.getId()));
             }
 
             TopicMark mark = marksByUser.get(user.getId());
@@ -174,6 +193,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                     .userId(user.getId())
                     .fullName(user.getFirstName() + " " + user.getLastName())
                     .email(user.getEmail())
+                    .topic(topicLabel)
                     .values(values)
                     .build();
         }).collect(Collectors.toList());
@@ -186,14 +206,16 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
     @Override
     @Transactional(readOnly = true)
-    public TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword, Boolean passed, Pageable pageable) {
+    public TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword, Boolean passed,
+            Pageable pageable) {
         TopicMarkGradebookResponse full = getGradebook(courseClassId);
 
         List<TopicMarkGradebookResponse.Row> filtered = full.getRows().stream()
                 .filter(row -> keyword == null || keyword.isBlank() ||
                         row.getFullName().toLowerCase().contains(keyword.toLowerCase().trim()))
                 .filter(row -> {
-                    if (passed == null) return true;
+                    if (passed == null)
+                        return true;
                     Object val = row.getValues().get("IS_PASSED");
                     return passed.equals(val instanceof Boolean b ? b : false);
                 })
@@ -222,20 +244,23 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                     c = Comparator.comparing(
                             row -> {
                                 Object val = row.getValues().get(prop);
-                                if (val instanceof Number) return ((Number) val).doubleValue();
+                                if (val instanceof Number)
+                                    return ((Number) val).doubleValue();
                                 return null;
                             },
                             Comparator.nullsLast(Comparator.naturalOrder()));
                 }
-                if (order.isDescending()) c = c.reversed();
+                if (order.isDescending())
+                    c = c.reversed();
                 comparator = comparator == null ? c : comparator.thenComparing(c);
             }
-            if (comparator != null) filtered.sort(comparator);
+            if (comparator != null)
+                filtered.sort(comparator);
         }
 
         int total = filtered.size();
         int start = (int) pageable.getOffset();
-        int end   = Math.min(start + pageable.getPageSize(), total);
+        int end = Math.min(start + pageable.getPageSize(), total);
         List<TopicMarkGradebookResponse.Row> pageContent = start >= total
                 ? Collections.emptyList()
                 : filtered.subList(start, end);
@@ -256,15 +281,24 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
         List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
-        Map<String, CourseAssessmentTypeWeight> weightMap = buildWeightMap(courseClass);
+
+        UUID topicId = resolveTopicId(courseClass);
+        Map<String, Double> weightByAssessmentTypeId = topicId == null
+                ? Collections.emptyMap()
+                : topicAssessmentTypeWeightRepository.findByTopicId(topicId)
+                        .stream()
+                        .filter(w -> w.getAssessmentType() != null && w.getWeight() != null)
+                        .collect(Collectors.toMap(
+                                w -> w.getAssessmentType().getId(),
+                                w -> w.getWeight(),
+                                (left, right) -> right));
 
         List<TopicMarkEntry> entries = topicMarkEntryRepository.findByCourseClassIdAndUserId(courseClassId, userId);
         Map<UUID, Double> scoreByColumnId = entries.stream()
                 .collect(Collectors.toMap(
                         e -> e.getTopicMarkColumn().getId(),
                         TopicMarkEntry::getScore,
-                        (a, b) -> a));
-
+                        (left, right) -> right));
 
         Map<String, List<TopicMarkColumn>> columnsByType = columns.stream()
                 .collect(Collectors.groupingBy(
@@ -273,11 +307,9 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                         Collectors.toList()));
 
         List<TopicMarkDetailResponse.AssessmentTypeSection> sections = new ArrayList<>();
-
-        for (Map.Entry<String, List<TopicMarkColumn>> entry : columnsByType.entrySet()) {
-            String typeId = entry.getKey();
-            List<TopicMarkColumn> typeCols = entry.getValue();
-            CourseAssessmentTypeWeight w = weightMap.get(typeId);
+        for (Map.Entry<String, List<TopicMarkColumn>> grouped : columnsByType.entrySet()) {
+            String typeId = grouped.getKey();
+            List<TopicMarkColumn> typeCols = grouped.getValue();
 
             List<TopicMarkDetailResponse.ColumnScore> colScores = typeCols.stream()
                     .map(col -> TopicMarkDetailResponse.ColumnScore.builder()
@@ -288,21 +320,20 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                             .build())
                     .collect(Collectors.toList());
 
-            boolean sectionHasNull = colScores.stream().anyMatch(cs -> cs.getScore() == null);
-
+            boolean sectionHasNull = colScores.stream().anyMatch(col -> col.getScore() == null);
             Double sectionScore = null;
             if (!sectionHasNull && !colScores.isEmpty()) {
-                sectionScore = computeSectionScore(
-                        colScores.stream().map(TopicMarkDetailResponse.ColumnScore::getScore)
-                                .collect(Collectors.toList()),
-                        w != null && w.getGradingMethod() != null ? w.getGradingMethod() : GradingMethod.HIGHEST);
+                sectionScore = colScores.stream()
+                        .map(TopicMarkDetailResponse.ColumnScore::getScore)
+                        .mapToDouble(Double::doubleValue)
+                        .average()
+                        .orElse(0.0);
             }
 
             sections.add(TopicMarkDetailResponse.AssessmentTypeSection.builder()
                     .assessmentTypeId(typeId)
                     .assessmentTypeName(typeCols.get(0).getAssessmentType().getName())
-                    .weight(w != null ? w.getWeight() : null)
-                    .gradingMethod(w != null && w.getGradingMethod() != null ? w.getGradingMethod().name() : null)
+                    .weight(weightByAssessmentTypeId.get(typeId))
                     .sectionScore(sectionScore)
                     .columns(colScores)
                     .build());
@@ -311,13 +342,15 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         TopicMark mark = topicMarkRepository.findByCourseClassIdAndUserId(courseClassId, userId).orElse(null);
 
         List<TopicMarkEntryHistory> historyList = topicMarkEntryHistoryRepository
-                .findByTopicMarkEntry_CourseClass_IdAndTopicMarkEntry_User_IdOrderByUpdatedAtDesc(courseClassId, userId);
+                .findByTopicMarkEntry_CourseClass_IdAndTopicMarkEntry_User_IdOrderByUpdatedAtDesc(courseClassId,
+                        userId);
 
         List<TopicMarkDetailResponse.HistoryEntry> history = historyList.stream()
                 .map(h -> TopicMarkDetailResponse.HistoryEntry.builder()
                         .columnLabel(h.getTopicMarkEntry().getTopicMarkColumn().getColumnLabel())
                         .oldScore(h.getOldScore())
                         .newScore(h.getNewScore())
+                        .changeType(h.getChangeType() != null ? h.getChangeType().name() : null)
                         .reason(h.getReason())
                         .updatedBy(h.getUpdatedBy().getFirstName() + " " + h.getUpdatedBy().getLastName())
                         .updatedAt(h.getUpdatedAt())
@@ -336,22 +369,32 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
     @Override
     public TopicMarkDetailResponse updateScores(UUID courseClassId, UUID userId,
-                                                UpdateTopicMarkRequest request, UUID editorId) {
+            UpdateTopicMarkRequest request, UUID editorId) {
         CourseClass courseClass = loadCourseClass(courseClassId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
         User editor = userRepository.findById(editorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Editor not found: " + editorId));
 
+        List<UpdateTopicMarkRequest.EntryUpdate> updates = request.getEntries();
+        if (updates == null || updates.isEmpty()) {
+            if (request.getColumnId() != null) {
+                updates = List.of(new UpdateTopicMarkRequest.EntryUpdate(request.getColumnId(), request.getScore()));
+            } else {
+                throw new IllegalArgumentException("At least one entry must be provided");
+            }
+        }
+
         // Ensure TopicMark record exists
         TopicMark mark = topicMarkRepository.findByCourseClassIdAndUserId(courseClassId, userId)
                 .orElseGet(() -> topicMarkRepository.save(TopicMark.builder()
                         .courseClass(courseClass)
                         .user(user)
+                        .topicId(resolveTopicId(courseClass))
                         .isPassed(false)
                         .build()));
 
-        for (UpdateTopicMarkRequest.EntryUpdate update : request.getEntries()) {
+        for (UpdateTopicMarkRequest.EntryUpdate update : updates) {
             TopicMarkColumn column = topicMarkColumnRepository.findById(update.getColumnId())
                     .orElseThrow(() -> new ResourceNotFoundException("Column not found: " + update.getColumnId()));
 
@@ -376,17 +419,19 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             Double newScore = update.getScore();
 
             if (!Objects.equals(oldScore, newScore)) {
+                ChangeType changeType = determineChangeType(oldScore, newScore);
                 topicMarkEntryHistoryRepository.save(TopicMarkEntryHistory.builder()
                         .topicMarkEntry(entry)
                         .oldScore(oldScore)
                         .newScore(newScore)
+                        .changeType(changeType)
                         .reason(request.getReason())
                         .updatedBy(editor)
                         .build());
                 entry.setScore(newScore);
                 topicMarkEntryRepository.save(entry);
-                log.debug("Updated entry id={} col=[{}] {} -> {}", entry.getId(),
-                        column.getColumnLabel(), oldScore, newScore);
+                log.debug("Updated entry id={} col=[{}] {} -> {} ({})", entry.getId(),
+                        column.getColumnLabel(), oldScore, newScore, changeType);
             }
         }
         tryComputeAndSaveFinalScore(courseClass, userId, mark);
@@ -395,15 +440,76 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     }
 
     @Override
+    public ScoreHistoryResponse getScoreHistory(UUID courseClassId, Pageable pageable) {
+        if (!courseClassRepository.existsById(courseClassId)) {
+            throw new ResourceNotFoundException("CourseClass not found: " + courseClassId);
+        }
+
+        // Default sort: updatedAt desc
+        Pageable effectivePageable = pageable.getSort().isSorted()
+                ? pageable
+                : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                        Sort.by(Sort.Direction.DESC, "updatedAt"));
+
+        Page<TopicMarkEntryHistory> page = topicMarkEntryHistoryRepository.findPageByCourseClassId(courseClassId,
+                effectivePageable);
+
+        String sortStr = page.getSort().isSorted()
+                ? page.getSort().stream()
+                        .map(o -> o.getProperty() + "," + o.getDirection().name().toLowerCase())
+                        .collect(Collectors.joining(";"))
+                : "unsorted";
+
+        List<ScoreHistoryResponse.HistoryItem> items = page.getContent().stream()
+                .map(h -> {
+                    TopicMarkEntry entry = h.getTopicMarkEntry();
+                    User student = entry.getUser();
+                    User editor = h.getUpdatedBy();
+                    return ScoreHistoryResponse.HistoryItem.builder()
+                            .id(h.getId())
+                            .courseClassId(entry.getCourseClass().getId())
+                            .student(ScoreHistoryResponse.UserRef.builder()
+                                    .id(student.getId())
+                                    .name(student.getFirstName() + " " + student.getLastName())
+                                    .build())
+                            .column(ScoreHistoryResponse.ColumnRef.builder()
+                                    .id(entry.getTopicMarkColumn().getId())
+                                    .name(entry.getTopicMarkColumn().getColumnLabel())
+                                    .build())
+                            .oldScore(h.getOldScore())
+                            .newScore(h.getNewScore())
+                            .changeType(h.getChangeType() != null ? h.getChangeType().name() : null)
+                            .reason(h.getReason())
+                            .updatedBy(ScoreHistoryResponse.UserRef.builder()
+                                    .id(editor.getId())
+                                    .name(editor.getFirstName() + " " + editor.getLastName())
+                                    .build())
+                            .updatedAt(h.getUpdatedAt())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return ScoreHistoryResponse.builder()
+                .content(items)
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .sort(sortStr)
+                .build();
+    }
+
+    @Override
     public void initializeForNewStudent(UUID courseClassId, UUID userId) {
         CourseClass courseClass = loadCourseClass(courseClassId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-        topicMarkRepository.findByCourseClassIdAndUserId(courseClassId, userId)
+        TopicMark mark = topicMarkRepository.findByCourseClassIdAndUserId(courseClassId, userId)
                 .orElseGet(() -> topicMarkRepository.save(TopicMark.builder()
                         .courseClass(courseClass)
                         .user(user)
+                        .topicId(resolveTopicId(courseClass))
                         .isPassed(false)
                         .build()));
 
@@ -417,7 +523,9 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                             .score(null)
                             .build()));
         }
-        log.info("Initialized TopicMark + {} entries for user={} in courseClass={}", columns.size(), userId, courseClassId);
+        tryComputeAndSaveFinalScore(courseClass, userId, mark);
+        log.info("Initialized TopicMark + {} entries for user={} in courseClass={}", columns.size(), userId,
+                courseClassId);
     }
 
     private CourseClass loadCourseClass(UUID id) {
@@ -435,19 +543,19 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         return col;
     }
 
-    private Map<String, CourseAssessmentTypeWeight> buildWeightMap(CourseClass courseClass) {
-        return courseAssessmentTypeWeightRepository
-                .findByCourseId(courseClass.getCourse().getId())
-                .stream()
-                .collect(Collectors.toMap(
-                        w -> w.getAssessmentType().getId(),
-                        w -> w,
-                        (a, b) -> a));
-    }
+    // private Map<String, CourseAssessmentTypeWeight> buildWeightMap(CourseClass
+    // courseClass) {
+    // return courseAssessmentTypeWeightRepository
+    // .findByCourseId(courseClass.getCourse().getId())
+    // .stream()
+    // .collect(Collectors.toMap(
+    // w -> w.getAssessmentType().getId(),
+    // w -> w,
+    // (a, b) -> a));
+    // }
 
     private void createNullEntriesForColumn(TopicMarkColumn column, CourseClass courseClass) {
-        List<Enrollment> enrollments = enrollmentRepository.findByCourseIdAndStatus(
-                courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
+        List<Enrollment> enrollments = enrollmentRepository.findByTrainingClassId(courseClass.getClassInfo().getId());
         for (Enrollment enrollment : enrollments) {
             User student = enrollment.getUser();
             topicMarkEntryRepository.findByTopicMarkColumnIdAndUserId(column.getId(), student.getId())
@@ -461,68 +569,126 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     }
 
     private void tryComputeAndSaveFinalScore(CourseClass courseClass, UUID userId, TopicMark mark) {
-        long nullCount = topicMarkEntryRepository.countNullEntriesForUser(courseClass.getId(), userId);
-        if (nullCount > 0) {
-            log.debug("FinalScore not computed: {} column(s) still empty for user={}", nullCount, userId);
+        List<TopicMarkColumn> activeColumns = topicMarkColumnRepository.findActiveByCourseClassId(courseClass.getId());
+        if (activeColumns.isEmpty()) {
             mark.setFinalScore(null);
             mark.setIsPassed(false);
+            mark.setTopicId(resolveTopicId(courseClass));
             topicMarkRepository.save(mark);
             return;
         }
 
-        List<TopicMarkEntry> entries = topicMarkEntryRepository
-                .findFilledEntriesForUser(courseClass.getId(), userId);
+        List<TopicMarkEntry> entries = topicMarkEntryRepository.findByCourseClassIdAndUserId(courseClass.getId(),
+                userId);
+        Map<UUID, Double> scoreByColumnId = entries.stream()
+                .collect(Collectors.toMap(
+                        e -> e.getTopicMarkColumn().getId(),
+                        TopicMarkEntry::getScore,
+                        (left, right) -> right));
 
-        Map<String, CourseAssessmentTypeWeight> weightMap = buildWeightMap(courseClass);
+        boolean hasMissingScore = activeColumns.stream().anyMatch(c -> scoreByColumnId.get(c.getId()) == null);
+        if (hasMissingScore) {
+            mark.setFinalScore(null);
+            mark.setIsPassed(false);
+            mark.setTopicId(resolveTopicId(courseClass));
+            topicMarkRepository.save(mark);
+            return;
+        }
 
-        Map<String, List<Double>> scoresByType = entries.stream()
+        UUID topicId = resolveTopicId(courseClass);
+        if (topicId == null) {
+            mark.setFinalScore(null);
+            mark.setIsPassed(false);
+            mark.setTopicId(null);
+            topicMarkRepository.save(mark);
+            return;
+        }
+
+        Map<String, Double> weightByAssessmentTypeId = topicAssessmentTypeWeightRepository.findByTopicId(topicId)
+                .stream()
+                .filter(w -> w.getAssessmentType() != null && w.getWeight() != null)
+                .collect(Collectors.toMap(
+                        w -> w.getAssessmentType().getId(),
+                        w -> w.getWeight(),
+                        (left, right) -> right));
+
+        if (weightByAssessmentTypeId.isEmpty()) {
+            mark.setFinalScore(null);
+            mark.setIsPassed(false);
+            mark.setTopicId(topicId);
+            topicMarkRepository.save(mark);
+            return;
+        }
+
+        Set<String> activeAssessmentTypeIds = activeColumns.stream()
+                .map(c -> c.getAssessmentType().getId())
+                .collect(Collectors.toSet());
+        boolean hasMissingWeight = activeAssessmentTypeIds.stream()
+                .anyMatch(typeId -> !weightByAssessmentTypeId.containsKey(typeId));
+        if (hasMissingWeight) {
+            mark.setFinalScore(null);
+            mark.setIsPassed(false);
+            mark.setTopicId(topicId);
+            topicMarkRepository.save(mark);
+            return;
+        }
+
+        Map<String, Long> columnCountByType = activeColumns.stream()
                 .collect(Collectors.groupingBy(
-                        e -> e.getTopicMarkColumn().getAssessmentType().getId(),
-                        Collectors.mapping(TopicMarkEntry::getScore, Collectors.toList())));
+                        c -> c.getAssessmentType().getId(),
+                        Collectors.counting()));
+
+        Map<String, List<Double>> scoresByType = activeColumns.stream()
+                .collect(Collectors.groupingBy(
+                        c -> c.getAssessmentType().getId(),
+                        Collectors.mapping(c -> scoreByColumnId.get(c.getId()), Collectors.toList())));
 
         double finalScore = 0.0;
-        for (Map.Entry<String, CourseAssessmentTypeWeight> wEntry : weightMap.entrySet()) {
-            String typeId = wEntry.getKey();
-            CourseAssessmentTypeWeight w = wEntry.getValue();
-            List<Double> scores = scoresByType.getOrDefault(typeId, Collections.emptyList());
-            if (scores.isEmpty()) continue;
+        for (Map.Entry<String, List<Double>> entry : scoresByType.entrySet()) {
+            Double typeWeight = weightByAssessmentTypeId.get(entry.getKey());
+            if (typeWeight == null) {
+                continue;
+            }
 
-            GradingMethod gm = w.getGradingMethod() != null ? w.getGradingMethod() : GradingMethod.HIGHEST;
-            double sectionScore = computeSectionScore(scores, gm);
-            if (w.getWeight() != null) {
-                finalScore += sectionScore * w.getWeight();
+            long columnCount = columnCountByType.getOrDefault(entry.getKey(), 0L);
+            if (columnCount <= 0) {
+                continue;
+            }
+
+            List<Double> sectionScores = entry.getValue();
+            if (sectionScores.isEmpty()) {
+                continue;
+            }
+
+            double columnWeightFactor = (typeWeight / 100.0) / columnCount;
+            for (Double score : sectionScores) {
+                finalScore += score * columnWeightFactor;
             }
         }
 
-        Double minGpa = courseClass.getCourse().getMinGpaToPass();
-        boolean isPassed = minGpa != null && finalScore >= minGpa;
+        double roundedFinalScore = Math.round(finalScore * 100.0) / 100.0;
+        Double minGpa = courseClass.getCourse() != null ? courseClass.getCourse().getMinGpaToPass() : null;
+        boolean isPassed = minGpa != null && roundedFinalScore >= minGpa;
 
-        mark.setFinalScore(finalScore);
+        mark.setFinalScore(roundedFinalScore);
         mark.setIsPassed(isPassed);
+        mark.setTopicId(topicId);
         topicMarkRepository.save(mark);
-        log.info("Computed finalScore={} isPassed={} for user={} courseClass={}", finalScore, isPassed, userId, courseClass.getId());
     }
 
-    private double computeSectionScore(List<Double> scores, GradingMethod gradingMethod) {
-        if (scores == null || scores.isEmpty()) return 0.0;
-        return switch (gradingMethod) {
-            case HIGHEST -> scores.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
-            case AVERAGE -> scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-            case LATEST  -> scores.get(scores.size() - 1); // last element = highest columnIndex
-        };
-    }
-
-    private TopicMarkColumnResponse mapToColumnResponse(TopicMarkColumn col, CourseAssessmentTypeWeight w) {
-        return TopicMarkColumnResponse.builder()
-                .id(col.getId())
-                .assessmentTypeId(col.getAssessmentType().getId())
-                .assessmentTypeName(col.getAssessmentType().getName())
-                .weight(w != null ? w.getWeight() : null)
-                .gradingMethod(w != null && w.getGradingMethod() != null ? w.getGradingMethod().name() : null)
-                .columnLabel(col.getColumnLabel())
-                .columnIndex(col.getColumnIndex())
-                .build();
-    }
+    // private TopicMarkColumnResponse mapToColumnResponse(TopicMarkColumn col,
+    // CourseAssessmentTypeWeight w) {
+    // return TopicMarkColumnResponse.builder()
+    // .id(col.getId())
+    // .assessmentTypeId(col.getAssessmentType().getId())
+    // .assessmentTypeName(col.getAssessmentType().getName())
+    // .weight(w != null ? w.getWeight() : null)
+    // .gradingMethod(w != null && w.getGradingMethod() != null ?
+    // w.getGradingMethod().name() : null)
+    // .columnLabel(col.getColumnLabel())
+    // .columnIndex(col.getColumnIndex())
+    // .build();
+    // }
 
     @Override
     @Transactional
@@ -534,18 +700,20 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         ImportResultResponse result = new ImportResultResponse();
         List<ImportErrorDetail> errors = new ArrayList<>();
 
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("File import is empty.");
+        }
+
         try (Workbook wb = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = wb.getSheetAt(0);
             if (sheet == null) {
-                result.setMessage("Empty workbook");
-                return result;
+                throw new BadRequestException("File import is empty.");
             }
 
             // 1. Parse meta row (row 0) to build colIndex -> columnUUID mapping
             Row metaRow = sheet.getRow(0);
             if (metaRow == null || !"#META".equals(getCellString(metaRow.getCell(0)))) {
-                result.setMessage("Invalid template: missing #META row");
-                return result;
+                throw new BadRequestException("Invalid template: wrong format.");
             }
 
             final int SCORE_COL_START = 4;
@@ -562,13 +730,16 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             }
 
             if (colIndexToColumnId.isEmpty()) {
-                result.setMessage("No column UUIDs found in meta row");
-                return result;
+                throw new BadRequestException("Invalid template: no score columns found in meta row.");
             }
 
             // Pre-load valid columns for this courseClass
             Set<UUID> validColumnIds = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId)
                     .stream().map(TopicMarkColumn::getId).collect(Collectors.toSet());
+
+            if (!colIndexToColumnId.values().containsAll(validColumnIds)) {
+                throw new BadRequestException("File is not filled. Download template, fill mark and try again.");
+            }
 
             // 2. Parse data rows (row 2+), skip header (row 1)
             int totalRows = 0;
@@ -577,13 +748,21 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
             for (int r = 2; r <= sheet.getLastRowNum(); r++) {
                 Row row = sheet.getRow(r);
-                if (row == null) continue;
-
-                totalRows++;
+                if (row == null)
+                    continue;
                 int excelRowNum = r + 1; // 1-based for user display
 
                 // Get user ID from hidden column 1
                 String userIdStr = getCellString(row.getCell(1));
+                boolean hasScoreInput = hasAnyScoreInput(row, colIndexToColumnId.keySet());
+                boolean isPotentialStudentRow = isPotentialStudentRow(row);
+
+                if ((userIdStr == null || userIdStr.isBlank()) && !hasScoreInput && !isPotentialStudentRow) {
+                    continue;
+                }
+
+                totalRows++;
+
                 if (userIdStr == null || userIdStr.isBlank()) {
                     errors.add(new ImportErrorDetail(excelRowNum, "User ID", "Missing user ID"));
                     continue;
@@ -611,7 +790,8 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                     UUID columnId = mapping.getValue();
 
                     if (!validColumnIds.contains(columnId)) {
-                        errors.add(new ImportErrorDetail(excelRowNum, "Column " + columnId, "Column not found or deleted"));
+                        errors.add(new ImportErrorDetail(excelRowNum, "Column " + columnId,
+                                "Column not found or deleted"));
                         rowHasError = true;
                         continue;
                     }
@@ -620,18 +800,21 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                     Double score = getCellNumeric(cell);
 
                     // Blank = skip (keep existing)
-                    if (score == null) continue;
+                    if (score == null)
+                        continue;
 
                     // Validate score range
                     if (score < 0 || score > 10) {
-                        errors.add(new ImportErrorDetail(excelRowNum, "Column " + columnId, "Score out of range [0-10]: " + score));
+                        errors.add(new ImportErrorDetail(excelRowNum, "Column " + columnId,
+                                "Score out of range [0-10]: " + score));
                         rowHasError = true;
                         continue;
                     }
 
                     // Upsert entry
                     TopicMarkColumn column = topicMarkColumnRepository.findById(columnId).orElse(null);
-                    if (column == null) continue;
+                    if (column == null)
+                        continue;
 
                     TopicMarkEntry entry = topicMarkEntryRepository
                             .findByTopicMarkColumnIdAndUserId(columnId, userId)
@@ -644,10 +827,12 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
                     Double oldScore = entry.getScore();
                     if (!Objects.equals(oldScore, score)) {
+                        ChangeType changeType = determineChangeType(oldScore, score);
                         topicMarkEntryHistoryRepository.save(TopicMarkEntryHistory.builder()
                                 .topicMarkEntry(entry)
                                 .oldScore(oldScore)
                                 .newScore(score)
+                                .changeType(changeType)
                                 .reason("Excel import")
                                 .updatedBy(editor)
                                 .build());
@@ -673,6 +858,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                             return topicMarkRepository.save(TopicMark.builder()
                                     .courseClass(courseClass)
                                     .user(u)
+                                    .topicId(resolveTopicId(courseClass))
                                     .isPassed(false)
                                     .build());
                         });
@@ -683,6 +869,19 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             result.setSuccessCount(successCount);
             result.setFailedCount(errors.size());
             result.setErrors(errors);
+
+            if (totalRows == 0) {
+                result.setMessage("Null file. Please check again.");
+                result.setFailedCount(Math.max(result.getFailedCount(), 1));
+                return result;
+            }
+
+            if (updatedUserIds.isEmpty()) {
+                result.setMessage("File is invalid. Please check again.");
+                result.setFailedCount(Math.max(result.getFailedCount(), 1));
+                return result;
+            }
+
             return result;
 
         } catch (IOException e) {
@@ -690,29 +889,77 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         }
     }
 
+    private UUID resolveTopicId(CourseClass courseClass) {
+        if (courseClass == null || courseClass.getCourse() == null) {
+            return null;
+        }
+        return null;
+        // return courseClass.getCourse().getTopic().getId();
+    }
+
+    private ChangeType determineChangeType(Double oldScore, Double newScore) {
+        if (oldScore == null && newScore == null)
+            return null;
+        if (oldScore == null)
+            return ChangeType.INCREASE;
+        if (newScore == null)
+            return ChangeType.DECREASE;
+        return newScore >= oldScore ? ChangeType.INCREASE : ChangeType.DECREASE;
+    }
+
     private String getCellString(Cell cell) {
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
         return switch (cell.getCellType()) {
-            case STRING  -> cell.getStringCellValue();
+            case STRING -> cell.getStringCellValue();
             case NUMERIC -> String.valueOf(cell.getNumericCellValue());
-            case BLANK   -> null;
-            default      -> cell.toString();
+            case BLANK -> null;
+            default -> cell.toString();
         };
     }
 
     private Double getCellNumeric(Cell cell) {
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
         return switch (cell.getCellType()) {
             case NUMERIC -> cell.getNumericCellValue();
-            case STRING  -> {
+            case STRING -> {
                 String s = cell.getStringCellValue().trim();
-                if (s.isEmpty()) yield null;
-                try { yield Double.parseDouble(s); }
-                catch (NumberFormatException e) { yield null; }
+                if (s.isEmpty())
+                    yield null;
+                try {
+                    yield Double.parseDouble(s);
+                } catch (NumberFormatException e) {
+                    yield null;
+                }
             }
-            case BLANK   -> null;
-            default      -> null;
+            case BLANK -> null;
+            default -> null;
         };
+    }
+
+    private boolean hasAnyScoreInput(Row row, Set<Integer> scoreColumns) {
+        for (Integer colIdx : scoreColumns) {
+            String raw = getCellString(row.getCell(colIdx));
+            if (raw != null && !raw.isBlank()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isPotentialStudentRow(Row row) {
+        String sttRaw = getCellString(row.getCell(0));
+        if (sttRaw != null && !sttRaw.isBlank()) {
+            try {
+                Double.parseDouble(sttRaw.trim());
+                return true;
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        String emailRaw = getCellString(row.getCell(3));
+        return emailRaw != null && !emailRaw.isBlank();
     }
 
     @Override
@@ -720,70 +967,95 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     public ResponseEntity<byte[]> exportGradebookTemplate(UUID courseClassId) {
         CourseClass courseClass = loadCourseClass(courseClassId);
         List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
-        List<Enrollment> enrollments = enrollmentRepository
-                .findByCourseIdAndStatus(courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
+        List<Enrollment> enrollments = enrollmentRepository.findByTrainingClassId(courseClass.getClassInfo().getId());
 
         try (Workbook wb = new XSSFWorkbook()) {
-            String rawName = courseClass.getCourse().getCourseCode()
-                    + " - " + courseClass.getClassInfo().getClassCode();
+            String rawName = courseClass.getCourse().getCourseCode() + " - "
+                    + courseClass.getClassInfo().getClassCode();
             Sheet sheet = wb.createSheet(rawName.length() > 31 ? rawName.substring(0, 31) : rawName);
 
-            
-            CellStyle metaStyle  = buildMetaStyle(wb);
+            CellStyle metaStyle = buildMetaStyle(wb);
             CellStyle headerStyle = buildHeaderStyle(wb);
             CellStyle lockedStyle = buildLockedStyle(wb);
-            CellStyle inputStyle  = buildInputStyle(wb);
-
+            CellStyle inputStyle = buildInputStyle(wb);
+            CellStyle noteTitleStyle = buildNoteTitleStyle(wb);
+            CellStyle noteBodyStyle = buildNoteBodyStyle(wb);
 
             final int SCORE_COL_START = 4;
 
-
             Row metaRow = sheet.createRow(0);
-            metaRow.setHeight((short) 300);   
-            putCell(metaRow, 0, "#META",   metaStyle);
+            metaRow.setHeight((short) 300);
+            metaRow.setZeroHeight(true);
+            putCell(metaRow, 0, "#META", metaStyle);
             putCell(metaRow, 1, "USER_ID", metaStyle);
-            putCell(metaRow, 2, "",        metaStyle);
-            putCell(metaRow, 3, "",        metaStyle);
+            putCell(metaRow, 2, "", metaStyle);
+            putCell(metaRow, 3, "", metaStyle);
             for (int i = 0; i < columns.size(); i++) {
                 putCell(metaRow, SCORE_COL_START + i, columns.get(i).getId().toString(), metaStyle);
             }
 
-
             Row headerRow = sheet.createRow(1);
-            putCell(headerRow, 0, "STT",       headerStyle);
-            putCell(headerRow, 1, "User ID",   headerStyle);
-            putCell(headerRow, 2, "Họ và tên", headerStyle);
-            putCell(headerRow, 3, "Email",     headerStyle);
+            putCell(headerRow, 0, "No.", headerStyle);
+            putCell(headerRow, 1, "User ID", headerStyle);
+            putCell(headerRow, 2, "Full Name", headerStyle);
+            putCell(headerRow, 3, "Email", headerStyle);
             for (int i = 0; i < columns.size(); i++) {
                 putCell(headerRow, SCORE_COL_START + i, columns.get(i).getColumnLabel(), headerStyle);
             }
-
 
             int stt = 1;
             for (Enrollment enrollment : enrollments) {
                 User student = enrollment.getUser();
                 Row row = sheet.createRow(1 + stt);
-                putCell(row, 0, stt,                                                        lockedStyle);
-                putCell(row, 1, student.getId().toString(),                                 lockedStyle);
-                putCell(row, 2, student.getFirstName() + " " + student.getLastName(),       lockedStyle);
-                putCell(row, 3, student.getEmail(),                                         lockedStyle);
+                putCell(row, 0, stt, lockedStyle);
+                putCell(row, 1, student.getId().toString(), lockedStyle);
+                String firstName = student.getFirstName() != null ? student.getFirstName() : "";
+                String lastName = student.getLastName() != null ? student.getLastName() : "";
+                putCell(row, 2, (firstName + " " + lastName).trim(), lockedStyle);
+                putCell(row, 3, student.getEmail(), lockedStyle);
                 for (int i = 0; i < columns.size(); i++) {
-                    row.createCell(SCORE_COL_START + i).setCellStyle(inputStyle); // blank – teacher fills in
+                    row.createCell(SCORE_COL_START + i).setCellStyle(inputStyle);
                 }
                 stt++;
             }
 
-
-            sheet.setColumnWidth(0, 1500);   // STT
-            sheet.setColumnHidden(1, true);  // USER_ID hidden
-            sheet.setColumnWidth(2, 7000);   // Họ và tên
-            sheet.setColumnWidth(3, 8000);   // Email
+            sheet.setColumnWidth(0, 1500);
+            sheet.setColumnHidden(1, true);
+            sheet.setColumnWidth(2, 7000);
+            sheet.setColumnWidth(3, 8000);
             for (int i = 0; i < columns.size(); i++) {
                 sheet.setColumnWidth(SCORE_COL_START + i, 4500);
             }
 
-
             sheet.createFreezePane(0, 2);
+
+            int noteStartRow = enrollments.size() + 4;
+
+            for (int r = noteStartRow; r <= noteStartRow + 3; r++) {
+                Row noteBgRow = sheet.createRow(r);
+                for (int c = 0; c <= 2; c++) {
+                    noteBgRow.createCell(c).setCellStyle(noteBodyStyle);
+                }
+            }
+
+            Row noteTitleRow = sheet.getRow(noteStartRow);
+            putCell(noteTitleRow, 0, "Note", noteTitleStyle);
+            putCell(noteTitleRow, 2, "Score format requirement:", noteTitleStyle);
+
+            Row noteRow1 = sheet.getRow(noteStartRow + 1);
+            putCell(noteRow1, 2, "Use dot (.) for decimal", noteBodyStyle);
+
+            Row noteRow2 = sheet.getRow(noteStartRow + 2);
+            putCell(noteRow2, 2, "Accepted example: 9.99", noteBodyStyle);
+
+            Row noteRow3 = sheet.getRow(noteStartRow + 3);
+            putCell(noteRow3, 2, "Not accepted: 6,88", noteBodyStyle);
+
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow, noteStartRow + 3, 0, 0));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow, noteStartRow, 2, 4));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow + 1, noteStartRow + 1, 2, 4));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow + 2, noteStartRow + 2, 2, 4));
+            sheet.addMergedRegion(new CellRangeAddress(noteStartRow + 3, noteStartRow + 3, 2, 4));
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             wb.write(out);
@@ -804,16 +1076,14 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     public ResponseEntity<byte[]> exportGradebook(UUID courseClassId) {
         CourseClass courseClass = loadCourseClass(courseClassId);
         List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
-        List<Enrollment> enrollments = enrollmentRepository
-                .findByCourseIdAndStatus(courseClass.getCourse().getId(), EnrollmentStatus.ACTIVE);
-
+        List<Enrollment> enrollments = enrollmentRepository.findByTrainingClassId(courseClass.getClassInfo().getId());
         // Build score lookup: userId -> columnId -> score
         Map<UUID, Map<UUID, Double>> scoreMap = new HashMap<>();
         topicMarkEntryRepository.findByCourseClassId(courseClassId).forEach(entry -> {
             if (entry.getScore() != null) {
                 scoreMap
-                    .computeIfAbsent(entry.getUser().getId(), k -> new HashMap<>())
-                    .put(entry.getTopicMarkColumn().getId(), entry.getScore());
+                        .computeIfAbsent(entry.getUser().getId(), k -> new HashMap<>())
+                        .put(entry.getTopicMarkColumn().getId(), entry.getScore());
             }
         });
 
@@ -827,27 +1097,27 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                     + " - " + courseClass.getClassInfo().getClassCode();
             Sheet sheet = wb.createSheet(rawName.length() > 31 ? rawName.substring(0, 31) : rawName);
 
-            CellStyle headerStyle  = buildHeaderStyle(wb);
-            CellStyle lockedStyle  = buildLockedStyle(wb);
-            CellStyle scoreStyle   = buildInputStyle(wb);
-            CellStyle passStyle    = buildPassStyle(wb);
-            CellStyle failStyle    = buildFailStyle(wb);
-            CellStyle boldCenter   = buildBoldCenterStyle(wb);
+            CellStyle headerStyle = buildHeaderStyle(wb);
+            CellStyle lockedStyle = buildLockedStyle(wb);
+            CellStyle scoreStyle = buildInputStyle(wb);
+            CellStyle passStyle = buildPassStyle(wb);
+            CellStyle failStyle = buildFailStyle(wb);
+            CellStyle boldCenter = buildBoldCenterStyle(wb);
 
             final int SCORE_COL_START = 3;
             int finalScoreCol = SCORE_COL_START + columns.size();
-            int passedCol     = finalScoreCol + 1;
+            int passedCol = finalScoreCol + 1;
 
             // Header row
             Row headerRow = sheet.createRow(0);
-            putCell(headerRow, 0, "STT",         headerStyle);
-            putCell(headerRow, 1, "Họ và tên",   headerStyle);
-            putCell(headerRow, 2, "Email",        headerStyle);
+            putCell(headerRow, 0, "No", headerStyle);
+            putCell(headerRow, 1, "Full Name", headerStyle);
+            putCell(headerRow, 2, "Email", headerStyle);
             for (int i = 0; i < columns.size(); i++) {
                 putCell(headerRow, SCORE_COL_START + i, columns.get(i).getColumnLabel(), headerStyle);
             }
             putCell(headerRow, finalScoreCol, "Final Score", headerStyle);
-            putCell(headerRow, passedCol,     "Passed",      headerStyle);
+            putCell(headerRow, passedCol, "Passed", headerStyle);
 
             // Student rows
             int stt = 1;
@@ -863,8 +1133,10 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
                 for (int i = 0; i < columns.size(); i++) {
                     Double score = studentScores.get(columns.get(i).getId());
-                    if (score != null) putCell(row, SCORE_COL_START + i, score, scoreStyle);
-                    else row.createCell(SCORE_COL_START + i).setCellStyle(scoreStyle);
+                    if (score != null)
+                        putCell(row, SCORE_COL_START + i, score, scoreStyle);
+                    else
+                        row.createCell(SCORE_COL_START + i).setCellStyle(scoreStyle);
                 }
 
                 if (tm != null && tm.getFinalScore() != null) {
@@ -906,10 +1178,14 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
     private void putCell(Row row, int col, Object value, CellStyle style) {
         Cell cell = row.createCell(col);
-        if (value instanceof String s)       cell.setCellValue(s);
-        else if (value instanceof Number n)  cell.setCellValue(n.doubleValue());
-        else if (value instanceof Boolean b) cell.setCellValue(b);
-        if (style != null) cell.setCellStyle(style);
+        if (value instanceof String s)
+            cell.setCellValue(s);
+        else if (value instanceof Number n)
+            cell.setCellValue(n.doubleValue());
+        else if (value instanceof Boolean b)
+            cell.setCellValue(b);
+        if (style != null)
+            cell.setCellStyle(style);
     }
 
     private CellStyle buildMetaStyle(Workbook wb) {
@@ -1000,6 +1276,27 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         s.setBorderTop(BorderStyle.THIN);
         s.setBorderLeft(BorderStyle.THIN);
         s.setBorderRight(BorderStyle.THIN);
+        return s;
+    }
+
+    private CellStyle buildNoteTitleStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        Font f = wb.createFont();
+        f.setBold(true);
+        s.setFont(f);
+        s.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        s.setVerticalAlignment(VerticalAlignment.TOP);
+        s.setAlignment(HorizontalAlignment.LEFT);
+        return s;
+    }
+
+    private CellStyle buildNoteBodyStyle(Workbook wb) {
+        CellStyle s = wb.createCellStyle();
+        s.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        s.setAlignment(HorizontalAlignment.LEFT);
+        s.setVerticalAlignment(VerticalAlignment.CENTER);
         return s;
     }
 }

@@ -1,13 +1,15 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Upload,
   ImportIcon,
   FileSpreadsheet,
   Download,
   AlertCircle,
-  XCircle,
 } from "lucide-react";
+import dayjs from "dayjs";
+import { Badge } from "@/components/ui/badge";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
@@ -21,23 +23,18 @@ export interface ImportResult {
     field: string;
     message: string;
   }[];
+  errorBlob?: Blob;
 }
 
 interface Props {
   onImport?: (file: File) => Promise<ImportResult | void>;
   onDownloadTemplate?: () => Promise<void>;
-  acceptedFileTypes?: string;
-  validateFile?: (file: File) => string | null;
 }
 
 export default function ImportTab({
   onImport,
   onDownloadTemplate,
-  acceptedFileTypes = ".xlsx, .xls",
-  validateFile,
 }: Props) {
-  /* ================= STATE ================= */
-
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,34 +43,24 @@ export default function ImportTab({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /* ================= UTIL ================= */
+  const hasImportError = (result?.failedCount ?? 0) > 0;
 
   const formatSize = (size: number) => {
     const mb = size / (1024 * 1024);
-    return mb >= 1 ? `${mb.toFixed(2)} MB` : `${(size / 1024).toFixed(1)} KB`;
+    return mb >= 1
+      ? `${mb.toFixed(2)} MB`
+      : `${(size / 1024).toFixed(1)} KB`;
   };
 
-  /* ================= VALIDATE FILE ================= */
+  const validateFile = (selected: File): boolean => {
+    if (!selected.name.match(/\.(xlsx|xls)$/i)) {
+      setError("Invalid file format. Only Excel files (.xlsx, .xls) allowed.");
+      return false;
+    }
 
-  const validateSelectedFile = (selected: File): boolean => {
-    if (validateFile) {
-      const errorMessage = validateFile(selected);
-      if (errorMessage) {
-        setError(errorMessage);
-        return false;
-      }
-    } else {
-      if (!selected.name.match(/\.(xlsx|xls)$/i)) {
-        setError(
-          "Invalid file format. Only Excel files (.xlsx, .xls) allowed.",
-        );
-        return false;
-      }
-
-      if (selected.size > MAX_FILE_SIZE) {
-        setError("File size exceeds 50MB limit.");
-        return false;
-      }
+    if (selected.size > MAX_FILE_SIZE) {
+      setError("File size exceeds 50MB limit.");
+      return false;
     }
 
     return true;
@@ -85,12 +72,10 @@ export default function ImportTab({
     setError(null);
     setResult(null);
 
-    if (!validateSelectedFile(selected)) return;
+    if (!validateFile(selected)) return;
 
     setFile(selected);
   };
-
-  /* ================= IMPORT ================= */
 
   const handleImportClick = async () => {
     if (!file || loading || !onImport) return;
@@ -102,29 +87,37 @@ export default function ImportTab({
 
       const res = await onImport(file);
 
-      if (res) {
-        setResult(res);
-      }
+      if (res) setResult(res);
 
       const isFullSuccess =
-        !res || (typeof res === "object" && res?.failedCount === 0);
+        !res || (typeof res === "object" && res.failedCount === 0);
 
       if (isFullSuccess) {
         setFile(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
+        if (fileInputRef.current) fileInputRef.current.value = "";
       }
     } catch (err: any) {
       const errorData = err?.response?.data;
 
-      if (errorData && typeof errorData.totalRows === "number") {
-        setResult(errorData);
+      if (errorData) {
+        setResult({
+          message:
+            errorData.message ??
+            "Import failed. Please check the file structure.",
+          totalRows: errorData.totalRows ?? 0,
+          successCount: errorData.successCount ?? 0,
+          failedCount: errorData.failedCount ?? 1,
+          errors: errorData.errors ?? [],
+          errorBlob: errorData.errorBlob,
+        });
       } else {
-        setError(
-          errorData?.message ??
-            "Import failed. Please check your file and try again.",
-        );
+        setResult({
+          message: "Unexpected error occurred during import.",
+          totalRows: 0,
+          successCount: 0,
+          failedCount: 1,
+          errors: [],
+        });
       }
     } finally {
       setLoading(false);
@@ -137,8 +130,6 @@ export default function ImportTab({
     setResult(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
-
-  /* ================= UI ================= */
 
   return (
     <div className="space-y-6">
@@ -197,7 +188,10 @@ export default function ImportTab({
           }}
           className={`border-2 border-dashed rounded-xl p-6 text-center transition
             ${isDragging ? "border-blue-600 bg-blue-50" : ""}
-            ${error ? "border-red-400 bg-red-50" : "border-gray-300"}
+            ${error || hasImportError
+              ? "border-red-400 bg-red-50"
+              : "border-gray-300"
+            }
           `}
         >
           {!file ? (
@@ -207,7 +201,7 @@ export default function ImportTab({
                 Click or drag & drop file
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Supported: {acceptedFileTypes.replace(/,/g, ", ")}
+                Supported: .xlsx, .xls
               </p>
             </>
           ) : (
@@ -217,7 +211,7 @@ export default function ImportTab({
               </div>
 
               <div className="text-left">
-                <p className="text-sm font-semibold truncate max-w-55">
+                <p className="text-sm font-semibold truncate max-w-[220px]">
                   {file.name}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -227,10 +221,10 @@ export default function ImportTab({
             </div>
           )}
 
-          <input
+          <Input
             ref={fileInputRef}
             type="file"
-            accept={acceptedFileTypes}
+            accept=".xlsx,.xls"
             className="hidden"
             onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
           />
@@ -256,35 +250,19 @@ export default function ImportTab({
         </div>
       </div>
 
-      {/* ERROR ALERT */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm flex justify-between items-start gap-3">
-          <div className="flex gap-2">
-            <AlertCircle className="h-4 w-4 mt-0.5" />
-            <span>{error}</span>
-          </div>
-
-          <button onClick={() => setError(null)}>
-            <XCircle className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
       {/* STEP 3 */}
-      {file && (
-        <div className="border rounded-xl p-5 bg-white shadow-sm space-y-4">
-          <div className="flex justify-between items-center">
-            <p className="text-sm font-semibold">{file.name}</p>
+      {file && !hasImportError && (
+        <div className="border rounded-xl p-5 bg-white shadow-sm flex justify-between items-center">
+          <p className="text-sm font-semibold">{file.name}</p>
 
-            <Button
-              onClick={handleImportClick}
-              disabled={loading || !file || !!error || !onImport}
-              className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-6"
-            >
-              <ImportIcon className="h-4 w-4 mr-1" />
-              {loading ? "Importing..." : "Start Import"}
-            </Button>
-          </div>
+          <Button
+            onClick={handleImportClick}
+            disabled={loading || !file || !!error || !onImport}
+            className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-6"
+          >
+            <ImportIcon className="h-4 w-4 mr-1" />
+            {loading ? "Importing..." : "Start Import"}
+          </Button>
         </div>
       )}
 
@@ -293,35 +271,65 @@ export default function ImportTab({
         <div className="border rounded-xl p-6 bg-white shadow-sm space-y-5">
           <div>
             <h3 className="font-semibold text-base">Import Result</h3>
-            <p className="text-sm text-muted-foreground">{result.message}</p>
+            <div className="flex items-center">
+
+              {hasImportError && <AlertCircle className="h-4 w-4 mr-1 text-red-700" />}
+              <p className={`text-sm ${hasImportError ? "text-red-700" : "text-green-700"}`}>{result.message}</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4 text-center">
             <StatCard label="Total" value={result.totalRows} />
-            <StatCard
-              label="Success"
-              value={result.successCount}
-              color="green"
-            />
+            <StatCard label="Success" value={result.successCount} color="green" />
             <StatCard label="Failed" value={result.failedCount} color="red" />
           </div>
 
-          {result.failedCount > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm font-semibold text-red-700 mb-3 flex gap-2">
-                <AlertCircle size={18} />
-                Failed Records
+          {result.errorBlob && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-red-700 flex gap-2">
+                  Import Errors Detected
+                </p>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => {
+                    const url = window.URL.createObjectURL(result.errorBlob!);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = `import_errors_${dayjs().format(
+                      "HHmmss"
+                    )}.xlsx`;
+                    link.click();
+                  }}
+                  className="h-8 text-xs"
+                >
+                  <Download className="h-3 w-3 mr-1" />
+                  Download Error Report
+                </Button>
+              </div>
+              <p className="text-xs">
+                Please download the error report above to see detailed
+                information.
               </p>
+            </div>
+          )}
 
+
+          {/* ERROR BLOCK INSIDE RESULT */}
+          {result.errors?.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
+              <p className="text-sm font-semibold text-red-700 flex gap-2">
+                Import Errors Detected
+              </p>
               <div className="max-h-56 overflow-y-auto space-y-2 text-sm">
                 {result.errors.map((err, index) => (
                   <div
                     key={index}
                     className="bg-white border rounded-md px-3 py-2"
                   >
-                    <p>
-                      Row <span className="font-medium">{err.row}</span> —{" "}
-                      <span className="font-medium">{err.field}</span>
+                    <p className="text-xs font-medium">
+                      Row {err.row} — {err.field}
                     </p>
                     <p className="text-red-600 text-xs">{err.message}</p>
                   </div>
@@ -334,8 +342,6 @@ export default function ImportTab({
     </div>
   );
 }
-
-/* ================= STAT CARD ================= */
 
 function StatCard({
   label,
@@ -354,9 +360,7 @@ function StatCard({
   return (
     <div className="bg-gray-50 rounded-lg p-4">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p
-        className={`text-xl font-semibold mt-1 ${color ? colorMap[color] : ""}`}
-      >
+      <p className={`text-xl font-semibold mt-1 ${color ? colorMap[color] : ""}`}>
         {value}
       </p>
     </div>

@@ -2,7 +2,7 @@ package com.example.starter_project_2025.system.course_class.controller;
 
 import com.example.starter_project_2025.system.course_class.dto.CourseClassRequest;
 import com.example.starter_project_2025.system.course_class.dto.CourseClassResponse;
-import com.example.starter_project_2025.system.course_class.service.CourseClassService;
+import com.example.starter_project_2025.system.course_class.services.CourseClassService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -62,6 +62,25 @@ public class CourseClassController {
     public ResponseEntity<List<CourseClassResponse>> getAll() {
         return ResponseEntity.ok(courseClassService.getAll());
     }
+
+        /**
+         * GET /api/course-classes/{id}
+         * Get a course class by ID.
+         */
+        @GetMapping("/{id}")
+        @Operation(
+                        summary = "Get course class by ID",
+                        description = "Retrieve a course class detail by ID including course info, class info, and trainer info."
+        )
+        @ApiResponse(
+                        responseCode = "200",
+                        description = "Course class retrieved successfully",
+                        content = @Content(schema = @Schema(implementation = CourseClassResponse.class))
+        )
+        @ApiResponse(responseCode = "404", description = "Course class not found")
+        public ResponseEntity<CourseClassResponse> getById(@PathVariable UUID id) {
+                return ResponseEntity.ok(courseClassService.getById(id));
+        }
 
     /**
      * GET /api/course-classes/by-class/{classId}

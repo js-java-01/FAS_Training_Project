@@ -1,18 +1,21 @@
 package com.example.starter_project_2025.system.classes.entity;
 
+import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.learning.entity.Enrollment;
+import com.example.starter_project_2025.system.semester.entity.Semester;
+import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
+import com.example.starter_project_2025.system.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-import com.example.starter_project_2025.system.course_class.entity.CourseClass;
-import com.example.starter_project_2025.system.semester.entity.Semester;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "classes")
@@ -20,7 +23,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrainingClass {
+public class TrainingClass
+{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "class_id")
@@ -32,6 +36,14 @@ public class TrainingClass {
     @OneToMany(mappedBy = "classInfo")
     @JsonManagedReference
     private List<CourseClass> courseClasses;
+
+    @OneToMany(mappedBy = "trainingClass")
+    @JsonManagedReference
+    private List<Enrollment> enrollments;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "training_program_id", nullable = false)
+    private TrainingProgram trainingProgram;
 
     @Column(name = "class_code", unique = true)
     private String classCode;

@@ -4,20 +4,18 @@ import com.example.starter_project_2025.system.course_online.enums.CourseLevelOn
 import com.example.starter_project_2025.system.course_online.enums.CourseStatusOnline;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
-import com.example.starter_project_2025.system.course_programing_language.entity.CourseProgrammingLanguage;
+import com.example.starter_project_2025.system.topic.entity.Topic;
 import com.example.starter_project_2025.system.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
-
-import java.util.Set;
-import java.util.UUID;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "courses")
@@ -59,14 +57,6 @@ public class CourseOnline {
     @OneToMany(mappedBy = "course")
     @JsonManagedReference
     private Set<CourseClass> courseClasses;
-
-    @OneToMany(mappedBy = "course")
-    @JsonManagedReference
-    private Set<CourseProgrammingLanguage> courseProgrammingLanguages;
-
-    @OneToMany(mappedBy = "course")
-    @JsonManagedReference
-    private Set<CourseAssessmentTypeWeight> courseAssessmentTypeWeights;
 
     @ManyToOne
     @JoinColumn(name = "creator_id")

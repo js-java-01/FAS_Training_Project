@@ -271,7 +271,6 @@ const CourseObjectivesTab = ({ courseId }: Props) => {
         isLoading={loading}
         isSearch
         searchValue={["name", "description"]}
-        searchPlaceholder="name"
       />
       {/* ── View Detail Sheet ── */}
       <Sheet open={viewOpen} onOpenChange={setViewOpen}>

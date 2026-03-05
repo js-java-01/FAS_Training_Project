@@ -209,7 +209,6 @@ export const ProgrammingLanguageTable: React.FC = () => {
                 // Search
                 isSearch
                 manualSearch
-                searchPlaceholder="name"
                 onSearchChange={setKeyword}
 
                 // Actions

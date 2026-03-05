@@ -19,7 +19,7 @@ import { getColumns } from "./columns";
 import { RoleFormModal } from "./components/RoleFormModal";
 import { RoleDetailDialog } from "./components/RoleDetailDialog";
 import { ROLE_QUERY_KEY, useGetAllRoles } from "./services/queries";
-import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import {
   useDownloadRoleTemplate,
   useExportRoles,
@@ -213,7 +213,6 @@ export default function RoleTable() {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        searchPlaceholder="role name"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}

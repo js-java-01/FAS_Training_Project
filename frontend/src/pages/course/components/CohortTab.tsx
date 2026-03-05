@@ -435,7 +435,6 @@ export function CohortTab({ courseId }: Props) {
         onSortingChange={setSorting}
         isSearch
         manualSearch
-        searchPlaceholder="cohort code"
         onSearchChange={setSearchValue}
         headerActions={
           <div className="flex gap-2">

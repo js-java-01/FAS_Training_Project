@@ -25,7 +25,7 @@ import {
   useImportUsers,
   useDownloadUserTemplate,
 } from "./services/mutations";
-import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import { useSortParam } from "@/hooks/useSortParam";
 
@@ -217,7 +217,6 @@ export default function UserTable() {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        searchPlaceholder="name, email"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}

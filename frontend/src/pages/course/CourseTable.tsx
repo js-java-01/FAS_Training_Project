@@ -22,7 +22,7 @@ import {
   useImportCourses,
   useDownloadCourseTemplate,
 } from "./services/mutations";
-import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import { useSortParam } from "@/hooks/useSortParam";
 
@@ -131,7 +131,6 @@ export default function CourseTable() {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        searchPlaceholder="course name or code"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}

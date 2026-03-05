@@ -1,26 +1,37 @@
 package com.example.starter_project_2025.system.classes.service.classes;
 
-import com.example.starter_project_2025.system.classes.dto.request.UpdateClassRequest;
+import com.example.starter_project_2025.constant.ErrorMessage;
+import com.example.starter_project_2025.system.classes.dto.request.*;
 import com.example.starter_project_2025.system.classes.dto.response.ClassResponse;
-import com.example.starter_project_2025.system.classes.dto.request.CreateClassRequest;
-import com.example.starter_project_2025.system.classes.dto.request.SearchClassRequest;
-import com.example.starter_project_2025.system.classes.dto.request.ReviewClassRequest;
+import com.example.starter_project_2025.system.classes.dto.response.TrainerClassSemesterResponse;
+import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
 import com.example.starter_project_2025.system.classes.entity.ClassStatus;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.classes.mapper.ClassMapper;
-import com.example.starter_project_2025.system.classes.repository.ClassRepository;
+import com.example.starter_project_2025.system.classes.mapper.TrainerClassMapper;
+import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
+import com.example.starter_project_2025.system.classes.spec.ClassSpecification;
+import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.modulegroups.util.StringNormalizer;
 import com.example.starter_project_2025.system.semester.entity.Semester;
 import com.example.starter_project_2025.system.semester.repository.SemesterRepository;
+import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
+import com.example.starter_project_2025.system.training_program.repository.TrainingProgramRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
-
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -28,10 +39,13 @@ import java.util.UUID;
 @Transactional
 public class ClassServiceImpl implements ClassService {
 
-    private final ClassRepository classRepository;
+    private final TrainingClassRepository classRepository;
     private final SemesterRepository semesterRepository;
     private final UserRepository userRepository;
+    private final TrainerClassMapper trainerClassMapper;
     private final ClassMapper mapper;
+    private final EnrollmentRepository enrollmentRepository;
+    private final TrainingProgramRepository trainingProgramRepository;
 
     @Override
     public ClassResponse getTrainingClassById(UUID id) {
@@ -43,11 +57,9 @@ public class ClassServiceImpl implements ClassService {
     @Override
     public ClassResponse openClassRequest(CreateClassRequest request, String email) {
 
-        // ===== NORMALIZE INPUT =====
         String className = StringNormalizer.normalize(request.getClassName());
         String classCode = StringNormalizer.normalize(request.getClassCode());
 
-        // ===== DUPLICATE CHECK =====
         if (classRepository.existsByClassNameIgnoreCase(className)) {
             throw new RuntimeException("Class name already exists");
         }
@@ -56,14 +68,10 @@ public class ClassServiceImpl implements ClassService {
             throw new RuntimeException("Class code already exists");
         }
 
-        // ===== GET DATES =====
         LocalDate today = LocalDate.now();
         LocalDate startDate = request.getStartDate();
         LocalDate endDate = request.getEndDate();
 
-        // ===== VALIDATE DATE LOGIC =====
-
-        // End date must be strictly after start date
         if (!endDate.isAfter(startDate)) {
             throw new RuntimeException("End date must be after start date");
         }
@@ -72,26 +80,25 @@ public class ClassServiceImpl implements ClassService {
             throw new RuntimeException("Start date must be today or in the future");
         }
 
-        // ===== GET SEMESTER =====
         Semester semester = semesterRepository.findById(request.getSemesterId())
                 .orElseThrow(() -> new RuntimeException("Semester not found"));
 
-        // Semester must not be past
         if (semester.getEndDate().isBefore(today)) {
             throw new RuntimeException("Cannot open class for past semester");
         }
 
-        // Class duration must be inside semester period
-        if (startDate.isBefore(semester.getStartDate())
-                || endDate.isAfter(semester.getEndDate())) {
+        if (startDate.isBefore(semester.getStartDate()) ||
+                endDate.isAfter(semester.getEndDate())) {
             throw new RuntimeException("Class duration must be within semester period");
         }
 
-        // ===== GET CREATOR =====
+        TrainingProgram program = trainingProgramRepository
+                .findById(request.getTrainingProgramId())
+                .orElseThrow(() -> new RuntimeException("Training program not found"));
+
         User creator = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // ===== CREATE ENTITY =====
         TrainingClass entity = new TrainingClass();
         entity.setClassName(className);
         entity.setClassCode(classCode);
@@ -99,10 +106,10 @@ public class ClassServiceImpl implements ClassService {
         entity.setIsActive(false);
         entity.setCreator(creator);
         entity.setSemester(semester);
+        entity.setTrainingProgram(program);
         entity.setStartDate(startDate);
         entity.setEndDate(endDate);
 
-        // ===== SAVE =====
         TrainingClass saved = classRepository.save(entity);
 
         return mapper.toResponse(saved);
@@ -112,26 +119,29 @@ public class ClassServiceImpl implements ClassService {
     public ClassResponse updateClass(
             UUID id,
             UpdateClassRequest request,
-            String email
-    ) {
+            String email) {
 
         TrainingClass existing = classRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Training class not found"));
 
-        // ===== NORMALIZE =====
-        String className = request.getClassName() != null ? StringNormalizer.normalize(request.getClassName()) : existing.getClassName();
-        String classCode = request.getClassCode() != null ? StringNormalizer.normalize(request.getClassCode()) : existing.getClassCode();
+        String className = request.getClassName() != null
+                ? StringNormalizer.normalize(request.getClassName())
+                : existing.getClassName();
 
-        // ===== DUPLICATE CHECK (exclude itself) =====
-        if (request.getClassName() != null && classRepository.existsByClassNameIgnoreCaseAndIdNot(className, id)) {
+        String classCode = request.getClassCode() != null
+                ? StringNormalizer.normalize(request.getClassCode())
+                : existing.getClassCode();
+
+        if (request.getClassName() != null &&
+                classRepository.existsByClassNameIgnoreCaseAndIdNot(className, id)) {
             throw new RuntimeException("Class name already exists");
         }
 
-        if (request.getClassCode() != null && classRepository.existsByClassCodeIgnoreCaseAndIdNot(classCode, id)) {
+        if (request.getClassCode() != null &&
+                classRepository.existsByClassCodeIgnoreCaseAndIdNot(classCode, id)) {
             throw new RuntimeException("Class code already exists");
         }
 
-        // ===== DATE CHECK =====
         LocalDate today = LocalDate.now();
 
         if (request.getStartDate() != null && request.getStartDate().isBefore(today)) {
@@ -142,14 +152,20 @@ public class ClassServiceImpl implements ClassService {
             throw new RuntimeException("End date must be today or in the future");
         }
 
-        LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : existing.getStartDate();
-        LocalDate endDate = request.getEndDate() != null ? request.getEndDate() : existing.getEndDate();
+        LocalDate startDate = request.getStartDate() != null
+                ? request.getStartDate()
+                : existing.getStartDate();
+
+        LocalDate endDate = request.getEndDate() != null
+                ? request.getEndDate()
+                : existing.getEndDate();
 
         if (startDate.isAfter(endDate)) {
             throw new RuntimeException("Start date must be before end date");
         }
 
         Semester semester = existing.getSemester();
+
         if (request.getSemesterId() != null) {
             semester = semesterRepository.findById(request.getSemesterId())
                     .orElseThrow(() -> new RuntimeException("Semester not found"));
@@ -157,6 +173,13 @@ public class ClassServiceImpl implements ClassService {
             if (semester.getEndDate().isBefore(today)) {
                 throw new RuntimeException("Cannot assign class to past semester");
             }
+        }
+
+        TrainingProgram program = existing.getTrainingProgram();
+
+        if (request.getTrainingProgramId() != null) {
+            program = trainingProgramRepository.findById(request.getTrainingProgramId())
+                    .orElseThrow(() -> new RuntimeException("Training program not found"));
         }
 
         if (startDate.isBefore(semester.getStartDate())
@@ -167,14 +190,23 @@ public class ClassServiceImpl implements ClassService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // ===== UPDATE DATA =====
-        if (request.getClassName() != null) existing.setClassName(className);
-        if (request.getClassCode() != null) existing.setClassCode(classCode);
-        if (request.getSemesterId() != null) existing.setSemester(semester);
-        if (request.getStartDate() != null) existing.setStartDate(startDate);
-        if (request.getEndDate() != null) existing.setEndDate(endDate);
+        if (request.getClassName() != null)
+            existing.setClassName(className);
 
-        // existing.setCreator(user); // Usually creator doesn't change on update.
+        if (request.getClassCode() != null)
+            existing.setClassCode(classCode);
+
+        if (request.getSemesterId() != null)
+            existing.setSemester(semester);
+
+        if (request.getTrainingProgramId() != null)
+            existing.setTrainingProgram(program);
+
+        if (request.getStartDate() != null)
+            existing.setStartDate(startDate);
+
+        if (request.getEndDate() != null)
+            existing.setEndDate(endDate);
 
         TrainingClass saved = classRepository.save(existing);
 
@@ -182,6 +214,20 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
+    public Page<ClassResponse> searchTrainingClasses(SearchClassRequest request, Pageable pageable) {
+        Specification<TrainingClass> spec = Specification
+                .where(ClassSpecification.filterClasses(request));
+
+        Page<TrainingClass> page = classRepository.findAll(spec, pageable);
+        return page.map(mapper::toResponse);
+    }
+
+    @Override
+    public List<TrainingClassSemesterResponse> getMyClasses(UUID id) {
+        List<TrainingClass> classes = classRepository.findByStudentId(id);
+        return mapper.toSemesterResponse(classes);
+    }
+
     public ClassResponse approveClass(UUID id, String approverEmail, ReviewClassRequest request) {
 
         TrainingClass trainingClass = classRepository.findById(id)
@@ -196,11 +242,12 @@ public class ClassServiceImpl implements ClassService {
 
         trainingClass.setClassStatus(ClassStatus.APPROVED);
         trainingClass.setApprover(approver);
+        // trainingClass.setEnrollmentKey(generateEnrollmentKey());
+
         if (request != null) {
             trainingClass.setReviewReason(request.getReviewReason());
         }
 
-        // 🔥 NEW LOGIC
         if (!trainingClass.getStartDate().isAfter(LocalDate.now())) {
             trainingClass.setIsActive(true);
         } else {
@@ -237,18 +284,56 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
-    public Page<ClassResponse> searchTrainingClasses(SearchClassRequest request) {
-        String keyword = request.getKeyword();
-        if (keyword != null) {
-            keyword = keyword.trim();
-            if (keyword.isEmpty()) {
-                keyword = null;
-            }
+    public TrainerClassSemesterResponse getTrainerClasses(UUID trainerId, SearchTrainerClassInSemesterRequest request) {
+        Specification<TrainingClass> spec = ClassSpecification.filterTrainerClasses(trainerId, request);
+        List<TrainingClass> classes = classRepository.findAll(spec);
+        if (classes.isEmpty()) {
+            throw new RuntimeException(ErrorMessage.TRAINING_CLASS_NOT_FOUND);
         }
+        var mappedClasses = trainerClassMapper.toTrainerClassResponseList(classes);
 
-        return classRepository
-                .search(keyword, request.getIsActive(), request.getPageable())
-                .map(mapper::toResponse);
+        var semester = semesterRepository.findById(request.getSemesterId())
+                .orElseThrow(() -> new RuntimeException(ErrorMessage.SEMESTER_NOT_FOUND));
+
+        var res = new TrainerClassSemesterResponse();
+        res.setSemesterID(request.getSemesterId());
+        res.setSemesterName(semester.getName());
+        res.setClasses(mappedClasses);
+
+        return res;
     }
+
+    @Override
+    public Map<String, Object> importClasses(MultipartFile file) {
+        // Mock implementation to resolve method not supported error
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "Import functionality is not yet implemented in the backend.");
+        result.put("totalCount", 0);
+        result.put("successCount", 0);
+        result.put("failedCount", 0);
+        result.put("errorFile", null); // Return base64 string if there are errors
+        return result;
+    }
+
+    @Override
+    public ByteArrayResource exportClasses() {
+        // Mock implementation
+        return new ByteArrayResource(new byte[0]);
+    }
+
+    @Override
+    public ByteArrayResource getTemplate() {
+        // Mock implementation
+        return new ByteArrayResource(new byte[0]);
+    }
+
+//    private String generateEnrollmentKey() {
+//        return UUID.randomUUID()
+//                .toString()
+//                .replace("-", "")
+//                .substring(0, 8)
+//                .toUpperCase();
+//    }
+
 
 }

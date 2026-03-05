@@ -81,6 +81,13 @@ public interface TopicMarkService {
     ImportResultResponse importGradebook(UUID courseClassId, MultipartFile file, UUID editorId);
 
     /**
+     * Get paginated score-change history for a course class.
+     * Sorted by updatedAt desc by default.
+     */
+    ScoreHistoryResponse getScoreHistory(UUID courseClassId,
+                                         org.springframework.data.domain.Pageable pageable);
+
+    /**
      * Initialize TopicMark + null entries for a newly enrolled student.
      * Called by EnrollmentService when a student joins a training class.
      */

@@ -8,6 +8,9 @@ export interface Course {
   id: string
   courseName: string
   courseCode: string
+  topicId?: string | null
+  topicName?: string | null
+  topicCode?: string | null
 }
 
 export interface Trainer {
@@ -17,9 +20,16 @@ export interface Trainer {
   email: string
 }
 
+export interface ClassInfo {
+  id: string
+  className: string
+  classCode: string
+}
+
 export interface CourseClasses {
   id: string
   course: Course
+  classInfo: ClassInfo
   trainer: Trainer
   createdAt: string
   updatedAt: string
@@ -35,14 +45,15 @@ export interface GradebookColumnMeta {
   assessmentTypeId: string | null
   assessmentTypeName: string | null
   weight: number | null
-  gradingMethod: string | null
   columnIndex: number | null
 }
 
 export interface GradebookRow {
   userId: string
+  courseClassId: string
   fullName: string
   email: string
+  topic: string | null
   values: Record<string, number | boolean | null>
 }
 
@@ -52,3 +63,33 @@ export interface GradebookDataTable {
 }
 
 export type GradebookTableResponse = ApiResponse<GradebookDataTable>
+
+export interface GradeHistoryItem {
+  id: string
+  student: {
+    id: string
+    name: string
+  }
+  column: {
+    id: string
+    name: string
+  }
+  oldScore: number
+  newScore: number
+  changeType: "INCREASE" | "DECREASE"
+  reason: string
+  updatedBy: {
+    id: string
+    name: string
+  }
+  updatedAt: string
+}
+
+export interface GradeHistoryPageResponse<T> {
+  content: T[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  sort?: string
+}

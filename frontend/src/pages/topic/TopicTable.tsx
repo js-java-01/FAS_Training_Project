@@ -10,7 +10,7 @@ import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-import EntityImportExportButton from "@/components/data_table/button/EntityImportExportBtn";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 
 import { topicApi, type Topic } from "@/api/topicApi";
 import { getColumns } from "./components/columns";
@@ -47,7 +47,9 @@ export default function TopicTable() {
   const statusParam = statusFilter.length === 1 ? statusFilter[0] : undefined;
 
   /* ---------- sort param ---------- */
-  const sortParam = useSortParam(sorting, "createdDate,desc");
+  const rawSort = useSortParam(sorting, "createdDate,desc");
+
+  const sortParam = rawSort.replace("name", "topicName");
 
   /* ---------- query (Sử dụng hook useGetAllTopics) ---------- */
   const {
@@ -98,10 +100,6 @@ export default function TopicTable() {
     () =>
       getColumns({
         onView: (t) => navigate(`/topics/${t.id}`),
-        onEdit: (t) => {
-          setEditTopic(t);
-          setShowCreateModal(true);
-        },
         onDelete: (t) => setDeletingTopic(t),
       }),
     [navigate],
@@ -121,7 +119,6 @@ export default function TopicTable() {
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        searchPlaceholder="topic name or code"
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}

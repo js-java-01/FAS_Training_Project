@@ -18,4 +18,11 @@ public class ErrorMessage
     public static final String TOKEN_DOES_NOT_EXIST = "Token does not exist in the database";
     public static final String TOKEN_HAS_BEEN_REVOKED = "Token has been revoked";
     public static final String TOKEN_HAS_BEEN_USED = "Token has been used. Please login again to get a new token.";
+
+    // TRAINING CLASS
+    public static final String TRAINING_CLASS_NOT_FOUND = "Training Class not found";
+
+    // SEMESTER
+    public static final String SEMESTER_NOT_FOUND = "Semester not found";
+    public static final String SEMESTER_NAME_EXISTED = "Semester name already exists. Please choose a different name.";
 }

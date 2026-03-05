@@ -4,8 +4,9 @@ import { ROLES } from "@/types/role";
 import { lazy, Suspense } from "react";
 
 const StudentComponent = lazy(
-  () => import("./StudentClassManagement")
+  () => import("../training-classes/trainee/StudentClassManagement")
 );
+
 
 const UnauthorizedComponent = lazy(
   () => import("../Unauthorized")
@@ -15,11 +16,16 @@ const AdminComponent = lazy(
   () => import("../training-classes/TrainingClassesManagement")
 );
 
+const TrainerComponent = lazy(
+  () => import("../training-classes/trainer/TrainerClassesManagament")
+);
+
 
 const roleComponents = {
   student: StudentComponent,
   unauthorized: UnauthorizedComponent,
-  admin: AdminComponent
+  admin: AdminComponent,
+  trainer: TrainerComponent,
 };
 
 export default function ClassesComponent() {
@@ -28,6 +34,9 @@ export default function ClassesComponent() {
     switch (activeRole?.name) {
       case ROLES.STUDENT:
         return roleComponents.student;
+
+        case ROLES.TRAINER:
+          return roleComponents.trainer;
 
       case ROLES.SUPER_ADMIN:
       case ROLES.ADMIN:
@@ -41,8 +50,8 @@ export default function ClassesComponent() {
   const Component = getComponents();
 
   return (
-    <Suspense fallback={<MainLayoutSkeleton/>}>
-      <Component />
+    <Suspense fallback={<MainLayoutSkeleton />}>
+      <Component  />
     </Suspense>
   );
 }

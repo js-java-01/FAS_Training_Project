@@ -30,6 +30,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader,
+  ColumnsSettings,
 } from "lucide-react";
 import "animate.css";
 import {
@@ -63,7 +64,6 @@ interface DataTableProps<TData, TValue> {
   isSearch?: boolean;
   manualSearch?: boolean;
   searchValue?: string[];
-  searchPlaceholder?: string;
   onSearchChange?: (search: string) => void;
   //SORTED
   sorting?: SortingState;
@@ -76,6 +76,7 @@ interface DataTableProps<TData, TValue> {
   // Row click
   onRowClick?: (row: TData) => void;
 }
+
 
 export function DataTable<TData, TValue>({
   columns,
@@ -92,7 +93,6 @@ export function DataTable<TData, TValue>({
   //SEARCH
   isSearch = false,
   searchValue = [],
-  searchPlaceholder,
   onSearchChange,
   manualSearch = false,
   //SORTED
@@ -147,12 +147,14 @@ export function DataTable<TData, TValue>({
         Math.floor(usableHeight / rowHeight),
         MIN_ROWS,
       );
+      let pageSizeChanged = false;
       // Update pagination state with new page size
       setPagination((prev) => {
         if (prev.pageSize === newSize) return prev; // prevent re-render loop
+        pageSizeChanged = true;
         return { ...prev, pageSize: newSize };
       });
-      if (onPageSizeChange) onPageSizeChange(newSize);
+      if (pageSizeChanged && onPageSizeChange) onPageSizeChange(newSize);
     });
 
     observer.observe(el);
@@ -198,8 +200,11 @@ export function DataTable<TData, TValue>({
       const next =
         typeof updater === "function" ? updater(pagination) : updater;
       setPagination(next);
-      if (onPageChange) onPageChange(next.pageIndex);
-      if (onPageSizeChange) onPageSizeChange(next.pageSize);
+      const pageIndexChanged = next.pageIndex !== pagination.pageIndex;
+      const pageSizeChanged = next.pageSize !== pagination.pageSize;
+
+      if (pageIndexChanged && onPageChange) onPageChange(next.pageIndex);
+      if (pageSizeChanged && onPageSizeChange) onPageSizeChange(next.pageSize);
       if (onSearchChange) onSearchChange(searchText);
     },
     // Handle sorting change - manualSorting = false
@@ -250,55 +255,23 @@ export function DataTable<TData, TValue>({
       >
         <div
           className={cn(
-            "flex gap-2 w-full",
-             headerActions ? "flex-col" : "flex-col lg:flex-row items-center"
+            "flex gap-2 w-full flex-col lg:flex-row items-center"
           )}
         >
-          {/* Row 1: Columns + Search */}
-          <div className="flex flex-col lg:flex-row justify-start items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full !outline-none lg:w-28"
-                >
-                  Columns <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {table
-                  .getAllColumns()
-                  .filter((column) => column.getCanHide())
-                  .map((column) => (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.columnDef.meta?.title ?? column.id}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {isSearch && (
-              <div className="relative w-full lg:w-[420px]">
-                <Search
-                  size={16}
-                  className="absolute text-gray-500 top-[10px] left-2"
-                />
-                <Input
-                  placeholder={`Search by ${searchPlaceholder}...`}
-                  value={searchText}
-                  onChange={(e) => handleSearchInput(e.target.value)}
-                  className="pl-8 w-full"
-                />
-              </div>
-            )}
-          </div>
+          {isSearch && (
+            <div className="relative w-full lg:w-[420px]">
+              <Search
+                size={16}
+                className="absolute text-gray-500 top-[10px] left-2"
+              />
+              <Input
+                placeholder="Search value..."
+                value={searchText}
+                onChange={(e) => handleSearchInput(e.target.value)}
+                className="pl-8 w-full"
+              />
+            </div>
+          )}
 
           {/* Faceted filters */}
           {facetedFilters && (
@@ -333,9 +306,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                       {header.column.getCanResize() && (
                         <div
                           onMouseDown={header.getResizeHandler()}

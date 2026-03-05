@@ -93,8 +93,8 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`pb-2 text-sm transition-all ${activeTab === tab
-                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
-                  : "text-gray-500 hover:text-gray-700"
+                ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                : "text-gray-500 hover:text-gray-700"
                 }`}
             >
               {tab}
@@ -179,11 +179,10 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
                 )}
               </div>
               <span
-                className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${
-                  topic.status === "ACTIVE"
+                className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${topic.status === "ACTIVE"
                     ? "text-emerald-700 border-emerald-300"
                     : "text-gray-500 border-gray-300"
-                }`}
+                  }`}
               >
                 {topic.status}
               </span>

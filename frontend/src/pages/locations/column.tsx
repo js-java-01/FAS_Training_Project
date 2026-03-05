@@ -1,12 +1,12 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import type { Location } from "@/types/location";
-import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
 import { EditIcon, EyeIcon, Trash } from "lucide-react";
 import dayjs from "dayjs";
 import { Badge } from "@/components/ui/badge";
 import SortHeader from "@/components/data_table/SortHeader";
 import FilterHeader from "@/components/data_table/FilterHeader";
+import { createBaseColumns } from "@/components/data_table/baseColumns";
 
 export type TableActions = {
     onView?: (row: Location) => void;
@@ -15,43 +15,14 @@ export type TableActions = {
 };
 
 export const getColumns = (actions?: TableActions) => {
-    const columnHelper = createColumnHelper<Location>();
-
+  const columnHelper = createColumnHelper<Location>();
+  const base = createBaseColumns<Location>();
     return [
         /* ================= SELECT ================= */
-        columnHelper.display({
-            id: "select",
-            size: 50,
-            header: ({ table }) => (
-                <Checkbox
-                    checked={table.getIsAllPageRowsSelected()}
-                    onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
-                    aria-label="Select all"
-                />
-            ),
-            cell: ({ row }) => (
-                <Checkbox
-                    checked={row.getIsSelected()}
-                    onCheckedChange={(v) => row.toggleSelected(!!v)}
-                    aria-label="Select row"
-                />
-            ),
-            enableSorting: false,
-        }),
+        base.columnControl,
 
         /* ================= NUMBER ================= */
-        columnHelper.display({
-            id: "number",
-            header: "#",
-            size: 60,
-            cell: ({ row, table }) =>
-                row.index +
-                1 +
-                table.getState().pagination.pageIndex *
-                    table.getState().pagination.pageSize,
-            enableSorting: false,
-            enableHiding: false,
-        }),
+        base.columnControl,
 
         /* ================= NAME ================= */
         columnHelper.accessor("name", {
@@ -161,5 +132,7 @@ export const getColumns = (actions?: TableActions) => {
             ),
             enableSorting: false,
         }),
+
+        base.columnControl,
     ];
 };

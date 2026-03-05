@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -17,6 +18,7 @@ public class ClassResponse {
     private String className;
     private String description;
     private String classCode;
+    private String enrollmentKey;
     private Boolean isActive;
 
     private String status;
@@ -24,7 +26,12 @@ public class ClassResponse {
     private String creatorName;
     private String approverName;
 
+    private List<String> trainerNames;
+
     private String semesterName;
+
+    private UUID trainingProgramId;
+    private String trainingProgramName;
 
     private LocalDate startDate;
     private LocalDate endDate;
