@@ -7,6 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAutoPageSize } from "@/hooks/useAutoPageSize";
+import { ChevronRight } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import Loading from "./common/Loading";
 import NoResult from "./common/NoResult";
@@ -86,6 +87,14 @@ interface ProTableProps<TData = any> {
 
   /** Hide default actions completely (for display-only tables) */
   hideActions?: boolean;
+
+  /** Optional: Expandable row configuration */
+  expandable?: {
+    /** Whether expandable rows are enabled */
+    enabled: boolean;
+    /** Render the expanded content row below a given row */
+    renderExpandedRow?: (row: TData) => React.ReactNode;
+  };
 }
 
 export function ProTable<TData = any>({
@@ -100,6 +109,7 @@ export function ProTable<TData = any>({
   autoPageSize = true,
   rowHeight = 49,
   hideActions = false,
+  expandable,
 }: ProTableProps<TData>) {
   const { schema } = table;
 
@@ -109,6 +119,21 @@ export function ProTable<TData = any>({
     rowHeight,
     onSizeChange: isAutoSize ? table.setSize : undefined,
   });
+
+  // Expandable row state
+  const [expandedRows, setExpandedRows] = useState<Set<string | number>>(new Set());
+  const toggleExpand = useCallback((id: string | number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
 
   // Internal modal state (used when overrides are not provided)
   const [deleteItem, setDeleteItem] = useState<TData | null>(null);
@@ -211,6 +236,7 @@ export function ProTable<TData = any>({
           <>
             <Table className="table-fixed">
               <colgroup>
+                {expandable?.enabled && <col style={{ width: 40 }} />}
                 <col style={{ width: 20 }} />
                 <col style={{ width: 50 }} />
                 {table.visibleFields.map((f: any) => (
@@ -220,6 +246,7 @@ export function ProTable<TData = any>({
               </colgroup>
               <TableHeader className="bg-background z-10 sticky top-0 shadow-xs">
                 <TableRow>
+                  {expandable?.enabled && <TableHead style={{ width: 40 }} />}
                   <TableHead style={{ width: 20 }}>
                     <SelectAllCheckbox table={table} idField={schema.idField} />
                   </TableHead>
@@ -246,49 +273,79 @@ export function ProTable<TData = any>({
                 <TableBody className={table.isFetching ? "opacity-50 transition-opacity" : "transition-opacity"}>
                   {table.data.map((row: any, index: number) => {
                     const id = row[schema.idField];
+                    const isExpanded = expandable?.enabled && expandedRows.has(id);
+                    const expandColSpan =
+                      (expandable?.enabled ? 1 : 0) + 1 + 1 +
+                      table.visibleFields.length +
+                      (showActionsColumn ? 1 : 0);
 
                     return (
-                      <TableRow
-                        key={id}
-                        className="w-full odd:bg-accent even:bg-background"
-                        onClick={(e) => {
-                          try {
-                            const target = e.target as HTMLElement | null;
-                            if (target && target.closest("button, a, input, label"))
-                              return;
-                          } catch (err) {
-                            console.error("Error checking click target:", err);
-                          }
-                          if (onRowClick) onRowClick(row);
-                        }}
-                      >
-                        <TableCell>
-                          <RowSelection id={id} table={table} />
-                        </TableCell>
+                      <>
+                        <TableRow
+                          key={id}
+                          className="w-full odd:bg-accent even:bg-background"
+                          onClick={(e) => {
+                            try {
+                              const target = e.target as HTMLElement | null;
+                              if (target && target.closest("button, a, input, label"))
+                                return;
+                            } catch (err) {
+                              console.error("Error checking click target:", err);
+                            }
+                            if (onRowClick) onRowClick(row);
+                          }}
+                        >
+                          {expandable?.enabled && (
+                            <TableCell className="p-0 text-center">
+                              <button
+                                className="flex items-center justify-center w-full h-full p-2 text-muted-foreground hover:text-foreground transition-colors"
+                                onClick={(e) => toggleExpand(id, e)}
+                                aria-label={isExpanded ? "Collapse row" : "Expand row"}
+                              >
+                                <ChevronRight
+                                  className="h-4 w-4 transition-transform duration-200"
+                                  style={{ transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}
+                                />
+                              </button>
+                            </TableCell>
+                          )}
 
-                        <TableCell className="text-center text-muted-foreground">
-                          {(table.page || 0) * (table.size || 10) + index + 1}
-                        </TableCell>
-
-                        {table.visibleFields.map((f: any) => (
-                          <CellRenderer
-                            key={f.name}
-                            field={f}
-                            value={row[f.name]}
-                            relationOptions={table.relationOptions}
-                            onBooleanToggle={(fieldName, newValue) => {
-                              table.patchField(id, fieldName, newValue);
-                            }}
-                            dateFormat={f.type === "date" ? (dateFormats[f.name] ?? "datetime") : undefined}
-                          />
-                        ))}
-
-                        {showActionsColumn && (
-                          <TableCell className="flex gap-1">
-                            {finalRenderRowActions(row)}
+                          <TableCell>
+                            <RowSelection id={id} table={table} />
                           </TableCell>
+
+                          <TableCell className="text-center text-muted-foreground">
+                            {(table.page || 0) * (table.size || 10) + index + 1}
+                          </TableCell>
+
+                          {table.visibleFields.map((f: any) => (
+                            <CellRenderer
+                              key={f.name}
+                              field={f}
+                              value={row[f.name]}
+                              relationOptions={table.relationOptions}
+                              onBooleanToggle={(fieldName, newValue) => {
+                                table.patchField(id, fieldName, newValue);
+                              }}
+                              dateFormat={f.type === "date" ? (dateFormats[f.name] ?? "datetime") : undefined}
+                            />
+                          ))}
+
+                          {showActionsColumn && (
+                            <TableCell className="flex gap-1">
+                              {finalRenderRowActions(row)}
+                            </TableCell>
+                          )}
+                        </TableRow>
+
+                        {isExpanded && expandable?.renderExpandedRow && (
+                          <TableRow key={`${id}-expanded`} className="bg-background hover:bg-background">
+                            <TableCell colSpan={expandColSpan} className="p-0 border-b">
+                              {expandable.renderExpandedRow(row)}
+                            </TableCell>
+                          </TableRow>
                         )}
-                      </TableRow>
+                      </>
                     );
                   })}
                 </TableBody>

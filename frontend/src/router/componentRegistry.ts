@@ -21,13 +21,13 @@ import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import CourseDetailPage from "@/pages/course/CourseDetailPage";
 import StudentCourseContent from "@/pages/learning/StudentCourseContent";
 import { AssessmentFormPage } from "@/pages/teacher-assessment";
-import { CreateQuestionPage, EditQuestionPage, QuestionManagementPage } from "@/pages/assessment/question";
 import UserManagement from "@/pages/user/management";
 import { AttemptHistoryPage, QuizPage, ResultPage, SelectAssessmentPage } from "@/pages/assessment";
 import { RoleManagementPage } from "@/pages/role";
 import ProgrammingLanguageManagement from "@/pages/programming-language";
 import AssessmentTypeManagementPage from "@/pages/assessment-type/management";
 import ProTableQuestionManagementPage from "@/pages/assessment/question/management";
+import { CreateQuestionPage, EditQuestionPage } from "@/pages/assessment/question";
 
 // ── Route Configuration Types ─────────────────────────────────────────────────
 export interface RouteConfig {
