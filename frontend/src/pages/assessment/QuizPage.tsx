@@ -68,13 +68,31 @@ export default function QuizPage() {
     getSubmissionForReview(submissionId)
       .then((data) => {
         setSubmission(data);
-        // Pre-fill answers already saved
+        // Pre-fill answers already saved on the server
         const map = new Map<string, LocalAnswer>();
         data.questions?.forEach((q) => {
           if (q.userAnswer) {
             map.set(q.id, { submissionQuestionId: q.id, answerValue: q.userAnswer });
           }
         });
+        // Restore locally saved progress (overrides server data – more recent)
+        const saved = localStorage.getItem(`quiz_progress_${submissionId}`);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed.answers)) {
+              (parsed.answers as [string, LocalAnswer][]).forEach(([k, v]) => map.set(k, v));
+            }
+            if (Array.isArray(parsed.markedForReview)) {
+              setMarkedForReview(new Set(parsed.markedForReview as string[]));
+            }
+            if (typeof parsed.currentPage === "number") {
+              setCurrentPage(parsed.currentPage);
+            }
+          } catch {
+            // ignore malformed data
+          }
+        }
         setAnswers(map);
         // Set countdown timer
         if (data.remainingTimeSeconds != null) {
@@ -84,6 +102,17 @@ export default function QuizPage() {
       .catch(() => toast.error("Failed to load submission."))
       .finally(() => setIsLoading(false));
   }, [submissionId]);
+
+  // ===== Persist progress to localStorage =====
+  useEffect(() => {
+    if (!submissionId || isLoading) return;
+    const data = {
+      answers: Array.from(answers.entries()),
+      markedForReview: Array.from(markedForReview),
+      currentPage,
+    };
+    localStorage.setItem(`quiz_progress_${submissionId}`, JSON.stringify(data));
+  }, [answers, markedForReview, currentPage, submissionId, isLoading]);
 
   // ===== Countdown timer =====
   useEffect(() => {
@@ -110,6 +139,7 @@ export default function QuizPage() {
     if (!submissionId) return;
     try {
       await apiSubmitSubmission(submissionId);
+      localStorage.removeItem(`quiz_progress_${submissionId}`);
       navigate(`/assessments/result/${submissionId}`, { replace: true });
     } catch {
       toast.error("Auto-submit failed.");
@@ -153,23 +183,8 @@ export default function QuizPage() {
         return next;
       });
 
-      // Save answer to server (fire-and-forget, non-blocking)
-      if (submissionId) {
-        const q = questions.find((q) => q.id === questionId);
-        const existing = answers.get(questionId)?.answerValue ?? "";
-        let newVal: string;
-        if (q?.questionType === "MULTI_CHOICE") {
-          const sel = new Set(existing ? existing.split(",") : []);
-          if (sel.has(optionId)) sel.delete(optionId); else sel.add(optionId);
-          newVal = Array.from(sel).join(",");
-        } else {
-          newVal = optionId;
-        }
-        apiSubmitAnswer(submissionId, { submissionQuestionId: questionId, answerValue: newVal })
-          .catch(() => { /* silent – answer saved locally */ });
-      }
     },
-    [questions, submissionId, answers]
+    [questions]
   );
 
   const handleFillInChange = useCallback(
@@ -196,15 +211,14 @@ export default function QuizPage() {
     if (!submissionId) return;
     setIsSubmitting(true);
     try {
-      // Flush any unanswered fill-in answers first
-      const fillAnswers = Array.from(answers.values()).filter(
-        (a) => a.answerValue && !questions.find((q) => q.id === a.submissionQuestionId)?.options?.length
-      );
-      for (const a of fillAnswers) {
+      // Flush all locally stored answers to the server before submitting
+      const allAnswers = Array.from(answers.values()).filter((a) => a.answerValue !== "");
+      for (const a of allAnswers) {
         await apiSubmitAnswer(submissionId, { submissionQuestionId: a.submissionQuestionId, answerValue: a.answerValue });
       }
 
       const result = await apiSubmitSubmission(submissionId);
+      localStorage.removeItem(`quiz_progress_${submissionId}`);
       toast.success(result.isPassed ? "🎉 Congratulations! You passed!" : "Quiz submitted successfully.");
       navigate(`/assessments/result/${submissionId}`, { replace: true });
     } catch {
