@@ -2,8 +2,9 @@ package com.example.starter_project_2025.system.topic_mark.service.impl;
 
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
-import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
-import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_type.AssessmentTypeRepository;
+import com.example.starter_project_2025.system.rbac.user.User;
+import com.example.starter_project_2025.system.rbac.user.UserRepository;
 import com.example.starter_project_2025.system.topic_assessment_type_weight.entity.repository.TopicAssessmentTypeWeightRepository;
 
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
@@ -15,8 +16,6 @@ import com.example.starter_project_2025.system.topic_mark.entity.*;
 import com.example.starter_project_2025.system.topic_mark.enums.ChangeType;
 import com.example.starter_project_2025.system.topic_mark.repository.*;
 import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ImportResultResponse;
 import com.example.starter_project_2025.system.modulegroups.dto.response.ImportErrorDetail;
 import org.springframework.web.multipart.MultipartFile;
@@ -137,7 +136,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
 
         UUID topicId = resolveTopicId(courseClass);
-        Map<String, Double> weightByAssessmentTypeId = topicId == null
+        Map<UUID, Double> weightByAssessmentTypeId = topicId == null
                 ? Collections.emptyMap()
                 : topicAssessmentTypeWeightRepository.findByTopicId(topicId)
                         .stream()
@@ -283,7 +282,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         List<TopicMarkColumn> columns = topicMarkColumnRepository.findActiveByCourseClassId(courseClassId);
 
         UUID topicId = resolveTopicId(courseClass);
-        Map<String, Double> weightByAssessmentTypeId = topicId == null
+        Map<UUID, Double> weightByAssessmentTypeId = topicId == null
                 ? Collections.emptyMap()
                 : topicAssessmentTypeWeightRepository.findByTopicId(topicId)
                         .stream()
@@ -300,15 +299,15 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                         TopicMarkEntry::getScore,
                         (left, right) -> right));
 
-        Map<String, List<TopicMarkColumn>> columnsByType = columns.stream()
+        Map<UUID, List<TopicMarkColumn>> columnsByType = columns.stream()
                 .collect(Collectors.groupingBy(
                         c -> c.getAssessmentType().getId(),
                         LinkedHashMap::new,
                         Collectors.toList()));
 
         List<TopicMarkDetailResponse.AssessmentTypeSection> sections = new ArrayList<>();
-        for (Map.Entry<String, List<TopicMarkColumn>> grouped : columnsByType.entrySet()) {
-            String typeId = grouped.getKey();
+        for (Map.Entry<UUID, List<TopicMarkColumn>> grouped : columnsByType.entrySet()) {
+            UUID typeId = grouped.getKey();
             List<TopicMarkColumn> typeCols = grouped.getValue();
 
             List<TopicMarkDetailResponse.ColumnScore> colScores = typeCols.stream()
@@ -604,7 +603,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             return;
         }
 
-        Map<String, Double> weightByAssessmentTypeId = topicAssessmentTypeWeightRepository.findByTopicId(topicId)
+        Map<UUID, Double> weightByAssessmentTypeId = topicAssessmentTypeWeightRepository.findByTopicId(topicId)
                 .stream()
                 .filter(w -> w.getAssessmentType() != null && w.getWeight() != null)
                 .collect(Collectors.toMap(
@@ -620,7 +619,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             return;
         }
 
-        Set<String> activeAssessmentTypeIds = activeColumns.stream()
+        Set<UUID> activeAssessmentTypeIds = activeColumns.stream()
                 .map(c -> c.getAssessmentType().getId())
                 .collect(Collectors.toSet());
         boolean hasMissingWeight = activeAssessmentTypeIds.stream()
@@ -633,18 +632,18 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             return;
         }
 
-        Map<String, Long> columnCountByType = activeColumns.stream()
+        Map<UUID, Long> columnCountByType = activeColumns.stream()
                 .collect(Collectors.groupingBy(
                         c -> c.getAssessmentType().getId(),
                         Collectors.counting()));
 
-        Map<String, List<Double>> scoresByType = activeColumns.stream()
+        Map<UUID, List<Double>> scoresByType = activeColumns.stream()
                 .collect(Collectors.groupingBy(
                         c -> c.getAssessmentType().getId(),
                         Collectors.mapping(c -> scoreByColumnId.get(c.getId()), Collectors.toList())));
 
         double finalScore = 0.0;
-        for (Map.Entry<String, List<Double>> entry : scoresByType.entrySet()) {
+        for (Map.Entry<UUID, List<Double>> entry : scoresByType.entrySet()) {
             Double typeWeight = weightByAssessmentTypeId.get(entry.getKey());
             if (typeWeight == null) {
                 continue;

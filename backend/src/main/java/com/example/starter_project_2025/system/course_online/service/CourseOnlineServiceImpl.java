@@ -1,6 +1,5 @@
 package com.example.starter_project_2025.system.course_online.service;
 
-import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import com.example.starter_project_2025.system.course_online.dto.CourseCreateOnlineRequest;
 import com.example.starter_project_2025.system.course_online.dto.CourseOnlineResponse;
@@ -10,6 +9,7 @@ import com.example.starter_project_2025.system.course_online.enums.CourseLevelOn
 import com.example.starter_project_2025.system.course_online.enums.CourseStatusOnline;
 import com.example.starter_project_2025.system.course_online.mapper.CourseOnlineMapper;
 import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
+import com.example.starter_project_2025.system.rbac.user.User;
 import com.example.starter_project_2025.system.rbac.user.UserRepository;
 import com.example.starter_project_2025.system.rbac.user.UserService;
 import org.springframework.security.core.context.SecurityContextHolder;

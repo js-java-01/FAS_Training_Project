@@ -10,6 +10,6 @@ import java.util.UUID;
 public class ProgramCourseResponse {
 
     private UUID id;
-    private long programmingLanguageId;
+    private UUID programmingLanguageId;
     private UUID trainingProgramId;
 }

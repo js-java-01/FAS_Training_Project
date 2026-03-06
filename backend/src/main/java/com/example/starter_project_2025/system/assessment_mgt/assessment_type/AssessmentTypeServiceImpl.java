@@ -1,16 +1,8 @@
-<<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/assessment/assessment_type/AssessmentTypeServiceImpl.java
-package com.example.starter_project_2025.system.assessment.assessment_type;
-
-import com.example.starter_project_2025.base.mapper.BaseCrudMapper;
-import com.example.starter_project_2025.base.repository.BaseCrudRepository;
-import com.example.starter_project_2025.base.service.CrudServiceImpl;
-========
 package com.example.starter_project_2025.system.assessment_mgt.assessment_type;
 
 import com.example.starter_project_2025.base.crud.BaseCrudMapper;
 import com.example.starter_project_2025.base.crud.BaseCrudRepository;
 import com.example.starter_project_2025.base.crud.CrudServiceImpl;
->>>>>>>> 969201241eddad103d8fabc8223f98735ac13075:backend/src/main/java/com/example/starter_project_2025/system/assessment_mgt/assessment_type/AssessmentTypeServiceImpl.java
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

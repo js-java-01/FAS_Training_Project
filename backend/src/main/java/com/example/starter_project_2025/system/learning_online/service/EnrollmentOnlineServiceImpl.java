@@ -9,9 +9,9 @@ import com.example.starter_project_2025.system.learning_online.dto.EnrollmentOnl
 import com.example.starter_project_2025.system.learning_online.entity.EnrollmentOnline;
 import com.example.starter_project_2025.system.learning_online.enums.EnrollmentStatusOnline;
 import com.example.starter_project_2025.system.learning_online.repository.EnrollmentOnlineRepository;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
 
+import com.example.starter_project_2025.system.rbac.user.User;
+import com.example.starter_project_2025.system.rbac.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;

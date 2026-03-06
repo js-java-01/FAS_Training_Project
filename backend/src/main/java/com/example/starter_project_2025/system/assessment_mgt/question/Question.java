@@ -1,17 +1,8 @@
-<<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/assessment/question/Question.java
-package com.example.starter_project_2025.system.assessment.question;
-
-import com.example.starter_project_2025.system.assessment.question_category.QuestionCategory;
-import com.example.starter_project_2025.system.assessment.question_option.QuestionOption;
-import com.example.starter_project_2025.system.assessment.question_tag.QuestionTag;
-========
 package com.example.starter_project_2025.system.assessment_mgt.question;
 
 import com.example.starter_project_2025.system.assessment_mgt.question_category.QuestionCategory;
 import com.example.starter_project_2025.system.assessment_mgt.question_option.QuestionOption;
 import com.example.starter_project_2025.system.assessment_mgt.question_tag.QuestionTag;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
->>>>>>>> 969201241eddad103d8fabc8223f98735ac13075:backend/src/main/java/com/example/starter_project_2025/system/assessment_mgt/question/Question.java
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

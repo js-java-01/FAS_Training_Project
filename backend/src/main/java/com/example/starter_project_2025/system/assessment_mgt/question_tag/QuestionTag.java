@@ -1,13 +1,3 @@
-<<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/assessment/question_tag/QuestionTag.java
-package com.example.starter_project_2025.system.assessment.question_tag;
-
-
-import com.example.starter_project_2025.system.assessment.question.Question;
-import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportEntity;
-import com.example.starter_project_2025.system.dataio.exporter.annotation.ExportField;
-import com.example.starter_project_2025.system.dataio.importer.annotation.ImportField;
-import com.example.starter_project_2025.system.dataio.template.annotation.ImportEntity;
-========
 package com.example.starter_project_2025.system.assessment_mgt.question_tag;
 
 
@@ -16,7 +6,6 @@ import com.example.starter_project_2025.base.dataio.exporter.annotation.ExportEn
 import com.example.starter_project_2025.base.dataio.exporter.annotation.ExportField;
 import com.example.starter_project_2025.base.dataio.importer.annotation.ImportField;
 import com.example.starter_project_2025.base.dataio.template.annotation.ImportEntity;
->>>>>>>> 969201241eddad103d8fabc8223f98735ac13075:backend/src/main/java/com/example/starter_project_2025/system/assessment_mgt/question_tag/QuestionTag.java
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

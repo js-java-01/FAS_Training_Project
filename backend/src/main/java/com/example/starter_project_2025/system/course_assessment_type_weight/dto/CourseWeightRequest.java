@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.course_assessment_type_weight.dto;
 
-import com.example.starter_project_2025.system.assessment.enums.GradingMethod;
+import com.example.starter_project_2025.system.assessment_mgt.assessment.GradingMethod;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,7 +20,7 @@ public class CourseWeightRequest {
 
     @NotBlank(message = "assessmentTypeId is required")
     @Schema(description = "ID of the AssessmentType", example = "uuid-string", required = true)
-    private String assessmentTypeId;
+    private UUID assessmentTypeId;
 
     @NotNull(message = "weight is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "weight must be greater than 0")

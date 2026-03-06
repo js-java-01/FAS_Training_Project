@@ -1,9 +1,9 @@
 package com.example.starter_project_2025.system.topic_mark.controller;
 
 import com.example.starter_project_2025.system.modulegroups.dto.response.ImportResultResponse;
+import com.example.starter_project_2025.system.rbac.user.UserRepository;
 import com.example.starter_project_2025.system.topic_mark.dto.*;
 import com.example.starter_project_2025.system.topic_mark.service.TopicMarkService;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

@@ -4,10 +4,10 @@ import com.example.starter_project_2025.system.course_online.dto.CourseCreateOnl
 import com.example.starter_project_2025.system.course_online.dto.CourseOnlineResponse;
 import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
 import com.example.starter_project_2025.system.course_online.enums.CourseStatusOnline;
+import com.example.starter_project_2025.system.rbac.user.User;
+import com.example.starter_project_2025.system.rbac.user.UserRepository;
 import com.example.starter_project_2025.system.topic.entity.Topic;
 import com.example.starter_project_2025.system.topic.repository.TopicRepository;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

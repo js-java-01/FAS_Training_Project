@@ -1,6 +1,8 @@
 package com.example.starter_project_2025.system.topic.service;
 
 import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
+import com.example.starter_project_2025.system.rbac.user.User;
+import com.example.starter_project_2025.system.rbac.user.UserService;
 import com.example.starter_project_2025.system.topic.dto.TopicCreateRequest;
 import com.example.starter_project_2025.system.topic.dto.TopicResponse;
 import com.example.starter_project_2025.system.topic.dto.TopicUpdateRequest;
@@ -9,8 +11,6 @@ import com.example.starter_project_2025.system.topic.enums.TopicLevel;
 import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import com.example.starter_project_2025.system.topic.mapper.TopicMapper;
 import com.example.starter_project_2025.system.topic.repository.TopicRepository;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.service.UserService;
 
 import com.example.starter_project_2025.system.topic.repository.TopicDeliveryPrincipleRepository;
 import com.example.starter_project_2025.system.topic.repository.TopicSkillRepository;

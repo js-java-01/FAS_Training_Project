@@ -1,15 +1,7 @@
-<<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/assessment/assessment_type/AssessmentTypeDTO.java
-package com.example.starter_project_2025.system.assessment.assessment_type;
-
-import com.example.starter_project_2025.base.dto.OnCreate;
-import com.example.starter_project_2025.base.dto.OnUpdate;
-========
 package com.example.starter_project_2025.system.assessment_mgt.assessment_type;
 
-import com.example.starter_project_2025.base.crud.dto.CrudDto;
 import com.example.starter_project_2025.base.crud.dto.OnCreate;
 import com.example.starter_project_2025.base.crud.dto.OnUpdate;
->>>>>>>> 969201241eddad103d8fabc8223f98735ac13075:backend/src/main/java/com/example/starter_project_2025/system/assessment_mgt/assessment_type/AssessmentTypeDTO.java
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.*;

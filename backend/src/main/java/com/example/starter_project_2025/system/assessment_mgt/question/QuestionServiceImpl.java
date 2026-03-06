@@ -1,16 +1,3 @@
-<<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/assessment/question/QuestionServiceImpl.java
-package com.example.starter_project_2025.system.assessment.question;
-
-import com.example.starter_project_2025.base.mapper.BaseCrudMapper;
-import com.example.starter_project_2025.base.repository.BaseCrudRepository;
-import com.example.starter_project_2025.base.service.CrudServiceImpl;
-import com.example.starter_project_2025.system.assessment.question_option.QuestionOptionDTO;
-import com.example.starter_project_2025.system.assessment.question_category.QuestionCategory;
-import com.example.starter_project_2025.system.assessment.question_option.QuestionOption;
-import com.example.starter_project_2025.system.assessment.question_tag.QuestionTag;
-import com.example.starter_project_2025.system.assessment.question_category.QuestionCategoryRepository;
-import com.example.starter_project_2025.system.assessment.question_tag.QuestionTagRepository;
-========
 package com.example.starter_project_2025.system.assessment_mgt.question;
 
 import com.example.starter_project_2025.base.crud.BaseCrudMapper;
@@ -22,7 +9,6 @@ import com.example.starter_project_2025.system.assessment_mgt.question_option.Qu
 import com.example.starter_project_2025.system.assessment_mgt.question_tag.QuestionTag;
 import com.example.starter_project_2025.system.assessment_mgt.question_category.QuestionCategoryRepository;
 import com.example.starter_project_2025.system.assessment_mgt.question_tag.QuestionTagRepository;
->>>>>>>> 969201241eddad103d8fabc8223f98735ac13075:backend/src/main/java/com/example/starter_project_2025/system/assessment_mgt/question/QuestionServiceImpl.java
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

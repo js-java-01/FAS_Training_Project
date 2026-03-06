@@ -1,24 +1,13 @@
-<<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/assessment/assessment_question/AssessmentQuestionServiceImpl.java
-package com.example.starter_project_2025.system.assessment.assessment_question;
-========
 package com.example.starter_project_2025.system.assessment_mgt.assessment_question;
->>>>>>>> 969201241eddad103d8fabc8223f98735ac13075:backend/src/main/java/com/example/starter_project_2025/system/assessment_mgt/assessment_question/AssessmentQuestionServiceImpl.java
 
 import com.example.starter_project_2025.base.crud.BaseCrudMapper;
 import com.example.starter_project_2025.base.crud.BaseCrudRepository;
 import com.example.starter_project_2025.base.crud.CrudServiceImpl;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
-<<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/assessment/assessment_question/AssessmentQuestionServiceImpl.java
-import com.example.starter_project_2025.system.assessment.assessment.Assessment;
-import com.example.starter_project_2025.system.assessment.question.Question;
-import com.example.starter_project_2025.system.assessment.assessment.AssessmentRepository;
-import com.example.starter_project_2025.system.assessment.question.QuestionRepository;
-========
 import com.example.starter_project_2025.system.assessment_mgt.assessment.Assessment;
 import com.example.starter_project_2025.system.assessment_mgt.question.Question;
 import com.example.starter_project_2025.system.assessment_mgt.assessment.AssessmentRepository;
 import com.example.starter_project_2025.system.assessment_mgt.question.QuestionRepository;
->>>>>>>> 969201241eddad103d8fabc8223f98735ac13075:backend/src/main/java/com/example/starter_project_2025/system/assessment_mgt/assessment_question/AssessmentQuestionServiceImpl.java
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

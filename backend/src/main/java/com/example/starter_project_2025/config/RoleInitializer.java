@@ -1,10 +1,9 @@
 package com.example.starter_project_2025.config;
 
-import com.example.starter_project_2025.system.auth.entity.Permission;
-import com.example.starter_project_2025.system.auth.entity.Role;
-
-import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
-import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.system.rbac.permission.Permission;
+import com.example.starter_project_2025.system.rbac.permission.PermissionRepository;
+import com.example.starter_project_2025.system.rbac.role.Role;
+import com.example.starter_project_2025.system.rbac.role.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +60,6 @@ public class RoleInitializer {
 
         Role trainerRole = new Role();
         trainerRole.setName("TRAINER");
-        trainerRole.setHierarchyLevel(4);
         trainerRole.setDescription("Trainer with course/lesson/assessment management access");
         trainerRole.setPermissions(trainerPermissions);
 
@@ -75,7 +73,6 @@ public class RoleInitializer {
         Role adminRole = new Role();
         adminRole.setName("ADMIN");
         adminRole.setDescription("Administrator with full system access");
-        adminRole.setHierarchyLevel(2);
         List<String> excludedAdminPermissions = List.of(
                 "MODULE_GROUP_CREATE",
                 "MODULE_CREATE");
@@ -92,7 +89,6 @@ public class RoleInitializer {
         Role departmentManagerRole = new Role();
         departmentManagerRole.setName("MANAGER");
         departmentManagerRole.setDescription("Department Manager with class management permissions");
-        departmentManagerRole.setHierarchyLevel(3);
         List<Permission> departmentPermissions = permissionRepository.findAll()
                 .stream()
                 .filter(p -> "CLASS".equals(p.getResource()))
@@ -104,7 +100,6 @@ public class RoleInitializer {
         // STUDENT
         Role studentRole = new Role();
         studentRole.setName("STUDENT");
-        studentRole.setHierarchyLevel(5);
         studentRole.setDescription("Student with limited access to educational resources");
 
         List<Permission> studentPermissions = new ArrayList<>(
@@ -136,7 +131,6 @@ public class RoleInitializer {
         // SUPER_ADMIN
         Role superAdminRole = new Role();
         superAdminRole.setName("SUPER_ADMIN");
-        superAdminRole.setHierarchyLevel(1);
         superAdminRole.setDescription("Super Administrator with all permissions and role-switch capability");
         superAdminRole.setPermissions(new HashSet<>(permissionRepository.findAll()));
         roleRepository.save(superAdminRole);

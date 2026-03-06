@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/assessment/question_category/QuestionCategoryFilter.java
-package com.example.starter_project_2025.system.assessment.question_category;
-========
 package com.example.starter_project_2025.system.assessment_mgt.question_category;
->>>>>>>> 969201241eddad103d8fabc8223f98735ac13075:backend/src/main/java/com/example/starter_project_2025/system/assessment_mgt/question_category/QuestionCategoryFilter.java
 
 import com.example.starter_project_2025.base.crud.dto.FilterOperator;
 import com.example.starter_project_2025.base.spec.FilterField;

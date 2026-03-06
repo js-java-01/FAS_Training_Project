@@ -10,7 +10,6 @@ import com.example.starter_project_2025.base.dataio.importer.annotation.ImportFi
 import com.example.starter_project_2025.base.dataio.importer.annotation.ImportHash;
 import com.example.starter_project_2025.base.dataio.importer.annotation.PostImport;
 import com.example.starter_project_2025.base.dataio.template.annotation.ImportEntity;
-import com.example.starter_project_2025.system.trainer_course.entity.TrainerCourse;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -65,10 +64,6 @@ public class User {
     @JsonManagedReference
     Set<CourseClass> courseClasses;
 
-    @OneToMany(mappedBy = "trainer")
-    @JsonManagedReference
-    Set<TrainerCourse> trainerCourses;
-
     @OneToMany(mappedBy = "user")
     @JsonManagedReference
     Set<Submission> submissions;
@@ -117,5 +112,9 @@ public class User {
         if (importedRoles != null) {
             replaceRoles(importedRoles);
         }
+    }
+
+    public String getFullName() {
+        return firstName + (lastName != null ? " " + lastName : "");
     }
 }

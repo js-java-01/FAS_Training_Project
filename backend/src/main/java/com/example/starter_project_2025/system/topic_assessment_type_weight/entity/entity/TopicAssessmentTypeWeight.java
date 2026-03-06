@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.topic_assessment_type_weight.entity.entity;
 
-import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_type.AssessmentType;
 import com.example.starter_project_2025.system.topic.entity.Topic;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;

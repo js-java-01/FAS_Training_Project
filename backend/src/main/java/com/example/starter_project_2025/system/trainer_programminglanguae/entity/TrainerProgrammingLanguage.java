@@ -3,10 +3,10 @@ package com.example.starter_project_2025.system.trainer_programminglanguae.entit
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.example.starter_project_2025.system.programming_language.ProgrammingLanguage;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.example.starter_project_2025.system.programming_language.entity.ProgrammingLanguage;
 import com.example.starter_project_2025.system.rbac.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 

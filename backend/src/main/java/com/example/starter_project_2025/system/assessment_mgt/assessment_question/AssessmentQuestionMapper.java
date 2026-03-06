@@ -1,12 +1,6 @@
-<<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/assessment/assessment_question/AssessmentQuestionMapper.java
-package com.example.starter_project_2025.system.assessment.assessment_question;
-
-import com.example.starter_project_2025.base.mapper.BaseCrudMapper;
-========
 package com.example.starter_project_2025.system.assessment_mgt.assessment_question;
 
 import com.example.starter_project_2025.base.crud.BaseCrudMapper;
->>>>>>>> 969201241eddad103d8fabc8223f98735ac13075:backend/src/main/java/com/example/starter_project_2025/system/assessment_mgt/assessment_question/AssessmentQuestionMapper.java
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")

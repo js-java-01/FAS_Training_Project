@@ -49,7 +49,7 @@ public class TopicMarkDetailResponse {
     public static class AssessmentTypeSection {
 
         @Schema(description = "Assessment type ID", example = "QUIZ")
-        private String assessmentTypeId;
+        private UUID assessmentTypeId;
 
         @Schema(description = "Assessment type name", example = "Quiz")
         private String assessmentTypeName;

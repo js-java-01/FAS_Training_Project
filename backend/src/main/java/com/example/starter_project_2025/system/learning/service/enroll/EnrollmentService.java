@@ -4,8 +4,6 @@ import com.example.starter_project_2025.system.classes.dto.response.TrainingClas
 import com.example.starter_project_2025.system.learning.dto.EnrollmentImportResult;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import com.example.starter_project_2025.system.learning.dto.ImportEnrollmentError;
-import com.example.starter_project_2025.system.learning.enums.ImportEnrollmentErrorType;
-import com.example.starter_project_2025.system.programminglanguage.dto.ImportResultResponse.ImportError;
 
 import java.util.List;
 import java.util.UUID;

@@ -1,12 +1,6 @@
-<<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/assessment/question_option/QuestionOption.java
-package com.example.starter_project_2025.system.assessment.question_option;
-
-import com.example.starter_project_2025.system.assessment.question.Question;
-========
 package com.example.starter_project_2025.system.assessment_mgt.question_option;
 
 import com.example.starter_project_2025.system.assessment_mgt.question.Question;
->>>>>>>> 969201241eddad103d8fabc8223f98735ac13075:backend/src/main/java/com/example/starter_project_2025/system/assessment_mgt/question_option/QuestionOption.java
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;

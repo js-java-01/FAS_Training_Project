@@ -1,15 +1,14 @@
 package com.example.starter_project_2025.system.topic.entity;
 
+import com.example.starter_project_2025.system.rbac.user.User;
 import com.example.starter_project_2025.system.topic.enums.TopicLevel;
 import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
-import com.example.starter_project_2025.system.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.Set;
 import java.util.List;
 import java.util.UUID;

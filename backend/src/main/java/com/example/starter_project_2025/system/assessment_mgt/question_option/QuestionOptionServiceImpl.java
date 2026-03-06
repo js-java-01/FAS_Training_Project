@@ -1,12 +1,3 @@
-<<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/assessment/question_option/QuestionOptionServiceImpl.java
-package com.example.starter_project_2025.system.assessment.question_option;
-
-import com.example.starter_project_2025.base.mapper.BaseCrudMapper;
-import com.example.starter_project_2025.base.repository.BaseCrudRepository;
-import com.example.starter_project_2025.base.service.CrudServiceImpl;
-import com.example.starter_project_2025.system.assessment.question.Question;
-import com.example.starter_project_2025.system.assessment.question.QuestionRepository;
-========
 package com.example.starter_project_2025.system.assessment_mgt.question_option;
 
 import com.example.starter_project_2025.base.crud.BaseCrudMapper;
@@ -14,7 +5,6 @@ import com.example.starter_project_2025.base.crud.BaseCrudRepository;
 import com.example.starter_project_2025.base.crud.CrudServiceImpl;
 import com.example.starter_project_2025.system.assessment_mgt.question.Question;
 import com.example.starter_project_2025.system.assessment_mgt.question.QuestionRepository;
->>>>>>>> 969201241eddad103d8fabc8223f98735ac13075:backend/src/main/java/com/example/starter_project_2025/system/assessment_mgt/question_option/QuestionOptionServiceImpl.java
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

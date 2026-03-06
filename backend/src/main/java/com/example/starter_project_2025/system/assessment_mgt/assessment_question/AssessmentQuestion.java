@@ -1,14 +1,7 @@
-<<<<<<<< HEAD:backend/src/main/java/com/example/starter_project_2025/system/assessment/assessment_question/AssessmentQuestion.java
-package com.example.starter_project_2025.system.assessment.assessment_question;
-
-import com.example.starter_project_2025.system.assessment.assessment.Assessment;
-import com.example.starter_project_2025.system.assessment.question.Question;
-========
 package com.example.starter_project_2025.system.assessment_mgt.assessment_question;
 
 import com.example.starter_project_2025.system.assessment_mgt.question.Question;
 import com.example.starter_project_2025.system.assessment_mgt.assessment.Assessment;
->>>>>>>> 969201241eddad103d8fabc8223f98735ac13075:backend/src/main/java/com/example/starter_project_2025/system/assessment_mgt/assessment_question/AssessmentQuestion.java
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
