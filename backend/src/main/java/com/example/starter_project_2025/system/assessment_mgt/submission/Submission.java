@@ -11,8 +11,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -63,5 +63,5 @@ public class Submission {
 
     @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    List<SubmissionQuestion> submissionQuestions = new ArrayList<>();
+    Set<SubmissionQuestion> submissionQuestions = new HashSet<>();
 }

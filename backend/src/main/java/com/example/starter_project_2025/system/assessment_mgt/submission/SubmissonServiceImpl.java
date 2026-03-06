@@ -365,7 +365,8 @@ public class SubmissonServiceImpl
         return Math.max(0, seconds);
     }
 
-    private SubmissionResultResponse buildResultResponse(Submission submission) {        List<SubmissionQuestion> questions = submission.getSubmissionQuestions();
+    private SubmissionResultResponse buildResultResponse(Submission submission) {
+        List<SubmissionQuestion> questions = new ArrayList<>(submission.getSubmissionQuestions());
 
         int total = questions.size();
         int correct = 0, wrong = 0, unanswered = 0;

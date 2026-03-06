@@ -5,9 +5,13 @@ import com.example.starter_project_2025.base.crud.BaseCrudRepository;
 import com.example.starter_project_2025.base.crud.CrudServiceImpl;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.assessment_mgt.assessment.Assessment;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_question_option.AssessmentQuestionOption;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_question_option.AssessmentQuestionOptionRepository;
 import com.example.starter_project_2025.system.assessment_mgt.question.Question;
 import com.example.starter_project_2025.system.assessment_mgt.assessment.AssessmentRepository;
 import com.example.starter_project_2025.system.assessment_mgt.question.QuestionRepository;
+import com.example.starter_project_2025.system.assessment_mgt.question_option.QuestionOption;
+import com.example.starter_project_2025.system.assessment_mgt.question_option.QuestionOptionRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -30,6 +34,8 @@ public class AssessmentQuestionServiceImpl extends CrudServiceImpl<AssessmentQue
     AssessmentQuestionMapper assessmentQuestionMapper;
     AssessmentRepository assessmentRepository;
     QuestionRepository questionRepository;
+    QuestionOptionRepository questionOptionRepository;
+    AssessmentQuestionOptionRepository assessmentQuestionOptionRepository;
 
 
     @Override
@@ -78,6 +84,20 @@ public class AssessmentQuestionServiceImpl extends CrudServiceImpl<AssessmentQue
 
         setAssessment(entity, request.getAssessmentId());
         setQuestion(entity, request.getQuestionId());
+    }
+
+    @Override
+    protected void afterCreate(AssessmentQuestion entity, AssessmentQuestionDTO request) {
+        // Auto-copy options from the linked Question into AssessmentQuestionOption
+        List<QuestionOption> sourceOptions = questionOptionRepository.findByQuestionId(entity.getQuestion().getId());
+        for (QuestionOption qo : sourceOptions) {
+            AssessmentQuestionOption aqo = new AssessmentQuestionOption();
+            aqo.setContent(qo.getContent());
+            aqo.setCorrect(qo.isCorrect());
+            aqo.setOrderIndex(qo.getOrderIndex());
+            aqo.setAssessmentQuestion(entity);
+            assessmentQuestionOptionRepository.save(aqo);
+        }
     }
 
     @Override

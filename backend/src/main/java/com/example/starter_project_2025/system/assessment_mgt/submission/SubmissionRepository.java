@@ -19,7 +19,8 @@ public interface SubmissionRepository
     Optional<Submission> findByIdWithQuestions(@Param("id") UUID id);
 
     @Query("SELECT DISTINCT s FROM Submission s " +
-           "LEFT JOIN FETCH s.submissionQuestions " +
+           "LEFT JOIN FETCH s.submissionQuestions sq " +
+           "LEFT JOIN FETCH sq.submissionAnswers " +
            "WHERE s.id = :id")
     Optional<Submission> findByIdWithQuestionsAndAnswers(@Param("id") UUID id);
 

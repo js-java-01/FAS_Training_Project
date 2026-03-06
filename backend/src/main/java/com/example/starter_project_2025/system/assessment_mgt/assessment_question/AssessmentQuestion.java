@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.assessment_mgt.assessment_question;
 
+import com.example.starter_project_2025.system.assessment_mgt.assessment_question_option.AssessmentQuestionOption;
 import com.example.starter_project_2025.system.assessment_mgt.question.Question;
 import com.example.starter_project_2025.system.assessment_mgt.assessment.Assessment;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -10,6 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -38,4 +41,8 @@ public class AssessmentQuestion {
 
     @Column(name = "order_index")
     Integer orderIndex;
+
+    @OneToMany(mappedBy = "assessmentQuestion", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({ "assessmentQuestion" })
+    List<AssessmentQuestionOption> options = new ArrayList<>();
 }
