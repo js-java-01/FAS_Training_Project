@@ -2,6 +2,7 @@ package com.example.starter_project_2025.system.learning.controller;
 
 import com.example.starter_project_2025.security.UserDetailsImpl;
 import com.example.starter_project_2025.system.classes.service.classes.ClassService;
+import com.example.starter_project_2025.system.learning.dto.EnrollmentDeleteDTO;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentImportResult;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import com.example.starter_project_2025.system.learning.service.enroll.EnrollmentService;
@@ -11,13 +12,15 @@ import java.util.UUID;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/enrollments")
@@ -35,6 +38,7 @@ public class EnrollmentController {
         }
 
         @GetMapping("/export/template")
+        @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
         public ResponseEntity<byte[]> getExportTemplate() {
                 byte[] template = enrollmentService.getExportTemplate();
                 return ResponseEntity.ok()
@@ -47,6 +51,7 @@ public class EnrollmentController {
         }
 
         @PostMapping(value = "/import/{classCode}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
         public ResponseEntity<EnrollmentImportResult> importStudents(
                         @PathVariable("classCode") String classCode,
                         @RequestPart("file") MultipartFile file) {
@@ -56,6 +61,7 @@ public class EnrollmentController {
         }
 
         @GetMapping("/export/{classCode}")
+        @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
         public ResponseEntity<byte[]> getExportByClassCode(@PathVariable("classCode") String classCode) {
                 byte[] template = enrollmentService.getExport(classCode);
                 return ResponseEntity.ok()
@@ -65,6 +71,14 @@ public class EnrollmentController {
                                 .header(HttpHeaders.CONTENT_DISPOSITION,
                                                 "attachment; filename=enrollment_export_" + classCode + ".xlsx")
                                 .body(template);
+        }
+
+        @DeleteMapping("")
+        @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
+        public ResponseEntity<String> deleteEnrollment(
+                        @Valid @RequestBody EnrollmentDeleteDTO request) {
+                String result = enrollmentService.deleteEnrollment(request);
+                return ResponseEntity.ok(result);
         }
 
 }

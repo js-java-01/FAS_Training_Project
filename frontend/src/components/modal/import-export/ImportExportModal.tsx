@@ -98,8 +98,8 @@ export default function ImportExportModal({
             <ImportTab
               onImport={onImport}
               onDownloadTemplate={onDownloadTemplate}
-              acceptedFileTypes={acceptedFileTypes}
-              validateFile={validateFile}
+            // acceptedFileTypes={acceptedFileTypes}
+            // validateFile={validateFile}
             />
           )}
 

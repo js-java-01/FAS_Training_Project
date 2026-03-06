@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
 import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
+import com.example.starter_project_2025.system.learning.dto.EnrollmentDeleteDTO;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentImportResult;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import com.example.starter_project_2025.system.learning.dto.ImportEnrollmentError;
@@ -53,7 +54,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         var enrollment = new Enrollment();
         enrollment.setUser(user);
-        // enrollment.setTrainingClass(trainingClass);
+        enrollment.setTrainingClass(trainingClass);
         enrollmentRepository.save(enrollment);
 
         boolean hasStudentRole = user.getUserRoles().stream()
@@ -190,7 +191,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
                     var enrollment = new Enrollment();
                     enrollment.setUser(user);
-                    // enrollment.setTrainingClass(trainingClass);
+                    enrollment.setTrainingClass(trainingClass);
                     enrollmentRepository.save(enrollment);
                     result.setSuccessCount(result.getSuccessCount() + 1);
 
@@ -351,6 +352,21 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         } catch (IOException e) {
             throw new RuntimeException("Error exporting enrollment list: " + e.getMessage());
         }
+    }
+
+    @Override
+    public String deleteEnrollment(EnrollmentDeleteDTO request) {
+        var user = userRepository.findById(request.getStudentID())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        var trainingClass = trainingClassRepository.findById(request.getClassID())
+                .orElseThrow(() -> new RuntimeException("Class not found"));
+        var enrollment = enrollmentRepository.findByUserIdAndTrainingClassId(user.getId(),
+                trainingClass.getId());
+        if (enrollment.isEmpty()) {
+            throw new RuntimeException("Enrollment not found for the given user and class");
+        }
+        enrollmentRepository.delete(enrollment.get());
+        return "Enrollment deleted successfully.";
     }
 
 }

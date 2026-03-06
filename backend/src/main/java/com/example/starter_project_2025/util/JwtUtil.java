@@ -17,8 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
-public class JwtUtil
-{
+public class JwtUtil {
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -29,19 +28,16 @@ public class JwtUtil
     @Value("${jwt.rt.expiration}")
     private long refreshTokenExpiration;
 
-    private Key getSigningKey()
-    {
+    private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    public String generateToken(Authentication authentication)
-    {
+    public String generateToken(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         return generateToken(userDetails);
     }
 
-    public String generateToken(UserDetailsImpl userDetails)
-    {
+    public String generateToken(UserDetailsImpl userDetails) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
@@ -56,7 +52,7 @@ public class JwtUtil
                 .setId(UUID.randomUUID().toString())
                 .setSubject(userDetails.getEmail())
                 .claim("userId", userDetails.getId().toString())
-                .claim("role", userDetails.getRole())
+                .claim("role", "ROLE_" + userDetails.getRole())
                 .claim("permissions", permissions)
                 .claim("email", userDetails.getEmail())
                 .claim("firstName", userDetails.getFirstName())
@@ -67,8 +63,7 @@ public class JwtUtil
                 .compact();
     }
 
-    public String generateRtToken(UserDetailsImpl userDetails)
-    {
+    public String generateRtToken(UserDetailsImpl userDetails) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
 
@@ -82,8 +77,7 @@ public class JwtUtil
                 .compact();
     }
 
-    public UserDetailsImpl getUserDetailsFromToken(String token)
-    {
+    public UserDetailsImpl getUserDetailsFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
@@ -111,12 +105,11 @@ public class JwtUtil
                 null, // lastName not stored in token
                 claims.get("role").toString(),
                 permissions, // NOW we actually pass the permissions!
-                true  // assume active if token is valid
+                true // assume active if token is valid
         );
     }
 
-    public String getEmailFromToken(String token)
-    {
+    public String getEmailFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
@@ -125,23 +118,19 @@ public class JwtUtil
         return claims.getSubject();
     }
 
-    public boolean validateToken(String token)
-    {
-        try
-        {
+    public boolean validateToken(String token) {
+        try {
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e)
-        {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
-    public String extractJti(String token)
-    {
+    public String extractJti(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())

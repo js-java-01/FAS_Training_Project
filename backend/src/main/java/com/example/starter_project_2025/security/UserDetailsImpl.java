@@ -17,8 +17,7 @@ import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
-public class UserDetailsImpl implements UserDetails
-{
+public class UserDetailsImpl implements UserDetails {
 
     private UUID id;
     private String email;
@@ -29,8 +28,7 @@ public class UserDetailsImpl implements UserDetails
     private Set<String> permissions;
     private boolean isActive;
 
-    public static UserDetailsImpl build(User user)
-    {
+    public static UserDetailsImpl build(User user) {
         // var permissions = user.getUserRoles().getPermissions();
         // if (permissions != null && !permissions.isEmpty()) {
         // System.out.println("First permission: " +
@@ -45,8 +43,7 @@ public class UserDetailsImpl implements UserDetails
         String roleName = "";
         Set<String> permissions = new HashSet<>();
 
-        if (defaultRole != null)
-        {
+        if (defaultRole != null) {
             roleName = defaultRole.getRole().getName();
             permissions = defaultRole.getRole().getPermissions().stream()
                     .map(Permission::getName)
@@ -61,12 +58,10 @@ public class UserDetailsImpl implements UserDetails
                 user.getLastName(),
                 roleName,
                 permissions,
-                user.getIsActive()
-        );
+                user.getIsActive());
     }
 
-    public static UserDetailsImpl build(User user, String RoleName, Set<String> permissions)
-    {
+    public static UserDetailsImpl build(User user, String RoleName, Set<String> permissions) {
         var userDetails = build(user);
         userDetails.setRole(RoleName);
         userDetails.setPermissions(permissions);
@@ -74,52 +69,48 @@ public class UserDetailsImpl implements UserDetails
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities()
-    {
+    public Collection<? extends GrantedAuthority> getAuthorities() {
         System.out.println("[DEBUG] getAuthorities called for user: " + email);
         System.out.println("[DEBUG] permissions value: " + permissions);
         System.out.println("[DEBUG] permissions is null: " + (permissions == null));
 
-        if (permissions == null)
-        {
+        if (permissions == null) {
             System.out.println("[DEBUG] Returning empty set because permissions is null");
             return Set.of();
         }
+        Set<SimpleGrantedAuthority> authorities = new java.util.HashSet<>();
+        if (this.role != null && !this.role.isEmpty()) {
+            authorities.add(new SimpleGrantedAuthority(this.role));
+        }
+        if (this.permissions != null) {
+            this.permissions.forEach(p -> authorities.add(new SimpleGrantedAuthority(p)));
+        }
 
-        var authorities = permissions.stream()
-                .map(permission -> new SimpleGrantedAuthority(permission))
-                .collect(Collectors.toSet());
-        System.out.println("[DEBUG] Returning authorities: " + authorities);
         return authorities;
     }
 
     @Override
-    public String getUsername()
-    {
+    public String getUsername() {
         return email;
     }
 
     @Override
-    public boolean isAccountNonExpired()
-    {
+    public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
-    public boolean isAccountNonLocked()
-    {
+    public boolean isAccountNonLocked() {
         return true;
     }
 
     @Override
-    public boolean isCredentialsNonExpired()
-    {
+    public boolean isCredentialsNonExpired() {
         return true;
     }
 
     @Override
-    public boolean isEnabled()
-    {
+    public boolean isEnabled() {
         return isActive;
     }
 }

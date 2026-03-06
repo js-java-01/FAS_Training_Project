@@ -1,11 +1,14 @@
 package com.example.starter_project_2025.system.learning.service.enroll;
 
 import com.example.starter_project_2025.system.classes.dto.response.TrainingClassSemesterResponse;
+import com.example.starter_project_2025.system.learning.dto.EnrollmentDeleteDTO;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentImportResult;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentRequest;
 import com.example.starter_project_2025.system.learning.dto.ImportEnrollmentError;
 import com.example.starter_project_2025.system.learning.enums.ImportEnrollmentErrorType;
 import com.example.starter_project_2025.system.programminglanguage.dto.ImportResultResponse.ImportError;
+
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,4 +31,6 @@ public interface EnrollmentService {
     // List<EnrolledCourseResponse> getMyEnrolledCourses();
 
     byte[] getExport(String classCode);
+
+    String deleteEnrollment(EnrollmentDeleteDTO request);
 }

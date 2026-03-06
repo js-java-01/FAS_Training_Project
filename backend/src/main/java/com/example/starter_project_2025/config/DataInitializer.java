@@ -99,9 +99,7 @@ public class DataInitializer implements CommandLineRunner {
         private final QuestionRepository questionRepository;
         private final UserRoleRepository userRoleRepository;
         private final RoleRepository roleRepository;
-        private final SemesterRepository semesterRepository;
-        private final TrainingClassRepository trainingClassRepository;
-        private final CourseClassRepository courseClassRepository;
+        private final SemesterInitializer semesterInitializer;
         private final EnrollmentRepository enrollmentRepository;
         private final LocationRepository locationRepository;
         private final ModuleInitializer moduleInitializer;
@@ -133,7 +131,7 @@ public class DataInitializer implements CommandLineRunner {
                         // initializeCourses();
                         // initializeCohorts(); // disabled - cohort feature temporarily not in use
                         userRoleInitializer.initializeUserRoles();
-                        // initializeSemester();
+                        semesterInitializer.initializeSemester();
                         ensureProgrammingLanguagePermissions();
                         initializeProgrammingLanguages();
                         // initializeCourses();

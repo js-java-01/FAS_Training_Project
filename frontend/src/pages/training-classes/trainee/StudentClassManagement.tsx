@@ -5,11 +5,12 @@ import { GraduationCap, BookOpen } from "lucide-react"
 
 import { OwnClassPage } from "./OwnClassPage"
 import { useState } from "react"
+import { StudentLayout } from "@/components/layout/StudentLayout"
 
 export default function StudentClassManagement() {
     const [activeTab, setActiveTab] = useState("my-classes");
     return (
-        <MainLayout pathName={{ studentClasses: "Classes" }}>
+        <StudentLayout active="/classes">
             <div className="container mx-auto py-2 px-4 max-w-7xl h-screen flex flex-col overflow-hidden">
                 <div className="mb-6 space-y-2 shrink-0">
                     <div className="flex items-center gap-3">
@@ -46,6 +47,6 @@ export default function StudentClassManagement() {
                     </TabsContent>
                 </Tabs>
             </div>
-        </MainLayout>
+        </StudentLayout>
     )
 }

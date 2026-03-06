@@ -35,11 +35,10 @@ function StudentNavbar({ active }: { active?: string }) {
     return (
       <Link
         to={to}
-        className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-          isActive
-            ? "text-blue-800 bg-blue-50"
-            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-        }`}
+        className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
+          ? "text-blue-800 bg-blue-50"
+          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+          }`}
       >
         <Icon className="w-4 h-4" />
         {label}
@@ -73,7 +72,7 @@ function StudentNavbar({ active }: { active?: string }) {
             {navLink("/student-home", "Home", Home)}
             {navLink("/student-calendar", "Calendar", Calendar)}
             {navLink("/student-my-courses", "My Courses", BookOpen)}
-
+            {navLink("/classes", "My Classes", GraduationCap)}
             <div className="relative">
               <button
                 onMouseEnter={() => setShowCoursesMenu(true)}

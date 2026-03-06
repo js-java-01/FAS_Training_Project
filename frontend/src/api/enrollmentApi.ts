@@ -21,8 +21,8 @@ export const enrollmentApi = {
    * Enroll the current logged-in user into a course directly.
    * Requires ENROLL_COURSE permission.
    */
-  enroll: async (enrollKey: string, classID: string): Promise<string> => {
-    const response = await axiosInstance.post<string>('/enrollments', { enrollKey, classID });
+  enroll: async (classID: string, studentEmail: string): Promise<string> => {
+    const response = await axiosInstance.post<string>('/enrollments', { studentEmail, classID });
     return response.data;
   },
 
@@ -57,4 +57,13 @@ export const enrollmentApi = {
     });
     return response.data;
   },
+  deleteEnrollment: async (studentID: string, classID: string): Promise<string> => {
+    const response = await axiosInstance.delete('/enrollments', {
+      data: {
+        studentID,
+        classID
+      }
+    });
+    return response.data;
+  }
 };

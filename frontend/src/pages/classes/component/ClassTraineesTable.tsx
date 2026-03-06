@@ -17,6 +17,11 @@ import { getColumns } from "./columns";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import { ROLES } from "@/types/role";
 
+import { toast } from "sonner";
+import { enrollmentApi } from "@/api/enrollmentApi";
+import { useQueryClient } from "@tanstack/react-query";
+import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
+
 interface Props {
   classId: string;
   trainingClass: TrainingClass | null;
@@ -28,17 +33,23 @@ interface Props {
 export default function ClassTraineesTable({ classId, trainingClass }: Props) {
   const { activeRole } = useRoleSwitch();
   const role = activeRole?.name ?? "";
-
+  const queryClient = useQueryClient();
   const [openTopicMark, setOpenTopicMark] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const EMPTY_DATA: TraineeDetailsResponse[] = [];
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
   const [isOpeningAddModal, setIsOpeningAddModal] = useState(false);
+  const [selectedTrainee, setSelectedTrainee] = useState<TraineeDetailsResponse | null>(null);
   const columns = useMemo(() => getColumns({
     onView: (row) => { },
-    onDelete: (row) => { },
+    onDelete: (trainee) => {
+      setIsDeleteModalOpen(true);
+      setSelectedTrainee(trainee);
+    },
+    role
   }), []);
 
   const {
@@ -58,6 +69,33 @@ export default function ClassTraineesTable({ classId, trainingClass }: Props) {
     setSearchValue(text);
     setPageIndex(0);
   }, []);
+  const handleConfirm = useCallback(async (email: string) => {
+    try {
+      await enrollmentApi.enroll(classId, email);
+      toast.success("Trainee added successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["class-trainees", classId]
+      });
+      setIsOpeningAddModal(false);
+
+    } catch (error) {
+      toast.error("Failed to add trainee");
+    }
+  }, []);
+  const handleDelete = useCallback(async () => {
+    if (!selectedTrainee) return;
+    try {
+      await enrollmentApi.deleteEnrollment(selectedTrainee.id, classId);
+      toast.success("Trainee removed successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["class-trainees", classId]
+      });
+      setIsDeleteModalOpen(false);
+      setSelectedTrainee(null);
+    } catch (error) {
+      toast.error("Failed to remove trainee");
+    }
+  }, [selectedTrainee, classId]);
 
   return (
     <div className="flex flex-col flex-1 min-h-0 relative">
@@ -112,10 +150,28 @@ export default function ClassTraineesTable({ classId, trainingClass }: Props) {
         <AddTraineeModal
           open={isOpeningAddModal}
           onOpenChange={setIsOpeningAddModal}
-          onConfirm={(email) => { }}
+          onConfirm={handleConfirm}
           isLoading={false}
         />
       )}
+      <ConfirmDeleteModal
+        open={isDeleteModalOpen}
+        onCancel={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedTrainee(null);
+        }}
+        onConfirm={handleDelete}
+        title="Delete Trainee"
+        message={
+          <>
+            This action cannot be undone. This will permanently delete the trainee{" "}
+            <span className="font-semibold">
+              &quot;{selectedTrainee?.firstName + " " + selectedTrainee?.lastName}&quot;
+            </span>
+            .
+          </>
+        }
+      />
     </div>
   );
 }
