@@ -9,7 +9,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import dayjs from "dayjs";
-import { Badge } from "@/components/ui/badge";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
