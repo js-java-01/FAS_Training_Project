@@ -26,11 +26,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Search,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Loader,
-  ColumnsSettings,
 } from "lucide-react";
 import "animate.css";
 import {

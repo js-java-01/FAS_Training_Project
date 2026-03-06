@@ -224,7 +224,7 @@ export default function ImportTab({
             ref={fileInputRef}
             type="file"
             accept=".xlsx,.xls"
-            className="hidden"
+            className="sr-only"
             onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
           />
 
