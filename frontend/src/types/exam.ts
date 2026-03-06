@@ -53,9 +53,23 @@ export interface Submission {
   questions: SubmissionQuestion[];
 }
 
+// ===== Submission Summary (returned by GET /submissions/assessment/{id}/users) =====
+export interface SubmissionSummary {
+  id: string;
+  assessmentId: string;
+  userId: string;
+  status: string;
+  isPassed: boolean | null;
+  attemptNumber: number;
+  totalScore?: number | null;
+  startedAt?: string | null;
+  submittedAt?: string | null;
+}
+
 // ===== Submission Result (returned by GET /result) =====
 export interface SubmissionResult {
   submissionId: string;
+  assessmentId: string;
   assessmentTitle: string;
   totalQuestions: number;
   correctAnswers: number;

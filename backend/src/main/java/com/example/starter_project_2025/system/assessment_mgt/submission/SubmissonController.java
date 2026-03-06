@@ -16,6 +16,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -97,5 +98,29 @@ public class SubmissonController extends BaseCrudDataIoController<Submission, UU
                description = "Xem lại toàn bộ bài làm kèm đáp án đúng.")
     public ResponseEntity<SubmissionResponse> reviewSubmission(@PathVariable UUID submissionId) {
         return ResponseEntity.ok(submissonService.getSubmissionForReview(submissionId));
+    }
+
+    @GetMapping("/assessment/{assessmentId}/users")
+    @Operation(
+            summary = "Get latest submissions per user",
+            description = "Retrieve the latest submission attempt for each user in a specific assessment"
+    )
+    public ResponseEntity<List<SubmissonDTO>> getLatestSubmissionsByAssessmentId(
+            @PathVariable UUID assessmentId) {
+
+        return ResponseEntity.ok(
+                submissonService.getLatestSubmissionsByAssessmentId(assessmentId)
+        );
+    }
+
+    @GetMapping("/assessment/{assessmentId}")
+    @Operation(
+            summary = "Get submissions by assessment",
+            description = "Retrieve all submissions belonging to a specific assessment"
+    )
+    public ResponseEntity<List<SubmissonDTO>> getSubmissionsByAssessmentId(
+            @PathVariable UUID assessmentId) {
+
+        return ResponseEntity.ok(submissonService.getSubmissionsByAssessmentId(assessmentId));
     }
 }

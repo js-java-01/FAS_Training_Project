@@ -37,6 +37,19 @@ public interface SubmissionRepository
     Optional<Submission> findInProgressByUserAndAssessment(@Param("userId") UUID userId,
                                                            @Param("assessmentId") UUID assessmentId);
 
+
+
+    @Query("""
+    SELECT s FROM Submission s
+    WHERE s.assessment.id = :assessmentId
+    AND s.attemptNumber = (
+        SELECT MAX(s2.attemptNumber)
+        FROM Submission s2
+        WHERE s2.user.id = s.user.id
+        AND s2.assessment.id = :assessmentId
+    )
+    """)
+    List<Submission> findLatestSubmissionsByAssessmentId(UUID assessmentId);
     List<Submission> findByUserId(UUID userId);
 
     List<Submission> findByAssessmentId(UUID assessmentId);

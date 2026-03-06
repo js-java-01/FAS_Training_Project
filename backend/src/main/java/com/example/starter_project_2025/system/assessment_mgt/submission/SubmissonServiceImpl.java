@@ -431,4 +431,22 @@ public class SubmissonServiceImpl
             }
         };
     }
+
+    public List<SubmissonDTO> getLatestSubmissionsByAssessmentId(UUID assessmentId) {
+
+        List<Submission> submissions =
+                submissionRepository.findLatestSubmissionsByAssessmentId(assessmentId);
+
+        return submissions.stream()
+                .map(submissionMapper::toDto)
+                .toList();
+    }
+
+    public List<SubmissonDTO> getSubmissionsByAssessmentId(UUID assessmentId) {
+        List<Submission> submissions = submissionRepository.findByAssessmentId(assessmentId);
+
+        return submissions.stream()
+                .map(submissionMapper::toDto)
+                .toList();
+    }
 }

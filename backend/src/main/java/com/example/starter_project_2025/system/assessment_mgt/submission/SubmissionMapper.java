@@ -53,4 +53,13 @@ public interface SubmissionMapper extends BaseCrudMapper<Submission, SubmissonDT
 //        }
 //        return answers.get(0).getAnswerValue();
 //    }
+
+
+
+
+        @Mapping(source = "user.id", target = "userId")
+        @Mapping(source = "assessment.id", target = "assessmentId")
+        SubmissonDTO toDto(Submission entity);
+
+
 }

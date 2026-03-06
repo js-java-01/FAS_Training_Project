@@ -6,14 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Assessment } from "@/types";
+import type { SubmissionSummary } from "@/types/exam";
 import { toast } from "sonner";
-import { Clock, Target, RotateCcw, ChevronRight, AlertCircle } from "lucide-react";
-import { startSubmission } from "@/api/submissionApi";
+import { Clock, Target, RotateCcw, ChevronRight, AlertCircle, History, CheckCircle2, XCircle } from "lucide-react";
+import { startSubmission, getSubmissionsByAssessment } from "@/api/submissionApi";
 import { assessmentApi } from "@/api";
 
 type TabFilter = "all" | "active" | "inactive";
-
 export default function SelectAssessmentPage() {
   const navigate = useNavigate();
   const [assessments, setAssessments] = useState<Assessment[]>([]);
@@ -138,7 +146,8 @@ export default function SelectAssessmentPage() {
                         </div>
                       </CardContent>
 
-                      <CardFooter className="pt-3 border-t justify-end">
+                      <CardFooter className="pt-3 border-t flex items-center justify-between gap-2">
+                        <ResultsDropdown assessmentId={assessment.id} />
                         <Button
                           size="sm"
                           disabled={isStarting || assessment.status !== "ACTIVE"}
@@ -162,5 +171,95 @@ export default function SelectAssessmentPage() {
         </Tabs>
       </div>
     </MainLayout>
+  );
+}
+
+// ===== Results Dropdown =====
+function ResultsDropdown({ assessmentId }: { assessmentId: string }) {
+  const navigate = useNavigate();
+  const [submissions, setSubmissions] = useState<SubmissionSummary[]>([]);
+  const [isFetching, setIsFetching] = useState(false);
+  const [opened, setOpened] = useState(false);
+
+  const loadSubmissions = async () => {
+    if (!assessmentId) return;
+    if (submissions.length > 0) return; // already loaded
+    setIsFetching(true);
+    try {
+      const data = await getSubmissionsByAssessment(assessmentId);
+      const submitted = [...data]
+        .filter((s) => s.status === "SUBMITTED")
+        .sort((a, b) => (b.attemptNumber ?? 0) - (a.attemptNumber ?? 0));
+      setSubmissions(submitted);
+    } catch {
+      toast.error("Failed to load results.");
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  return (
+    <DropdownMenu
+      open={opened}
+      onOpenChange={(o) => {
+        setOpened(o);
+        if (o) loadSubmissions();
+      }}
+    >
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm">
+          <History className="h-3.5 w-3.5 mr-1" /> Results
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-64 max-h-[220px] overflow-y-auto">
+        <DropdownMenuLabel className="text-xs">Past Attempts</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {isFetching ? (
+          <div className="p-2 space-y-1.5">
+            <Skeleton className="h-7 w-full" />
+            <Skeleton className="h-7 w-full" />
+          </div>
+        ) : submissions.length === 0 ? (
+          <div className="px-3 py-4 text-xs text-center text-muted-foreground">
+            No submitted attempts yet.
+          </div>
+        ) : (
+          submissions.map((s) => {
+            const passed = s.isPassed === true;
+            return (
+              <DropdownMenuItem
+                key={s.id}
+                className="flex items-center justify-between gap-2 cursor-pointer"
+                onClick={() => navigate(`/assessments/result/${s.id}`)}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  {passed ? (
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                  ) : (
+                    <XCircle className="h-3.5 w-3.5 text-red-500 shrink-0" />
+                  )}
+                  <span className="text-xs truncate">
+                    Attempt {s.attemptNumber}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {s.totalScore != null && (
+                    <span className="text-xs text-muted-foreground">{s.totalScore} pts</span>
+                  )}
+                  <Badge
+                    className={`text-[10px] px-1.5 py-0 ${passed
+                      ? "bg-green-100 text-green-800 hover:bg-green-100"
+                      : "bg-red-100 text-red-800 hover:bg-red-100"
+                      }`}
+                  >
+                    {passed ? "Pass" : "Fail"}
+                  </Badge>
+                </div>
+              </DropdownMenuItem>
+            );
+          })
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

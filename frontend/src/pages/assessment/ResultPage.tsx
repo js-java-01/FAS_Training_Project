@@ -10,11 +10,13 @@ import {
   CheckCircle2,
   XCircle,
   ChevronLeft,
+  ChevronDown,
   Trophy,
   BarChart3,
   Clock,
 } from "lucide-react";
-import { getSubmissionResult } from "@/api/submissionApi";
+import { getSubmissionResult, getSubmissionsByAssessment } from "@/api/submissionApi";
+import type { SubmissionSummary } from "@/types/exam";
 import { QuestionNavigator } from "./QuestionNavigator";
 import { toast } from "sonner";
 
@@ -155,6 +157,12 @@ export default function ResultPage() {
 
         {/* Question Navigator Sidebar */}
         <aside className="w-72 shrink-0 hidden lg:flex flex-col min-h-0 overflow-y-auto">
+          {result.assessmentId && (
+            <AttemptsPanel
+              assessmentId={result.assessmentId}
+              currentSubmissionId={submissionId}
+            />
+          )}
           <QuestionNavigator
             mode="result"
             questions={questions}
@@ -163,6 +171,102 @@ export default function ResultPage() {
         </aside>
       </div>
     </MainLayout>
+  );
+}
+
+// ===== Attempts Panel =====
+function AttemptsPanel({
+  assessmentId,
+  currentSubmissionId,
+}: {
+  assessmentId: string;
+  currentSubmissionId?: string;
+}) {
+  const navigate = useNavigate();
+  const [submissions, setSubmissions] = useState<SubmissionSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!assessmentId) return;
+      setIsLoading(true);
+      try {
+        const data = await getSubmissionsByAssessment(assessmentId);
+        const submitted = [...data]
+          .filter((s) => s.status === "SUBMITTED")
+          .sort((a, b) => (a.attemptNumber ?? 0) - (b.attemptNumber ?? 0));
+        setSubmissions(submitted);
+      } catch {
+        // silently ignore – panel simply stays empty
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    load();
+  }, [assessmentId]);
+
+  return (
+    <div className="mb-3 border rounded-lg bg-white overflow-hidden shrink-0">
+      <button
+        className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium hover:bg-gray-50 transition-colors"
+        onClick={() => setIsOpen((p) => !p)}
+      >
+        <span>My Attempts ({submissions.length})</span>
+        <ChevronDown
+          className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+            }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="border-t divide-y max-h-52 overflow-y-auto">
+          {isLoading ? (
+            <div className="p-3 space-y-2">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ) : submissions.length === 0 ? (
+            <p className="text-xs text-muted-foreground p-3">No submitted attempts found.</p>
+          ) : (
+            submissions.map((s) => {
+              const isCurrent = s.id === currentSubmissionId;
+              const passed = s.isPassed === true;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() =>
+                    navigate(`/assessments/result/${s.id}`, { replace: true })
+                  }
+                  className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-gray-50 transition-colors ${isCurrent ? "bg-blue-50 font-semibold" : ""
+                    }`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    {isCurrent && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                    )}
+                    <span>Attempt {s.attemptNumber}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {s.totalScore != null && (
+                      <span className="text-muted-foreground">{s.totalScore} pts</span>
+                    )}
+                    <Badge
+                      className={`text-[10px] px-1.5 py-0 ${passed
+                          ? "bg-green-100 text-green-800 hover:bg-green-100"
+                          : "bg-red-100 text-red-800 hover:bg-red-100"
+                        }`}
+                    >
+                      {passed ? "Pass" : "Fail"}
+                    </Badge>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

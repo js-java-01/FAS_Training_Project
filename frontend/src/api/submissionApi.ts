@@ -1,5 +1,5 @@
 import axiosInstance from "./axiosInstance";
-import type { Submission, SubmissionResult, SubmitAnswerRequest } from "@/types/exam";
+import type { Submission, SubmissionResult, SubmissionSummary, SubmitAnswerRequest } from "@/types/exam";
 
 const BASE = "/submissions";
 
@@ -48,5 +48,16 @@ export const getSubmissionResult = async (submissionId: string): Promise<Submiss
  */
 export const getSubmissionForReview = async (submissionId: string): Promise<Submission> => {
   const res = await axiosInstance.get<Submission>(`${BASE}/${submissionId}/review`);
+  return res.data;
+};
+
+/**
+ * GET /api/submissions/assessment/{assessmentId}/users
+ * Lấy danh sách user đã làm bài trong assessment
+ */
+export const getSubmissionsByAssessment = async (
+  assessmentId: string
+): Promise<SubmissionSummary[]> => {
+  const res = await axiosInstance.get<SubmissionSummary[]>(`${BASE}/assessment/${assessmentId}`);
   return res.data;
 };
