@@ -6,18 +6,19 @@ import type { SubmissionQuestion } from "@/types/exam";
 
 type QuestionNavigatorProps =
   | {
-      mode: "quiz";
-      questions: SubmissionQuestion[];
-      currentIndex: number;
-      answers: Map<string, { submissionQuestionId: string; answerValue: string }>;
-      markedForReview: Set<string>;
-      onQuestionClick: (index: number) => void;
-    }
+    mode: "quiz";
+    questions: SubmissionQuestion[];
+    /** Indices (0-based) of questions currently visible on the page */
+    currentIndices: Set<number>;
+    answers: Map<string, { submissionQuestionId: string; answerValue: string }>;
+    markedForReview: Set<string>;
+    onQuestionClick: (index: number) => void;
+  }
   | {
-      mode: "result";
-      questions: SubmissionQuestion[];
-      onQuestionClick: (questionId: string) => void;
-    };
+    mode: "result";
+    questions: SubmissionQuestion[];
+    onQuestionClick: (questionId: string) => void;
+  };
 
 export function QuestionNavigator(props: QuestionNavigatorProps) {
   const { mode, questions } = props;
@@ -34,9 +35,9 @@ export function QuestionNavigator(props: QuestionNavigatorProps) {
             let title = "";
 
             if (mode === "quiz") {
-              const { currentIndex, answers, markedForReview, onQuestionClick } = props;
+              const { currentIndices, answers, markedForReview, onQuestionClick } = props;
               const hasAnswer = answers.has(q.id) && answers.get(q.id)!.answerValue !== "";
-              const isCurrent = idx === currentIndex;
+              const isCurrent = currentIndices.has(idx);
               const isMarked = markedForReview.has(q.id);
 
               bg = "bg-gray-100 text-gray-600 border-gray-200";

@@ -79,80 +79,71 @@ export default function ResultPage() {
 
   return (
     <MainLayout>
-      <div className="flex gap-6">
+      <div className="flex-1 flex gap-6 min-h-0 overflow-hidden">
         {/* Main content area */}
-        <div className="flex-1 space-y-6">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/assessments")}>
-            <ChevronLeft className="h-4 w-4 mr-1" /> Back to Assessments
-          </Button>
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          {/* Fixed top section */}
+          <div className="shrink-0 space-y-4 pb-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/assessments")}>
+              <ChevronLeft className="h-4 w-4 mr-1" /> Back to Assessments
+            </Button>
 
-          {/* Score card */}
-          <Card className={`border-2 ${passed ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}>
-            <CardContent className="py-8 flex flex-col items-center text-center gap-4">
-              <div className={`h-16 w-16 rounded-full flex items-center justify-center ${passed ? "bg-green-100" : "bg-red-100"}`}>
-                {passed ? <Trophy className="h-8 w-8 text-green-600" /> : <XCircle className="h-8 w-8 text-red-600" />}
-              </div>
-              <div>
-                <h2 className="text-3xl font-bold">{result.assessmentTitle}</h2>
-                <p className="text-sm text-muted-foreground mt-1">Assessment Result</p>
-              </div>
-              <Badge className={`text-sm px-4 py-1 ${passed ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-red-100 text-red-800 hover:bg-red-100"}`}>
-                {passed ? "PASSED" : "FAILED"}
-              </Badge>
-            </CardContent>
-          </Card>
+            {/* Score card */}
+            <Card className={`border-2 ${passed ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}>
+              <CardContent className="py-3 px-4">
+                <div className="flex items-center gap-4 flex-wrap">
+                  {/* Icon + title + badge */}
+                  <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${passed ? "bg-green-100" : "bg-red-100"}`}>
+                    {passed ? <Trophy className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-red-600" />}
+                  </div>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <h2 className="text-sm font-semibold truncate">{result.assessmentTitle}</h2>
+                    <Badge className={`text-xs px-2 py-0.5 shrink-0 ${passed ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-red-100 text-red-800 hover:bg-red-100"}`}>
+                      {passed ? "PASSED" : "FAILED"}
+                    </Badge>
+                  </div>
+                  {/* Stats inline */}
+                  <div className="flex items-center gap-4 text-xs shrink-0">
+                    <div className="text-center">
+                      <p className="font-bold text-sm">{result.totalScore}<span className="font-normal text-muted-foreground">/{result.maxScore}</span></p>
+                      <p className="text-muted-foreground">Score (pass {result.passScore})</p>
+                    </div>
+                    <div className="h-8 w-px bg-current opacity-10" />
+                    <div className="flex items-center gap-1">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                      <span className="font-bold">{result.correctAnswers}</span>
+                      <span className="text-muted-foreground">correct</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <XCircle className="h-3.5 w-3.5 text-red-500" />
+                      <span className="font-bold">{result.wrongAnswers}</span>
+                      <span className="text-muted-foreground">wrong</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <BarChart3 className="h-3.5 w-3.5 text-gray-400" />
+                      <span className="font-bold">{result.unansweredQuestions}</span>
+                      <span className="text-muted-foreground">unanswered</span>
+                    </div>
+                    {result.durationSeconds != null && (
+                      <>
+                        <div className="h-8 w-px bg-current opacity-10" />
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5 text-gray-400" />
+                          <span className="font-bold">{formatDuration(result.durationSeconds)}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Summary stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="py-4 text-center">
-                <p className="text-2xl font-bold">{result.totalScore} <span className="text-sm font-normal text-muted-foreground">/ {result.maxScore}</span></p>
-                <p className="text-xs text-muted-foreground mt-1">Total Score</p>
-                <p className="text-xs text-muted-foreground">Pass: {result.passScore}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="py-4 flex items-center gap-3">
-                <CheckCircle2 className="h-6 w-6 text-green-500" />
-                <div>
-                  <p className="text-xl font-bold">{result.correctAnswers}</p>
-                  <p className="text-xs text-muted-foreground">Correct</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="py-4 flex items-center gap-3">
-                <XCircle className="h-6 w-6 text-red-500" />
-                <div>
-                  <p className="text-xl font-bold">{result.wrongAnswers}</p>
-                  <p className="text-xs text-muted-foreground">Wrong</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="py-4 flex items-center gap-3">
-                <BarChart3 className="h-6 w-6 text-gray-400" />
-                <div>
-                  <p className="text-xl font-bold">{result.unansweredQuestions}</p>
-                  <p className="text-xs text-muted-foreground">Unanswered</p>
-                </div>
-              </CardContent>
-            </Card>
+            <h3 className="text-lg font-semibold">Question Review</h3>
           </div>
 
-          {/* Duration */}
-          {result.durationSeconds != null && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              Time taken: <strong>{formatDuration(result.durationSeconds)}</strong>
-              <span>· Total questions: <strong>{result.totalQuestions}</strong></span>
-            </div>
-          )}
-
-          {/* Per-question review */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Question Review</h3>
-            <div className="space-y-4">
+          {/* Scrollable question list */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="space-y-4 pb-6">
               {questions.map((q, idx) => (
                 <div key={q.id} ref={(el) => { questionRefs.current[q.id] = el; }}>
                   <QuestionReviewCard question={q} index={idx} />
@@ -163,7 +154,7 @@ export default function ResultPage() {
         </div>
 
         {/* Question Navigator Sidebar */}
-        <aside className="w-72 shrink-0 hidden lg:block sticky top-6 self-start">
+        <aside className="w-72 shrink-0 hidden lg:flex flex-col min-h-0 overflow-y-auto">
           <QuestionNavigator
             mode="result"
             questions={questions}

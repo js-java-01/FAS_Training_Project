@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, FileQuestion, CheckCircle2, XCircle, Save, Trash2, Loader2, ChevronDown } from 'lucide-react';
+import { Plus, FileQuestion, CheckCircle2, XCircle, Save, Trash2, Loader2, ChevronDown, Pencil, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AssessmentQuestion } from '@/types/features/assessment/assessment-question';
 import type { AssessmentQuestionOption } from '@/types/features/assessment/assessment-question-options';
@@ -16,6 +16,8 @@ function AssessmentOptionsPanel({ assessmentQuestionId }: { assessmentQuestionId
     const { toast } = useToast();
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState({ content: '', correct: false });
+    const [editingOptionId, setEditingOptionId] = useState<string | null>(null);
+    const [editOptionData, setEditOptionData] = useState({ content: '', correct: false });
 
     const { data: optionsPage, isLoading: optionsLoading } = useQuery({
         queryKey: ['assessmentQuestionOptions', assessmentQuestionId],
@@ -50,6 +52,32 @@ function AssessmentOptionsPanel({ assessmentQuestionId }: { assessmentQuestionId
             toast({ variant: 'destructive', title: 'Error', description: error.response?.data?.message || 'Failed to delete option' });
         },
     });
+
+    const updateOptionMutation = useMutation({
+        mutationFn: ({ id, data }: { id: string; data: AssessmentQuestionOption }) =>
+            assessmentQuestionOptionApi.update(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['assessmentQuestionOptions', assessmentQuestionId] });
+            setEditingOptionId(null);
+            toast({ variant: 'success', title: 'Option updated' });
+        },
+        onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+            toast({ variant: 'destructive', title: 'Error', description: error.response?.data?.message || 'Failed to update option' });
+        },
+    });
+
+    const handleEditOption = (opt: AssessmentQuestionOption) => {
+        setEditingOptionId(opt.id);
+        setEditOptionData({ content: opt.content, correct: opt.correct });
+    };
+
+    const handleSaveOption = (opt: AssessmentQuestionOption) => {
+        if (!editOptionData.content.trim()) return;
+        updateOptionMutation.mutate({
+            id: opt.id,
+            data: { ...opt, content: editOptionData.content, correct: editOptionData.correct },
+        });
+    };
 
     const handleSubmit = () => {
         if (!formData.content.trim()) return;
@@ -89,28 +117,80 @@ function AssessmentOptionsPanel({ assessmentQuestionId }: { assessmentQuestionId
                         .map((opt, idx) => (
                             <div
                                 key={opt.id}
-                                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm ${opt.correct
-                                        ? 'bg-green-50 border border-green-200 text-green-800'
-                                        : 'bg-white border border-gray-200 text-gray-700'
+                                className={`px-3 py-2 rounded-lg text-sm border ${editingOptionId === opt.id
+                                        ? 'bg-yellow-50 border-yellow-300'
+                                        : opt.correct
+                                            ? 'bg-green-50 border-green-200 text-green-800'
+                                            : 'bg-white border-gray-200 text-gray-700'
                                     }`}
                             >
-                                <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${opt.correct ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
-                                    }`}>
-                                    {String.fromCharCode(65 + idx)}
-                                </div>
-                                <span className="flex-1">{opt.content}</span>
-                                {opt.correct && (
-                                    <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                {editingOptionId === opt.id ? (
+                                    <div className="space-y-2">
+                                        <input
+                                            type="text"
+                                            value={editOptionData.content}
+                                            onChange={e => setEditOptionData(prev => ({ ...prev, content: e.target.value }))}
+                                            className="w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-white"
+                                        />
+                                        <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                                            <input
+                                                type="checkbox"
+                                                checked={editOptionData.correct}
+                                                onChange={e => setEditOptionData(prev => ({ ...prev, correct: e.target.checked }))}
+                                                className="w-3.5 h-3.5 accent-green-500"
+                                            />
+                                            Mark as correct
+                                        </label>
+                                        <div className="flex gap-1.5">
+                                            <Button
+                                                size="sm"
+                                                className="bg-yellow-500 hover:bg-yellow-600 h-6 text-xs px-2"
+                                                onClick={() => handleSaveOption(opt)}
+                                                disabled={!editOptionData.content.trim() || updateOptionMutation.isPending}
+                                            >
+                                                {updateOptionMutation.isPending
+                                                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                                                    : 'Save'}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="h-6 text-xs px-2"
+                                                onClick={() => setEditingOptionId(null)}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2.5">
+                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${opt.correct ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
+                                            }`}>
+                                            {String.fromCharCode(65 + idx)}
+                                        </div>
+                                        <span className="flex-1">{opt.content}</span>
+                                        {opt.correct && (
+                                            <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                        )}
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 w-6 p-0 text-yellow-500 hover:text-yellow-600"
+                                            onClick={() => handleEditOption(opt)}
+                                        >
+                                            <Pencil className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 w-6 p-0 text-red-400 hover:text-red-600"
+                                            onClick={() => deleteOptionMutation.mutate(opt.id)}
+                                            disabled={deleteOptionMutation.isPending}
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                    </div>
                                 )}
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0 text-red-400 hover:text-red-600"
-                                    onClick={() => deleteOptionMutation.mutate(opt.id)}
-                                    disabled={deleteOptionMutation.isPending}
-                                >
-                                    <Trash2 className="h-3 w-3" />
-                                </Button>
                             </div>
                         ))}
                 </div>
@@ -170,6 +250,8 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
     const queryClient = useQueryClient();
     const [showAddModal, setShowAddModal] = useState(false);
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+    const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+    const [editQuestionData, setEditQuestionData] = useState({ score: 0, orderIndex: 0 });
 
     const toggleExpand = (id: string) => {
         setExpandedIds(prev => {
@@ -264,6 +346,25 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
             toast({ variant: 'destructive', title: 'Error', description: error.response?.data?.message || 'Failed to remove question' });
         },
     });
+
+    // Update assessment question mutation
+    const updateQuestionMutation = useMutation({
+        mutationFn: ({ id, data }: { id: string; data: { score: number; orderIndex: number } }) =>
+            assessmentQuestionApi.update(id, data as any),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['assessmentQuestions', assessmentId] });
+            setEditingQuestionId(null);
+            toast({ variant: 'success', title: 'Question updated' });
+        },
+        onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+            toast({ variant: 'destructive', title: 'Error', description: error.response?.data?.message || 'Failed to update question' });
+        },
+    });
+
+    const handleEditQuestion = (aq: { id: string; score: number; orderIndex: number }) => {
+        setEditingQuestionId(aq.id);
+        setEditQuestionData({ score: aq.score, orderIndex: aq.orderIndex });
+    };
 
     // Show message if not in edit mode (no assessmentId)
     if (!assessmentId) {
@@ -401,17 +502,6 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                         <CheckCircle2 className="h-8 w-8 text-green-600" />
                     </div>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-600">Incomplete</p>
-                            <p className="text-2xl font-bold text-gray-900 mt-1">
-                                {questionsWithoutCorrectAnswer}
-                            </p>
-                        </div>
-                        <XCircle className="h-8 w-8 text-red-600" />
-                    </div>
-                </div>
             </div>
 
             {/* Empty State */}
@@ -453,13 +543,6 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                                             <p className="text-sm text-gray-900 font-medium">
                                                 {assessmentQuestion.question?.content}
                                             </p>
-                                            <div className="flex items-center gap-2 flex-shrink-0">
-                                                {hasCorrectAnswer ? (
-                                                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                                                ) : (
-                                                    <XCircle className="h-5 w-5 text-red-600" />
-                                                )}
-                                            </div>
                                         </div>
 
                                         <div className="flex items-center gap-4 text-xs text-gray-600">
@@ -469,9 +552,44 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                                             <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700">
                                                 {assessmentQuestion.question?.questionType}
                                             </span>
-                                            <span className="font-medium text-green-700">
-                                                {assessmentQuestion.score} points
-                                            </span>
+                                            {editingQuestionId === assessmentQuestion.id ? (
+                                                <div className="flex items-center gap-3">
+                                                    <label className="flex items-center gap-1">
+                                                        <span className="text-gray-500">Score:</span>
+                                                        <input
+                                                            type="number"
+                                                            min={0}
+                                                            value={editQuestionData.score}
+                                                            onChange={e => setEditQuestionData(prev => ({ ...prev, score: Number(e.target.value) }))}
+                                                            className="w-16 border border-gray-300 rounded px-1.5 py-0.5 text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                                        />
+                                                    </label>
+                                                    <label className="flex items-center gap-1">
+                                                        <span className="text-gray-500">Order:</span>
+                                                        <input
+                                                            type="number"
+                                                            min={0}
+                                                            value={editQuestionData.orderIndex}
+                                                            onChange={e => setEditQuestionData(prev => ({ ...prev, orderIndex: Number(e.target.value) }))}
+                                                            className="w-16 border border-gray-300 rounded px-1.5 py-0.5 text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                                        />
+                                                    </label>
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-yellow-500 hover:bg-yellow-600 h-6 text-xs px-2"
+                                                        onClick={() => updateQuestionMutation.mutate({ id: assessmentQuestion.id, data: editQuestionData })}
+                                                        disabled={updateQuestionMutation.isPending}
+                                                    >
+                                                        {updateQuestionMutation.isPending
+                                                            ? <Loader2 className="h-3 w-3 animate-spin" />
+                                                            : 'Save'}
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <span className="font-medium text-green-700">
+                                                    {assessmentQuestion.score} points
+                                                </span>
+                                            )}
                                             {!hasCorrectAnswer && (
                                                 <span className="text-red-600">No correct answer set</span>
                                             )}
@@ -479,6 +597,22 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                                     </div>
 
                                     <div className="flex gap-2 flex-shrink-0">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-yellow-500 hover:text-yellow-600"
+                                            onClick={() => {
+                                                if (editingQuestionId === assessmentQuestion.id) {
+                                                    setEditingQuestionId(null);
+                                                } else {
+                                                    handleEditQuestion(assessmentQuestion);
+                                                }
+                                            }}
+                                        >
+                                            {editingQuestionId === assessmentQuestion.id
+                                                ? <X className="h-4 w-4" />
+                                                : <Pencil className="h-4 w-4" />}
+                                        </Button>
                                         <Button
                                             variant="ghost"
                                             size="sm"
@@ -508,36 +642,6 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                                 {/* Expandable Options */}
                                 {isExpanded && (
                                     <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
-                                        {/* Question-bank options (read-only) */}
-                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Question Bank Options</p>
-                                        {options.length === 0 ? (
-                                            <p className="text-xs text-gray-400 italic">No options available</p>
-                                        ) : (
-                                            <div className="space-y-1.5">
-                                                {[...options]
-                                                    .sort((a, b) => a.orderIndex - b.orderIndex)
-                                                    .map((opt, optIndex) => (
-                                                        <div
-                                                            key={optIndex}
-                                                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm ${opt.correct
-                                                                ? 'bg-green-50 border border-green-200 text-green-800'
-                                                                : 'bg-white border border-gray-200 text-gray-700'
-                                                                }`}
-                                                        >
-                                                            <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${opt.correct ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
-                                                                }`}>
-                                                                {String.fromCharCode(65 + optIndex)}
-                                                            </div>
-                                                            <span className="flex-1">{opt.content}</span>
-                                                            {opt.correct && (
-                                                                <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                            </div>
-                                        )}
-
-                                        {/* Assessment-specific options (editable) */}
                                         <AssessmentOptionsPanel assessmentQuestionId={assessmentQuestion.id} />
                                     </div>
                                 )}
