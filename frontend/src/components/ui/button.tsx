@@ -54,7 +54,7 @@ const Button = React.forwardRef<
   },
   ref
 ) => {
-  const Comp = asChild ? Slot.Root : "button"
+  const Comp = asChild ? Slot : "button"
 
   return (
     <Comp

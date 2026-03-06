@@ -61,13 +61,13 @@ export function createBaseColumns<T>() {
       header: ({ table }) => (
         <DropdownMenu>
           <Tooltip>
-            <DropdownMenuTrigger asChild>
-              <TooltipTrigger asChild>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <MoreVertical size={16} />
                 </Button>
-              </TooltipTrigger>
-            </DropdownMenuTrigger>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
 
             <TooltipContent side="top">
               Column Control
