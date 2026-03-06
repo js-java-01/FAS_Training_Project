@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Submission, SubmissionQuestion, AnswerSubmission } from "@/types/exam";
+import type { Submission, SubmissionQuestion } from "@/types/exam";
 import { toast } from "sonner";
 import {
   Clock,
@@ -14,7 +14,7 @@ import {
   Send,
   AlertTriangle,
 } from "lucide-react";
-import { getMockSubmission, gradeMockSubmission } from "./mockExamData";
+import { getSubmissionForReview, submitAnswer as apiSubmitAnswer, submitSubmission as apiSubmitSubmission } from "@/api/submissionApi";
 import { QuestionNavigator } from "./QuestionNavigator";
 
 // ===== Local answer state =====
@@ -32,40 +32,80 @@ export default function QuizPage() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Map<string, LocalAnswer>>(new Map());
   const [markedForReview, setMarkedForReview] = useState<Set<string>>(new Set());
-  const [timeLeft] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const autoSubmitRef = useRef(false);
 
   // Sort questions by orderIndex
   const questions: SubmissionQuestion[] = useMemo(
     () =>
-      submission?.submissionQuestions
-        ? [...submission.submissionQuestions].sort((a, b) => a.orderIndex - b.orderIndex)
+      submission?.questions
+        ? [...submission.questions].sort((a, b) => a.orderIndex - b.orderIndex)
         : [],
     [submission]
   );
   const currentQuestion = questions[currentIdx] ?? null;
 
-  // ===== Load mock submission =====
+  // ===== Load submission from API =====
   useEffect(() => {
     if (!submissionId) return;
-
-    // Simulate loading delay
     setIsLoading(true);
-    const timer = setTimeout(() => {
-      const data = getMockSubmission(submissionId);
-      setSubmission(data);
-      setIsLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
+    getSubmissionForReview(submissionId)
+      .then((data) => {
+        setSubmission(data);
+        // Pre-fill answers already saved
+        const map = new Map<string, LocalAnswer>();
+        data.questions?.forEach((q) => {
+          if (q.userAnswer) {
+            map.set(q.id, { submissionQuestionId: q.id, answerValue: q.userAnswer });
+          }
+        });
+        setAnswers(map);
+        // Set countdown timer
+        if (data.remainingTimeSeconds != null) {
+          setTimeLeft(data.remainingTimeSeconds);
+        }
+      })
+      .catch(() => toast.error("Failed to load submission."))
+      .finally(() => setIsLoading(false));
   }, [submissionId]);
+
+  // ===== Countdown timer =====
+  useEffect(() => {
+    if (timeLeft === null || timeLeft <= 0) return;
+    const id = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(id);
+          if (!autoSubmitRef.current) {
+            autoSubmitRef.current = true;
+            toast.warning("Time's up! Auto-submitting...");
+            handleAutoSubmit();
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeLeft !== null && timeLeft > 0]);
+
+  const handleAutoSubmit = useCallback(async () => {
+    if (!submissionId) return;
+    try {
+      await apiSubmitSubmission(submissionId);
+      navigate(`/assessments/result/${submissionId}`, { replace: true });
+    } catch {
+      toast.error("Auto-submit failed.");
+    }
+  }, [submissionId, navigate]);
 
   // ===== Keyboard shortcuts =====
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
-
       if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         e.preventDefault();
         setCurrentIdx((prev) => Math.max(0, prev - 1));
@@ -84,7 +124,6 @@ export default function QuizPage() {
         }
       }
     };
-
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,41 +135,44 @@ export default function QuizPage() {
         const next = new Map(prev);
         const existing = next.get(questionId);
         const currentVal = existing?.answerValue ?? "";
-
         const q = questions.find((q) => q.id === questionId);
         let newValue: string;
-
         if (q?.questionType === "MULTI_CHOICE") {
           const selected = new Set(currentVal ? currentVal.split(",") : []);
-          if (selected.has(optionId)) {
-            selected.delete(optionId);
-          } else {
-            selected.add(optionId);
-          }
+          if (selected.has(optionId)) selected.delete(optionId);
+          else selected.add(optionId);
           newValue = Array.from(selected).join(",");
         } else {
           newValue = optionId;
         }
-
-        next.set(questionId, {
-          submissionQuestionId: questionId,
-          answerValue: newValue,
-        });
-
+        next.set(questionId, { submissionQuestionId: questionId, answerValue: newValue });
         return next;
       });
+
+      // Save answer to server (fire-and-forget, non-blocking)
+      if (submissionId) {
+        const q = questions.find((q) => q.id === questionId);
+        const existing = answers.get(questionId)?.answerValue ?? "";
+        let newVal: string;
+        if (q?.questionType === "MULTI_CHOICE") {
+          const sel = new Set(existing ? existing.split(",") : []);
+          if (sel.has(optionId)) sel.delete(optionId); else sel.add(optionId);
+          newVal = Array.from(sel).join(",");
+        } else {
+          newVal = optionId;
+        }
+        apiSubmitAnswer(submissionId, { submissionQuestionId: questionId, answerValue: newVal })
+          .catch(() => { /* silent – answer saved locally */ });
+      }
     },
-    [questions]
+    [questions, submissionId, answers]
   );
 
   const handleFillInChange = useCallback(
     (questionId: string, value: string) => {
       setAnswers((prev) => {
         const next = new Map(prev);
-        next.set(questionId, {
-          submissionQuestionId: questionId,
-          answerValue: value,
-        });
+        next.set(questionId, { submissionQuestionId: questionId, answerValue: value });
         return next;
       });
     },
@@ -140,39 +182,33 @@ export default function QuizPage() {
   const toggleMarkForReview = (questionId: string) => {
     setMarkedForReview((prev) => {
       const next = new Set(prev);
-      if (next.has(questionId)) next.delete(questionId);
-      else next.add(questionId);
+      if (next.has(questionId)) next.delete(questionId); else next.add(questionId);
       return next;
     });
   };
 
-  // ===== Submit (mock grading) =====
-  const handleSubmit = () => {
+  // ===== Final submit =====
+  const handleSubmit = async () => {
     if (!submissionId) return;
-
     setIsSubmitting(true);
-
-    const bulkAnswers: AnswerSubmission[] = [];
-    answers.forEach((a) => {
-      if (a.answerValue) {
-        bulkAnswers.push({
-          submissionQuestionId: a.submissionQuestionId,
-          answerValue: a.answerValue,
-        });
+    try {
+      // Flush any unanswered fill-in answers first
+      const fillAnswers = Array.from(answers.values()).filter(
+        (a) => a.answerValue && !questions.find((q) => q.id === a.submissionQuestionId)?.options?.length
+      );
+      for (const a of fillAnswers) {
+        await apiSubmitAnswer(submissionId, { submissionQuestionId: a.submissionQuestionId, answerValue: a.answerValue });
       }
-    });
 
-    // Simulate grading delay
-    setTimeout(() => {
-      const { result } = gradeMockSubmission(submissionId, bulkAnswers);
-      toast.success(result.isPassed ? "Congratulations! You passed!" : "Quiz submitted.");
-      navigate(`/assessments/result/${result.submissionId}`, {
-        replace: true,
-        state: { answers: bulkAnswers },
-      });
+      const result = await apiSubmitSubmission(submissionId);
+      toast.success(result.isPassed ? "🎉 Congratulations! You passed!" : "Quiz submitted successfully.");
+      navigate(`/assessments/result/${submissionId}`, { replace: true });
+    } catch {
+      toast.error("Failed to submit. Please try again.");
+    } finally {
       setIsSubmitting(false);
       setShowConfirm(false);
-    }, 800);
+    }
   };
 
   const answeredCount = questions.filter(
@@ -224,6 +260,9 @@ export default function QuizPage() {
   const sortedOptions = [...currentQuestion.options].sort((a, b) => a.orderIndex - b.orderIndex);
   const currentAnswer = answers.get(currentQuestion.id)?.answerValue ?? "";
 
+  const formatTime = (s: number) =>
+    `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Top bar */}
@@ -233,29 +272,21 @@ export default function QuizPage() {
             <ChevronLeft className="h-4 w-4 mr-1" /> Exit
           </Button>
           <span className="text-sm font-medium text-muted-foreground">
-            Question {currentIdx + 1} of {questions.length}
+            {submission.assessmentTitle} — Q{currentIdx + 1}/{questions.length}
           </span>
         </div>
 
         <div className="flex items-center gap-4">
           {timeLeft !== null && (
-            <div className="flex items-center gap-1.5 text-sm font-mono">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              {Math.floor(timeLeft / 60)
-                .toString()
-                .padStart(2, "0")}
-              :{(timeLeft % 60).toString().padStart(2, "0")}
+            <div className={`flex items-center gap-1.5 text-sm font-mono ${timeLeft < 60 ? "text-red-600 font-bold" : ""}`}>
+              <Clock className="h-4 w-4" />
+              {formatTime(timeLeft)}
             </div>
           )}
           <Badge variant="secondary" className="text-xs">
             {answeredCount}/{questions.length} answered
           </Badge>
-          <Button
-            size="sm"
-            variant="default"
-            disabled={isSubmitting}
-            onClick={() => setShowConfirm(true)}
-          >
+          <Button size="sm" disabled={isSubmitting} onClick={() => setShowConfirm(true)}>
             <Send className="h-4 w-4 mr-1" /> Submit
           </Button>
         </div>
@@ -263,22 +294,20 @@ export default function QuizPage() {
 
       {/* Main area: 70-30 split */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Question panel (70%) */}
+        {/* Question panel */}
         <div className="flex-1 overflow-y-auto p-6">
           <Card className="max-w-3xl mx-auto relative">
-            {/* Marked indicator - small yellow dot */}
             {markedForReview.has(currentQuestion.id) && (
               <div className="absolute top-4 right-4 w-3 h-3 bg-yellow-400 rounded-full shadow-sm" title="Marked for review" />
             )}
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between gap-2">
                 <CardTitle className="text-lg">
-                  Q{currentIdx + 1}. <span dangerouslySetInnerHTML={{ __html: currentQuestion.content }} />
+                  Q{currentIdx + 1}.{" "}
+                  <span dangerouslySetInnerHTML={{ __html: currentQuestion.content }} />
                 </CardTitle>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Badge variant="outline" className="text-xs">
-                    {currentQuestion.score} pts
-                  </Badge>
+                  <Badge variant="outline" className="text-xs">{currentQuestion.score} pts</Badge>
                   <Button
                     variant={markedForReview.has(currentQuestion.id) ? "default" : "outline"}
                     size="icon"
@@ -290,7 +319,9 @@ export default function QuizPage() {
                   </Button>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">{currentQuestion.questionType.replace(/_/g, " ")}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {currentQuestion.questionType.replace(/_/g, " ")}
+              </p>
             </CardHeader>
 
             <CardContent className="space-y-3">
@@ -300,7 +331,6 @@ export default function QuizPage() {
                     currentQuestion.questionType === "MULTI_CHOICE"
                       ? currentAnswer.split(",").includes(opt.id)
                       : currentAnswer === opt.id;
-
                   return (
                     <button
                       key={opt.id}
@@ -313,9 +343,7 @@ export default function QuizPage() {
                     >
                       <span
                         className={`shrink-0 flex items-center justify-center h-7 w-7 rounded-full border text-sm font-medium ${
-                          isSelected
-                            ? "bg-blue-500 text-white border-blue-500"
-                            : "bg-white text-gray-600 border-gray-300"
+                          isSelected ? "bg-blue-500 text-white border-blue-500" : "bg-white text-gray-600 border-gray-300"
                         }`}
                       >
                         {idx + 1}
@@ -335,26 +363,18 @@ export default function QuizPage() {
             </CardContent>
           </Card>
 
-          {/* Navigation buttons */}
+          {/* Prev / Next */}
           <div className="max-w-3xl mx-auto flex justify-between mt-4">
-            <Button
-              variant="outline"
-              disabled={currentIdx === 0}
-              onClick={() => setCurrentIdx((prev) => prev - 1)}
-            >
+            <Button variant="outline" disabled={currentIdx === 0} onClick={() => setCurrentIdx((p) => p - 1)}>
               <ChevronLeft className="h-4 w-4 mr-1" /> Previous
             </Button>
-            <Button
-              variant="outline"
-              disabled={currentIdx === questions.length - 1}
-              onClick={() => setCurrentIdx((prev) => prev + 1)}
-            >
+            <Button variant="outline" disabled={currentIdx === questions.length - 1} onClick={() => setCurrentIdx((p) => p + 1)}>
               Next <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
         </div>
 
-        {/* Question nav panel (30%) */}
+        {/* Navigator sidebar */}
         <aside className="w-72 border-l bg-white p-4 overflow-y-auto shrink-0 hidden md:block">
           <QuestionNavigator
             mode="quiz"
@@ -364,7 +384,6 @@ export default function QuizPage() {
             markedForReview={markedForReview}
             onQuestionClick={setCurrentIdx}
           />
-
           <div className="mt-4 text-xs text-muted-foreground space-y-0.5">
             <p><kbd className="px-1 py-0.5 rounded bg-gray-200 text-[10px]">←</kbd> <kbd className="px-1 py-0.5 rounded bg-gray-200 text-[10px]">→</kbd> Navigate</p>
             <p><kbd className="px-1 py-0.5 rounded bg-gray-200 text-[10px]">1-6</kbd> Quick select</p>
@@ -385,35 +404,20 @@ export default function QuizPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                You have answered <strong>{answeredCount}</strong> out of{" "}
-                <strong>{questions.length}</strong> questions.
+                You have answered <strong>{answeredCount}</strong> out of <strong>{questions.length}</strong> questions.
               </p>
               {questions.length - answeredCount > 0 && (
                 <p className="text-sm text-amber-600">
-                  ⚠ {questions.length - answeredCount} question(s) are still unanswered.
+                  ⚠ {questions.length - answeredCount} question(s) still unanswered.
                 </p>
               )}
               {markedForReview.size > 0 && (
-                <p className="text-sm text-amber-600">
-                  ⚠ {markedForReview.size} question(s) are marked for review.
-                </p>
+                <p className="text-sm text-amber-600">⚠ {markedForReview.size} question(s) marked for review.</p>
               )}
-              <p className="text-sm text-muted-foreground">
-                Once submitted, you cannot change your answers.
-              </p>
+              <p className="text-sm text-muted-foreground">Once submitted, you cannot change your answers.</p>
               <div className="flex justify-end gap-2 pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowConfirm(false)}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="default"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                >
+                <Button variant="outline" onClick={() => setShowConfirm(false)} disabled={isSubmitting}>Cancel</Button>
+                <Button onClick={handleSubmit} disabled={isSubmitting}>
                   {isSubmitting ? "Submitting..." : "Submit"}
                 </Button>
               </div>

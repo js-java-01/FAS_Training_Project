@@ -1,6 +1,6 @@
 // ===== User Assessment (Dashboard Card) =====
 export interface UserAssessment {
-  assessmentId: number;
+  assessmentId: string;
   code: string;
   title: string;
   description: string;
@@ -19,7 +19,7 @@ export interface QuestionOption {
   id: string;
   content: string;
   orderIndex: number;
-  isCorrect: boolean | null; // only populated after submission
+  isCorrect: boolean | null; // only populated after submission/review
 }
 
 // ===== Submission Question =====
@@ -29,36 +29,51 @@ export interface SubmissionQuestion {
   questionType: string; // "SINGLE_CHOICE" | "MULTI_CHOICE" | "TRUE_FALSE" | "FILL_IN"
   content: string;
   score: number;
+  earnedScore: number | null;
   orderIndex: number;
   isCorrect: boolean | null;
   userAnswer: string | null;
+  correctAnswer: string | null; // only populated in review/result mode
   options: QuestionOption[];
 }
 
-// ===== Submission (full detail) =====
+// ===== Submission (full detail - returned by start/answer/submit) =====
 export interface Submission {
-  id: string;
+  submissionId: string;
   userId: string;
-  assessmentId: number;
+  assessmentId: string;
+  assessmentTitle: string;
   status: string; // "IN_PROGRESS" | "SUBMITTED"
   startedAt: string;
   submittedAt: string | null;
   totalScore: number | null;
   isPassed: boolean | null;
-  submissionQuestions: SubmissionQuestion[];
+  timeLimitMinutes: number | null;
+  remainingTimeSeconds: number | null;
+  questions: SubmissionQuestion[];
 }
 
-// ===== Submission Result =====
+// ===== Submission Result (returned by GET /result) =====
 export interface SubmissionResult {
   submissionId: string;
+  assessmentTitle: string;
+  totalQuestions: number;
+  correctAnswers: number;
+  wrongAnswers: number;
+  unansweredQuestions: number;
   totalScore: number;
+  maxScore: number;
   passScore: number;
   isPassed: boolean;
+  startedAt: string;
+  submittedAt: string;
+  durationSeconds: number | null;
+  questionDetails: SubmissionQuestion[];
 }
 
 // ===== Request DTOs =====
 export interface StartSubmissionRequest {
-  assessmentId: number;
+  assessmentId: string;
 }
 
 export interface SubmitAnswerRequest {

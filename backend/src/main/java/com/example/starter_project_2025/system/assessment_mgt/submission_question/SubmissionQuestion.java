@@ -7,8 +7,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -53,5 +53,5 @@ public class SubmissionQuestion {
             orphanRemoval = true
     )
     @Builder.Default
-    private List<SubmissionAnswer> submissionAnswers = new ArrayList<>();
+    private Set<SubmissionAnswer> submissionAnswers = new HashSet<>();
 }

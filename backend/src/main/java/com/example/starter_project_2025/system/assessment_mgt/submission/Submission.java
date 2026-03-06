@@ -35,7 +35,7 @@ public class Submission {
     Assessment assessment;
 
     @ManyToOne
-    @JoinColumn(name = "course_class_id", nullable = false)
+    @JoinColumn(name = "course_class_id", nullable = true)
     @JsonBackReference
     CourseClass courseClass;
 

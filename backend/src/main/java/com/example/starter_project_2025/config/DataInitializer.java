@@ -118,6 +118,9 @@ public class DataInitializer implements CommandLineRunner
         {
             initializeUserRoles();
         }
+
+        // Always run on startup: fix any old question_type values in DB
+        fixQuestionTypes();
     }
 
 
@@ -836,7 +839,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 1 =====
         Question q1 = new Question();
         q1.setContent("Which keyword is used to inherit a class in Java?");
-        q1.setQuestionType("SINGLE");
+        q1.setQuestionType("SINGLE_CHOICE");
         q1.setCategory(javaCore);
         q1.setOptions(List.of(
             createOption(q1, "extends", true, 1),
@@ -848,7 +851,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 2 =====
         Question q2 = new Question();
         q2.setContent("What is the default value of a boolean variable in Java?");
-        q2.setQuestionType("SINGLE");
+        q2.setQuestionType("SINGLE_CHOICE");
         q2.setCategory(javaCore);
         q2.setOptions(List.of(
             createOption(q2, "true", false, 1),
@@ -860,7 +863,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 3 =====
         Question q3 = new Question();
         q3.setContent("Which method must be implemented by all threads in Java?");
-        q3.setQuestionType("SINGLE");
+        q3.setQuestionType("SINGLE_CHOICE");
         q3.setCategory(javaCore);
         q3.setOptions(List.of(
             createOption(q3, "start()", false, 1),
@@ -872,7 +875,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 4 =====
         Question q4 = new Question();
         q4.setContent("What are the principles of OOP? (Select all that apply)");
-        q4.setQuestionType("MULTIPLE");
+        q4.setQuestionType("MULTIPLE_CHOICE");
         q4.setCategory(oop);
         q4.setOptions(List.of(
             createOption(q4, "Encapsulation", true, 1),
@@ -885,7 +888,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 5 =====
         Question q5 = new Question();
         q5.setContent("Which keyword is used to prevent method overriding in Java?");
-        q5.setQuestionType("SINGLE");
+        q5.setQuestionType("SINGLE_CHOICE");
         q5.setCategory(oop);
         q5.setOptions(List.of(
             createOption(q5, "static", false, 1),
@@ -897,7 +900,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 6 =====
         Question q6 = new Question();
         q6.setContent("What is the purpose of a constructor in Java?");
-        q6.setQuestionType("SINGLE");
+        q6.setQuestionType("SINGLE_CHOICE");
         q6.setCategory(oop);
         q6.setOptions(List.of(
             createOption(q6, "To initialize an object", true, 1),
@@ -909,7 +912,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 7 =====
         Question q7 = new Question();
         q7.setContent("Which SQL command is used to retrieve data from a database?");
-        q7.setQuestionType("SINGLE");
+        q7.setQuestionType("SINGLE_CHOICE");
         q7.setCategory(sql);
         q7.setOptions(List.of(
             createOption(q7, "GET", false, 1),
@@ -921,7 +924,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 8 =====
         Question q8 = new Question();
         q8.setContent("Which SQL clause is used to filter records?");
-        q8.setQuestionType("SINGLE");
+        q8.setQuestionType("SINGLE_CHOICE");
         q8.setCategory(sql);
         q8.setOptions(List.of(
             createOption(q8, "FILTER", false, 1),
@@ -933,7 +936,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 9 =====
         Question q9 = new Question();
         q9.setContent("What does JVM stand for?");
-        q9.setQuestionType("SINGLE");
+        q9.setQuestionType("SINGLE_CHOICE");
         q9.setCategory(javaCore);
         q9.setOptions(List.of(
             createOption(q9, "Java Virtual Machine", true, 1),
@@ -945,7 +948,7 @@ public class DataInitializer implements CommandLineRunner
         // ===== QUESTION 10 =====
         Question q10 = new Question();
         q10.setContent("Which of the following are access modifiers in Java? (Select all that apply)");
-        q10.setQuestionType("MULTIPLE");
+        q10.setQuestionType("MULTIPLE_CHOICE");
         q10.setCategory(javaCore);
         q10.setOptions(List.of(
             createOption(q10, "public", true, 1),
@@ -1124,6 +1127,32 @@ public class DataInitializer implements CommandLineRunner
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record CommuneJson(String idProvince, String idCommune, String name)
     {
+    }
+
+    /**
+     * Fix old question_type values (SINGLE → SINGLE_CHOICE, MULTIPLE → MULTIPLE_CHOICE)
+     * Runs every startup – safe to run multiple times (idempotent)
+     */
+    private void fixQuestionTypes() {
+        List<Question> badQuestions = questionRepository.findAll().stream()
+                .filter(q -> "SINGLE".equals(q.getQuestionType())
+                          || "MULTIPLE".equals(q.getQuestionType()))
+                .toList();
+
+        if (badQuestions.isEmpty()) {
+            return;
+        }
+
+        badQuestions.forEach(q -> {
+            if ("SINGLE".equals(q.getQuestionType())) {
+                q.setQuestionType("SINGLE_CHOICE");
+            } else if ("MULTIPLE".equals(q.getQuestionType())) {
+                q.setQuestionType("MULTIPLE_CHOICE");
+            }
+        });
+
+        questionRepository.saveAll(badQuestions);
+        log.info("Fixed {} question(s) with old question_type values", badQuestions.size());
     }
 
 }
