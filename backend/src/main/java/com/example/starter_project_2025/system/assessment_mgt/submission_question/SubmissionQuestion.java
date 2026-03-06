@@ -34,10 +34,6 @@ public class SubmissionQuestion {
     @Column(name = "original_question_id", nullable = false)
     UUID originalQuestionId;
 
-    // Link tới AssessmentQuestion để lấy đúng options của assessment (không phải options gốc)
-    @Column(name = "assessment_question_id")
-    UUID assessmentQuestionId;
-
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     String content;
 
