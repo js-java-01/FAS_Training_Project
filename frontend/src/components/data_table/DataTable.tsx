@@ -40,12 +40,6 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { usePagination } from "@/hooks/usePagination";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
