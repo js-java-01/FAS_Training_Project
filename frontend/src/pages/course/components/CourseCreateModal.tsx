@@ -18,6 +18,8 @@ import {
   FiImage,
   FiTag,
 } from "react-icons/fi";
+import type { User } from "@/types";
+import { userApi } from "@/api";
 
 type FormValues = {
   courseName: string;

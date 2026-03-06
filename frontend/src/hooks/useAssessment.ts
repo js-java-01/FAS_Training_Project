@@ -1,10 +1,6 @@
+import { assessmentTypeApi } from '@/api';
+import type { AssessmentType, AssessmentTypeRequest } from '@/types';
 import { useEffect, useState } from 'react';
-import dayjs from 'dayjs';
-import { assessmentTypeApi } from '../api/assessmentTypeApi';
-import type {
-    AssessmentType,
-    AssessmentTypeRequest,
-} from '../types/assessmentType';
 
 export const useAssessment = () => {
     const [assessments, setAssessments] = useState<AssessmentType[]>([]);

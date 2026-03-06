@@ -1,5 +1,6 @@
 package com.example.starter_project_2025.system.auth.entity;
 
+import com.example.starter_project_2025.system.rbac.role.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class    RoleHierarchy {
+public class RoleHierarchy {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

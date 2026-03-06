@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-@Component("basePdfExporter")
+@Component
 public class PdfExporter implements Exporter {
 
     @Override

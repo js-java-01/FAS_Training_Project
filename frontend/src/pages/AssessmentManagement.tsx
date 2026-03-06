@@ -1,4 +1,3 @@
-
 import { MainLayout } from '@/components/layout/MainLayout';
 import { AssessmentTable } from './assessment-type';
 

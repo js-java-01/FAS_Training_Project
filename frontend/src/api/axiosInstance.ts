@@ -3,7 +3,6 @@ import type { LoginResponse } from "@/types/auth";
 import { store } from "@/store/store";
 import { setLogout } from "@/store/slices/auth/authSlice";
 import mfaGate from "./mfaGate";
-import type { ExportFormat } from "@/types/export";
 
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/api",
@@ -76,12 +75,5 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(error);
     },
 );
-
-export const exportFileApi = (url: string, format: ExportFormat) => {
-    return axiosInstance.get(url, {
-        params: { format },
-        responseType: "blob",
-    });
-};
 
 export default axiosInstance;

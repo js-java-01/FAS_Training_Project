@@ -1,5 +1,5 @@
+import type { AssessmentTypeRequest } from '@/types';
 import React from 'react';
-import type { AssessmentTypeRequest } from '../../types/assessmentType';
 
 interface AssessmentFormFieldsProps {
     data: AssessmentTypeRequest;

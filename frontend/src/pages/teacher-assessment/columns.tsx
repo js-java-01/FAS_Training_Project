@@ -1,7 +1,7 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import type { Assessment } from "@/types/assessment";
+import type { Assessment } from "@/types/feature/assessment/assessment";
 import { Badge } from "@/components/ui/badge";
 import { Eye, SquarePen, Trash2 } from "lucide-react";
 import { PermissionGate } from "@/components/PermissionGate";
@@ -54,6 +54,24 @@ export const getColumns = (
                     aria-label="Select row"
                 />
             ),
+            enableSorting: false,
+            enableHiding: false,
+        }),
+
+        /* ================= ROW NUMBER ================= */
+        columnHelper.display({
+            id: "rowNumber",
+            header: "#",
+            size: 60,
+            cell: ({ row, table }) => {
+                const pagination = table.getState().pagination;
+                const rowNumber = pagination.pageIndex * pagination.pageSize + row.index + 1;
+                return (
+                    <span className="text-sm text-gray-600 block">
+                        {rowNumber}
+                    </span>
+                );
+            },
             enableSorting: false,
             enableHiding: false,
         }),

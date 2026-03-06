@@ -10,8 +10,8 @@ import com.example.starter_project_2025.system.course_online.enums.CourseLevelOn
 import com.example.starter_project_2025.system.course_online.enums.CourseStatusOnline;
 import com.example.starter_project_2025.system.course_online.mapper.CourseOnlineMapper;
 import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
-import com.example.starter_project_2025.system.user.service.UserService;
+import com.example.starter_project_2025.system.rbac.user.UserRepository;
+import com.example.starter_project_2025.system.rbac.user.UserService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import jakarta.transaction.Transactional;

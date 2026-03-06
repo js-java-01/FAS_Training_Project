@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '@/components/modal/Modal';
 import { QuestionCategoryFormFields } from './QuestionCategoryFormFields';
-import type { QuestionCategoryRequest } from '../../types/questionCategory';
+import type { QuestionCategoryRequest } from '../../types/feature/assessment/question-category';
 
 interface CreateQuestionCategoryModalProps {
     isOpen: boolean;

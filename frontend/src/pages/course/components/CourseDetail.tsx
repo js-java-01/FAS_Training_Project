@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { courseApi } from "@/api/courseApi";
-import { userApi } from "@/api/userApi";
-import type { User } from "@/types/auth";
 import { toast } from "sonner";
 
 import { OutlineTab } from "./OutlineTab";
@@ -26,6 +24,8 @@ import {
   FiFileText,
   FiUpload,
 } from "react-icons/fi";
+import { userApi } from "@/api";
+import type { User } from "@/types";
 
 type EditForm = {
   courseName: string;

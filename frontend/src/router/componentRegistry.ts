@@ -29,4 +29,24 @@ export const componentRegistry: Record<string, ComponentType> = {
   "/skillGroups": SkillGroupManagementPage,
   "/programs": ProgramManagement,
   "/semesters": SemesterManagement,
+  "/assessment-type": AssessmentTypeManagementPage,
+    "/programming-languages": ProgrammingLanguageManagement,
+    "/assessments": SelectAssessmentPage,
+    "/teacher-assessment": TeacherAssessmentPage,
+    
+    // Parameterized routes - public
+    "/courses/:id": CourseDetailPage,
+    "/assessments/quiz/:submissionId": QuizPage,
+    "/assessments/result/:submissionId": ResultPage,
+    "/assessments/history/:assessmentId": AttemptHistoryPage,
+    
+    // Parameterized routes - protected
+    "/learn/:cohortId": StudentCourseContent,
+    "/teacher-assessment/create": AssessmentFormPage,
+    "/teacher-assessment/:id/edit": AssessmentFormPage,
+    "/questions/create": CreateQuestionPage,
+    "/questions/:id/edit": EditQuestionPage,
 };
+
+
+

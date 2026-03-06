@@ -1,8 +1,7 @@
 package com.example.starter_project_2025.system.auth.service.refreshToken;
 
-import com.example.starter_project_2025.system.auth.entity.RefreshToken;
-import com.example.starter_project_2025.system.auth.entity.Role;
-import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.rbac.role.Role;
+import com.example.starter_project_2025.system.rbac.user.User;
 
 import java.util.Optional;
 import java.util.UUID;
