@@ -1,4 +1,5 @@
 export * from "./features/assessment/assessment-question.api";
+export * from "./features/assessment/assessment-question-option.api";
 export * from "./features/assessment/assessment-type.api";
 export * from "./features/assessment/assessment.api";
 export * from "./features/assessment/question.api";

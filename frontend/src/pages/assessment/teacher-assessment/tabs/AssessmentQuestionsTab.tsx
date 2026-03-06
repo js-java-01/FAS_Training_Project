@@ -3,11 +3,163 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, FileQuestion, CheckCircle2, XCircle, Save, Trash2, Loader2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AssessmentQuestion } from '@/types/features/assessment/assessment-question';
+import type { AssessmentQuestionOption } from '@/types/features/assessment/assessment-question-options';
 
 import { AddQuestionModal } from './AddQuestionModal';
 import { useToast } from '@/hooks/useToast';
-import { assessmentQuestionApi, questionCategoryApi } from '@/api';
+import { assessmentQuestionApi, assessmentQuestionOptionApi, questionCategoryApi } from '@/api';
 import { questionApi } from '@/api/questionApi';
+
+// ─── Assessment Options Panel ────────────────────────────────────────────────
+function AssessmentOptionsPanel({ assessmentQuestionId }: { assessmentQuestionId: string }) {
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
+    const [showForm, setShowForm] = useState(false);
+    const [formData, setFormData] = useState({ content: '', correct: false });
+
+    const { data: optionsPage, isLoading: optionsLoading } = useQuery({
+        queryKey: ['assessmentQuestionOptions', assessmentQuestionId],
+        queryFn: () => assessmentQuestionOptionApi.getPage(
+            { page: 0, size: 100 },
+            undefined,
+            { assessmentQuestionId }
+        ),
+    });
+    const options: AssessmentQuestionOption[] = optionsPage?.content ?? [];
+
+    const createOptionMutation = useMutation({
+        mutationFn: (data: AssessmentQuestionOption) => assessmentQuestionOptionApi.create(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['assessmentQuestionOptions', assessmentQuestionId] });
+            setShowForm(false);
+            setFormData({ content: '', correct: false });
+            toast({ variant: 'success', title: 'Option added' });
+        },
+        onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+            toast({ variant: 'destructive', title: 'Error', description: error.response?.data?.message || 'Failed to add option' });
+        },
+    });
+
+    const deleteOptionMutation = useMutation({
+        mutationFn: (id: string) => assessmentQuestionOptionApi.delete(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['assessmentQuestionOptions', assessmentQuestionId] });
+            toast({ variant: 'success', title: 'Option deleted' });
+        },
+        onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+            toast({ variant: 'destructive', title: 'Error', description: error.response?.data?.message || 'Failed to delete option' });
+        },
+    });
+
+    const handleSubmit = () => {
+        if (!formData.content.trim()) return;
+        createOptionMutation.mutate({
+            id: '',
+            content: formData.content,
+            correct: formData.correct,
+            orderIndex: options.length,
+            assessmentQuestionId,
+        });
+    };
+
+    return (
+        <div className="mt-3 pt-3 border-t border-dashed border-blue-200">
+            <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">Assessment Options</p>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 text-xs text-blue-600 hover:text-blue-700 px-2"
+                    onClick={() => setShowForm(v => !v)}
+                >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Option
+                </Button>
+            </div>
+
+            {optionsLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-blue-500 my-1" />
+            ) : (
+                <div className="space-y-1.5">
+                    {options.length === 0 && !showForm && (
+                        <p className="text-xs text-gray-400 italic">No assessment-specific options yet</p>
+                    )}
+                    {[...options]
+                        .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0))
+                        .map((opt, idx) => (
+                            <div
+                                key={opt.id}
+                                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm ${opt.correct
+                                        ? 'bg-green-50 border border-green-200 text-green-800'
+                                        : 'bg-white border border-gray-200 text-gray-700'
+                                    }`}
+                            >
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${opt.correct ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
+                                    }`}>
+                                    {String.fromCharCode(65 + idx)}
+                                </div>
+                                <span className="flex-1">{opt.content}</span>
+                                {opt.correct && (
+                                    <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                )}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-red-400 hover:text-red-600"
+                                    onClick={() => deleteOptionMutation.mutate(opt.id)}
+                                    disabled={deleteOptionMutation.isPending}
+                                >
+                                    <Trash2 className="h-3 w-3" />
+                                </Button>
+                            </div>
+                        ))}
+                </div>
+            )}
+
+            {showForm && (
+                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+                    <input
+                        type="text"
+                        placeholder="Option content..."
+                        value={formData.content}
+                        onChange={e => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                        className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                    />
+                    <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={formData.correct}
+                            onChange={e => setFormData(prev => ({ ...prev, correct: e.target.checked }))}
+                            className="w-4 h-4 accent-green-500"
+                        />
+                        Mark as correct answer
+                    </label>
+                    <div className="flex gap-2">
+                        <Button
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 h-7 text-xs"
+                            onClick={handleSubmit}
+                            disabled={!formData.content.trim() || createOptionMutation.isPending}
+                        >
+                            {createOptionMutation.isPending
+                                ? <Loader2 className="h-3 w-3 animate-spin" />
+                                : 'Save'}
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs"
+                            onClick={() => { setShowForm(false); setFormData({ content: '', correct: false }); }}
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface AssessmentQuestionsTabProps {
     assessmentId?: string;
@@ -356,7 +508,8 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                                 {/* Expandable Options */}
                                 {isExpanded && (
                                     <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
-                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Answer Options</p>
+                                        {/* Question-bank options (read-only) */}
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Question Bank Options</p>
                                         {options.length === 0 ? (
                                             <p className="text-xs text-gray-400 italic">No options available</p>
                                         ) : (
@@ -367,8 +520,8 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                                                         <div
                                                             key={optIndex}
                                                             className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm ${opt.correct
-                                                                    ? 'bg-green-50 border border-green-200 text-green-800'
-                                                                    : 'bg-white border border-gray-200 text-gray-700'
+                                                                ? 'bg-green-50 border border-green-200 text-green-800'
+                                                                : 'bg-white border border-gray-200 text-gray-700'
                                                                 }`}
                                                         >
                                                             <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${opt.correct ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
@@ -383,6 +536,9 @@ export function AssessmentQuestionsTab({ assessmentId }: AssessmentQuestionsTabP
                                                     ))}
                                             </div>
                                         )}
+
+                                        {/* Assessment-specific options (editable) */}
+                                        <AssessmentOptionsPanel assessmentQuestionId={assessmentQuestion.id} />
                                     </div>
                                 )}
                             </div>

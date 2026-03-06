@@ -25,7 +25,7 @@ import { RoleManagementPage } from "@/pages/role";
 import ProgrammingLanguageManagement from "@/pages/programming-language";
 import AssessmentTypeManagementPage from "@/pages/assessment-type/management";
 import ProTableQuestionManagementPage from "@/pages/assessment/question/management";
-import { CreateQuestionPage, EditQuestionPage } from "@/pages/assessment/question";
+import { CreateQuestionPage, EditQuestionPage, QuestionManagementPage } from "@/pages/assessment/question";
 import { AssessmentFormPage } from "@/pages/assessment/teacher-assessment";
 import ProTableAssessmentManagementPage from "@/pages/assessment/teacher-assessment/management";
 
@@ -54,7 +54,7 @@ export const routes: RouteConfig[] = [
     { path: "/assessments", component: SelectAssessmentPage, isModuleDriven: true },
     { path: "/teacher-assessment", component: ProTableAssessmentManagementPage, isModuleDriven: true },
     { path: "/question-categories", component: QuestionCategoryManagement, isModuleDriven: true },
-    { path: "/questions", component: ProTableQuestionManagementPage, isModuleDriven: true },
+    { path: "/questions", component: QuestionManagementPage, isModuleDriven: true },
     
     // Public routes (frontend-controlled)
     { path: "/login", component: Login, isPublic: true },
