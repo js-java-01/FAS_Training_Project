@@ -340,7 +340,7 @@ export default function ProgramDetailPage() {
                               <TableCell>{index + 1}</TableCell>
                               <TableCell>{topic.topicCode}</TableCell>
                               <TableCell>{topic.topicName}</TableCell>
-                              <TableCell>{topic.level || "-"}</TableCell>
+                              {/*<TableCell>{topic.level || "-"}</TableCell>*/}
                             </TableRow>
                           ))
                         )}
@@ -357,7 +357,7 @@ export default function ProgramDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <SummaryRow label="Total Topics" value={`${relatedTopics.length}`} />
-                  <SummaryRow
+                  {/*<SummaryRow
                     label="Beginner"
                     value={`${relatedTopics.filter((topic) => topic.level === "BEGINNER").length}`}
                   />
@@ -368,7 +368,7 @@ export default function ProgramDetailPage() {
                   <SummaryRow
                     label="Advanced"
                     value={`${relatedTopics.filter((topic) => topic.level === "ADVANCED").length}`}
-                  />
+                  />*/}
                 </CardContent>
               </Card>
             </div>

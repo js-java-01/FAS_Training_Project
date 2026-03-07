@@ -14,14 +14,14 @@ export type TopicMarkImportResult = {
 };
 
 export const topicMarkApi = {
-  getCoursesByClassId: async (id: string): Promise<CourseClasses[]> => {
+  getTopicsByClassId: async (id: string): Promise<CourseClasses[]> => {
     const response = await axiosInstance.get<CourseClasses[]>(
       `/course-classes/by-class/${id}`,
     );
     return response.data;
   },
 
-  getClassCourseById: async (id: string): Promise<CourseClasses> => {
+  getTraningProgramById: async (id: string): Promise<CourseClasses> => {
     const response = await axiosInstance.get<CourseClasses>(
       `/course-classes/${id}`,
     );

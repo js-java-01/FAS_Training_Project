@@ -20,12 +20,6 @@ export interface Trainer {
   email: string
 }
 
-export interface ClassInfo {
-  id: string
-  className: string
-  classCode: string
-}
-
 export interface CourseClasses {
   id: string
   course: Course
@@ -33,6 +27,30 @@ export interface CourseClasses {
   trainer: Trainer
   createdAt: string
   updatedAt: string
+}
+
+
+export interface ClassInfo {
+  id: string
+  className: string
+  classCode: string
+}
+
+export interface Topic {
+  id: string
+  topicName: string
+  topicCode: string
+}
+
+export interface TraningProgram {
+  id: string
+  name: string
+  topics: Topic[]
+}
+
+export interface TraningClass {
+  classInfo: ClassInfo
+  traningProgram: TraningProgram
 }
 
 /* ===============================

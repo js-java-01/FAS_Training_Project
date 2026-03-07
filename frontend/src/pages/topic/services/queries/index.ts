@@ -8,18 +8,18 @@ export const useGetAllTopics = (params: {
   pageSize: number;
   sort?: string;
   keyword?: string;
-  level?: string;   
+  level?: string;
   status?: string;
 }) => {
   return useQuery({
     queryKey: [TOPIC_QUERY_KEY, params],
     queryFn: () =>
-      topicApi.getTopics({ 
+      topicApi.getTopics({
         page: params.page,
         size: params.pageSize,
         sort: params.sort,
         keyword: params.keyword,
-        level: params.level,
+        //level: params.level,
         status: params.status,
       }),
     placeholderData: (prev) => prev,

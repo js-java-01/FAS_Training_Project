@@ -47,7 +47,7 @@ interface Props {
   onOpenChange: (open: boolean) => void
   topicId: string
   trainingClassId: string
-  courseCode?: string
+  topicCode?: string
 }
 
 export default function GradeHistorySheet({
@@ -55,7 +55,7 @@ export default function GradeHistorySheet({
   onOpenChange,
   topicId,
   trainingClassId,
-  courseCode,
+  topicCode,
 }: Props) {
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
@@ -204,7 +204,7 @@ export default function GradeHistorySheet({
               <HistoryIcon />
               Grade Change History
             </div>
-            <Badge variant={"outline"}>{courseCode || 'Unknown'}</Badge>
+            <Badge variant={"outline"}>{topicCode || 'Unknown'}</Badge>
           </SheetTitle>
           <SheetDescription>
             View all history change grade

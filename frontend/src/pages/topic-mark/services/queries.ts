@@ -1,25 +1,25 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { topicMarkApi } from "@/api/topicMarkApi"
 
-export const useGetCoursesByClassId = (id: string) => {
-  return useQuery({
-    queryKey: ["course-by-class", id],
-    queryFn: () => topicMarkApi.getCoursesByClassId(id),
-    enabled: !!id,
-    placeholderData: (prev) => prev,
-    staleTime: 5 * 60 * 1000,
-  })
-}
+// export const useGetTopicsByClassId = (id: string) => {
+//   return useQuery({
+//     queryKey: ["topic-by-class", id],
+//     queryFn: () => topicMarkApi.getCoursesByClassId(id),
+//     enabled: !!id,
+//     placeholderData: (prev) => prev,
+//     staleTime: 5 * 60 * 1000,
+//   })
+// }
 
-export const useGetClassCourseById = (id: string) => {
-  return useQuery({
-    queryKey: ["course-by-class", id],
-    queryFn: () => topicMarkApi.getClassCourseById(id),
-    enabled: !!id,
-    placeholderData: (prev) => prev,
-    staleTime: 5 * 60 * 1000,
-  })
-}
+// export const useGetTraningProgramByClassId = (id: string) => {
+//   return useQuery({
+//     queryKey: ["program-by-class", id],
+//     queryFn: () => topicMarkApi.getClassCourseById(id),
+//     enabled: !!id,
+//     placeholderData: (prev) => prev,
+//     staleTime: 5 * 60 * 1000,
+//   })
+// }
 
 interface GradebookParams {
   topicId: string
