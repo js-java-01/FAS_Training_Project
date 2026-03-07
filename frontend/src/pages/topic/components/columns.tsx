@@ -1,6 +1,6 @@
 import type { Topic } from "@/api/topicApi";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { FiEye, FiEdit, FiTrash2 } from "react-icons/fi";
+import { EyeIcon, EditIcon, Trash } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import SortHeader from "@/components/data_table/SortHeader";
 import { createBaseColumns } from "@/components/data_table/baseColumns";
@@ -109,14 +109,19 @@ export const getColumns = (handlers: {
       cell: ({ row }) => {
         const t = row.original as Topic;
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2">
             <ActionBtn
-              icon={<FiEye />}
+              icon={<EyeIcon size={12} />}
               tooltipText="View"
               onClick={() => handlers.onView?.(t)}
             />
             <ActionBtn
-              icon={<FiTrash2 />}
+              icon={<EditIcon size={12} />}
+              tooltipText="Edit"
+              onClick={() => handlers.onEdit?.(t)}
+            />
+            <ActionBtn
+              icon={<Trash size={12} />}
               tooltipText="Delete"
               onClick={() => handlers.onDelete?.(t)}
             />
@@ -124,6 +129,7 @@ export const getColumns = (handlers: {
         );
       },
       meta: { title: "Actions" },
+      enableSorting: false,
       size: 120,
     },
 

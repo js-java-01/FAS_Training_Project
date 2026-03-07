@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Award } from "lucide-react";
+import { Award, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,23 +8,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { skillApi, type SkillGroupData } from "@/api/skillApi";
+import { skillApi, type SkillGroupData, type SkillData } from "@/api/skillApi";
 
 interface SkillFormProps {
   open: boolean;
+  mode?: "create" | "edit" | "view";
   groups: SkillGroupData[];
   defaultGroupId?: string;
+  initialData?: SkillData;
   onClose: () => void;
   onSaved: () => void;
 }
 
 export function SkillForm({
   open,
+  mode = "create",
   groups,
   defaultGroupId,
+  initialData,
   onClose,
   onSaved,
 }: SkillFormProps) {
+  const isView = mode === "view";
+  const isEdit = mode === "edit";
+
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [description, setDescription] = useState("");
@@ -32,8 +39,24 @@ export function SkillForm({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (open) setGroupId(defaultGroupId ?? "");
-  }, [open, defaultGroupId]);
+    if (open) {
+      if (initialData && (isEdit || isView)) {
+        setName(initialData.name);
+        setCode(initialData.code);
+        setDescription(initialData.description ?? "");
+        // resolve groupId from groupName
+        const matchedGroup = groups.find(
+          (g) => g.name === initialData.groupName,
+        );
+        setGroupId(matchedGroup?.id ?? "");
+      } else {
+        setName("");
+        setCode("");
+        setDescription("");
+        setGroupId(defaultGroupId ?? "");
+      }
+    }
+  }, [open, initialData, isEdit, isView, defaultGroupId, groups]);
 
   const reset = () => {
     setName("");
@@ -49,21 +72,42 @@ export function SkillForm({
     }
     setLoading(true);
     try {
-      await skillApi.createSkill({
-        name: name.trim(),
-        code: code.trim().toUpperCase(),
-        description: description.trim() || undefined,
-        groupId,
-      });
-      toast.success("Skill created");
+      if (isEdit && initialData) {
+        await skillApi.updateSkill(initialData.id, {
+          name: name.trim(),
+          code: code.trim().toUpperCase(),
+          description: description.trim() || undefined,
+          groupId,
+        });
+        toast.success("Skill updated");
+      } else {
+        await skillApi.createSkill({
+          name: name.trim(),
+          code: code.trim().toUpperCase(),
+          description: description.trim() || undefined,
+          groupId,
+        });
+        toast.success("Skill created");
+      }
       reset();
       onSaved();
     } catch (e: any) {
-      toast.error(e?.response?.data?.message ?? "Failed to create skill");
+      toast.error(
+        e?.response?.data?.message ??
+          `Failed to ${isEdit ? "update" : "create"} skill`,
+      );
     } finally {
       setLoading(false);
     }
   };
+
+  const titleLabel = isView
+    ? "View Skill"
+    : isEdit
+      ? "Edit Skill"
+      : "Create Skill";
+
+  const fieldCls = `w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isView ? "bg-gray-50 text-gray-700 cursor-default" : ""}`;
 
   return (
     <Dialog
@@ -78,19 +122,24 @@ export function SkillForm({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Award className="h-4 w-4 text-blue-500" />
-            Create Skill
+            {isView ? (
+              <Eye className="h-4 w-4 text-blue-500" />
+            ) : (
+              <Award className="h-4 w-4 text-blue-500" />
+            )}
+            {titleLabel}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-2">
           <div>
             <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
-              Skill Group <span className="text-red-500">*</span>
+              Skill Group {!isView && <span className="text-red-500">*</span>}
             </label>
             <select
               value={groupId}
               onChange={(e) => setGroupId(e.target.value)}
-              className="w-full border rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isView}
+              className={`w-full border rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${isView ? "bg-gray-50 text-gray-700 cursor-default" : ""}`}
             >
               <option value="">— Select a group —</option>
               {groups.map((g) => (
@@ -103,25 +152,27 @@ export function SkillForm({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
-                Skill Name <span className="text-red-500">*</span>
+                Skill Name {!isView && <span className="text-red-500">*</span>}
               </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. React"
-                className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                readOnly={isView}
+                className={fieldCls}
               />
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
-                Code <span className="text-red-500">*</span>
+                Code {!isView && <span className="text-red-500">*</span>}
               </label>
               <input
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="e.g. REACT"
                 maxLength={20}
-                className="w-full border rounded-md px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                readOnly={isView}
+                className={`${fieldCls} font-mono`}
               />
             </div>
           </div>
@@ -134,7 +185,8 @@ export function SkillForm({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of the skill…"
               rows={2}
-              className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              readOnly={isView}
+              className={fieldCls}
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
@@ -146,16 +198,24 @@ export function SkillForm({
                 onClose();
               }}
             >
-              Cancel
+              {isView ? "Close" : "Cancel"}
             </Button>
-            <Button
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={loading}
-              onClick={handleSubmit}
-            >
-              {loading ? "Creating…" : "Create Skill"}
-            </Button>
+            {!isView && (
+              <Button
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={loading}
+                onClick={handleSubmit}
+              >
+                {loading
+                  ? isEdit
+                    ? "Saving…"
+                    : "Creating…"
+                  : isEdit
+                    ? "Save Changes"
+                    : "Create Skill"}
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

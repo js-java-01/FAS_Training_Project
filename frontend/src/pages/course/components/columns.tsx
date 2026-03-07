@@ -1,6 +1,6 @@
 import type { Course } from "@/types/course";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { FiEye, FiEdit, FiTrash2, FiUserPlus } from "react-icons/fi";
+import { EyeIcon, EditIcon, Trash, UserPlus } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import SortHeader from "@/components/data_table/SortHeader";
 import { createBaseColumns } from "@/components/data_table/baseColumns";
@@ -82,14 +82,14 @@ export const getColumns = (
         const c = row.original as Course;
         if (isStudentMode) {
           return (
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2">
               <ActionBtn
-                icon={<FiEye />}
+                icon={<EyeIcon size={12} />}
                 tooltipText="View detail"
                 onClick={() => handlers.onView?.(c)}
               />
               <ActionBtn
-                icon={<FiUserPlus />}
+                icon={<UserPlus size={12} />}
                 tooltipText="Enroll"
                 onClick={() => handlers.onEnroll?.(c)}
               />
@@ -97,19 +97,19 @@ export const getColumns = (
           );
         }
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2">
             <ActionBtn
-              icon={<FiEye />}
+              icon={<EyeIcon size={12} />}
               tooltipText="View"
               onClick={() => handlers.onView?.(c)}
             />
             <ActionBtn
-              icon={<FiEdit />}
+              icon={<EditIcon size={12} />}
               tooltipText="Edit"
               onClick={() => handlers.onEdit?.(c)}
             />
             <ActionBtn
-              icon={<FiTrash2 />}
+              icon={<Trash size={12} />}
               tooltipText="Delete"
               onClick={() => handlers.onDelete?.(c)}
             />
@@ -117,6 +117,7 @@ export const getColumns = (
         );
       },
       meta: { title: "Actions" },
+      enableSorting: false,
       size: 120,
     },
     base.columnControl,

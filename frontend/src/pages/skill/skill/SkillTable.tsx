@@ -24,6 +24,10 @@ import { SkillForm } from "./SkillForm";
 
 export default function SkillTable() {
   const [openForm, setOpenForm] = useState(false);
+  const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
+    "create",
+  );
+  const [selectedSkill, setSelectedSkill] = useState<SkillData | null>(null);
   const [deleting, setDeleting] = useState<SkillData | null>(null);
   const [groupFilter, setGroupFilter] = useState<string[]>([]);
 
@@ -41,6 +45,7 @@ export default function SkillTable() {
   const handleSaved = async () => {
     await invalidateSkills();
     setOpenForm(false);
+    setSelectedSkill(null);
   };
 
   const handleDelete = async () => {
@@ -56,8 +61,34 @@ export default function SkillTable() {
     }
   };
 
+  const openCreate = () => {
+    setSelectedSkill(null);
+    setFormMode("create");
+    setOpenForm(true);
+  };
+
+  const openEdit = (skill: SkillData) => {
+    setSelectedSkill(skill);
+    setFormMode("edit");
+    setOpenForm(true);
+  };
+
+  const openView = (skill: SkillData) => {
+    setSelectedSkill(skill);
+    setFormMode("view");
+    setOpenForm(true);
+  };
+
   /* ── columns ────────────────────────────────────────────── */
-  const columns = useMemo(() => getSkillColumns({ onDelete: setDeleting }), []);
+  const columns = useMemo(
+    () =>
+      getSkillColumns({
+        onView: openView,
+        onEdit: openEdit,
+        onDelete: setDeleting,
+      }),
+    [],
+  );
 
   /* ── group options for FacetedFilter ───────────────────── */
   const groupOptions = useMemo(
@@ -86,7 +117,7 @@ export default function SkillTable() {
             />
             <Button
               className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-              onClick={() => setOpenForm(true)}
+              onClick={openCreate}
             >
               <Plus className="h-4 w-4" />
               Add New Skill
@@ -106,8 +137,13 @@ export default function SkillTable() {
 
       <SkillForm
         open={openForm}
+        mode={formMode}
         groups={groups}
-        onClose={() => setOpenForm(false)}
+        initialData={selectedSkill ?? undefined}
+        onClose={() => {
+          setOpenForm(false);
+          setSelectedSkill(null);
+        }}
         onSaved={handleSaved}
       />
 

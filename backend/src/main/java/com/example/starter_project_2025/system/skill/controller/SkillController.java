@@ -4,6 +4,8 @@ import com.example.starter_project_2025.system.skill.dto.CreateSkillGroupRequest
 import com.example.starter_project_2025.system.skill.dto.CreateSkillRequest;
 import com.example.starter_project_2025.system.skill.dto.SkillGroupResponse;
 import com.example.starter_project_2025.system.skill.dto.SkillResponse;
+import com.example.starter_project_2025.system.skill.dto.UpdateSkillRequest;
+import com.example.starter_project_2025.system.skill.dto.UpdateSkillGroupRequest;
 import com.example.starter_project_2025.system.skill.service.SkillService;
 import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,11 @@ public class SkillController {
             @RequestParam(required = false) UUID groupId,
             @RequestParam(required = false) String keyword) {
         return skillService.search(groupId, keyword);
+    }
+
+    @PutMapping("/{id}")
+    public SkillResponse updateSkill(@PathVariable UUID id, @RequestBody UpdateSkillRequest request) {
+        return skillService.updateSkill(id, request);
     }
 
     @DeleteMapping("/{id}")
@@ -80,6 +87,11 @@ public class SkillController {
     @GetMapping("/groups")
     public List<SkillGroupResponse> getGroups() {
         return skillService.getAllGroups();
+    }
+
+    @PutMapping("/groups/{id}")
+    public SkillGroupResponse updateGroup(@PathVariable UUID id, @RequestBody UpdateSkillGroupRequest request) {
+        return skillService.updateGroup(id, request);
     }
 
     @DeleteMapping("/groups/{id}")

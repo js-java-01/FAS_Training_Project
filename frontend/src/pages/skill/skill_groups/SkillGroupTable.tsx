@@ -22,15 +22,40 @@ import { SkillGroupForm } from "./SkillGroupForm";
 
 export default function SkillGroupTable() {
   const [openForm, setOpenForm] = useState(false);
+  const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
+    "create",
+  );
+  const [selectedGroup, setSelectedGroup] = useState<SkillGroupData | null>(
+    null,
+  );
   const [deleting, setDeleting] = useState<SkillGroupData | null>(null);
 
   const { data: groups = [], isLoading, isFetching } = useGetSkillGroups();
   const { invalidateGroups, invalidateAll } = useSkillInvalidate();
 
   /* ── handlers ─────────────────────────────────────────── */
+  const openCreate = () => {
+    setSelectedGroup(null);
+    setFormMode("create");
+    setOpenForm(true);
+  };
+
+  const openEdit = (group: SkillGroupData) => {
+    setSelectedGroup(group);
+    setFormMode("edit");
+    setOpenForm(true);
+  };
+
+  const openView = (group: SkillGroupData) => {
+    setSelectedGroup(group);
+    setFormMode("view");
+    setOpenForm(true);
+  };
+
   const handleSaved = async () => {
     await invalidateGroups();
     setOpenForm(false);
+    setSelectedGroup(null);
   };
 
   const handleDelete = async () => {
@@ -50,7 +75,12 @@ export default function SkillGroupTable() {
 
   /* ── columns ───────────────────────────────────────────── */
   const columns = useMemo(
-    () => getSkillGroupColumns({ onDelete: setDeleting }),
+    () =>
+      getSkillGroupColumns({
+        onView: openView,
+        onEdit: openEdit,
+        onDelete: setDeleting,
+      }),
     [],
   );
 
@@ -75,7 +105,7 @@ export default function SkillGroupTable() {
             />
             <Button
               className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-              onClick={() => setOpenForm(true)}
+              onClick={openCreate}
             >
               <Plus className="h-4 w-4" />
               Add New Group
@@ -86,7 +116,12 @@ export default function SkillGroupTable() {
 
       <SkillGroupForm
         open={openForm}
-        onClose={() => setOpenForm(false)}
+        mode={formMode}
+        initialData={selectedGroup ?? undefined}
+        onClose={() => {
+          setOpenForm(false);
+          setSelectedGroup(null);
+        }}
         onSaved={handleSaved}
       />
 

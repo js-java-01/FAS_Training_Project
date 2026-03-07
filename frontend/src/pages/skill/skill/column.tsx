@@ -1,11 +1,13 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import type { SkillData } from "@/api/skillApi";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { Trash } from "lucide-react";
+import { EyeIcon, EditIcon, Trash } from "lucide-react";
 import { createBaseColumns } from "@/components/data_table/baseColumns";
 import SortHeader from "@/components/data_table/SortHeader";
 
 export type SkillTableActions = {
+  onView?: (row: SkillData) => void;
+  onEdit?: (row: SkillData) => void;
   onDelete?: (row: SkillData) => void;
 };
 
@@ -59,20 +61,34 @@ export const getSkillColumns = (actions?: SkillTableActions) => {
     col.display({
       id: "actions",
       header: "Actions",
-      size: 80,
-      enableHiding: false,
+      size: 120,
       cell: ({ row }) => (
         <div className="flex gap-2">
+          {actions?.onView && (
+            <ActionBtn
+              tooltipText="View"
+              icon={<EyeIcon size={12} />}
+              onClick={() => actions.onView!(row.original)}
+            />
+          )}
+          {actions?.onEdit && (
+            <ActionBtn
+              tooltipText="Edit"
+              icon={<EditIcon size={12} />}
+              onClick={() => actions.onEdit!(row.original)}
+            />
+          )}
           {actions?.onDelete && (
             <ActionBtn
               tooltipText="Delete"
               icon={<Trash size={12} />}
               onClick={() => actions.onDelete!(row.original)}
-              className="hover:border-red-300 hover:text-red-600"
             />
           )}
         </div>
       ),
+      enableSorting: false,
+      meta: { title: "Actions" },
     }),
 
     /* ================= COLUMN CONTROL ================= */

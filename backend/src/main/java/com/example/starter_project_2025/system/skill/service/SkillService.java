@@ -4,6 +4,8 @@ import com.example.starter_project_2025.system.skill.dto.CreateSkillGroupRequest
 import com.example.starter_project_2025.system.skill.dto.CreateSkillRequest;
 import com.example.starter_project_2025.system.skill.dto.SkillGroupResponse;
 import com.example.starter_project_2025.system.skill.dto.SkillResponse;
+import com.example.starter_project_2025.system.skill.dto.UpdateSkillRequest;
+import com.example.starter_project_2025.system.skill.dto.UpdateSkillGroupRequest;
 import com.example.starter_project_2025.system.common.dto.ImportResultResponse;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,12 +21,16 @@ public interface SkillService {
 
     List<SkillResponse> search(UUID groupId, String keyword);
 
+    SkillResponse updateSkill(UUID id, UpdateSkillRequest request);
+
     void deleteSkill(UUID id);
 
     // SkillGroup CRUD
     SkillGroupResponse createGroup(CreateSkillGroupRequest request);
 
     List<SkillGroupResponse> getAllGroups();
+
+    SkillGroupResponse updateGroup(UUID id, UpdateSkillGroupRequest request);
 
     void deleteGroup(UUID id);
 

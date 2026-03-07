@@ -5,6 +5,8 @@ import com.example.starter_project_2025.system.skill.dto.CreateSkillGroupRequest
 import com.example.starter_project_2025.system.skill.dto.CreateSkillRequest;
 import com.example.starter_project_2025.system.skill.dto.SkillGroupResponse;
 import com.example.starter_project_2025.system.skill.dto.SkillResponse;
+import com.example.starter_project_2025.system.skill.dto.UpdateSkillRequest;
+import com.example.starter_project_2025.system.skill.dto.UpdateSkillGroupRequest;
 import com.example.starter_project_2025.system.skill.entity.Skill;
 import com.example.starter_project_2025.system.skill.entity.SkillGroup;
 import com.example.starter_project_2025.system.skill.mapper.SkillMapper;
@@ -62,6 +64,29 @@ public class SkillServiceImpl implements SkillService {
     }
 
     @Override
+    public SkillResponse updateSkill(UUID id, UpdateSkillRequest request) {
+        Skill skill = skillRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Skill not found"));
+        if (request.getName() != null)
+            skill.setName(request.getName());
+        if (request.getCode() != null) {
+            if (!skill.getCode().equals(request.getCode()) && skillRepository.existsByCode(request.getCode())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Skill code already exists");
+            }
+            skill.setCode(request.getCode());
+        }
+        if (request.getDescription() != null)
+            skill.setDescription(request.getDescription());
+        if (request.getGroupId() != null) {
+            SkillGroup group = groupRepository.findById(request.getGroupId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Skill group not found"));
+            skill.setGroup(group);
+        }
+        skillRepository.save(skill);
+        return mapper.toResponse(skill);
+    }
+
+    @Override
     public void deleteSkill(UUID id) {
         if (!skillRepository.existsById(id)) {
             throw new RuntimeException("Skill not found");
@@ -89,6 +114,22 @@ public class SkillServiceImpl implements SkillService {
         return groupRepository.findAll().stream()
                 .map(this::toGroupResponse)
                 .toList();
+    }
+
+    @Override
+    public SkillGroupResponse updateGroup(UUID id, UpdateSkillGroupRequest request) {
+        SkillGroup group = groupRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Skill group not found"));
+        if (request.getName() != null)
+            group.setName(request.getName());
+        if (request.getCode() != null) {
+            if (!group.getCode().equals(request.getCode()) && groupRepository.existsByCode(request.getCode())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Skill group code already exists");
+            }
+            group.setCode(request.getCode());
+        }
+        groupRepository.save(group);
+        return toGroupResponse(group);
     }
 
     @Override

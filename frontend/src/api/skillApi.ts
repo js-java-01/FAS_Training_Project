@@ -28,6 +28,18 @@ export interface CreateSkillPayload {
   groupId: string;
 }
 
+export interface UpdateSkillPayload {
+  name?: string;
+  code?: string;
+  description?: string;
+  groupId?: string;
+}
+
+export interface UpdateSkillGroupPayload {
+  name?: string;
+  code?: string;
+}
+
 /* ─── API ────────────────────────────────────────────────────── */
 export const skillApi = {
   /* Skill Groups */
@@ -38,6 +50,11 @@ export const skillApi = {
 
   createGroup: async (payload: CreateSkillGroupPayload): Promise<SkillGroupData> => {
     const res = await axiosInstance.post('/skills/groups', payload);
+    return res.data;
+  },
+
+  updateGroup: async (id: string, payload: UpdateSkillGroupPayload): Promise<SkillGroupData> => {
+    const res = await axiosInstance.put(`/skills/groups/${id}`, payload);
     return res.data;
   },
 
@@ -55,6 +72,11 @@ export const skillApi = {
 
   createSkill: async (payload: CreateSkillPayload): Promise<SkillData> => {
     const res = await axiosInstance.post('/skills', payload);
+    return res.data;
+  },
+
+  updateSkill: async (id: string, payload: UpdateSkillPayload): Promise<SkillData> => {
+    const res = await axiosInstance.put(`/skills/${id}`, payload);
     return res.data;
   },
 
