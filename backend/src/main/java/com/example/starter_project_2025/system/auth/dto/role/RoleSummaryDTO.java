@@ -15,5 +15,5 @@ public class RoleSummaryDTO {
     private String name;
     private Set<String> permissions;
     private Boolean isActive;
-//    private Integer hierarchyLevel;
+    private Integer hierarchyLevel;
 }

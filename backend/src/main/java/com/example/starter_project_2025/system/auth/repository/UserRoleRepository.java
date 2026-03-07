@@ -12,9 +12,18 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRoleRepository extends JpaRepository<UserRole, UUID> {
-    Optional<UserRole> findByUserAndIsDefault(User user, boolean isDefault);
+    Optional<UserRole> findFirstByUserAndIsDefault(User user, boolean isDefault);
 
     Optional<UserRole> findByUserAndRole(User user, Role role);
+
+    /**
+     * Returns the default role for a user ordered by hierarchy level ASC
+     * (lowest hierarchyLevel = highest privilege, e.g. SUPER_ADMIN=1).
+     * This ensures stale isDefault=true rows never cause a lower-privilege
+     * role to be returned first.
+     */
+    @Query("SELECT ur FROM UserRole ur JOIN FETCH ur.role r WHERE ur.user = :user AND ur.isDefault = true ORDER BY r.hierarchyLevel ASC")
+    List<UserRole> findDefaultRolesOrderedByHierarchy(@Param("user") User user);
 
     /**
      * Returns all roles assigned to a user (eager-fetches the Role + its

@@ -22,7 +22,7 @@ import type { SemesterResponse } from "./components/SemesterCard";
 import type { UpdateSemesterRequest } from "./dto/UpdateSemesterRequest";
 import type { CreateSemesterRequest } from "./dto/CreateSemesterRequest";
 import { getSemesterColumns } from "./components/semesterColumns";
-import { downloadBlob } from "@/utils/downloadBlob";
+import { downloadBlob } from "@/utils/dataio.utils";
 
 interface SemestersTableProps {
   onSelectSemester: (id: string) => void;

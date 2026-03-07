@@ -27,11 +27,11 @@ public class UserDTO {
     UUID id;
 
     @NotBlank(groups = OnCreate.class, message = "Email is required")
-    @Email(groups = {OnCreate.class, OnUpdate.class}, message = "Email should be valid")
+    @Email(groups = { OnCreate.class, OnUpdate.class }, message = "Email should be valid")
     String email;
 
     @JsonProperty(access = WRITE_ONLY)
-    @Size(min = 8, groups = {OnCreate.class, OnUpdate.class}, message = "Password must be at least 8 characters long")
+    @Size(min = 8, groups = { OnCreate.class, OnUpdate.class }, message = "Password must be at least 8 characters long")
     String password;
 
     @NotBlank(groups = OnCreate.class, message = "First name is required")
@@ -44,6 +44,9 @@ public class UserDTO {
 
     @NotEmpty(groups = OnCreate.class, message = "At least one role is required")
     Set<UUID> roleIds;
+
+    @JsonProperty(access = READ_ONLY)
+    Set<String> roleNames;
 
     @JsonProperty(access = READ_ONLY)
     LocalDateTime createdAt;

@@ -21,6 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -46,7 +49,7 @@ public class RoleServiceImpl
 
     @Override
     protected String[] searchableFields() {
-        return new String[]{"name", "description"};
+        return new String[] { "name", "description" };
     }
 
     @Override
@@ -113,7 +116,7 @@ public class RoleServiceImpl
     }
 
     private void validateRoleNameUnique(String name, UUID currentId,
-                                        Map<String, List<String>> errors) {
+            Map<String, List<String>> errors) {
 
         Optional<Role> existing = roleRepository.findByName(name);
 
@@ -125,7 +128,7 @@ public class RoleServiceImpl
     }
 
     private void validatePermissions(Set<UUID> permissionIds,
-                                     Map<String, List<String>> errors) {
+            Map<String, List<String>> errors) {
 
         if (permissionIds == null || permissionIds.isEmpty()) {
             ErrorUtil.addError(errors, "permissionIds",
@@ -147,49 +150,46 @@ public class RoleServiceImpl
 
     @Override
     public List<RoleSummaryDTO> getMyRoles(UserDetailsImpl userDetails) {
-//        var assigned = userRoleRepository.findByUserIdWithPermissions(userDetails.getId());
-//
-//        // Build list of own active assigned roles
-//        List<RoleSummaryDTO> ownRoles = assigned.stream()
-//                .filter(ur -> Boolean.TRUE.equals(ur.getRole().getIsActive()))
-//                .map(ur -> toRoleSummaryDTO(ur.getRole()))
-//                .collect(Collectors.toList());
-//
-//        if (ownRoles.isEmpty()) {
-//            // Fallback: build from current JWT context
-//            Role ownRole = roleRepository.findByName(userDetails.getRole()).orElse(null);
-//            if (ownRole == null)
-//                return List.of();
-//            ownRoles = List.of(toRoleSummaryDTO(ownRole));
-//        }
-//
-//        // Find the minimum (highest-privilege) hierarchyLevel among the user's own
-//        // roles
-//        int minLevel = ownRoles.stream()
-//                .mapToInt(r -> r.getHierarchyLevel() != null ? r.getHierarchyLevel() : 0)
-//                .filter(l -> l > 0)
-//                .min()
-//                .orElse(0);
-//
-//        if (minLevel == 0) {
-//            // No hierarchy set — just return own roles
-//            return ownRoles;
-//        }
+        var assigned = userRoleRepository.findByUserIdWithPermissions(userDetails.getId());
 
-        // Fetch all active roles at equal or lower privilege
-//        List<Role> switchable = roleRepository.findAllActiveWithMinHierarchyLevel(minLevel);
-//
-//        // Merge: own roles first, then remaining switchable roles (dedup by id)
-//        Map<UUID, RoleSummaryDTO> merged = new LinkedHashMap<>();
-//        ownRoles.forEach(r -> merged.put(r.getId(), r));
-//        switchable.forEach(r -> merged.putIfAbsent(r.getId(), toRoleSummaryDTO(r)));
+        // Build list of own active assigned roles
+        List<RoleSummaryDTO> ownRoles = assigned.stream()
+                .filter(ur -> Boolean.TRUE.equals(ur.getRole().getIsActive()))
+                .map(ur -> toRoleSummaryDTO(ur.getRole()))
+                .collect(Collectors.toList());
 
-        return new ArrayList<>(
-//                merged.values()
-        );
+        if (ownRoles.isEmpty()) {
+            // Fallback: build from current JWT context
+            Role ownRole = roleRepository.findByName(userDetails.getRole()).orElse(null);
+            if (ownRole == null)
+                return List.of();
+            ownRoles = List.of(toRoleSummaryDTO(ownRole));
+        }
 
+        // Find the minimum (highest-privilege) hierarchyLevel among the user's own
+        // roles
+        int minLevel = ownRoles.stream()
+                .mapToInt(r -> r.getHierarchyLevel() != null ? r.getHierarchyLevel() : 0)
+                .filter(l -> l > 0)
+                .min()
+                .orElse(0);
 
+        if (minLevel == 0) {
+            // No hierarchy set — just return own roles
+            return ownRoles;
+        }
+
+        // Fetch all active roles at equal or lower privilege (higher number)
+        List<Role> switchable = roleRepository.findAllActiveWithMinHierarchyLevel(minLevel);
+
+        // Merge: own roles first, then remaining switchable roles (dedup by id)
+        Map<UUID, RoleSummaryDTO> merged = new LinkedHashMap<>();
+        ownRoles.forEach(r -> merged.put(r.getId(), r));
+        switchable.forEach(r -> merged.putIfAbsent(r.getId(), toRoleSummaryDTO(r)));
+
+        return new ArrayList<>(merged.values());
     }
+
     private RoleSummaryDTO toRoleSummaryDTO(Role role) {
         return new RoleSummaryDTO(
                 role.getId(),
@@ -197,10 +197,8 @@ public class RoleServiceImpl
                 role.getPermissions().stream()
                         .map(Permission::getName)
                         .collect(Collectors.toSet()),
-                role.getIsActive()
-
-//                role.getHierarchyLevel()
-        );
+                role.getIsActive(),
+                role.getHierarchyLevel());
     }
 
 }

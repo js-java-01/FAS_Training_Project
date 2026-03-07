@@ -5,6 +5,7 @@ export interface UserDTO {
   firstName?: string;
   lastName?: string;
   roleIds?: string[];
+  roleNames?: string[];
   isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;

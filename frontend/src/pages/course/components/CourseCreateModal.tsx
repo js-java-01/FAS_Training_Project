@@ -2,9 +2,9 @@ import { useForm } from "react-hook-form";
 import React, { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { courseApi } from "@/api/courseApi";
-import { userApi } from "@/api/userApi";
+import { userApi } from "@/api/features/rbac/user.api";
 import { topicApi, type Topic } from "@/api/topicApi";
-import type { User } from "@/types/auth";
+import type { UserDTO } from "@/types";
 import type { Course } from "@/types/course";
 import {
   FiX,
@@ -18,8 +18,6 @@ import {
   FiImage,
   FiTag,
 } from "react-icons/fi";
-import type { User } from "@/types";
-import { userApi } from "@/api";
 
 type FormValues = {
   courseName: string;
@@ -44,7 +42,7 @@ interface Props {
 export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
   const isEdit = !!course;
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserDTO[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,8 +59,8 @@ export function CourseCreateModal({ open, onClose, onSuccess, course }: Props) {
   // Fetch users once
   useEffect(() => {
     userApi
-      .getAllUsers({ size: 100 })
-      .then((res) => setUsers(res.items ?? []))
+      .getPage({ size: 100 })
+      .then((res) => setUsers(res.content ?? res.items ?? []))
       .catch(() => {});
   }, []);
 

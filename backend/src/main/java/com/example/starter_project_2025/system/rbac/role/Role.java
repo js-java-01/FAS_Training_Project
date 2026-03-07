@@ -47,20 +47,14 @@ public class Role {
     @ExportField(name = "Is Active")
     Boolean isActive = true;
 
+    @Column(name = "hierarchy_level")
+    Integer hierarchyLevel = 0;
+
     @Builder.Default
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "role_permissions",
-            joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
+    @JoinTable(name = "role_permissions", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
     @ExportField(name = "Permissions", relation = true, path = "name")
-    @ImportField(
-            name = "Permissions",
-            lookupEntity = Permission.class,
-            lookupField = "name",
-            separator = ","
-    )
+    @ImportField(name = "Permissions", lookupEntity = Permission.class, lookupField = "name", separator = ",")
     Set<Permission> permissions = new HashSet<>();
 
     @CreationTimestamp
@@ -71,14 +65,16 @@ public class Role {
     LocalDateTime updatedAt;
 
     public void addPermission(Permission permission) {
-        if (permission == null) return;
+        if (permission == null)
+            return;
         if (this.permissions.add(permission)) {
             permission.getRoles().add(this);
         }
     }
 
     public void removePermission(Permission permission) {
-        if (permission == null) return;
+        if (permission == null)
+            return;
         if (this.permissions.remove(permission)) {
             permission.getRoles().remove(this);
         }

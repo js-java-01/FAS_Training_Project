@@ -11,10 +11,10 @@ import { FacetedFilter } from "@/components/FacedFilter";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
 
-import { userApi } from "@/api/userApi";
-import { roleApi } from "@/api/roleApi";
-import type { User, CreateUserRequest } from "@/types/auth";
-import type { Role } from "@/types/role";
+import { userApi } from "@/api/features/rbac/user.api";
+import { roleApi } from "@/api/features/rbac/role.api";
+import type { UserDTO } from "@/types";
+import type { RoleDTO } from "@/types";
 
 import { getColumns } from "./column";
 import { UserForm } from "./UserForm";
@@ -44,10 +44,10 @@ export default function UserTable() {
 
   /* ---------- modal & view ---------- */
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [viewingUser, setViewingUser] = useState<User | null>(null);
-  const [deletingUser, setDeletingUser] = useState<User | null>(null);
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [editingUser, setEditingUser] = useState<UserDTO | null>(null);
+  const [viewingUser, setViewingUser] = useState<UserDTO | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserDTO | null>(null);
+  const [roles, setRoles] = useState<RoleDTO[]>([]);
 
   /* ---------- table state ---------- */
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -84,10 +84,10 @@ export default function UserTable() {
 
   const safeTableData = useMemo(
     () => ({
-      items: tableData?.items ?? [],
-      page: tableData?.pagination?.page ?? pageIndex,
-      pageSize: tableData?.pagination?.pageSize ?? pageSize,
-      totalPages: tableData?.pagination?.totalPages ?? 0,
+      items: tableData?.content ?? tableData?.items ?? [],
+      page: tableData?.page ?? pageIndex,
+      pageSize: tableData?.size ?? pageSize,
+      totalPages: tableData?.totalPages ?? 0,
     }),
     [tableData, pageIndex, pageSize],
   );
@@ -115,16 +115,16 @@ export default function UserTable() {
   };
 
   /* ---------- open edit ---------- */
-  const openEdit = async (user: User) => {
+  const openEdit = async (user: UserDTO) => {
     setEditingUser(user);
     await loadRoles();
     setIsFormOpen(true);
   };
 
   /* ---------- create ---------- */
-  const handleCreate = async (data: CreateUserRequest | Partial<User>) => {
+  const handleCreate = async (data: Partial<UserDTO>) => {
     try {
-      await userApi.createUser(data as CreateUserRequest);
+      await userApi.create(data as UserDTO);
       toast.success("User created successfully");
       setIsFormOpen(false);
       await invalidateUsers();
@@ -140,10 +140,10 @@ export default function UserTable() {
   };
 
   /* ---------- update ---------- */
-  const handleUpdate = async (data: CreateUserRequest | Partial<User>) => {
+  const handleUpdate = async (data: Partial<UserDTO>) => {
     if (!editingUser?.id) return;
     try {
-      await userApi.updateUser(editingUser.id, data as Partial<User>);
+      await userApi.update(editingUser.id, data as UserDTO);
       toast.success("User updated successfully");
       setIsFormOpen(false);
       setEditingUser(null);
@@ -161,9 +161,9 @@ export default function UserTable() {
 
   /* ---------- delete ---------- */
   const handleDelete = async () => {
-    if (!deletingUser) return;
+    if (!deletingUser?.id) return;
     try {
-      await userApi.deleteUser(deletingUser.id);
+      await userApi.delete(deletingUser.id);
       toast.success("User deleted successfully");
       await invalidateUsers();
       await reload();
@@ -206,8 +206,8 @@ export default function UserTable() {
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
-      <ServerDataTable<User, unknown>
-        columns={columns as ColumnDef<User, unknown>[]}
+      <ServerDataTable<UserDTO, unknown>
+        columns={columns as ColumnDef<UserDTO, unknown>[]}
         data={safeTableData.items}
         isLoading={isLoading}
         isFetching={isFetching}

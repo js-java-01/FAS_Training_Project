@@ -1,4 +1,3 @@
-
 import { createColumnHelper } from "@tanstack/react-table";
 import {
   DropdownMenu,
@@ -33,8 +32,8 @@ export function createBaseColumns<T>() {
         />
       ),
       meta: {
-        title: "Select"
-      }
+        title: "Select",
+      },
     }),
 
     numberColumn: columnHelper.display({
@@ -49,8 +48,8 @@ export function createBaseColumns<T>() {
         table.getState().pagination.pageIndex *
           table.getState().pagination.pageSize,
       meta: {
-        title: "Number"
-      }
+        title: "Number",
+      },
     }),
 
     columnControl: columnHelper.display({
@@ -61,17 +60,15 @@ export function createBaseColumns<T>() {
       header: ({ table }) => (
         <DropdownMenu>
           <Tooltip>
-            <DropdownMenuTrigger asChild>
-              <TooltipTrigger asChild>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <MoreVertical size={16} />
                 </Button>
-              </TooltipTrigger>
-            </DropdownMenuTrigger>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
 
-            <TooltipContent side="top">
-              Column Control
-            </TooltipContent>
+            <TooltipContent side="top">Column Control</TooltipContent>
           </Tooltip>
 
           <DropdownMenuContent align="end">
@@ -79,16 +76,13 @@ export function createBaseColumns<T>() {
               .getAllColumns()
               .filter(
                 (column) =>
-                  column.getCanHide() &&
-                  column.id !== "column-control"
+                  column.getCanHide() && column.id !== "column-control",
               )
               .map((column) => (
                 <DropdownMenuCheckboxItem
                   key={column.id}
                   checked={column.getIsVisible()}
-                  onCheckedChange={(value) =>
-                    column.toggleVisibility(!!value)
-                  }
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
                 >
                   {column.columnDef.meta?.title ?? column.id}
                 </DropdownMenuCheckboxItem>

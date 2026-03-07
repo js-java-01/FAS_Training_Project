@@ -21,7 +21,7 @@ import {
 } from "@/pages/modules/module/services/mutations";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
-import { ROLES } from "@/types/role";
+import { ROLES } from "@/types/features/auth/role";
 import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import { useSortParam } from "@/hooks/useSortParam";
 

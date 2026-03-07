@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { userApi } from "@/api/userApi";
+import { userApi } from "@/api/features/rbac/user.api";
 import { USER_QUERY_KEY } from "../queries";
 
 /* ========= EXPORT ========= */

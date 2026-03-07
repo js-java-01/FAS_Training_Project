@@ -32,6 +32,10 @@ public class ModuleInitializer {
 
         public void initializeModuleGroups() {
 
+                if (moduleGroupsRepository.count() > 0) {
+                        return;
+                }
+
                 /*
                  * =======================================================
                  * MODULE GROUP: Main Menu

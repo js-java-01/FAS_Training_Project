@@ -17,6 +17,7 @@ public interface UserMapper extends BaseCrudMapper<User, UserDTO> {
 
     @Override
     @Mapping(target = "roleIds", expression = "java(mapRoleIds(user))")
+    @Mapping(target = "roleNames", expression = "java(mapRoleNames(user))")
     UserDTO toResponse(User user);
 
     @Override
@@ -25,11 +26,22 @@ public interface UserMapper extends BaseCrudMapper<User, UserDTO> {
     void update(@MappingTarget User user, UserDTO dto);
 
     default Set<UUID> mapRoleIds(User user) {
-        if (user.getUserRoles() == null) return null;
+        if (user.getUserRoles() == null)
+            return null;
 
         return user.getUserRoles()
                 .stream()
                 .map(ur -> ur.getRole().getId())
+                .collect(Collectors.toSet());
+    }
+
+    default Set<String> mapRoleNames(User user) {
+        if (user.getUserRoles() == null)
+            return null;
+
+        return user.getUserRoles()
+                .stream()
+                .map(ur -> ur.getRole().getName())
                 .collect(Collectors.toSet());
     }
 }

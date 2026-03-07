@@ -9,7 +9,6 @@ import { AuthPage } from "./pages/auth/AuthPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { NotFoundRedirect } from "./pages/handler/NotFoundRedirect";
 import DepartmentManagement from "@/pages/department/DepartmentManagement";
-import ProgrammingLanguageManagement from "./pages/ProgrammingLanguageManagement";
 import { componentRegistry } from "./router/componentRegistry";
 import { Toaster } from "sonner";
 import { RoleSwitchProvider } from "./contexts/RoleSwitchContext";
@@ -22,7 +21,7 @@ import {
   CreateQuestionPage,
   EditQuestionPage,
   QuestionManagementPage,
-} from "./pages/question";
+} from "./pages/assessment/question";
 import { Logout } from "./components/auth/Logout";
 import AssessmentManagement from "./pages/AssessmentManagement";
 import CourseManagement from "./pages/course/CourseManagement";
@@ -31,8 +30,9 @@ import StudentCourseContent from "./pages/learning/StudentCourseContent";
 import StudentHomePage from "./pages/learning/StudentHomePage";
 import StudentMyCoursesPage from "./pages/learning/StudentMyCoursesPage";
 import StudentCoursesPage from "./pages/learning/StudentCoursesPage";
-import { RoleManagement } from "./pages/role/RoleManagement";
+import { RoleManagementPage } from "./pages/role";
 import PermissionsManagement from "./pages/permissions/PermissionsManagement";
+import { Dashboard } from "./pages/Dashboard";
 import MfaSettings from "./pages/MfaSettings";
 import { MfaGateProvider } from "./components/MfaGateProvider";
 import Unauthorized from "./pages/Unauthorized";
@@ -43,6 +43,8 @@ import ProgramCreatePage from "./pages/programs/ProgramCreatePage";
 import ProgramDetailPage from "./pages/programs/ProgramDetailPage";
 import ClassesDetailComponent from "@/pages/classes/ClassesDetailManagement.tsx";
 import StudentCalendarPage from "./pages/schedule/studentSchedule/StudentCalendarPage";
+import ProgrammingLanguageManagement from "./pages/programming-language/ProgrammingLanguageManagement";
+import QuestionTagManagementPage from "./pages/assessment/question-tag/management";
 
 function RootRedirect() {
   const role = useSelector((state: RootState) => state.auth.role);
@@ -53,22 +55,10 @@ function RootRedirect() {
     />
   );
 }
-import QuestionTagManagementPage from "./pages/assessment/question-tag/management";
-
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { data: moduleGroups = [] } = useActiveModuleGroups(isAuthenticated);
-
-  // Create component lookup map from module-driven routes
-  const componentRegistry = Object.fromEntries(
-    routes
-      .filter(r => r.isModuleDriven)
-      .map(r => [r.path, r.component])
-  );
-
-  // Get non-module routes (frontend-controlled)
-  const staticRoutes = routes.filter(r => !r.isModuleDriven);
 
   return (
     <BrowserRouter>
@@ -87,9 +77,25 @@ function App() {
             {/* Root redirect */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
+            {/* Dashboard - hardcoded so it's always available regardless of moduleGroups timing */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Special routes */}
-            <Route path="/notFoundPage" element={<NotFoundPage isAuthenticated={isAuthenticated} />} />
-            <Route path="/question-tags" element={<QuestionTagManagementPage />} />
+            <Route
+              path="/notFoundPage"
+              element={<NotFoundPage isAuthenticated={isAuthenticated} />}
+            />
+            <Route
+              path="/question-tags"
+              element={<QuestionTagManagementPage />}
+            />
 
             {/* Dynamic routes from backend Module table */}
             <Route
@@ -268,7 +274,7 @@ function App() {
               path="/roles"
               element={
                 <ProtectedRoute requiredPermission="ROLE_READ">
-                  <RoleManagement />
+                  <RoleManagementPage />
                 </ProtectedRoute>
               }
             />
@@ -287,14 +293,6 @@ function App() {
               element={
                 <ProtectedRoute requiredPermission="DEPARTMENT_READ">
                   <DepartmentManagement />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/programming-languages"
-              element={
-                <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
-                  <ProgrammingLanguageManagement />
                 </ProtectedRoute>
               }
             />
@@ -321,15 +319,6 @@ function App() {
               element={
                 <ProtectedRoute requiredPermission="QUESTION_CATEGORY_READ">
                   <QuestionCategoryManagement />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/programming-languages"
-              element={
-                <ProtectedRoute requiredPermission="PROGRAMMING_LANGUAGE_READ">
-                  <ProgrammingLanguageManagement />
                 </ProtectedRoute>
               }
             />
@@ -369,36 +358,10 @@ function App() {
                 </ProtectedRoute>
               }
             />
-          </Routes >
-        </RoleSwitchProvider >
-
-            {/* Static routes from componentRegistry */}
-            {staticRoutes.map((route, index) => {
-              const Component = route.component;
-
-              if (route.isPublic) {
-                return <Route key={index} path={route.path} element={<Component />} />;
-              }
-
-              return (
-                <Route
-                  key={index}
-                  path={route.path}
-                  element={
-                    <ProtectedRoute requiredPermission={route.requiredPermission}>
-                      <Component />
-                    </ProtectedRoute>
-                  }
-                />
-              );
-            })}
-
-            {/* Catch all */}
-            <Route path="*" element={<NotFoundRedirect />} />
           </Routes>
         </RoleSwitchProvider>
-      </AuthProvider >
-    </BrowserRouter >
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

@@ -6,13 +6,13 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Shield, FileText, Layers, Clock } from "lucide-react";
-import type { Role } from "@/types/role";
+import { Shield, FileText, Clock } from "lucide-react";
+import type { RoleDTO } from "@/types/features/auth/role";
 import dayjs from "dayjs";
 
 interface RoleDetailDialogProps {
   open: boolean;
-  role: Role | null;
+  role: RoleDTO | null;
   onClose: () => void;
 }
 
@@ -67,11 +67,6 @@ export function RoleDetailDialog({
             )}
           </DetailRow>
 
-          <DetailRow icon={Layers} label="Hierarchy Level">
-            {role.hierarchyLevel ?? 0}
-            {role.hierarchyLevel === 0 ? " (unset)" : ""}
-          </DetailRow>
-
           <div className="space-y-1.5">
             <label className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
               <Shield className="w-4 h-4" /> Status
@@ -90,23 +85,19 @@ export function RoleDetailDialog({
           <div className="space-y-1.5">
             <label className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
               <Shield className="w-4 h-4" /> Permissions (
-              {role.permissionNames?.length ?? 0})
+              {role.permissionIds?.length ?? 0})
             </label>
             <div className="px-4 py-2.5 bg-muted border border-border rounded-lg text-sm min-h-[42px] max-h-40 overflow-y-auto">
-              {role.permissionNames?.length ? (
+              {role.permissionIds?.length ? (
                 <div className="flex flex-wrap gap-2">
-                  {role.permissionNames.map((p) => {
-                    const desc = role.permissionDescriptions?.[p];
-                    return (
-                      <Badge
-                        key={p}
-                        title={desc || p}
-                        className="text-xs border shadow-none cursor-default bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
-                      >
-                        {p}
-                      </Badge>
-                    );
-                  })}
+                  {role.permissionIds.map((id) => (
+                    <Badge
+                      key={String(id)}
+                      className="text-xs border shadow-none cursor-default bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200 font-mono"
+                    >
+                      {String(id)}
+                    </Badge>
+                  ))}
                 </div>
               ) : (
                 <span className="text-muted-foreground italic">
