@@ -142,7 +142,7 @@ export const getColumns = (actions?: UserTableActions) => {
             <ActionBtn
               tooltipText={row.original.isActive ? "Deactivate" : "Activate"}
               icon={<ToggleLeft size={12} />}
-              onClick={() => actions.onToggleStatus!(row.original.id)}
+              onClick={() => actions.onToggleStatus!(row.original.id!)}
             />
           )}
           {actions?.onDelete && (
