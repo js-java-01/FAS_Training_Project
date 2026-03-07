@@ -116,6 +116,11 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+  *::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Opera */
   }
   body {
     @apply bg-background text-foreground;
@@ -125,7 +130,10 @@
 .theme-transition body,
 .theme-transition #root,
 .theme-transition [data-slot="table-container"] {
-  transition: background-color 120ms ease-out, color 120ms ease-out, border-color 120ms ease-out;
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out,
+    border-color 120ms ease-out;
 }
 
 .theme-transition [data-slot="table-header"] {
@@ -147,7 +155,7 @@
   background-color: #f1f5f9;
   overflow: hidden;
   transition: background-color 0.3s ease;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .dark .auth-main-wrapper {
@@ -659,7 +667,10 @@
 .theme-transition body,
 .theme-transition #root,
 .theme-transition [data-slot="table-container"] {
-  transition: background-color 120ms ease-out, color 120ms ease-out, border-color 120ms ease-out;
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out,
+    border-color 120ms ease-out;
 }
 
 .theme-transition [data-slot="table-header"] {
