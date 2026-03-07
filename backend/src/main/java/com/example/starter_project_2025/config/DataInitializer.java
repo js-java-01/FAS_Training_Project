@@ -958,7 +958,251 @@ public class DataInitializer implements CommandLineRunner
             createOption(q10, "internal", false, 5)
         ));
 
-        questionRepository.saveAll(List.of(q1, q2, q3, q4, q5, q6, q7, q8, q9, q10));
+        // ===== QUESTION 11 =====
+        Question q11 = new Question();
+        q11.setContent("Which keyword is used to define a constant in Java?");
+        q11.setQuestionType("SINGLE_CHOICE");
+        q11.setCategory(javaCore);
+        q11.setOptions(List.of(
+                createOption(q11, "const", false, 1),
+                createOption(q11, "final", true, 2),
+                createOption(q11, "static", false, 3),
+                createOption(q11, "immutable", false, 4)
+        ));
+
+// ===== QUESTION 12 =====
+        Question q12 = new Question();
+        q12.setContent("Which collection does not allow duplicate elements?");
+        q12.setQuestionType("SINGLE_CHOICE");
+        q12.setCategory(javaCore);
+        q12.setOptions(List.of(
+                createOption(q12, "List", false, 1),
+                createOption(q12, "Set", true, 2),
+                createOption(q12, "ArrayList", false, 3),
+                createOption(q12, "Vector", false, 4)
+        ));
+
+// ===== QUESTION 13 =====
+        Question q13 = new Question();
+        q13.setContent("Which keyword is used to create an object in Java?");
+        q13.setQuestionType("SINGLE_CHOICE");
+        q13.setCategory(javaCore);
+        q13.setOptions(List.of(
+                createOption(q13, "create", false, 1),
+                createOption(q13, "object", false, 2),
+                createOption(q13, "new", true, 3),
+                createOption(q13, "init", false, 4)
+        ));
+
+// ===== QUESTION 14 =====
+        Question q14 = new Question();
+        q14.setContent("Which OOP concept allows using the same method name with different implementations?");
+        q14.setQuestionType("SINGLE_CHOICE");
+        q14.setCategory(oop);
+        q14.setOptions(List.of(
+                createOption(q14, "Encapsulation", false, 1),
+                createOption(q14, "Polymorphism", true, 2),
+                createOption(q14, "Inheritance", false, 3),
+                createOption(q14, "Abstraction", false, 4)
+        ));
+
+// ===== QUESTION 15 =====
+        Question q15 = new Question();
+        q15.setContent("Which keyword is used to refer to the current object?");
+        q15.setQuestionType("SINGLE_CHOICE");
+        q15.setCategory(oop);
+        q15.setOptions(List.of(
+                createOption(q15, "self", false, 1),
+                createOption(q15, "this", true, 2),
+                createOption(q15, "current", false, 3),
+                createOption(q15, "object", false, 4)
+        ));
+
+// ===== QUESTION 16 =====
+        Question q16 = new Question();
+        q16.setContent("Which method is used to start a thread?");
+        q16.setQuestionType("SINGLE_CHOICE");
+        q16.setCategory(javaCore);
+        q16.setOptions(List.of(
+                createOption(q16, "run()", false, 1),
+                createOption(q16, "execute()", false, 2),
+                createOption(q16, "start()", true, 3),
+                createOption(q16, "init()", false, 4)
+        ));
+
+// ===== QUESTION 17 =====
+        Question q17 = new Question();
+        q17.setContent("Which interface is used to store key-value pairs?");
+        q17.setQuestionType("SINGLE_CHOICE");
+        q17.setCategory(javaCore);
+        q17.setOptions(List.of(
+                createOption(q17, "List", false, 1),
+                createOption(q17, "Set", false, 2),
+                createOption(q17, "Map", true, 3),
+                createOption(q17, "Collection", false, 4)
+        ));
+
+// ===== QUESTION 18 =====
+        Question q18 = new Question();
+        q18.setContent("Which SQL statement is used to insert new data?");
+        q18.setQuestionType("SINGLE_CHOICE");
+        q18.setCategory(sql);
+        q18.setOptions(List.of(
+                createOption(q18, "ADD", false, 1),
+                createOption(q18, "INSERT", true, 2),
+                createOption(q18, "PUT", false, 3),
+                createOption(q18, "CREATE", false, 4)
+        ));
+
+// ===== QUESTION 19 =====
+        Question q19 = new Question();
+        q19.setContent("Which SQL command is used to delete records?");
+        q19.setQuestionType("SINGLE_CHOICE");
+        q19.setCategory(sql);
+        q19.setOptions(List.of(
+                createOption(q19, "REMOVE", false, 1),
+                createOption(q19, "DELETE", true, 2),
+                createOption(q19, "DROP", false, 3),
+                createOption(q19, "CLEAR", false, 4)
+        ));
+
+// ===== QUESTION 20 =====
+        Question q20 = new Question();
+        q20.setContent("Which SQL clause is used to sort the result?");
+        q20.setQuestionType("SINGLE_CHOICE");
+        q20.setCategory(sql);
+        q20.setOptions(List.of(
+                createOption(q20, "ORDER BY", true, 1),
+                createOption(q20, "GROUP BY", false, 2),
+                createOption(q20, "SORT BY", false, 3),
+                createOption(q20, "ARRANGE", false, 4)
+        ));
+
+// ===== QUESTION 21 =====
+        Question q21 = new Question();
+        q21.setContent("Which keyword is used to define a class in Java?");
+        q21.setQuestionType("SINGLE_CHOICE");
+        q21.setCategory(javaCore);
+        q21.setOptions(List.of(
+                createOption(q21, "define", false, 1),
+                createOption(q21, "class", true, 2),
+                createOption(q21, "struct", false, 3),
+                createOption(q21, "object", false, 4)
+        ));
+
+// ===== QUESTION 22 =====
+        Question q22 = new Question();
+        q22.setContent("Which keyword is used for inheritance?");
+        q22.setQuestionType("SINGLE_CHOICE");
+        q22.setCategory(oop);
+        q22.setOptions(List.of(
+                createOption(q22, "inherits", false, 1),
+                createOption(q22, "extends", true, 2),
+                createOption(q22, "implements", false, 3),
+                createOption(q22, "instanceof", false, 4)
+        ));
+
+// ===== QUESTION 23 =====
+        Question q23 = new Question();
+        q23.setContent("Which keyword is used to call parent constructor?");
+        q23.setQuestionType("SINGLE_CHOICE");
+        q23.setCategory(oop);
+        q23.setOptions(List.of(
+                createOption(q23, "super", true, 1),
+                createOption(q23, "this", false, 2),
+                createOption(q23, "parent", false, 3),
+                createOption(q23, "base", false, 4)
+        ));
+
+// ===== QUESTION 24 =====
+        Question q24 = new Question();
+        q24.setContent("Which SQL keyword removes a table?");
+        q24.setQuestionType("SINGLE_CHOICE");
+        q24.setCategory(sql);
+        q24.setOptions(List.of(
+                createOption(q24, "DELETE", false, 1),
+                createOption(q24, "DROP", true, 2),
+                createOption(q24, "REMOVE", false, 3),
+                createOption(q24, "CLEAR", false, 4)
+        ));
+
+// ===== QUESTION 25 =====
+        Question q25 = new Question();
+        q25.setContent("Which SQL keyword updates existing data?");
+        q25.setQuestionType("SINGLE_CHOICE");
+        q25.setCategory(sql);
+        q25.setOptions(List.of(
+                createOption(q25, "UPDATE", true, 1),
+                createOption(q25, "MODIFY", false, 2),
+                createOption(q25, "CHANGE", false, 3),
+                createOption(q25, "SET", false, 4)
+        ));
+
+// ===== QUESTION 26 =====
+        Question q26 = new Question();
+        q26.setContent("Which collection maintains insertion order?");
+        q26.setQuestionType("SINGLE_CHOICE");
+        q26.setCategory(javaCore);
+        q26.setOptions(List.of(
+                createOption(q26, "HashSet", false, 1),
+                createOption(q26, "TreeSet", false, 2),
+                createOption(q26, "ArrayList", true, 3),
+                createOption(q26, "HashMap", false, 4)
+        ));
+
+// ===== QUESTION 27 =====
+        Question q27 = new Question();
+        q27.setContent("Which keyword prevents class inheritance?");
+        q27.setQuestionType("SINGLE_CHOICE");
+        q27.setCategory(oop);
+        q27.setOptions(List.of(
+                createOption(q27, "final", true, 1),
+                createOption(q27, "static", false, 2),
+                createOption(q27, "private", false, 3),
+                createOption(q27, "sealed", false, 4)
+        ));
+
+// ===== QUESTION 28 =====
+        Question q28 = new Question();
+        q28.setContent("Which SQL function counts rows?");
+        q28.setQuestionType("SINGLE_CHOICE");
+        q28.setCategory(sql);
+        q28.setOptions(List.of(
+                createOption(q28, "SUM()", false, 1),
+                createOption(q28, "COUNT()", true, 2),
+                createOption(q28, "TOTAL()", false, 3),
+                createOption(q28, "NUMBER()", false, 4)
+        ));
+
+// ===== QUESTION 29 =====
+        Question q29 = new Question();
+        q29.setContent("Which SQL clause groups rows?");
+        q29.setQuestionType("SINGLE_CHOICE");
+        q29.setCategory(sql);
+        q29.setOptions(List.of(
+                createOption(q29, "GROUP BY", true, 1),
+                createOption(q29, "ORDER BY", false, 2),
+                createOption(q29, "CLUSTER BY", false, 3),
+                createOption(q29, "MERGE BY", false, 4)
+        ));
+
+// ===== QUESTION 30 =====
+        Question q30 = new Question();
+        q30.setContent("Which keyword handles exceptions?");
+        q30.setQuestionType("SINGLE_CHOICE");
+        q30.setCategory(javaCore);
+        q30.setOptions(List.of(
+                createOption(q30, "catch", false, 1),
+                createOption(q30, "throw", false, 2),
+                createOption(q30, "try", true, 3),
+                createOption(q30, "handle", false, 4)
+        ));
+
+        questionRepository.saveAll(List.of(
+                q1,q2,q3,q4,q5,q6,q7,q8,q9,q10,
+                q11,q12,q13,q14,q15,q16,q17,q18,q19,q20,
+                q21,q22,q23,q24,q25,q26,q27,q28,q29,q30
+        ));
 
         log.info("Initialized 10 questions with options");
     }

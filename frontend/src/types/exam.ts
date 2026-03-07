@@ -26,7 +26,7 @@ export interface QuestionOption {
 export interface SubmissionQuestion {
   id: string;
   originalQuestionId: string;
-  questionType: string; // "SINGLE_CHOICE" | "MULTI_CHOICE" | "TRUE_FALSE" | "FILL_IN"
+  questionType: string; // "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "ESSAY"
   content: string;
   score: number;
   earnedScore: number | null;
