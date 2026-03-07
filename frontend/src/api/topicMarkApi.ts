@@ -1,4 +1,4 @@
-import type { CourseClasses, GradebookTableResponse, GradeHistoryItem, GradeHistoryPageResponse } from "@/types/topicMark";
+import type { CourseClasses, GradebookTableResponse, GradeHistoryItem, GradeHistoryPageResponse, TrainingClassInfoResponse } from "@/types/topicMark";
 import axiosInstance from "./axiosInstance";
 
 export type TopicMarkImportResult = {
@@ -14,6 +14,13 @@ export type TopicMarkImportResult = {
 };
 
 export const topicMarkApi = {
+  getTrainingInfo: async (classId: string): Promise<TrainingClassInfoResponse> => {
+    const response = await axiosInstance.get<TrainingClassInfoResponse>(
+      `/classes/${classId}/training-info`,
+    );
+    return response.data;
+  },
+
   getCoursesByClassId: async (id: string): Promise<CourseClasses[]> => {
     const response = await axiosInstance.get<CourseClasses[]>(
       `/course-classes/by-class/${id}`,

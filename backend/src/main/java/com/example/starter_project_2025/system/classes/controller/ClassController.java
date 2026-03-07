@@ -27,132 +27,181 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.example.starter_project_2025.system.classes.dto.response.TrainingClassInfoResponse;
+import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
+
 @RestController
 @RequestMapping("/api/classes")
 @RequiredArgsConstructor
 public class ClassController {
 
-    private final ClassService classService;
+        private final ClassService classService;
+        private final TrainingClassRepository trainingClassRepository;
 
-    @GetMapping("")
-    @PreAuthorize("hasAuthority('CLASS_READ') or hasAuthority('CLASS_USER_READ')")
-    public ResponseEntity<ApiResponse<PageResponse<ClassResponse>>> searchTrainingClasses(
-            @Valid @ParameterObject @ModelAttribute SearchClassRequest request,
-            Pageable pageable) {
+        @GetMapping("")
+        @PreAuthorize("hasAuthority('CLASS_READ') or hasAuthority('CLASS_USER_READ')")
+        public ResponseEntity<ApiResponse<PageResponse<ClassResponse>>> searchTrainingClasses(
+                        @Valid @ParameterObject @ModelAttribute SearchClassRequest request,
+                        Pageable pageable) {
 
-        Page<ClassResponse> pageResult = classService.searchTrainingClasses(request,
-                pageable);
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        PageResponse.from(pageResult),
-                        "Training classes retrieved successfully"));
-    }
+                Page<ClassResponse> pageResult = classService.searchTrainingClasses(request,
+                                pageable);
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                PageResponse.from(pageResult),
+                                                "Training classes retrieved successfully"));
+        }
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('CLASS_CREATE')")
-    public ResponseEntity<ApiResponse<ClassResponse>> getTrainingClassById(
-            @PathVariable UUID id) {
-        ClassResponse response = classService.getTrainingClassById(id);
-        return ResponseEntity.ok(
-                ApiResponse.success(response, "Training class retrieved successfully"));
-    }
+        @GetMapping("/{id}")
+        @PreAuthorize("hasAuthority('CLASS_CREATE')")
+        public ResponseEntity<ApiResponse<ClassResponse>> getTrainingClassById(
+                        @PathVariable UUID id) {
+                ClassResponse response = classService.getTrainingClassById(id);
+                return ResponseEntity.ok(
+                                ApiResponse.success(response, "Training class retrieved successfully"));
+        }
 
-    @PostMapping
-    @PreAuthorize("hasAuthority('CLASS_CREATE')")
-    public ResponseEntity<ClassResponse> createOpenClassRequest(
-            @Valid @RequestBody CreateClassRequest request,
-            Authentication authentication) {
+        @PostMapping
+        @PreAuthorize("hasAuthority('CLASS_CREATE')")
+        public ResponseEntity<ClassResponse> createOpenClassRequest(
+                        @Valid @RequestBody CreateClassRequest request,
+                        Authentication authentication) {
 
-        String email = authentication.getName();
+                String email = authentication.getName();
 
-        ClassResponse response = classService.openClassRequest(request, email);
+                ClassResponse response = classService.openClassRequest(request, email);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('CLASS_UPDATE')")
-    public ResponseEntity<ClassResponse> updateClass(
-            @PathVariable UUID id,
-            @Valid @RequestBody UpdateClassRequest request,
-            Authentication authentication) {
-        String email = authentication.getName();
+        @PutMapping("/{id}")
+        @PreAuthorize("hasAuthority('CLASS_UPDATE')")
+        public ResponseEntity<ClassResponse> updateClass(
+                        @PathVariable UUID id,
+                        @Valid @RequestBody UpdateClassRequest request,
+                        Authentication authentication) {
+                String email = authentication.getName();
 
-        ClassResponse response = classService.updateClass(id, request, email);
+                ClassResponse response = classService.updateClass(id, request, email);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @PutMapping("/{id}/approve")
-    @PreAuthorize("hasAuthority('CLASS_UPDATE')")
-    public ResponseEntity<ClassResponse> approveClass(
-            @PathVariable UUID id,
-            @RequestBody(required = false) ReviewClassRequest request,
-            Authentication authentication) {
-        String email = authentication.getName();
+        @PutMapping("/{id}/approve")
+        @PreAuthorize("hasAuthority('CLASS_UPDATE')")
+        public ResponseEntity<ClassResponse> approveClass(
+                        @PathVariable UUID id,
+                        @RequestBody(required = false) ReviewClassRequest request,
+                        Authentication authentication) {
+                String email = authentication.getName();
 
-        ClassResponse response = classService.approveClass(id, email, request);
+                ClassResponse response = classService.approveClass(id, email, request);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @PutMapping("/{id}/reject")
-    @PreAuthorize("hasAuthority('CLASS_UPDATE')")
-    public ResponseEntity<ClassResponse> rejectClass(
-            @PathVariable UUID id,
-            @RequestBody(required = false) ReviewClassRequest request,
-            Authentication authentication) {
-        String email = authentication.getName();
+        @PutMapping("/{id}/reject")
+        @PreAuthorize("hasAuthority('CLASS_UPDATE')")
+        public ResponseEntity<ClassResponse> rejectClass(
+                        @PathVariable UUID id,
+                        @RequestBody(required = false) ReviewClassRequest request,
+                        Authentication authentication) {
+                String email = authentication.getName();
 
-        ClassResponse response = classService.rejectClass(id, email, request);
+                ClassResponse response = classService.rejectClass(id, email, request);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @GetMapping("/me")
-    @PreAuthorize("hasAuthority('CLASS_USER_READ') or hasAuthority('CLASS_READ')")
-    public ResponseEntity<ApiResponse<List<TrainingClassSemesterResponse>>> getMyClasses(
-            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        @GetMapping("/me")
+        @PreAuthorize("hasAuthority('CLASS_USER_READ') or hasAuthority('CLASS_READ')")
+        public ResponseEntity<ApiResponse<List<TrainingClassSemesterResponse>>> getMyClasses(
+                        @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        List<TrainingClassSemesterResponse> response = classService.getMyClasses(userDetails.getId());
-        return ResponseEntity.ok(ApiResponse.success(response, "My classes retrieved successfully"));
+                List<TrainingClassSemesterResponse> response = classService.getMyClasses(userDetails.getId());
+                return ResponseEntity.ok(ApiResponse.success(response, "My classes retrieved successfully"));
 
-    }
+        }
 
-    @GetMapping("/trainer/my-classes")
-    @PreAuthorize("hasAuthority('CLASS_READ')")
-    public ResponseEntity<ApiResponse<TrainerClassSemesterResponse>> getMyTrainerClasses(
-            @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @ModelAttribute SearchTrainerClassInSemesterRequest request) {
-        var response = classService.getTrainerClasses(userDetails.getId(), request);
-        return ResponseEntity.ok(ApiResponse.success(response, "My trainer classes retrieved successfully"));
-    }
+        @GetMapping("/trainer/my-classes")
+        @PreAuthorize("hasAuthority('CLASS_READ')")
+        public ResponseEntity<ApiResponse<TrainerClassSemesterResponse>> getMyTrainerClasses(
+                        @AuthenticationPrincipal UserDetailsImpl userDetails,
+                        @ModelAttribute SearchTrainerClassInSemesterRequest request) {
+                var response = classService.getTrainerClasses(userDetails.getId(), request);
+                return ResponseEntity.ok(ApiResponse.success(response, "My trainer classes retrieved successfully"));
+        }
 
-    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('CLASS_CREATE')")
-    public ResponseEntity<Map<String, Object>> importClasses(@RequestParam("file") MultipartFile file) {
-        Map<String, Object> result = classService.importClasses(file);
-        return ResponseEntity.ok(result);
-    }
+        @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @PreAuthorize("hasAuthority('CLASS_CREATE')")
+        public ResponseEntity<Map<String, Object>> importClasses(@RequestParam("file") MultipartFile file) {
+                Map<String, Object> result = classService.importClasses(file);
+                return ResponseEntity.ok(result);
+        }
 
-    @GetMapping("/export")
-    @PreAuthorize("hasAuthority('CLASS_READ')")
-    public ResponseEntity<ByteArrayResource> exportClasses() {
-        ByteArrayResource resource = classService.exportClasses();
+        @GetMapping("/export")
+        @PreAuthorize("hasAuthority('CLASS_READ')")
+        public ResponseEntity<ByteArrayResource> exportClasses() {
+                ByteArrayResource resource = classService.exportClasses();
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=classes.xlsx")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(resource);
-    }
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=classes.xlsx")
+                                .contentType(
+                                                MediaType.parseMediaType(
+                                                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                                .body(resource);
+        }
 
-    @GetMapping("/template")
-    public ResponseEntity<ByteArrayResource> downloadTemplate() {
-        ByteArrayResource resource = classService.getTemplate();
+        @GetMapping("/template")
+        public ResponseEntity<ByteArrayResource> downloadTemplate() {
+                ByteArrayResource resource = classService.getTemplate();
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=classes_template.xlsx")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(resource);
-    }
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=classes_template.xlsx")
+                                .contentType(
+                                                MediaType.parseMediaType(
+                                                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                                .body(resource);
+        }
+
+        @GetMapping("/{classId}/training-info")
+        public ResponseEntity<TrainingClassInfoResponse> getTrainingInfo(@PathVariable("classId") UUID classId) {
+                TrainingClass tc = trainingClassRepository.findById(classId)
+                                .orElseThrow(() -> new RuntimeException("Class not found"));
+
+                TrainingClassInfoResponse.ClassInfo classInfo = TrainingClassInfoResponse.ClassInfo.builder()
+                                .id(tc.getId())
+                                .className(tc.getClassName())
+                                .classCode(tc.getClassCode())
+                                .build();
+
+                TrainingClassInfoResponse.TrainingProgramInfo programInfo = null;
+                if (tc.getTrainingProgram() != null) {
+                        List<TrainingClassInfoResponse.TopicInfo> topics = tc.getTrainingProgram()
+                                        .getTrainingProgramTopics() != null
+                                                        ? tc.getTrainingProgram().getTrainingProgramTopics().stream()
+                                                                        .map(tpt -> TrainingClassInfoResponse.TopicInfo
+                                                                                        .builder()
+                                                                                        .id(tpt.getTopic().getId())
+                                                                                        .topicName(tpt.getTopic()
+                                                                                                        .getTopicName())
+                                                                                        .topicCode(tpt.getTopic()
+                                                                                                        .getTopicCode())
+                                                                                        .build())
+                                                                        .toList()
+                                                        : List.of();
+
+                        programInfo = TrainingClassInfoResponse.TrainingProgramInfo.builder()
+                                        .id(tc.getTrainingProgram().getId())
+                                        .name(tc.getTrainingProgram().getName())
+                                        .topics(topics)
+                                        .build();
+                }
+
+                return ResponseEntity.ok(TrainingClassInfoResponse.builder()
+                                .classInfo(classInfo)
+                                .trainingProgram(programInfo)
+                                .build());
+        }
 }

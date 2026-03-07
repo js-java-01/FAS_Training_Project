@@ -16,7 +16,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -38,13 +37,7 @@ import java.util.UUID;
  * Export / Import:
  *   GET    /api/topics/{topicId}/topic-marks/export?trainingClassId=...            export gradebook (scores)
  *   GET    /api/topics/{topicId}/topic-marks/export/template?trainingClassId=...   download template
- *   POST   /api/topics/{topicId}/topic-marks/import?trainingClassId=...            import scores
- *
- * Column management:
- *   POST   /api/topics/{topicId}/topic-mark-columns?trainingClassId=...               add column
- *   PUT    /api/topics/{topicId}/topic-mark-columns/{columnId}?trainingClassId=...    rename column
- *   DELETE /api/topics/{topicId}/topic-mark-columns/{columnId}?trainingClassId=...    remove column
- * </pre>
+ *   POST   /api/topics/{topicId}/topic-marks/import?trainingClassId=...            import scores * </pre>
  */
 @RestController
 @RequiredArgsConstructor
@@ -184,59 +177,6 @@ public class TopicMarkController {
         }
         return ResponseEntity.ok(response);
     }
-
-    //  Column management 
-
-    @PostMapping("/topic-mark-columns")
-    @Operation(summary = "Add a new gradebook column",
-               description = "Creates a column for the given assessment type. Creates null-score entries for all enrolled students.")
-    @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Column created"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "No weight configured for AssessmentType", content = @Content),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not found", content = @Content)
-    })
-    public ResponseEntity<TopicMarkColumnResponse> addColumn(
-            @PathVariable UUID topicId,
-            @RequestParam UUID trainingClassId,
-            @Valid @RequestBody TopicMarkColumnRequest request,
-            Authentication authentication) {
-        UUID editorId = resolveCurrentUserId(authentication);
-        TopicMarkColumnResponse response = topicMarkService.addColumn(topicId, trainingClassId, request, editorId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PutMapping("/topic-mark-columns/{columnId}")
-    @Operation(summary = "Rename gradebook column",
-               description = "Updates the display label. Always allowed even if entries exist.")
-    @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Column renamed"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Column not found", content = @Content)
-    })
-    public ResponseEntity<TopicMarkColumnResponse> updateColumnLabel(
-            @PathVariable UUID topicId,
-            @RequestParam UUID trainingClassId,
-            @PathVariable UUID columnId,
-            @RequestParam String newLabel,
-            Authentication authentication) {
-        UUID editorId = resolveCurrentUserId(authentication);
-        return ResponseEntity.ok(topicMarkService.updateColumnLabel(topicId, trainingClassId, columnId, newLabel, editorId));
-    }
-
-    @DeleteMapping("/topic-mark-columns/{columnId}")
-    @Operation(summary = "Delete gradebook column",
-               description = "Soft-deletes. Only allowed if no student has a non-null score on this column.")
-    @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "Column deleted"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Column has scores, cannot delete", content = @Content)
-    })
-    public ResponseEntity<Void> deleteColumn(
-            @PathVariable UUID topicId,
-            @RequestParam UUID trainingClassId,
-            @PathVariable UUID columnId) {
-        topicMarkService.deleteColumn(topicId, trainingClassId, columnId);
-        return ResponseEntity.noContent().build();
-    }
-
     //  Auth helper 
 
     private UUID resolveCurrentUserId(Authentication authentication) {

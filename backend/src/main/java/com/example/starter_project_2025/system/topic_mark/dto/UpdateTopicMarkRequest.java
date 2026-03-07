@@ -20,22 +20,14 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Request to save / update scores for a student in a course class")
+@Schema(description = "Request to save / update scores for a student in a topic–class")
 public class UpdateTopicMarkRequest {
 
     @Valid
-    @Schema(description = "List of column-score pairs to update")
+    @Schema(description = "List of component-slot score pairs to update")
     private List<EntryUpdate> entries;
 
-    @Schema(hidden = true)
-    private UUID columnId;
-
-    @Min(value = 0, message = "score must be >= 0")
-    @Max(value = 10, message = "score must be <= 10")
-        @Schema(hidden = true)
-    private Double score;
-
-        @NotBlank(message = "reason is required")
+    @NotBlank(message = "reason is required")
     @Schema(description = "Reason for this score update (required for audit trail)",
             example = "Re-graded after student appeal", required = true)
     private String reason;
@@ -43,16 +35,20 @@ public class UpdateTopicMarkRequest {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(description = "Score update for a single column")
+    @Schema(description = "Score update for a single component slot")
     public static class EntryUpdate {
 
-        @NotNull(message = "columnId is required")
-        @Schema(description = "UUID of the TopicMarkColumn to update", required = true)
-        private UUID columnId;
+        @NotNull(message = "componentId is required")
+        @Schema(description = "UUID of the TopicAssessmentComponent", required = true)
+        private UUID componentId;
+
+        @NotNull(message = "componentIndex is required")
+        @Schema(description = "1-based slot index within the component (e.g. 1 for Quiz 1)", required = true, example = "1")
+        private Integer componentIndex;
 
         @Min(value = 0, message = "score must be >= 0")
         @Max(value = 10, message = "score must be <= 10")
-        @Schema(description = "New score value (0–10). Omit or send null to clear the score.",
+        @Schema(description = "New score value (0–10). Send null to clear the score.",
                 nullable = true, example = "8.5")
         private Double score;
     }

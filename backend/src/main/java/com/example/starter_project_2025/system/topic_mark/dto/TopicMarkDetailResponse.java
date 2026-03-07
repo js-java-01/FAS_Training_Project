@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Detailed view of a single student's topic marks in the resolved course class of a training program,
- * including individual column scores, computed final score, and audit history.
+ * Detailed view of a single student's topic marks,
+ * including per-component slot scores, computed final score, and audit history.
  */
 @Data
 @Builder
@@ -27,10 +27,10 @@ public class TopicMarkDetailResponse {
     @Schema(description = "Student full name", example = "John Doe")
     private String fullName;
 
-    @Schema(description = "Individual column scores grouped by assessment type")
-    private List<AssessmentTypeSection> sections;
+    @Schema(description = "Scores grouped by assessment component")
+    private List<ComponentSection> sections;
 
-    @Schema(description = "Computed final score (null if any active column is missing score or missing topic weight config)", nullable = true, example = "8.55")
+    @Schema(description = "Computed final score (null if any graded slot is missing)", nullable = true, example = "8.55")
     private Double finalScore;
 
     @Schema(description = "Whether the student passed", example = "true")
@@ -45,40 +45,40 @@ public class TopicMarkDetailResponse {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(description = "Assessment type section grouping multiple columns")
-    public static class AssessmentTypeSection {
+    @Schema(description = "Section for one assessment component (e.g. Quiz with 3 slots)")
+    public static class ComponentSection {
 
-        @Schema(description = "Assessment type ID", example = "QUIZ")
-        private String assessmentTypeId;
+        @Schema(description = "Component UUID")
+        private String componentId;
 
-        @Schema(description = "Assessment type name", example = "Quiz")
-        private String assessmentTypeName;
+        @Schema(description = "Component display name", example = "Quiz")
+        private String componentName;
 
-        @Schema(description = "Total weight (%) of this assessment type in final score calculation", example = "30")
+        @Schema(description = "Assessment type (QUIZ, ASSIGNMENT, …)", example = "QUIZ")
+        private String componentType;
+
+        @Schema(description = "Component weight (%) in final score calculation", example = "30")
         private Double weight;
 
-        @Schema(description = "Computed score for this section, null if any column is missing")
+        @Schema(description = "Whether this component is graded")
+        private Boolean isGraded;
+
+        @Schema(description = "Computed average score for this component (null if any slot is missing)")
         private Double sectionScore;
 
-        @Schema(description = "Individual column scores")
-        private List<ColumnScore> columns;
+        @Schema(description = "Individual slot scores (one per count index)")
+        private List<SlotScore> slots;
     }
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(description = "Score for a single column")
-    public static class ColumnScore {
+    @Schema(description = "Score for a single component slot")
+    public static class SlotScore {
 
-        @Schema(description = "Column UUID", example = "123e4567-e89b-12d3-a456-426614174000")
-        private UUID columnId;
-
-        @Schema(description = "Column display label", example = "Quiz 1")
-        private String columnLabel;
-
-        @Schema(description = "Column order index", example = "1")
-        private Integer columnIndex;
+        @Schema(description = "1-based slot index", example = "1")
+        private Integer index;
 
         @Schema(description = "Student score, null = not yet entered", nullable = true, example = "8.5")
         private Double score;
@@ -91,8 +91,8 @@ public class TopicMarkDetailResponse {
     @Schema(description = "Audit entry for a score change")
     public static class HistoryEntry {
 
-        @Schema(description = "Label of the column that was changed", example = "Quiz 1")
-        private String columnLabel;
+        @Schema(description = "Label of the component slot that was changed", example = "Quiz 2")
+        private String componentLabel;
 
         @Schema(description = "Score before the change", nullable = true, example = "7.0")
         private Double oldScore;

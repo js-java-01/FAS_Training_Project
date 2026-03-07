@@ -1,281 +1,233 @@
 package com.example.starter_project_2025.config;
 
-import com.example.starter_project_2025.system.assessment.entity.Assessment;
-import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
-import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
-import com.example.starter_project_2025.system.course_class.entity.CourseClass;
-import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
-import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
-import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.topic.entity.Topic;
-import com.example.starter_project_2025.system.topic_assessment_type_weight.entity.entity.TopicAssessmentTypeWeight;
-import com.example.starter_project_2025.system.topic_assessment_type_weight.entity.repository.TopicAssessmentTypeWeightRepository;
+import com.example.starter_project_2025.system.topic.entity.TopicAssessmentComponent;
+import com.example.starter_project_2025.system.topic.entity.TopicAssessmentScheme;
+import com.example.starter_project_2025.system.topic.enums.AssessmentType;
+import com.example.starter_project_2025.system.topic.repository.TopicAssessmentComponentRepository;
+import com.example.starter_project_2025.system.topic.repository.TopicAssessmentSchemeRepository;
+import com.example.starter_project_2025.system.topic.repository.TopicRepository;
 import com.example.starter_project_2025.system.topic_mark.entity.TopicMark;
-import com.example.starter_project_2025.system.topic_mark.entity.TopicMarkColumn;
 import com.example.starter_project_2025.system.topic_mark.entity.TopicMarkEntry;
-import com.example.starter_project_2025.system.topic_mark.repository.TopicMarkColumnRepository;
 import com.example.starter_project_2025.system.topic_mark.repository.TopicMarkEntryRepository;
 import com.example.starter_project_2025.system.topic_mark.repository.TopicMarkRepository;
-import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
 import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
 import com.example.starter_project_2025.system.training_program_topic.entity.repository.TrainingProgramTopicRepository;
 import com.example.starter_project_2025.system.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
- * Seeds TopicMark records (+ default columns + entries) on startup.
+ * Initializes sample TopicMark + TopicMarkEntry data for testing.
  *
- * Algorithm:
- * for each TrainingProgramTopic:
- * topic = tpt.getTopic()
- * for each TrainingClass of tpt.getTrainingProgram():
- * 1. Ensure one default TopicMarkColumn per AssessmentType weight (if none
- * exist yet)
- * 2. Ensure a TopicMark row for every enrolled student
- * 3. Ensure TopicMarkEntry rows for every student x every active column
+ * Creates an assessment scheme with components for the first topic,
+ * then seeds TopicMark and null TopicMarkEntry records for every
+ * enrolled student in the first training class.
  */
-@Component
-@Order(2)
+@Service
 @RequiredArgsConstructor
 @Slf4j
-public class TopicMarkDataInitializer implements CommandLineRunner {
+public class TopicMarkDataInitializer {
 
-        private final TrainingProgramTopicRepository trainingProgramTopicRepository;
-        private final TrainingClassRepository trainingClassRepository;
-        private final TopicMarkRepository topicMarkRepository;
-        private final TopicMarkColumnRepository topicMarkColumnRepository;
-        private final TopicMarkEntryRepository topicMarkEntryRepository;
-        private final TopicAssessmentTypeWeightRepository topicAssessmentTypeWeightRepository;
-        private final AssessmentTypeRepository assessmentTypeRepository;
-        private final EnrollmentRepository enrollmentRepository;
-        private final CourseOnlineRepository courseOnlineRepository;
-        private final CourseClassRepository courseClassRepository;
+    private final TopicRepository topicRepository;
+    private final TrainingClassRepository trainingClassRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final TopicAssessmentSchemeRepository schemeRepository;
+    private final TopicAssessmentComponentRepository componentRepository;
+    private final TopicMarkRepository topicMarkRepository;
+    private final TopicMarkEntryRepository topicMarkEntryRepository;
+    private final TrainingProgramTopicRepository trainingProgramTopicRepository;
 
-        private static final Random RNG = new Random(42);
+    @Transactional
+    public void init() {
+        // Clear old data to re-initialize with random scores
+        topicMarkEntryRepository.deleteAll();
+        topicMarkRepository.deleteAll();
+        log.info("Cleared old TopicMark data for re-initialization.");
 
-        /**
-         * Generate a random sample score in Vietnamese 10-point scale: 5.0 – 10.0, step
-         * 0.5
-         */
-        private static Double randomScore() {
-                // possible values: 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0 (11
-                // values)
-                int steps = RNG.nextInt(11); // 0..10
-                return 5.0 + steps * 0.5;
+        // ── Pick first topic & first class ─────────────────────────────────
+        List<Topic> topics = topicRepository.findAll();
+        List<TrainingClass> classes = trainingClassRepository.findAll();
+
+        if (topics.isEmpty() || classes.isEmpty()) {
+            log.warn("No Topics or TrainingClasses found – cannot initialize TopicMark data.");
+            return;
         }
 
-        @Override
-        @Transactional
-        public void run(String... args) {
-                List<TrainingProgramTopic> allTpts = trainingProgramTopicRepository.findAll();
-                if (allTpts.isEmpty()) {
-                        log.info("TopicMarkDataInitializer skipped: no TrainingProgramTopics found");
-                        return;
-                }
+        Topic topic = topics.get(0);
+        TrainingClass trainingClass = classes.get(0);
 
-                int marksCreated = 0;
-                int columnsCreated = 0;
-                int entriesCreated = 0;
+        log.info("TopicMarkDataInitializer: topic='{}', class='{}'",
+                topic.getTopicName(), trainingClass.getClassCode());
 
-                for (TrainingProgramTopic tpt : allTpts) {
-                        TrainingProgram tp = tpt.getTrainingProgram();
-                        if (tp == null)
-                                continue;
+        // ── Ensure assessment scheme + components ──────────────────────────
+        TopicAssessmentScheme scheme = schemeRepository.findByTopicId(topic.getId())
+                .orElseGet(() -> {
+                    TopicAssessmentScheme s = new TopicAssessmentScheme();
+                    s.setTopic(topic);
+                    s.setMinGpaToPass(5.0);
+                    s.setMinAttendance(80);
+                    s.setAllowFinalRetake(false);
+                    return schemeRepository.save(s);
+                });
 
-                        Topic topic = tpt.getTopic();
-                        if (topic == null)
-                                continue;
-                        UUID topicId = topic.getId();
+        // Only add components if none exist yet
+        List<TopicAssessmentComponent> existingComponents = componentRepository
+                .findBySchemeIdOrderByDisplayOrder(scheme.getId());
+        if (existingComponents.isEmpty()) {
+            List<TopicAssessmentComponent> components = new ArrayList<>();
 
-                        List<TopicAssessmentTypeWeight> weights = topicAssessmentTypeWeightRepository
-                                        .findByTopicId(topicId);
+            // Quiz × 3, weight 20%
+            TopicAssessmentComponent quiz = new TopicAssessmentComponent();
+            quiz.setScheme(scheme);
+            quiz.setType(AssessmentType.QUIZ);
+            quiz.setName("Quiz");
+            quiz.setCount(3);
+            quiz.setWeight(20.0);
+            quiz.setDuration(15);
+            quiz.setDisplayOrder(1);
+            quiz.setIsGraded(true);
+            quiz.setNote("3 quizzes throughout the course");
+            components.add(quiz);
 
-                        // Auto-seed default weights if none have been configured yet
-                        if (weights.isEmpty()) {
-                                String[] defaultTypes = { "Entrance Quiz", "Midterm Test", "Final Exam" };
-                                double[] defaultValues = { 20.0, 30.0, 50.0 };
-                                for (int i = 0; i < defaultTypes.length; i++) {
-                                        final int idx = i;
-                                        final Topic finalTopic = topic;
-                                        assessmentTypeRepository.findByName(defaultTypes[idx])
-                                                        .ifPresent(at -> topicAssessmentTypeWeightRepository.save(
-                                                                        TopicAssessmentTypeWeight.builder()
-                                                                                        .topic(finalTopic)
-                                                                                        .assessmentType(at)
-                                                                                        .weight(defaultValues[idx])
-                                                                                        .build()));
-                                }
-                                weights = topicAssessmentTypeWeightRepository.findByTopicId(topicId);
-                        }
+            // Assignment × 2, weight 30%
+            TopicAssessmentComponent assignment = new TopicAssessmentComponent();
+            assignment.setScheme(scheme);
+            assignment.setType(AssessmentType.ASSIGNMENT);
+            assignment.setName("Assignment");
+            assignment.setCount(2);
+            assignment.setWeight(30.0);
+            assignment.setDuration(120);
+            assignment.setDisplayOrder(2);
+            assignment.setIsGraded(true);
+            assignment.setNote("Practical coding assignments");
+            components.add(assignment);
 
-                        // Ensure a CourseOnline exists for this topic (used by frontend dropdown)
-                        CourseOnline courseOnline = courseOnlineRepository.findByCourseCode(topic.getTopicCode())
-                                        .orElseGet(() -> courseOnlineRepository.save(
-                                                        CourseOnline.builder()
-                                                                        .courseName(topic.getTopicName())
-                                                                        .courseCode(topic.getTopicCode())
-                                                                        .topicId(topic.getId())
-                                                                        .build()));
+            // Final Exam × 1, weight 50%
+            TopicAssessmentComponent finalExam = new TopicAssessmentComponent();
+            finalExam.setScheme(scheme);
+            finalExam.setType(AssessmentType.FINAL_EXAM);
+            finalExam.setName("Final Exam");
+            finalExam.setCount(1);
+            finalExam.setWeight(50.0);
+            finalExam.setDuration(120);
+            finalExam.setDisplayOrder(3);
+            finalExam.setIsGraded(true);
+            finalExam.setNote("Comprehensive final examination");
+            components.add(finalExam);
 
-                        List<TrainingClass> trainingClasses = trainingClassRepository
-                                        .findByTrainingProgramId(tp.getId());
-                        if (trainingClasses.isEmpty())
-                                continue;
+            // Participation × 1, weight 0% (not graded)
+            TopicAssessmentComponent participation = new TopicAssessmentComponent();
+            participation.setScheme(scheme);
+            participation.setType(AssessmentType.LAB);
+            participation.setName("Participation");
+            participation.setCount(1);
+            participation.setWeight(0.0);
+            participation.setDuration(null);
+            participation.setDisplayOrder(4);
+            participation.setIsGraded(false);
+            participation.setNote("Class participation - not graded");
+            components.add(participation);
 
-                        for (TrainingClass tc : trainingClasses) {
-                                UUID trainingClassId = tc.getId();
-
-                                // Ensure a CourseClass linking this CourseOnline to this TrainingClass
-                                List<CourseClass> existingCcs = courseClassRepository
-                                                .findByClassInfo_Id(trainingClassId);
-                                boolean ccExists = existingCcs.stream()
-                                                .anyMatch(cc -> courseOnline.getId().equals(cc.getCourse().getId()));
-                                if (!ccExists) {
-                                        CourseClass cc = new CourseClass();
-                                        cc.setCourse(courseOnline);
-                                        cc.setClassInfo(tc);
-                                        courseClassRepository.save(cc);
-                                }
-
-                                List<TopicMarkColumn> existingColumns = topicMarkColumnRepository
-                                                .findAllByTopicAndClass(topicId, trainingClassId);
-
-                                if (existingColumns.isEmpty() && !weights.isEmpty()) {
-                                        for (TopicAssessmentTypeWeight w : weights) {
-                                                AssessmentType at = w.getAssessmentType();
-                                                if (at == null)
-                                                        continue;
-                                                TopicMarkColumn col = TopicMarkColumn.builder()
-                                                                .topic(topic)
-                                                                .trainingClass(tc)
-                                                                .assessmentType(at)
-                                                                .columnLabel(at.getName() + " 1")
-                                                                .columnIndex(1)
-                                                                .isDeleted(false)
-                                                                .build();
-                                                topicMarkColumnRepository.save(col);
-                                                columnsCreated++;
-                                        }
-                                        existingColumns = topicMarkColumnRepository
-                                                        .findAllByTopicAndClass(topicId, trainingClassId);
-                                }
-
-                                List<Enrollment> enrollments = enrollmentRepository
-                                                .findByTrainingClassId(trainingClassId);
-                                for (Enrollment enrollment : enrollments) {
-                                        User student = enrollment.getUser();
-                                        if (student == null)
-                                                continue;
-                                        UUID userId = student.getId();
-
-                                        boolean markExists = topicMarkRepository
-                                                        .existsByTopicIdAndTrainingClassIdAndUserId(topicId,
-                                                                        trainingClassId, userId);
-                                        if (!markExists) {
-                                                topicMarkRepository.save(TopicMark.builder()
-                                                                .topic(topic)
-                                                                .trainingClass(tc)
-                                                                .user(student)
-                                                                .trainingProgram(tp)
-                                                                .trainingProgramTopic(tpt)
-                                                                .isPassed(false)
-                                                                .build());
-                                                marksCreated++;
-                                        }
-
-                                        for (TopicMarkColumn col : existingColumns) {
-                                                if (Boolean.TRUE.equals(col.getIsDeleted()))
-                                                        continue;
-                                                boolean entryExists = topicMarkEntryRepository
-                                                                .existsByTopicMarkColumnIdAndUserId(col.getId(),
-                                                                                userId);
-                                                if (!entryExists) {
-                                                        topicMarkEntryRepository.save(TopicMarkEntry.builder()
-                                                                        .topicMarkColumn(col)
-                                                                        .user(student)
-                                                                        .topic(topic)
-                                                                        .trainingClass(tc)
-                                                                        .score(randomScore())
-                                                                        .build());
-                                                        entriesCreated++;
-                                                }
-                                        }
-
-                                        // Compute and save finalScore for this student
-                                        List<TopicMarkColumn> activeCols = existingColumns.stream()
-                                                        .filter(c -> !Boolean.TRUE.equals(c.getIsDeleted()))
-                                                        .collect(Collectors.toList());
-
-                                        List<TopicMarkEntry> studentEntries = topicMarkEntryRepository
-                                                        .findByTopicAndClassAndUser(topicId, trainingClassId, userId);
-
-                                        Map<UUID, Double> scoreByColId = studentEntries.stream()
-                                                        .filter(e -> e.getScore() != null)
-                                                        .collect(Collectors.toMap(
-                                                                        e -> e.getTopicMarkColumn().getId(),
-                                                                        TopicMarkEntry::getScore,
-                                                                        (a, b) -> a));
-
-                                        Map<String, Double> weightByTypeId = weights.stream()
-                                                        .filter(w -> w.getAssessmentType() != null
-                                                                        && w.getWeight() != null)
-                                                        .collect(Collectors.toMap(
-                                                                        w -> w.getAssessmentType().getId(),
-                                                                        TopicAssessmentTypeWeight::getWeight,
-                                                                        (a, b) -> a));
-
-                                        Map<String, List<TopicMarkColumn>> colsByType = activeCols.stream()
-                                                        .collect(Collectors.groupingBy(
-                                                                        c -> c.getAssessmentType().getId()));
-
-                                        boolean allFilled = activeCols.stream()
-                                                        .allMatch(c -> scoreByColId.containsKey(c.getId()));
-                                        if (allFilled && !colsByType.isEmpty() && !weightByTypeId.isEmpty()) {
-                                                double computed = 0.0;
-                                                for (Map.Entry<String, List<TopicMarkColumn>> typeEntry : colsByType
-                                                                .entrySet()) {
-                                                        Double typeWeight = weightByTypeId.get(typeEntry.getKey());
-                                                        if (typeWeight == null)
-                                                                continue;
-                                                        int count = typeEntry.getValue().size();
-                                                        for (TopicMarkColumn col : typeEntry.getValue()) {
-                                                                Double s = scoreByColId.get(col.getId());
-                                                                if (s != null)
-                                                                        computed += s * (typeWeight / 100.0) / count;
-                                                        }
-                                                }
-                                                double rounded = Math.round(computed * 100.0) / 100.0;
-                                                Double minGpa = topic.getMinGpaToPass();
-                                                boolean passed = minGpa != null && rounded >= minGpa;
-                                                topicMarkRepository
-                                                                .findByTopicIdAndTrainingClassIdAndUserId(topicId,
-                                                                                trainingClassId, userId)
-                                                                .ifPresent(mark -> {
-                                                                        mark.setFinalScore(rounded);
-                                                                        mark.setIsPassed(passed);
-                                                                        topicMarkRepository.save(mark);
-                                                                });
-                                        }
-                                }
-                        }
-                }
-
-                log.info("TopicMarkDataInitializer done: {} TopicMarks, {} columns, {} entries created",
-                                marksCreated, columnsCreated, entriesCreated);
+            componentRepository.saveAll(components);
+            existingComponents = components;
+            log.info("Created {} assessment components (total graded weight=100%)", components.size());
         }
+
+        // ── Resolve TrainingProgramTopic ────────────────────────────────────
+        TrainingProgramTopic tpt = null;
+        if (trainingClass.getTrainingProgram() != null) {
+            tpt = trainingProgramTopicRepository
+                    .findByTrainingProgram_IdAndTopic_Id(
+                            trainingClass.getTrainingProgram().getId(), topic.getId())
+                    .orElse(null);
+        }
+
+        // ── Enrolled students → create TopicMark + TopicMarkEntry ──────────
+        List<Enrollment> enrollments = enrollmentRepository.findByTrainingClassId(trainingClass.getId());
+        if (enrollments.isEmpty()) {
+            log.warn("No enrollments found for class '{}', skipping TopicMark seeding.",
+                    trainingClass.getClassCode());
+            return;
+        }
+
+        int markCount = 0;
+        int entryCount = 0;
+        java.util.Random random = new java.util.Random(42); // fixed seed for reproducible data
+
+        for (Enrollment enrollment : enrollments) {
+            User student = enrollment.getUser();
+
+            double weightedSum = 0.0;
+
+            List<TopicMarkEntry> entries = new ArrayList<>();
+
+            // Create TopicMarkEntry for each component slot with random scores
+            for (TopicAssessmentComponent comp : existingComponents) {
+                int count = comp.getCount() != null ? comp.getCount() : 0;
+                boolean graded = Boolean.TRUE.equals(comp.getIsGraded());
+                double slotTotal = 0.0;
+
+                for (int idx = 1; idx <= count; idx++) {
+                    // Graded → random score 5.0–10.0 (rounded to 1 decimal)
+                    // Not graded → null
+                    Double score = graded
+                            ? Math.round((1.0 + random.nextDouble() * 9.0) * 10.0) / 10.0
+                            : null;
+
+                    TopicMarkEntry entry = TopicMarkEntry.builder()
+                            .component(comp)
+                            .componentIndex(idx)
+                            .user(student)
+                            .topic(topic)
+                            .trainingClass(trainingClass)
+                            .score(score)
+                            .build();
+                    entries.add(entry);
+                    entryCount++;
+
+                    if (graded && score != null) {
+                        slotTotal += score;
+                    }
+                }
+
+                // Weighted contribution: avg(slot scores) × weight%
+                if (graded && count > 0) {
+                    double avg = slotTotal / count;
+                    weightedSum += avg * (comp.getWeight() / 100.0);
+                }
+            }
+
+            // Round final score to 2 decimals
+            double finalScore = Math.round(weightedSum * 100.0) / 100.0;
+            boolean passed = finalScore >= scheme.getMinGpaToPass();
+
+            // Create TopicMark with computed final score
+            TopicMark mark = TopicMark.builder()
+                    .topic(topic)
+                    .trainingClass(trainingClass)
+                    .user(student)
+                    .trainingProgram(trainingClass.getTrainingProgram())
+                    .trainingProgramTopic(tpt)
+                    .finalScore(finalScore)
+                    .isPassed(passed)
+                    .build();
+            topicMarkRepository.save(mark);
+            markCount++;
+
+            topicMarkEntryRepository.saveAll(entries);
+        }
+
+        log.info(">>> TopicMarkDataInitializer: Created {} TopicMarks + {} TopicMarkEntries for {} students.",
+                markCount, entryCount, enrollments.size());
+    }
 }

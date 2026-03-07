@@ -11,12 +11,12 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Gradebook view response with dynamic columns for the resolved course class of a training program.
+ * Gradebook view response with columns derived from TopicAssessmentComponents.
  *
  * Column keys in {@link Row#values}:
- *  - UUID string   → score for a TopicMarkColumn
- *  - "FINAL_SCORE" → computed final score (Double or null)
- *  - "IS_PASSED"   → Boolean
+ *  - "{componentId}_{index}" → score for a TopicAssessmentComponent slot (Double or null)
+ *  - "FINAL_SCORE"           → computed final score (Double or null)
+ *  - "IS_PASSED"             → Boolean
  */
 @Data
 @Builder
@@ -40,30 +40,29 @@ public class TopicMarkGradebookResponse {
     @Schema(description = "Column definition for the gradebook table")
     public static class Column {
 
-        @Schema(description = "Unique key: UUID of TopicMarkColumn or reserved key (FINAL_SCORE, IS_PASSED)",
-                example = "123e4567-e89b-12d3-a456-426614174000")
+        @Schema(description = "Unique key: '{componentId}_{componentIndex}' or reserved key (FINAL_SCORE, IS_PASSED)",
+                example = "123e4567-e89b-12d3-a456-426614174000_1")
         private String key;
 
         @Schema(description = "Display label", example = "Quiz 1")
         private String label;
 
-        @Schema(description = "AssessmentType ID this column belongs to, null for meta columns",
-                nullable = true, example = "QUIZ")
-        private String assessmentTypeId;
+        @Schema(description = "UUID of the TopicAssessmentComponent; null for meta columns", nullable = true)
+        private String componentId;
 
-        @Schema(description = "AssessmentType name, null for meta columns",
-                nullable = true, example = "Quiz")
-        private String assessmentTypeName;
+        @Schema(description = "1-based slot index within the component; null for meta columns", nullable = true, example = "1")
+        private Integer componentIndex;
 
-        @Schema(description = "Total weight (%) of the assessment type; each column contribution is this weight divided by number of active columns in that type",
-                nullable = true, example = "30")
+        @Schema(description = "Assessment type (QUIZ, ASSIGNMENT, …); null for meta columns", nullable = true, example = "QUIZ")
+        private String componentType;
+
+        @Schema(description = "Component weight (%); null for meta columns", nullable = true, example = "30.0")
         private Double weight;
 
-        @Schema(description = "Column order index within its assessment type, null for meta columns",
-                nullable = true, example = "1")
-        private Integer columnIndex;
+        @Schema(description = "Whether this component counts toward final score; null for meta columns", nullable = true)
+        private Boolean isGraded;
 
-        /** Convenience constructor for meta columns (FINAL_SCORE, IS_PASSED, COMMENT). */
+        /** Convenience constructor for meta columns (FINAL_SCORE, IS_PASSED). */
         public Column(String key, String label) {
             this.key = key;
             this.label = label;
@@ -86,14 +85,11 @@ public class TopicMarkGradebookResponse {
         @Schema(description = "Student email", example = "john.doe@example.com")
         private String email;
 
-        @Schema(description = "Topic name of the resolved course class", example = "Java Backend")
-        private String topic;
-
         /**
          * Map of column key → value.
-         * - UUID key      → Double score (nullable = not entered yet)
-         * - FINAL_SCORE   → Double (nullable)
-         * - IS_PASSED     → Boolean
+         * - '{componentId}_{index}' key → Double score (null = not entered)
+         * - FINAL_SCORE                 → Double (nullable)
+         * - IS_PASSED                   → Boolean
          */
         @Schema(description = "Score / meta values keyed by column key")
         private Map<String, Object> values;

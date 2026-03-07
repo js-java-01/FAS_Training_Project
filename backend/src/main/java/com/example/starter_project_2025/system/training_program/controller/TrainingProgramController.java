@@ -31,109 +31,99 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TrainingProgramController {
 
-    private final TrainingProgramService service;
+        private final TrainingProgramService service;
 
-    @GetMapping(params = "page")
-    @Operation(summary = "Search training programs with pagination")
-    @PreAuthorize("hasAuthority('TRAINING_PROGRAM_READ')")
-    public ResponseEntity<ApiResponse<PageResponse<TrainingProgramResponse>>> searchTrainingPrograms(
-            @Valid @ParameterObject @ModelAttribute SearchTrainingProgramRequest request
-    ) {
+        @GetMapping(params = "page")
+        @Operation(summary = "Search training programs with pagination")
+        @PreAuthorize("hasAuthority('TRAINING_PROGRAM_READ')")
+        public ResponseEntity<ApiResponse<PageResponse<TrainingProgramResponse>>> searchTrainingPrograms(
+                        @Valid @ParameterObject @ModelAttribute SearchTrainingProgramRequest request) {
 
-        String sortField = request.getSort()[0];
+                String sortField = request.getSort()[0];
 
-        Sort.Direction direction =
-                request.getSort().length > 1
-                        ? Sort.Direction.fromString(request.getSort()[1])
-                        : Sort.Direction.ASC;
+                Sort.Direction direction = request.getSort().length > 1
+                                ? Sort.Direction.fromString(request.getSort()[1])
+                                : Sort.Direction.ASC;
 
-        Pageable pageable = PageRequest.of(
-                request.getPage(),
-                request.getSize(),
-                Sort.by(direction, sortField)
-        );
+                Pageable pageable = PageRequest.of(
+                                request.getPage(),
+                                request.getSize(),
+                                Sort.by(direction, sortField));
 
-        Page<TrainingProgramResponse> pageResult =
-                service.searchTrainingPrograms(
-                        request.getKeyword(),
-                        request.getVersion(),
-                        pageable
-                );
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        PageResponse.from(pageResult),
-                        "Training programs retrieved successfully"
-                )
-        );
-    }
+                Page<TrainingProgramResponse> pageResult = service.searchTrainingPrograms(
+                                request.getKeyword(),
+                                request.getVersion(),
+                                pageable);
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                PageResponse.from(pageResult),
+                                                "Training programs retrieved successfully"));
+        }
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('TRAINING_PROGRAM_READ')")
-    public ResponseEntity<TrainingProgramResponse> getDetail(
-            @PathVariable UUID id
-    ) {
-        return ResponseEntity.ok(service.getById(id));
-    }
+        @GetMapping("/{id}")
+        @PreAuthorize("hasAuthority('TRAINING_PROGRAM_READ')")
+        public ResponseEntity<TrainingProgramResponse> getDetail(
+                        @PathVariable UUID id) {
+                return ResponseEntity.ok(service.getById(id));
+        }
 
-    @PostMapping
-    @PreAuthorize("hasAuthority('TRAINING_PROGRAM_CREATE')")
-    public ResponseEntity<TrainingProgramResponse> create(
-            @Valid @RequestBody CreateTrainingProgramRequest request
-    ) {
-        return ResponseEntity.ok(service.create(request));
-    }
+        @PostMapping
+        @PreAuthorize("hasAuthority('TRAINING_PROGRAM_CREATE')")
+        public ResponseEntity<TrainingProgramResponse> create(
+                        @Valid @RequestBody CreateTrainingProgramRequest request) {
+                return ResponseEntity.ok(service.create(request));
+        }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('TRAINING_PROGRAM_DELETE')")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        @DeleteMapping("/{id}")
+        @PreAuthorize("hasAuthority('TRAINING_PROGRAM_DELETE')")
+        public ResponseEntity<Void> delete(@PathVariable UUID id) {
 
-        service .delete(id);
+                service.delete(id);
 
-        return ResponseEntity.noContent().build();
-    }
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('TRAINING_PROGRAM_UPDATE')")
-    public ResponseEntity<TrainingProgramResponse> update(
-            @PathVariable UUID id,
-            @RequestBody UpdateTrainingProgramRequest request
-    ) {
-        return ResponseEntity.ok(service.update(id, request));
-    }
+                return ResponseEntity.noContent().build();
+        }
 
-    @GetMapping("/export")
-    public ResponseEntity<Resource> exportTrainingPrograms() throws IOException {
+        @PutMapping("/{id}")
+        @PreAuthorize("hasAuthority('TRAINING_PROGRAM_UPDATE')")
+        public ResponseEntity<TrainingProgramResponse> update(
+                        @PathVariable UUID id,
+                        @RequestBody UpdateTrainingProgramRequest request) {
+                return ResponseEntity.ok(service.update(id, request));
+        }
 
-        ByteArrayInputStream stream = service.exportTrainingPrograms();
+        @GetMapping("/export")
+        public ResponseEntity<Resource> exportTrainingPrograms() throws IOException {
 
-        InputStreamResource file = new InputStreamResource(stream);
+                ByteArrayInputStream stream = service.exportTrainingPrograms();
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=training_programs.xlsx")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(file);
-    }
+                InputStreamResource file = new InputStreamResource(stream);
 
-    @GetMapping("/template")
-    public ResponseEntity<Resource> downloadTemplate() throws IOException {
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.CONTENT_DISPOSITION,
+                                                "attachment; filename=training_programs.xlsx")
+                                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                                .body(file);
+        }
 
-        ByteArrayInputStream stream = service.downloadTemplate();
+        @GetMapping("/template")
+        public ResponseEntity<Resource> downloadTemplate() throws IOException {
 
-        InputStreamResource file = new InputStreamResource(stream);
+                ByteArrayInputStream stream = service.downloadTemplate();
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=training_program_template.xlsx")
-                .body(file);
-    }
+                InputStreamResource file = new InputStreamResource(stream);
 
-    @PostMapping("/import")
-    public ResponseEntity<?> importTrainingPrograms(
-            @RequestParam("file") MultipartFile file
-    ) throws IOException {
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.CONTENT_DISPOSITION,
+                                                "attachment; filename=training_program_template.xlsx")
+                                .body(file);
+        }
 
-        ImportTrainingProgramResponse response = service.importTrainingPrograms(file);
+        @PostMapping("/import")
+        public ResponseEntity<?> importTrainingPrograms(
+                        @RequestParam("file") MultipartFile file) throws IOException {
 
-        return ResponseEntity.ok(response);
-    }
+                ImportTrainingProgramResponse response = service.importTrainingPrograms(file);
+
+                return ResponseEntity.ok(response);
+        }
 }

@@ -99,8 +99,8 @@ public class ScoreHistoryResponse {
     @Schema(description = "Slim column reference")
     public static class ColumnRef {
 
-        @Schema(description = "Column ID")
-        private UUID id;
+        @Schema(description = "Column key ({componentId}_{componentIndex})")
+        private String id;
 
         @Schema(description = "Column label", example = "Assignment 1")
         private String name;

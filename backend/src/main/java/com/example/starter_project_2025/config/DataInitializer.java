@@ -113,6 +113,7 @@ public class DataInitializer implements CommandLineRunner {
         private final TopicInitializer topicInitializer;
         private final AssessmentTypeInitializer assessmentTypeInitializer;
         private final SkillInitializer skillInitializer;
+        private final TopicMarkDataInitializer topicMarkDataInitializer;
 
         @Override
         public void run(String... args) {
@@ -157,27 +158,28 @@ public class DataInitializer implements CommandLineRunner {
                 initializeEnrollments();
                 topicInitializer.init();
                 skillInitializer.init();
+                topicMarkDataInitializer.init();
         }
-private void initializeSemesters() {
-if (semesterRepository.count() > 0) return;
-List<Semester> semesters = List.of(
-buildSemester("Fall 2025",   LocalDate.of(2025, 9,  1), LocalDate.of(2025, 12, 31)),
-buildSemester("Spring 2026", LocalDate.of(2026, 1,  1), LocalDate.of(2026,  4, 30)),
-buildSemester("Summer 2026", LocalDate.of(2026, 5,  1), LocalDate.of(2026,  8, 31)),
-buildSemester("Fall 2026",   LocalDate.of(2026, 9,  1), LocalDate.of(2026, 12, 31))
-);
-semesterRepository.saveAll(semesters);
-log.info("Initialized {} semesters", semesters.size());
-}
 
-private Semester buildSemester(String name, LocalDate start, LocalDate end) {
-Semester s = new Semester();
-s.setName(name);
-s.setStartDate(start);
-s.setEndDate(end);
-return s;
-}
+        private void initializeSemesters() {
+                if (semesterRepository.count() > 0)
+                        return;
+                List<Semester> semesters = List.of(
+                                buildSemester("Fall 2025", LocalDate.of(2025, 9, 1), LocalDate.of(2025, 12, 31)),
+                                buildSemester("Spring 2026", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 4, 30)),
+                                buildSemester("Summer 2026", LocalDate.of(2026, 5, 1), LocalDate.of(2026, 8, 31)),
+                                buildSemester("Fall 2026", LocalDate.of(2026, 9, 1), LocalDate.of(2026, 12, 31)));
+                semesterRepository.saveAll(semesters);
+                log.info("Initialized {} semesters", semesters.size());
+        }
 
+        private Semester buildSemester(String name, LocalDate start, LocalDate end) {
+                Semester s = new Semester();
+                s.setName(name);
+                s.setStartDate(start);
+                s.setEndDate(end);
+                return s;
+        }
 
         private void initializePermissions() {
                 List<Permission> permissions = Arrays.asList(

@@ -86,7 +86,6 @@ public class TopicInitializer
         topic.setDescription(desc);
         topic.setStatus(TopicStatus.ACTIVE);
         topic.setVersion("v1.0");
-        topic.setMinGpaToPass(5.0);
         return topic;
     }
 

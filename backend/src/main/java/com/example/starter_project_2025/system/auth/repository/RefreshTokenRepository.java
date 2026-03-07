@@ -2,7 +2,7 @@ package com.example.starter_project_2025.system.auth.repository;
 
 import com.example.starter_project_2025.system.auth.entity.RefreshToken;
 import com.example.starter_project_2025.system.user.entity.User;
-import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.repository.query.Param;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

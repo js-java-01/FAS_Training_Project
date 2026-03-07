@@ -40,9 +40,6 @@ public class Topic {
     @Enumerated(EnumType.STRING)
     private TopicStatus status; // DRAFT, ACTIVE, REJECTED...
 
-    @Column(name = "min_gpa_to_pass")
-    private Double minGpaToPass;
-
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 

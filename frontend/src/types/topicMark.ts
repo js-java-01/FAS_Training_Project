@@ -4,6 +4,33 @@
 
 import type { ApiResponse, PagedData } from "./response"
 
+/* ===============================
+   TRAINING CLASS INFO (for Topic Mark)
+================================= */
+
+export interface TopicInfo {
+  id: string
+  topicName: string
+  topicCode: string
+}
+
+export interface TrainingProgramInfo {
+  id: string
+  name: string
+  topics: TopicInfo[]
+}
+
+export interface ClassInfoForMark {
+  id: string
+  className: string
+  classCode: string
+}
+
+export interface TrainingClassInfoResponse {
+  classInfo: ClassInfoForMark
+  trainingProgram: TrainingProgramInfo | null
+}
+
 export interface Course {
   id: string
   courseName: string

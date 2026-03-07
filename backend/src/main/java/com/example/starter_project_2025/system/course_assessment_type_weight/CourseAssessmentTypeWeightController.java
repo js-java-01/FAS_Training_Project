@@ -83,8 +83,8 @@ public class CourseAssessmentTypeWeightController {
     @DeleteMapping("/{weightId}")
     @Operation(
             summary = "Remove an assessment type weight from a course",
-            description = "Deletes the weight configuration. Note: if existing TopicMarkColumns reference " +
-                          "this AssessmentType, removing the weight will cause the final score calculation to fail."
+            description = "Deletes the weight configuration. Note: if existing TopicAssessmentComponents reference " +
+                          "this AssessmentType, removing the weight may affect the final score calculation."
     )
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Weight deleted successfully"),

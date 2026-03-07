@@ -90,10 +90,6 @@ public class JwtUtil
                 .parseClaimsJws(token)
                 .getBody();
 
-        System.out.println("[DEBUG JWT] Parsing token for user: " + claims.getSubject());
-        System.out.println("[DEBUG JWT] All claims: " + claims);
-        System.out.println("[DEBUG JWT] Permissions claim: " + claims.get("permissions"));
-
         // Extract permissions from token claims
         @SuppressWarnings("unchecked")
         java.util.List<String> permissionsList = (java.util.List<String>) claims.get("permissions");

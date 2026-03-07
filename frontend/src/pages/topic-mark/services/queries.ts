@@ -1,6 +1,16 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { topicMarkApi } from "@/api/topicMarkApi"
 
+export const useGetTrainingInfo = (classId: string) => {
+  return useQuery({
+    queryKey: ["training-info", classId],
+    queryFn: () => topicMarkApi.getTrainingInfo(classId),
+    enabled: !!classId,
+    placeholderData: (prev) => prev,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 export const useGetCoursesByClassId = (id: string) => {
   return useQuery({
     queryKey: ["course-by-class", id],

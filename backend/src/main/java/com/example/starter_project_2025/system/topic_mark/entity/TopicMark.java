@@ -72,7 +72,7 @@ public class TopicMark {
 
     @Column(name = "is_passed", nullable = false)
     @Builder.Default
-    @Schema(description = "Whether the student passed (finalScore >= topic.minGpaToPass)", example = "true")
+    @Schema(description = "Whether the student passed (finalScore >= scheme.minGpaToPass)", example = "true")
     private Boolean isPassed = false;
 
     @CreationTimestamp

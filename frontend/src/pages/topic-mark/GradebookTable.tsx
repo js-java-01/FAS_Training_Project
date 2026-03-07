@@ -5,11 +5,10 @@ import { DataTable } from "@/components/data_table/DataTable"
 import { FacetedFilter } from "@/components/FacedFilter"
 import { buildGradebookColumns } from "./columns"
 import {
-  useGetClassCourseById,
-  useGetCoursesByClassId,
+  useGetTrainingInfo,
   useGetGradebookTable,
 } from "./services/queries"
-import type { GradebookRow } from "@/types/topicMark"
+import type { GradebookRow, TopicInfo } from "@/types/topicMark"
 import { SearchableSelect } from "@/components/SearchableSelect"
 import { useSortParam } from "@/hooks/useSortParam"
 import { Button } from "@/components/ui/button"
@@ -39,24 +38,22 @@ export default function GradebookTable({ classId }: Props) {
   const debouncedSearch = useDebounce(searchValue, 300)
 
   const [statusFilter, setStatusFilter] = useState<string[]>([])
-  const [selectedCourseClassId, setSelectedCourseClassId] =
-    useState("")
+  const [selectedTopicId, setSelectedTopicId] = useState("")
 
-  /* ================= COURSE CLASS ================= */
+  /* ================= TRAINING INFO ================= */
 
-  const { data: classCourse } = useGetClassCourseById(selectedCourseClassId)
+  const { data: trainingInfo } = useGetTrainingInfo(classId)
 
-  const { data: courseClasses = [] } =
-    useGetCoursesByClassId(classId)
+  const topics: TopicInfo[] = trainingInfo?.trainingProgram?.topics ?? []
 
   useEffect(() => {
-    if (!selectedCourseClassId && courseClasses.length) {
-      setSelectedCourseClassId(courseClasses[0].id)
+    if (!selectedTopicId && topics.length) {
+      setSelectedTopicId(topics[0].id)
     }
-  }, [courseClasses, selectedCourseClassId])
+  }, [topics, selectedTopicId])
 
-  // Derive topicId from the selected course class
-  const topicId = classCourse?.course?.topicId ?? courseClasses.find(cc => cc.id === selectedCourseClassId)?.course?.topicId ?? ""
+  const topicId = selectedTopicId
+  const selectedTopic = topics.find(t => t.id === selectedTopicId)
 
   /* ================= SORT & STATUS PARAM ================= */
 
@@ -84,16 +81,15 @@ export default function GradebookTable({ classId }: Props) {
 
   useEffect(() => {
     setPageIndex(0)
-  }, [debouncedSearch, statusFilter, selectedCourseClassId])
+  }, [debouncedSearch, statusFilter, selectedTopicId])
 
   /* ================= SAFE DATA ================= */
 
   const safeTableData = useMemo(() => {
     const rows = tableData?.data?.rows
-    const topicDisplay =
-      classCourse?.course?.topicCode && classCourse?.course?.topicName
-        ? `${classCourse.course.topicCode} - ${classCourse.course.topicName}`
-        : classCourse?.course?.topicName || classCourse?.course?.topicCode || null
+    const topicDisplay = selectedTopic
+      ? `${selectedTopic.topicCode} - ${selectedTopic.topicName}`
+      : null
 
     const mappedItems =
       rows?.items?.map((r) => ({
@@ -110,7 +106,7 @@ export default function GradebookTable({ classId }: Props) {
       totalPages: rows?.pagination?.totalPages ?? 0,
       columns: tableData?.data?.columns ?? [],
     }
-  }, [tableData, classCourse, pageIndex, pageSize, selectedCourseClassId])
+  }, [tableData, selectedTopic, pageIndex, pageSize, selectedTopicId])
 
   /* ================= COLUMNS ================= */
 
@@ -124,10 +120,10 @@ export default function GradebookTable({ classId }: Props) {
   )
 
   /* ================= RENDER ================= */
-  const courseOptions = courseClasses.map((cc) => ({
-    value: cc.id,
-    label: cc.course.courseCode,
-    raw: cc,
+  const topicOptions = topics.map((t) => ({
+    value: t.id,
+    label: t.topicCode,
+    raw: t,
   }))
 
   return (
@@ -140,16 +136,16 @@ export default function GradebookTable({ classId }: Props) {
       {/* Dropdown */}
       <SearchableSelect
         label="Topic Code"
-        value={selectedCourseClassId}
-        onChange={(val) => setSelectedCourseClassId(val)}
-        options={courseOptions}
+        value={selectedTopicId}
+        onChange={(val) => setSelectedTopicId(val)}
+        options={topicOptions}
         renderOption={(option) => (
           <div className="flex flex-col">
             <span className="font-medium">
-              {option.raw?.course.courseCode}
+              {option.raw?.topicCode}
             </span>
             <span className="text-xs text-muted-foreground">
-              {option.raw?.course.courseName}
+              {option.raw?.topicName}
             </span>
           </div>
         )}
@@ -200,7 +196,7 @@ export default function GradebookTable({ classId }: Props) {
 
                 <EntityImportExportButton
                   mode={activeRole?.name === ROLES.SUPER_ADMIN ? "export" : "all"}
-                  title={`Topic Marks [${classCourse?.course.courseCode || 'Unknown'}]`}
+                  title={`Topic Marks [${selectedTopic?.topicCode || 'Unknown'}]`}
                   useImportHook={() => useImportTopicMarks({ topicId, trainingClassId: classId })}
                   useExportHook={() =>
                     useExportTopicMarks({ topicId, trainingClassId: classId })
@@ -229,7 +225,7 @@ export default function GradebookTable({ classId }: Props) {
         onOpenChange={setHistoryOpen}
         topicId={topicId}
         trainingClassId={classId}
-        courseCode={classCourse?.course.courseCode || 'Unknown'}
+        courseCode={selectedTopic?.topicCode || 'Unknown'}
       />
     </div>
   )

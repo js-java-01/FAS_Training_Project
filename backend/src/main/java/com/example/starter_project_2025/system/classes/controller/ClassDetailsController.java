@@ -17,31 +17,28 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/classes")
 @RequiredArgsConstructor
-public class ClassDetailsController
-{
+public class ClassDetailsController {
     private final ClassDetailsServiceImpl classDetailsService;
 
     @GetMapping("/trainer/{classId}/trainees")
     @PreAuthorize("hasAuthority('CLASS_READ')")
     public ResponseEntity<ApiResponse<PageResponse<TraineeDetailsResponse>>> getTraineeClassDetails(
-            @PathVariable UUID classId,
-            @RequestParam(required = true) String keyword,
-            Pageable pageable
-    )
-    {
+            @PathVariable("classId") UUID classId,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            Pageable pageable) {
         var response = classDetailsService.getTraineesOfClass(classId, keyword, pageable);
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(response), "Trainee class details retrieved successfully"));
+        return ResponseEntity
+                .ok(ApiResponse.success(PageResponse.from(response), "Trainee class details retrieved successfully"));
     }
 
     @GetMapping("/trainer/{classId}/courses")
     @PreAuthorize("hasAuthority('CLASS_READ')")
     public ResponseEntity<ApiResponse<PageResponse<CourseDetailsResponse>>> getCourseClassDetails(
-            @PathVariable UUID classId,
+            @PathVariable("classId") UUID classId,
             @ModelAttribute CourseSearchRequest request,
-            Pageable pageable
-    )
-    {
+            Pageable pageable) {
         var response = classDetailsService.getCoursesOfClass(classId, request, pageable);
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(response), "Course class details retrieved successfully"));
+        return ResponseEntity
+                .ok(ApiResponse.success(PageResponse.from(response), "Course class details retrieved successfully"));
     }
 }
