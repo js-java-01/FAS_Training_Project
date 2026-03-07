@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Detailed view of a single student's topic marks in a course class,
+ * Detailed view of a single student's topic marks in the resolved course class of a training program,
  * including individual column scores, computed final score, and audit history.
  */
 @Data

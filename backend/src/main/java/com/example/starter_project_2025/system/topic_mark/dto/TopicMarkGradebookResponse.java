@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Gradebook view response with dynamic columns per CourseClass.
+ * Gradebook view response with dynamic columns for the resolved course class of a training program.
  *
  * Column keys in {@link Row#values}:
  *  - UUID string   → score for a TopicMarkColumn
@@ -86,7 +86,7 @@ public class TopicMarkGradebookResponse {
         @Schema(description = "Student email", example = "john.doe@example.com")
         private String email;
 
-        @Schema(description = "Topic name of the course class", example = "Java Backend")
+        @Schema(description = "Topic name of the resolved course class", example = "Java Backend")
         private String topic;
 
         /**

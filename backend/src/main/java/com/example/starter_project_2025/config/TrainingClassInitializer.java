@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -26,7 +25,6 @@ public class TrainingClassInitializer {
     private final TrainingProgramRepository trainingProgramRepository;
     private TrainingClass buildTrainingClass(String name, String code, User creator, Semester semester,
                                              LocalDate start, LocalDate end, User approvedBy, TrainingProgram program) {
-        Random random = new Random();
         TrainingClass tc = new TrainingClass();
         tc.setClassName(name);
         tc.setClassCode(code);
@@ -37,13 +35,7 @@ public class TrainingClassInitializer {
         tc.setEndDate(end);
         tc.setApprover(approvedBy);
         tc.setTrainingProgram(program);
-        if (random.nextBoolean()) {
-            // tc.setEnrollmentKey("abc");s
-            tc.setIsActive(true);
-        } else {
-
-            tc.setIsActive(false);
-        }
+                tc.setIsActive(true);
 
         return tc;
     }

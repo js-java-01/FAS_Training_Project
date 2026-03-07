@@ -12,6 +12,10 @@ public interface CourseClassRepository extends JpaRepository<CourseClass, UUID>,
 
     List<CourseClass> findByClassInfo_Id(UUID classId);
 
+    List<CourseClass> findByClassInfo_TrainingProgram_IdAndClassInfo_IsActiveTrueOrderByUpdatedDateDesc(UUID trainingProgramId);
+
+    List<CourseClass> findByClassInfo_TrainingProgram_IdOrderByUpdatedDateDesc(UUID trainingProgramId);
+
     List<CourseClass> findByCourse_Id(UUID courseId);
 
     boolean existsByCourse_IdAndClassInfo_Id(UUID courseId, UUID classId);

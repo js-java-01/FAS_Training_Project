@@ -11,7 +11,7 @@ import java.util.UUID;
 @Repository
 public interface TopicMarkRepository extends JpaRepository<TopicMark, UUID> {
 
-    Optional<TopicMark> findByCourseClassIdAndUserId(UUID courseClassId, UUID userId);
+    Optional<TopicMark> findByTrainingProgramTopicTrainingProgramIdAndUserId(UUID trainingProgramId, UUID userId);
 
-    List<TopicMark> findAllByCourseClassId(UUID courseClassId);
+    List<TopicMark> findAllByTrainingProgramTopicTrainingProgramId(UUID trainingProgramId);
 }

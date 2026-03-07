@@ -10,6 +10,8 @@ import com.example.starter_project_2025.system.course_class.entity.CourseClass;
 import com.example.starter_project_2025.system.course_class.repository.CourseClassRepository;
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
+import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
+import com.example.starter_project_2025.system.training_program_topic.entity.repository.TrainingProgramTopicRepository;
 import com.example.starter_project_2025.system.topic_mark.dto.*;
 import com.example.starter_project_2025.system.topic_mark.entity.*;
 import com.example.starter_project_2025.system.topic_mark.enums.ChangeType;
@@ -57,6 +59,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     private final EnrollmentRepository enrollmentRepository;
     private final AssessmentTypeRepository assessmentTypeRepository;
     private final TopicAssessmentTypeWeightRepository topicAssessmentTypeWeightRepository;
+    private final TrainingProgramTopicRepository trainingProgramTopicRepository;
     private final UserRepository userRepository;
 
     @Override
@@ -171,7 +174,8 @@ public class TopicMarkServiceImpl implements TopicMarkService {
             scoresByUser.computeIfAbsent(uid, key -> new HashMap<>()).put(cid, entry.getScore());
         }
 
-        Map<UUID, TopicMark> marksByUser = topicMarkRepository.findAllByCourseClassId(courseClassId)
+        UUID trainingProgramId = resolveTrainingProgramId(courseClass);
+        Map<UUID, TopicMark> marksByUser = topicMarkRepository.findAllByTrainingProgramTopicTrainingProgramId(trainingProgramId)
                 .stream().collect(Collectors.toMap(m -> m.getUser().getId(), m -> m, (left, right) -> right));
 
         final String topicLabel = (courseClass.getCourse() != null && courseClass.getCourse().getTopic() != null)
@@ -211,10 +215,18 @@ public class TopicMarkServiceImpl implements TopicMarkService {
     public TopicMarkGradebookSearchResponse searchGradebook(UUID courseClassId, String keyword, Boolean passed,
             Pageable pageable) {
         TopicMarkGradebookResponse full = getGradebook(courseClassId);
+        String normalizedKeyword = keyword == null ? "" : keyword.trim().toLowerCase();
 
         List<TopicMarkGradebookResponse.Row> filtered = full.getRows().stream()
-                .filter(row -> keyword == null || keyword.isBlank() ||
-                        row.getFullName().toLowerCase().contains(keyword.toLowerCase().trim()))
+                .filter(row -> {
+                    if (normalizedKeyword.isBlank()) {
+                        return true;
+                    }
+
+                    String fullName = row.getFullName() == null ? "" : row.getFullName().toLowerCase();
+                    String email = row.getEmail() == null ? "" : row.getEmail().toLowerCase();
+                    return fullName.contains(normalizedKeyword) || email.contains(normalizedKeyword);
+                })
                 .filter(row -> {
                     if (passed == null)
                         return true;
@@ -341,7 +353,9 @@ public class TopicMarkServiceImpl implements TopicMarkService {
                 .build());
         }
 
-        TopicMark mark = topicMarkRepository.findByCourseClassIdAndUserId(courseClassId, userId).orElse(null);
+        TopicMark mark = topicMarkRepository
+            .findByTrainingProgramTopicTrainingProgramIdAndUserId(resolveTrainingProgramId(courseClass), userId)
+            .orElse(null);
 
         List<TopicMarkEntryHistory> historyList = topicMarkEntryHistoryRepository
             .findByTopicMarkEntry_CourseClass_IdAndTopicMarkEntry_User_IdOrderByUpdatedAtDesc(courseClassId, userId);
@@ -387,11 +401,12 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         }
 
         // Ensure TopicMark record exists
-        TopicMark mark = topicMarkRepository.findByCourseClassIdAndUserId(courseClassId, userId)
+        TopicMark mark = topicMarkRepository
+                .findByTrainingProgramTopicTrainingProgramIdAndUserId(resolveTrainingProgramId(courseClass), userId)
                 .orElseGet(() -> topicMarkRepository.save(TopicMark.builder()
-                        .courseClass(courseClass)
+                        .trainingProgramTopic(resolveTrainingProgramTopic(courseClass))
                         .user(user)
-                .topicId(resolveTopicId(courseClass))
+                        .topicId(resolveTopicId(courseClass))
                         .isPassed(false)
                         .build()));
 
@@ -442,9 +457,7 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
     @Override
     public ScoreHistoryResponse getScoreHistory(UUID courseClassId, Pageable pageable) {
-        if (!courseClassRepository.existsById(courseClassId)) {
-            throw new ResourceNotFoundException("CourseClass not found: " + courseClassId);
-        }
+        CourseClass courseClass = loadCourseClass(courseClassId);
 
         // Default sort: updatedAt desc
         Pageable effectivePageable = pageable.getSort().isSorted()
@@ -506,11 +519,12 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-        TopicMark mark = topicMarkRepository.findByCourseClassIdAndUserId(courseClassId, userId)
+        TopicMark mark = topicMarkRepository
+                .findByTrainingProgramTopicTrainingProgramIdAndUserId(resolveTrainingProgramId(courseClass), userId)
                 .orElseGet(() -> topicMarkRepository.save(TopicMark.builder()
-                        .courseClass(courseClass)
+                        .trainingProgramTopic(resolveTrainingProgramTopic(courseClass))
                         .user(user)
-                .topicId(resolveTopicId(courseClass))
+                        .topicId(resolveTopicId(courseClass))
                         .isPassed(false)
                         .build()));
 
@@ -851,11 +865,12 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
             // 3. Recompute final scores for all affected students
             for (UUID userId : updatedUserIds) {
-                TopicMark mark = topicMarkRepository.findByCourseClassIdAndUserId(courseClassId, userId)
+                TopicMark mark = topicMarkRepository
+                        .findByTrainingProgramTopicTrainingProgramIdAndUserId(resolveTrainingProgramId(courseClass), userId)
                         .orElseGet(() -> {
                             User u = userRepository.findById(userId).orElseThrow();
                             return topicMarkRepository.save(TopicMark.builder()
-                                    .courseClass(courseClass)
+                                    .trainingProgramTopic(resolveTrainingProgramTopic(courseClass))
                                     .user(u)
                                     .topicId(resolveTopicId(courseClass))
                                     .isPassed(false)
@@ -1087,7 +1102,8 @@ public class TopicMarkServiceImpl implements TopicMarkService {
 
         // Build final-mark lookup: userId -> TopicMark
         Map<UUID, TopicMark> markMap = new HashMap<>();
-        topicMarkRepository.findAllByCourseClassId(courseClassId)
+        topicMarkRepository.findAllByTrainingProgramTopicTrainingProgramId(
+                courseClass.getClassInfo().getTrainingProgram().getId())
                 .forEach(tm -> markMap.put(tm.getUser().getId(), tm));
 
         try (Workbook wb = new XSSFWorkbook()) {
@@ -1296,5 +1312,26 @@ public class TopicMarkServiceImpl implements TopicMarkService {
         s.setAlignment(HorizontalAlignment.LEFT);
         s.setVerticalAlignment(VerticalAlignment.CENTER);
         return s;
+    }
+
+    private UUID resolveTrainingProgramId(CourseClass courseClass) {
+        if (courseClass.getClassInfo() == null || courseClass.getClassInfo().getTrainingProgram() == null) {
+            throw new ResourceNotFoundException("CourseClass has no linked TrainingProgram");
+        }
+        return courseClass.getClassInfo().getTrainingProgram().getId();
+    }
+
+    private TrainingProgramTopic resolveTrainingProgramTopic(CourseClass courseClass) {
+        UUID tpId = resolveTrainingProgramId(courseClass);
+        UUID topicId = resolveTopicId(courseClass);
+        if (topicId != null) {
+            return trainingProgramTopicRepository.findByTrainingProgram_IdAndTopic_Id(tpId, topicId)
+                    .orElseGet(() -> trainingProgramTopicRepository.findFirstByTrainingProgram_Id(tpId)
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                    "No TrainingProgramTopic for program: " + tpId)));
+        }
+        return trainingProgramTopicRepository.findFirstByTrainingProgram_Id(tpId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No TrainingProgramTopic for program: " + tpId));
     }
 }

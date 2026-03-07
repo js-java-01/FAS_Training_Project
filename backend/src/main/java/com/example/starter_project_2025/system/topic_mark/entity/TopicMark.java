@@ -1,6 +1,8 @@
 package com.example.starter_project_2025.system.topic_mark.entity;
 
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
+import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
 import com.example.starter_project_2025.system.user.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -33,9 +35,9 @@ public class TopicMark {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_class_id", nullable = false)
+    @JoinColumn(name = "training_program_topic_id", nullable = false)
     @Schema(description = "Associated course class")
-    private CourseClass courseClass;
+    private TrainingProgramTopic trainingProgramTopic;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
