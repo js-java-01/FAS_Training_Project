@@ -2,7 +2,7 @@ package com.example.starter_project_2025.system.mfa.service;
 
 import com.example.starter_project_2025.system.mfa.entity.MfaCredential;
 import com.example.starter_project_2025.system.mfa.repository.MfaCredentialRepository;
-import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.rbac.user.User;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import lombok.RequiredArgsConstructor;

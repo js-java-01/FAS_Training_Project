@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component("baseCsvExporter")
+@Component
 public class CsvExporter implements Exporter {
 
     @Override

@@ -4,9 +4,9 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.rbac.user.User;
 import com.example.starter_project_2025.system.schedule.enums.ScheduleStatus;
 import com.example.starter_project_2025.system.shift.entity.Shift;
-import com.example.starter_project_2025.system.user.entity.User;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

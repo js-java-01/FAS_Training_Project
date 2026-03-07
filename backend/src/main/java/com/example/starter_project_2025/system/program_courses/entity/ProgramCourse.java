@@ -2,7 +2,7 @@ package com.example.starter_project_2025.system.program_courses.entity;
 
 import java.util.UUID;
 
-import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
+import com.example.starter_project_2025.system.programming_language.ProgrammingLanguage;
 import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 

@@ -7,13 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.example.starter_project_2025.system.rbac.role.RoleRepository;
+import com.example.starter_project_2025.system.rbac.user.User;
+import com.example.starter_project_2025.system.rbac.user.UserRepository;
+import com.example.starter_project_2025.system.rbac.user.UserRole;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.starter_project_2025.system.auth.repository.RoleRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
 import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
 import com.example.starter_project_2025.system.learning.dto.EnrollmentImportResult;
@@ -22,9 +25,6 @@ import com.example.starter_project_2025.system.learning.dto.ImportEnrollmentErro
 import com.example.starter_project_2025.system.learning.entity.Enrollment;
 import com.example.starter_project_2025.system.learning.enums.ImportEnrollmentErrorType;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
-import com.example.starter_project_2025.system.user_role.entity.UserRole;
 
 import lombok.RequiredArgsConstructor;
 

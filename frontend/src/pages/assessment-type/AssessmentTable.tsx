@@ -7,11 +7,8 @@ import {
 import React, { useState, useMemo, useCallback } from 'react';
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
-import { assessmentTypeApi } from '../../api/assessmentTypeApi';
 import { PermissionGate } from '../../components/PermissionGate';
 
-import type { AssessmentTypeRequest, ImportResult } from '../../types/assessmentType';
-import type { AssessmentType } from '../../types/assessmentType';
 
 import { CreateAssessmentModal } from './CreateAssessmentModal';
 import { DeleteAssessmentDialog } from './DeleteAssessmentDialog';
@@ -24,6 +21,8 @@ import { DataTable } from '@/components/data_table/DataTable';
 import { getColumns } from './columns';
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/useToast';
+import type { AssessmentType } from '@/types';
+import { assessmentTypeApi } from '@/api';
 
 export const AssessmentTable: React.FC = () => {
     const { toast } = useToast();
@@ -54,7 +53,7 @@ export const AssessmentTable: React.FC = () => {
     // ========================================
     const { data: tableData, isLoading, isFetching } = useQuery({
         queryKey: ['assessments', page, size, keyword],
-        queryFn: () => assessmentTypeApi.getAll({
+        queryFn: () => assessmentTypeApi.getPage({
             page,
             size,
             // sortBy: sorting[0]?.id || 'createdAt',
@@ -65,7 +64,7 @@ export const AssessmentTable: React.FC = () => {
 
     // Safe table data with defaults (similar to ModulesTable pattern)
     const safeTableData = useMemo(() => ({
-        items: tableData?.content ?? [],
+        items: tableData?.items ?? [],
         page: tableData?.number ?? page,
         pageSize: tableData?.size ?? size,
         totalPages: tableData?.totalPages ?? 0,
@@ -155,7 +154,10 @@ export const AssessmentTable: React.FC = () => {
         onView: handleView,
         onEdit: handleEdit,
         onDelete: handleDelete
-    }), [handleView, handleEdit, handleDelete]);
+    }, {
+        page: safeTableData.page,
+        pageSize: safeTableData.pageSize
+    }), [handleView, handleEdit, handleDelete, safeTableData.page, safeTableData.pageSize]);
 
     const headerActions = (
         <div className="flex gap-2">

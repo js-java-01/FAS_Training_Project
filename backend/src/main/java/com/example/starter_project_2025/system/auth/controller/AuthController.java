@@ -11,9 +11,9 @@ import com.example.starter_project_2025.system.auth.dto.permission.GetPermissonR
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterVerifyDTO;
 import com.example.starter_project_2025.system.auth.dto.role.RoleSummaryDTO;
-import com.example.starter_project_2025.system.auth.service.RoleService;
 import com.example.starter_project_2025.system.auth.service.auth.AuthService;
 import com.example.starter_project_2025.security.UserDetailsImpl;
+import com.example.starter_project_2025.system.rbac.role.RoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;

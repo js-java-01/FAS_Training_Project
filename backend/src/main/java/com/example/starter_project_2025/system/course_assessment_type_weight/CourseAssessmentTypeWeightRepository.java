@@ -14,5 +14,5 @@ public interface CourseAssessmentTypeWeightRepository extends JpaRepository<Cour
 
     List<CourseAssessmentTypeWeight> findByCourseId(UUID courseId);
 
-    Optional<CourseAssessmentTypeWeight> findByCourseIdAndAssessmentTypeId(UUID courseId, String assessmentTypeId);
+    Optional<CourseAssessmentTypeWeight> findByCourseIdAndAssessmentTypeId(UUID courseId, UUID assessmentTypeId);
 }

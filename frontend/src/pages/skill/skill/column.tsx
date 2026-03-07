@@ -60,6 +60,7 @@ export const getSkillColumns = (actions?: SkillTableActions) => {
       id: "actions",
       header: "Actions",
       size: 80,
+      enableHiding: false,
       cell: ({ row }) => (
         <div className="flex gap-2">
           {actions?.onDelete && (
@@ -73,5 +74,8 @@ export const getSkillColumns = (actions?: SkillTableActions) => {
         </div>
       ),
     }),
+
+    /* ================= COLUMN CONTROL ================= */
+    base.columnControl,
   ];
 };

@@ -9,11 +9,11 @@ import { ServerDataTable } from "@/components/data_table/ServerDataTable";
 import { FacetedFilter } from "@/components/FacedFilter";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
-import { roleApi } from "@/api/roleApi";
-import { permissionApi } from "@/api/permissionApi";
-import type { Role, CreateRoleRequest } from "@/types/role";
-import { ROLES } from "@/types/role";
-import type { Permission } from "@/types/permission";
+import { roleApi } from "@/api/features/rbac/role.api";
+import { permissionApi } from "@/api/features/rbac/permission.api";
+import type { RoleDTO, CreateRoleRequest } from "@/types/features/auth/role";
+import { ROLES } from "@/types/features/auth/role";
+import type { PermissionDTO } from "@/types/features/auth/permission";
 
 import { getColumns } from "./columns";
 import { RoleFormModal } from "./components/RoleFormModal";
@@ -33,15 +33,15 @@ export default function RoleTable() {
   /* ---------- modal & view ---------- */
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editingRole, setEditingRole] = useState<Role | null>(null);
-  const [viewingRole, setViewingRole] = useState<Role | null>(null);
-  const [deletingRole, setDeletingRole] = useState<Role | null>(null);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [editingRole, setEditingRole] = useState<RoleDTO | null>(null);
+  const [viewingRole, setViewingRole] = useState<RoleDTO | null>(null);
+  const [deletingRole, setDeletingRole] = useState<RoleDTO | null>(null);
+  const [permissions, setPermissions] = useState<PermissionDTO[]>([]);
 
   const [roleForm, setRoleForm] = useState<CreateRoleRequest>({
     name: "",
     description: "",
-    hierarchyLevel: 1,
+    isActive: true,
     permissionIds: [],
   });
 
@@ -108,7 +108,7 @@ export default function RoleTable() {
     setRoleForm({
       name: "",
       description: "",
-      hierarchyLevel: 1,
+      isActive: true,
       permissionIds: [],
     });
     const perms = await permissionApi.getAllPermissionsList();
@@ -117,14 +117,14 @@ export default function RoleTable() {
   };
 
   /* ---------- open edit ---------- */
-  const openEdit = async (role: Role) => {
+  const openEdit = async (role: RoleDTO) => {
     setIsEditMode(true);
     setEditingRole(role);
     setRoleForm({
-      name: role.name,
-      description: role.description || "",
-      hierarchyLevel: role.hierarchyLevel,
-      permissionIds: role.permissionIds,
+      name: role.name ?? "",
+      description: role.description ?? "",
+      isActive: role.isActive ?? true,
+      permissionIds: (role.permissionIds ?? []) as string[],
     });
     const perms = await permissionApi.getAllPermissionsList();
     setPermissions(perms);
@@ -136,7 +136,7 @@ export default function RoleTable() {
     e.preventDefault();
     try {
       if (isEditMode && editingRole) {
-        await roleApi.updateRole(editingRole.id, roleForm);
+        await roleApi.updateRole(editingRole.id!, roleForm);
         toast.success("Role updated successfully");
       } else {
         await roleApi.createRole(roleForm);
@@ -158,7 +158,7 @@ export default function RoleTable() {
   const handleDelete = async () => {
     if (!deletingRole) return;
     try {
-      await roleApi.deleteRole(deletingRole.id);
+      await roleApi.deleteRole(deletingRole.id!);
       toast.success("Role deleted successfully");
       await invalidateRoles();
       await reload();
@@ -195,15 +195,17 @@ export default function RoleTable() {
         onView: setViewingRole,
         onEdit: canUpdate ? openEdit : undefined,
         onToggleStatus: canUpdate ? handleToggleStatus : undefined,
+        onDelete: canUpdate ? setDeletingRole : undefined,
       }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [canUpdate],
   );
 
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
-      <ServerDataTable<Role, unknown>
-        columns={columns as ColumnDef<Role, unknown>[]}
+      <ServerDataTable<RoleDTO, unknown>
+        columns={columns as ColumnDef<RoleDTO, unknown>[]}
         data={safeTableData.items}
         isLoading={isLoading}
         isFetching={isFetching}

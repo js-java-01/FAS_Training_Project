@@ -1,21 +1,23 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import type { User } from "@/types/auth";
+import type { UserDTO } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
+import { createBaseColumns } from "@/components/data_table/baseColumns";
 import { EditIcon, EyeIcon, Trash, ToggleLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import SortHeader from "@/components/data_table/SortHeader";
 import dayjs from "dayjs";
 
 export type UserTableActions = {
-  onView?: (row: User) => void;
-  onEdit?: (row: User) => void;
-  onDelete?: (row: User) => void;
+  onView?: (row: UserDTO) => void;
+  onEdit?: (row: UserDTO) => void;
+  onDelete?: (row: UserDTO) => void;
   onToggleStatus?: (id: string) => void;
 };
 
 export const getColumns = (actions?: UserTableActions) => {
-  const columnHelper = createColumnHelper<User>();
+  const columnHelper = createColumnHelper<UserDTO>();
+  const base = createBaseColumns<UserDTO>();
 
   return [
     columnHelper.display({
@@ -65,14 +67,27 @@ export const getColumns = (actions?: UserTableActions) => {
       ),
     }),
 
-    columnHelper.accessor("roleName", {
-      header: (info) => <SortHeader info={info} title="Role" />,
-      size: 160,
-      cell: (info) => (
-        <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-          {info.getValue() || "-"}
-        </span>
-      ),
+    columnHelper.display({
+      id: "roles",
+      header: "Role",
+      size: 200,
+      cell: ({ row }) => {
+        const names = row.original.roleNames;
+        if (!names?.length)
+          return <span className="text-muted-foreground">-</span>;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {names.map((name) => (
+              <span
+                key={name}
+                className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
+              >
+                {name}
+              </span>
+            ))}
+          </div>
+        );
+      },
     }),
 
     columnHelper.accessor("isActive", {
@@ -106,6 +121,7 @@ export const getColumns = (actions?: UserTableActions) => {
       id: "actions",
       header: "Actions",
       size: 140,
+      enableHiding: false,
       cell: ({ row }) => (
         <div className="flex gap-2">
           {actions?.onView && (
@@ -140,5 +156,8 @@ export const getColumns = (actions?: UserTableActions) => {
       ),
       enableSorting: false,
     }),
+
+    /* ================= COLUMN CONTROL ================= */
+    base.columnControl,
   ];
 };

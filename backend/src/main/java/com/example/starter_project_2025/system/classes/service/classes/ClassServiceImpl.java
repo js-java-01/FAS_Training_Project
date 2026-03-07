@@ -13,12 +13,12 @@ import com.example.starter_project_2025.system.classes.repository.TrainingClassR
 import com.example.starter_project_2025.system.classes.spec.ClassSpecification;
 import com.example.starter_project_2025.system.learning.repository.EnrollmentRepository;
 import com.example.starter_project_2025.system.modulegroups.util.StringNormalizer;
+import com.example.starter_project_2025.system.rbac.user.User;
+import com.example.starter_project_2025.system.rbac.user.UserRepository;
 import com.example.starter_project_2025.system.semester.entity.Semester;
 import com.example.starter_project_2025.system.semester.repository.SemesterRepository;
 import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
 import com.example.starter_project_2025.system.training_program.repository.TrainingProgramRepository;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;

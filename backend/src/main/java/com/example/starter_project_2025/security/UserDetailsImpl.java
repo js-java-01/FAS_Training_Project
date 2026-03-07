@@ -1,8 +1,8 @@
 package com.example.starter_project_2025.security;
 
-import com.example.starter_project_2025.system.auth.entity.Permission;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user_role.entity.UserRole;
+import com.example.starter_project_2025.system.rbac.permission.Permission;
+import com.example.starter_project_2025.system.rbac.user.User;
+import com.example.starter_project_2025.system.rbac.user.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;

@@ -2,13 +2,13 @@ package com.example.starter_project_2025.system.topic.service;
 
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
+import com.example.starter_project_2025.system.rbac.user.UserService;
 import com.example.starter_project_2025.system.topic.dto.*;
 import com.example.starter_project_2025.system.topic.entity.Topic;
 import com.example.starter_project_2025.system.topic.entity.TopicObjective;
 import com.example.starter_project_2025.system.topic.mapper.TopicObjectiveMapper;
 import com.example.starter_project_2025.system.topic.repository.TopicObjectiveRepository;
 import com.example.starter_project_2025.system.topic.repository.TopicRepository;
-import com.example.starter_project_2025.system.user.service.UserService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

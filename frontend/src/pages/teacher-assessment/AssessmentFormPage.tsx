@@ -2,17 +2,16 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import MainHeader from '@/components/layout/MainHeader';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { assessmentApi } from '@/api/assessmentApi';
-import { assessmentQuestionApi } from '@/api/assessmentQuestionApi';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Save, X } from 'lucide-react';
-import type { AssessmentCreateRequest, AssessmentUpdateRequest } from '@/types/assessment';
 import { AssessmentBasicInfoTab } from './tabs/AssessmentBasicInfoTab';
 import { AssessmentChallengesTab } from './tabs/AssessmentChallengesTab';
 import { AssessmentQuestionsTab } from './tabs/AssessmentQuestionsTab';
 import { useToast } from '@/hooks/useToast';
+import type { AssessmentCreateRequest, AssessmentUpdateRequest } from '@/types';
+import { assessmentApi, assessmentQuestionApi } from '@/api';
 
 type TabType = 'basic' | 'challenges' | 'questions';
 
@@ -54,20 +53,23 @@ export default function AssessmentFormPage() {
         enabled: isEditMode && !!id,
     });
 
+    // Safe count handling (protect against circular reference corruption)
+    const questionsCount = Array.isArray(assessmentQuestions) ? assessmentQuestions.length : 0;
+
     // Update form when assessment data is loaded (edit mode)
     useEffect(() => {
         if (isEditMode && assessment) {
             setFormData({
-                title: assessment.title,
-                description: assessment.description,
-                assessmentTypeId: assessment.assessmentTypeId,
-                totalScore: assessment.totalScore,
-                passScore: assessment.passScore,
-                timeLimitMinutes: assessment.timeLimitMinutes,
-                attemptLimit: assessment.attemptLimit,
-                isShuffleQuestion: assessment.isShuffleQuestion,
-                isShuffleOption: assessment.isShuffleOption,
-                status: assessment.status,
+                title: assessment.title || '',
+                description: assessment.description || '',
+                assessmentTypeId: assessment.assessmentTypeId || '',
+                totalScore: assessment.totalScore || 0,
+                passScore: assessment.passScore || 0,
+                timeLimitMinutes: assessment.timeLimitMinutes || 0,
+                attemptLimit: assessment.attemptLimit || 1,
+                isShuffleQuestion: assessment.isShuffleQuestion ?? false,
+                isShuffleOption: assessment.isShuffleOption ?? false,
+                status: assessment.status || 'DRAFT',
             } as AssessmentUpdateRequest);
         }
     }, [assessment, isEditMode]);
@@ -225,7 +227,7 @@ export default function AssessmentFormPage() {
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
-                                Questions {isEditMode && `(${assessmentQuestions.length})`}
+                                Questions {isEditMode && `(${questionsCount})`}
                             </button>
                         </nav>
                     </div>

@@ -1,9 +1,9 @@
 package com.example.starter_project_2025.system.topic.mapper;
 
+import com.example.starter_project_2025.system.rbac.user.User;
 import com.example.starter_project_2025.system.topic.dto.TopicCreateRequest;
 import com.example.starter_project_2025.system.topic.dto.TopicResponse;
 import com.example.starter_project_2025.system.topic.entity.Topic;
-import com.example.starter_project_2025.system.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

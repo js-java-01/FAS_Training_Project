@@ -49,7 +49,7 @@ public class TopicMarkGradebookResponse {
 
         @Schema(description = "AssessmentType ID this column belongs to, null for meta columns",
                 nullable = true, example = "QUIZ")
-        private String assessmentTypeId;
+        private UUID assessmentTypeId;
 
         @Schema(description = "AssessmentType name, null for meta columns",
                 nullable = true, example = "Quiz")

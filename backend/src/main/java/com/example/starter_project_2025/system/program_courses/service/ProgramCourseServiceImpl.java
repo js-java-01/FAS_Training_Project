@@ -4,8 +4,8 @@ import com.example.starter_project_2025.system.program_courses.dto.request.Creat
 import com.example.starter_project_2025.system.program_courses.dto.response.ProgramCourseResponse;
 import com.example.starter_project_2025.system.program_courses.entity.ProgramCourse;
 import com.example.starter_project_2025.system.program_courses.repository.ProgramCourseRepository;
-import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
-import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
+import com.example.starter_project_2025.system.programming_language.ProgrammingLanguage;
+import com.example.starter_project_2025.system.programming_language.ProgrammingLanguageRepository;
 import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
 import com.example.starter_project_2025.system.training_program.repository.TrainingProgramRepository;
 

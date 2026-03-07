@@ -1,15 +1,24 @@
 package com.example.starter_project_2025.config;
 
-import com.example.starter_project_2025.system.assessment.entity.*;
-import com.example.starter_project_2025.system.assessment.enums.AssessmentStatus;
-import com.example.starter_project_2025.system.assessment.repository.AssessmentRepository;
-import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
-import com.example.starter_project_2025.system.assessment.repository.QuestionCategoryRepository;
-import com.example.starter_project_2025.system.assessment.repository.QuestionRepository;
-import com.example.starter_project_2025.system.auth.entity.Permission;
-import com.example.starter_project_2025.system.auth.entity.Role;
-import com.example.starter_project_2025.system.auth.repository.PermissionRepository;
-import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.system.assessment_mgt.assessment.AssessmentRepository;
+import com.example.starter_project_2025.system.assessment_mgt.assessment.AssessmentStatus;
+import com.example.starter_project_2025.system.assessment_mgt.assessment.Assessment;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_question.AssessmentQuestion;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_question.AssessmentQuestionRepository;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_type.AssessmentType;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_type.AssessmentTypeRepository;
+import com.example.starter_project_2025.system.assessment_mgt.question.Question;
+import com.example.starter_project_2025.system.assessment_mgt.question.QuestionRepository;
+import com.example.starter_project_2025.system.assessment_mgt.question.QuestionType;
+import com.example.starter_project_2025.system.assessment_mgt.question_category.QuestionCategory;
+import com.example.starter_project_2025.system.assessment_mgt.question_category.QuestionCategoryRepository;
+import com.example.starter_project_2025.system.assessment_mgt.question_option.QuestionOption;
+import com.example.starter_project_2025.system.assessment_mgt.question_tag.QuestionTag;
+import com.example.starter_project_2025.system.assessment_mgt.question_tag.QuestionTagRepository;
+import com.example.starter_project_2025.system.rbac.permission.Permission;
+import com.example.starter_project_2025.system.rbac.role.Role;
+import com.example.starter_project_2025.system.rbac.permission.PermissionRepository;
+import com.example.starter_project_2025.system.rbac.role.RoleRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.classes.repository.TrainingClassRepository;
@@ -47,13 +56,13 @@ import com.example.starter_project_2025.system.modulegroups.entity.Module;
 import com.example.starter_project_2025.system.modulegroups.entity.ModuleGroups;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleGroupsRepository;
 import com.example.starter_project_2025.system.modulegroups.repository.ModuleRepository;
-import com.example.starter_project_2025.system.programminglanguage.entity.ProgrammingLanguage;
-import com.example.starter_project_2025.system.programminglanguage.repository.ProgrammingLanguageRepository;
+import com.example.starter_project_2025.system.programming_language.ProgrammingLanguage;
+import com.example.starter_project_2025.system.programming_language.ProgrammingLanguageRepository;
 import com.example.starter_project_2025.system.semester.entity.Semester;
 import com.example.starter_project_2025.system.semester.repository.SemesterRepository;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
-import com.example.starter_project_2025.system.user_role.entity.UserRole;
+import com.example.starter_project_2025.system.rbac.user.User;
+import com.example.starter_project_2025.system.rbac.user.UserRepository;
+import com.example.starter_project_2025.system.rbac.user.UserRole;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -97,6 +106,7 @@ public class DataInitializer implements CommandLineRunner {
         private final AssessmentRepository assessmentRepository;
         private final QuestionCategoryRepository questionCategoryRepository;
         private final QuestionRepository questionRepository;
+        private final AssessmentQuestionRepository assessmentQuestionRepository;
         private final UserRoleRepository userRoleRepository;
         private final RoleRepository roleRepository;
         private final SemesterRepository semesterRepository;
@@ -114,6 +124,7 @@ public class DataInitializer implements CommandLineRunner {
         private final AssessmentTypeInitializer assessmentTypeInitializer;
         private final SkillInitializer skillInitializer;
         private final CourseInitializer courseInitializer;
+        private final QuestionTagRepository tagRepository;
 
         @Override
         public void run(String... args) {
@@ -125,14 +136,13 @@ public class DataInitializer implements CommandLineRunner {
                         userInitializer.initializeUsers();
                         // initializeLocationData();
 
-                        initializeLocations();
-                        moduleInitializer.initializeModuleGroups();
+                        // initializeLocations();
                         assessmentTypeInitializer.init();
                         initializeAssessments();
                         initializeQuestionCategories();
                         initializeQuestions();
+                        linkQuestionsToAssessments();
                         // initializeCourses();
-                        // initializeCohorts(); // disabled - cohort feature temporarily not in use
                         userRoleInitializer.initializeUserRoles();
                         // initializeSemester();
                         ensureProgrammingLanguagePermissions();
@@ -140,22 +150,26 @@ public class DataInitializer implements CommandLineRunner {
                         // initializeCourses();
                         trainingProgramInitializer.initializeTrainingProgram();
                         trainingClassInitializer.initializeTrainingClasses();
-                        // initializeCourseClasses();
+                        // initializeCourseClasses(); initializeTags();
+                        initializeProgrammingLanguages();
+
                         log.info("Database initialization completed successfully!");
                 } else {
                         log.info("Database already initialized, checking for missing permissions...");
-                        // Check if programming language permissions exist, if not, add them
-
+                        // Ensure all roles and users exist in case a previous run failed
+                        // mid-initialization
+                        roleInitializer.initializeRoles();
+                        userInitializer.initializeUsers();
                 }
-                ensureOutlinePermissions();
-                if (userRoleRepository.count() == 0)
-
-                {
+                // ensureOutlinePermissions();
+                if (userRoleRepository.count() == 0) {
                         userRoleInitializer.initializeUserRoles();
                         // initializeLessons();
                 }
 
-                initializeEnrollments();
+                // initializeEnrollments();
+                userRoleInitializer.initializeUserRoles();
+                moduleInitializer.initializeModuleGroups();
                 topicInitializer.init();
                 courseInitializer.init();
                 skillInitializer.init();
@@ -193,6 +207,8 @@ public class DataInitializer implements CommandLineRunner {
                                 createPermission("USER_UPDATE", "Update existing users", "USER", "UPDATE"),
                                 createPermission("USER_DELETE", "Delete users", "USER", "DELETE"),
                                 createPermission("USER_ACTIVATE", "Activate/deactivate users", "USER", "ACTIVATE"),
+                                createPermission("USER_IMPORT", "Import users from file", "USER", "IMPORT"),
+                                createPermission("USER_EXPORT", "Export users to file", "USER", "EXPORT"),
                                 createPermission("ROLE_CREATE", "Create new roles", "ROLE", "CREATE"),
                                 createPermission("ROLE_READ", "View roles", "ROLE", "READ"),
                                 createPermission("ROLE_UPDATE", "Update existing roles", "ROLE", "UPDATE"),
@@ -361,7 +377,7 @@ public class DataInitializer implements CommandLineRunner {
 
                 Role trainerRole = new Role();
                 trainerRole.setName("TRAINER");
-                trainerRole.setHierarchyLevel(4);
+                // trainerRole.setHierarchyLevel(4);
                 trainerRole.setDescription("Trainer with course/lesson/assessment management access");
                 trainerRole.setPermissions(trainerPermissions);
 
@@ -417,9 +433,9 @@ public class DataInitializer implements CommandLineRunner {
                 entranceAssessment.setPassScore(60);
                 entranceAssessment.setTimeLimitMinutes(60);
                 entranceAssessment.setAttemptLimit(1);
-                entranceAssessment.setIsShuffleQuestion(true);
-                entranceAssessment.setIsShuffleOption(true);
-                entranceAssessment.setStatus(AssessmentStatus.ACTIVE);
+                // entranceAssessment.setShuffleQuestion(true);
+                // entranceAssessment.setShuffleOption(true);
+                // entranceAssessment.setStatus(AssessmentStatus.PUBLISHED);
 
                 Assessment midtermAssessment = new Assessment();
                 midtermAssessment.setAssessmentType(midtermType);
@@ -430,9 +446,9 @@ public class DataInitializer implements CommandLineRunner {
                 midtermAssessment.setPassScore(50);
                 midtermAssessment.setTimeLimitMinutes(90);
                 midtermAssessment.setAttemptLimit(1);
-                midtermAssessment.setIsShuffleQuestion(false);
-                midtermAssessment.setIsShuffleOption(false);
-                midtermAssessment.setStatus(AssessmentStatus.ACTIVE);
+                // midtermAssessment.setShuffleQuestion(false);
+                // midtermAssessment.setShuffleOption(false);
+                // midtermAssessment.setStatus(AssessmentStatus.PUBLISHED);
 
                 Assessment finalAssessment = new Assessment();
                 finalAssessment.setAssessmentType(finalType);
@@ -443,9 +459,9 @@ public class DataInitializer implements CommandLineRunner {
                 finalAssessment.setPassScore(60);
                 finalAssessment.setTimeLimitMinutes(120);
                 finalAssessment.setAttemptLimit(1);
-                finalAssessment.setIsShuffleQuestion(false);
-                finalAssessment.setIsShuffleOption(false);
-                finalAssessment.setStatus(AssessmentStatus.ACTIVE);
+                // finalAssessment.setShuffleQuestion(false);
+                // finalAssessment.setShuffleOption(false);
+                // finalAssessment.setStatus(AssessmentStatus.PUBLISHED);
 
                 assessmentRepository.saveAll(
                                 List.of(entranceAssessment, midtermAssessment, finalAssessment));
@@ -474,6 +490,43 @@ public class DataInitializer implements CommandLineRunner {
                 questionCategoryRepository.saveAll(List.of(javaCore, oop, sql));
 
                 log.info("Initialized {} question categories", 3);
+        }
+
+        private Module createModule(ModuleGroups group, String title, String url, String icon,
+                        int order, String permission, String description) {
+                Module module = new Module();
+                module.setModuleGroup(group); // Gán quan hệ group_id
+                module.setTitle(title);
+                module.setUrl(url);
+                module.setIcon(icon);
+                module.setDisplayOrder(order);
+                module.setRequiredPermission(permission);
+                module.setDescription(description);
+                module.setIsActive(true);
+                return module;
+        }
+
+        private void initializeAssessmentType() {
+
+                if (assessmentTypeRepository.count() > 0) {
+                        return;
+                }
+
+                AssessmentType a1 = new AssessmentType();
+                a1.setName("Entrance Quiz");
+                a1.setDescription("Assessment for entrance examination");
+
+                AssessmentType a2 = new AssessmentType();
+                a2.setName("Midterm Test");
+                a2.setDescription("Midterm evaluation assessment");
+
+                AssessmentType a3 = new AssessmentType();
+                a3.setName("Final Exam");
+                a3.setDescription("Final assessment of the course");
+
+                assessmentTypeRepository.saveAll(List.of(a1, a2, a3));
+
+                log.info("Initialized {} assessments", 3);
         }
 
         private void ensureProgrammingLanguagePermissions() {
@@ -517,34 +570,207 @@ public class DataInitializer implements CommandLineRunner {
                                 .findByName("Java Core")
                                 .orElseThrow(() -> new RuntimeException("Java Core category not found"));
 
-                // ===== QUESTION =====
+                QuestionCategory oop = questionCategoryRepository
+                                .findByName("OOP")
+                                .orElseThrow(() -> new RuntimeException("OOP category not found"));
+
+                QuestionCategory sql = questionCategoryRepository
+                                .findByName("SQL")
+                                .orElseThrow(() -> new RuntimeException("SQL category not found"));
+
+                // ===== QUESTION 1 =====
                 Question q1 = new Question();
                 q1.setContent("Which keyword is used to inherit a class in Java?");
-                q1.setQuestionType("SINGLE");
+                q1.setQuestionType(QuestionType.SINGLE_CHOICE);
                 q1.setCategory(javaCore);
+                q1.setOptions(List.of(
+                                createOption(q1, "extends", true, 1),
+                                createOption(q1, "implements", false, 2),
+                                createOption(q1, "inherits", false, 3),
+                                createOption(q1, "super", false, 4)));
 
-                // ===== OPTIONS =====
-                List<QuestionOption> options = new ArrayList<>();
+                // ===== QUESTION 2 =====
+                Question q2 = new Question();
+                q2.setContent("What is the default value of a boolean variable in Java?");
+                q2.setQuestionType(QuestionType.SINGLE_CHOICE);
+                q2.setCategory(javaCore);
+                q2.setOptions(List.of(
+                                createOption(q2, "true", false, 1),
+                                createOption(q2, "false", true, 2),
+                                createOption(q2, "null", false, 3),
+                                createOption(q2, "0", false, 4)));
 
-                QuestionOption o1 = new QuestionOption();
-                o1.setContent("extends");
-                o1.setCorrect(true);
-                o1.setOrderIndex(1);
-                o1.setQuestion(q1);
-                options.add(o1);
+                // ===== QUESTION 3 =====
+                Question q3 = new Question();
+                q3.setContent("Which method must be implemented by all threads in Java?");
+                q3.setQuestionType(QuestionType.SINGLE_CHOICE);
+                q3.setCategory(javaCore);
+                q3.setOptions(List.of(
+                                createOption(q3, "start()", false, 1),
+                                createOption(q3, "run()", true, 2),
+                                createOption(q3, "execute()", false, 3),
+                                createOption(q3, "begin()", false, 4)));
 
-                QuestionOption o2 = new QuestionOption();
-                o2.setContent("implements");
-                o2.setCorrect(false);
-                o2.setOrderIndex(2);
-                o2.setQuestion(q1);
-                options.add(o2);
+                // ===== QUESTION 4 =====
+                Question q4 = new Question();
+                q4.setContent("What are the principles of OOP? (Select all that apply)");
+                q4.setQuestionType(QuestionType.MULTIPLE_CHOICE);
+                q4.setCategory(oop);
+                q4.setOptions(List.of(
+                                createOption(q4, "Encapsulation", true, 1),
+                                createOption(q4, "Inheritance", true, 2),
+                                createOption(q4, "Polymorphism", true, 3),
+                                createOption(q4, "Compilation", false, 4),
+                                createOption(q4, "Abstraction", true, 5)));
 
-                q1.setOptions(options);
+                // ===== QUESTION 5 =====
+                Question q5 = new Question();
+                q5.setContent("Which keyword is used to prevent method overriding in Java?");
+                q5.setQuestionType(QuestionType.SINGLE_CHOICE);
+                q5.setCategory(oop);
+                q5.setOptions(List.of(
+                                createOption(q5, "static", false, 1),
+                                createOption(q5, "final", true, 2),
+                                createOption(q5, "abstract", false, 3),
+                                createOption(q5, "private", false, 4)));
 
-                questionRepository.save(q1);
+                // ===== QUESTION 6 =====
+                Question q6 = new Question();
+                q6.setContent("What is the purpose of a constructor in Java?");
+                q6.setQuestionType(QuestionType.SINGLE_CHOICE);
+                q6.setCategory(oop);
+                q6.setOptions(List.of(
+                                createOption(q6, "To initialize an object", true, 1),
+                                createOption(q6, "To destroy an object", false, 2),
+                                createOption(q6, "To copy an object", false, 3),
+                                createOption(q6, "To compile a class", false, 4)));
 
-                log.info("Initialized 1 question with options");
+                // ===== QUESTION 7 =====
+                Question q7 = new Question();
+                q7.setContent("Which SQL command is used to retrieve data from a database?");
+                q7.setQuestionType(QuestionType.SINGLE_CHOICE);
+                q7.setCategory(sql);
+                q7.setOptions(List.of(
+                                createOption(q7, "GET", false, 1),
+                                createOption(q7, "SELECT", true, 2),
+                                createOption(q7, "FETCH", false, 3),
+                                createOption(q7, "RETRIEVE", false, 4)));
+
+                // ===== QUESTION 8 =====
+                Question q8 = new Question();
+                q8.setContent("Which SQL clause is used to filter records?");
+                q8.setQuestionType(QuestionType.SINGLE_CHOICE);
+                q8.setCategory(sql);
+                q8.setOptions(List.of(
+                                createOption(q8, "FILTER", false, 1),
+                                createOption(q8, "WHERE", true, 2),
+                                createOption(q8, "HAVING", false, 3),
+                                createOption(q8, "SORT", false, 4)));
+
+                // ===== QUESTION 9 =====
+                Question q9 = new Question();
+                q9.setContent("What does JVM stand for?");
+                q9.setQuestionType(QuestionType.SINGLE_CHOICE);
+                q9.setCategory(javaCore);
+                q9.setOptions(List.of(
+                                createOption(q9, "Java Virtual Machine", true, 1),
+                                createOption(q9, "Java Visual Monitor", false, 2),
+                                createOption(q9, "Java Verified Method", false, 3),
+                                createOption(q9, "Java Variable Manager", false, 4)));
+
+                // ===== QUESTION 10 =====
+                Question q10 = new Question();
+                q10.setContent("Which of the following are access modifiers in Java? (Select all that apply)");
+                q10.setQuestionType(QuestionType.MULTIPLE_CHOICE);
+                q10.setCategory(javaCore);
+                q10.setOptions(List.of(
+                                createOption(q10, "public", true, 1),
+                                createOption(q10, "private", true, 2),
+                                createOption(q10, "protected", true, 3),
+                                createOption(q10, "default", false, 4),
+                                createOption(q10, "internal", false, 5)));
+
+                questionRepository.saveAll(List.of(q1, q2, q3, q4, q5, q6, q7, q8, q9, q10));
+
+                log.info("Initialized 10 questions with options");
+        }
+
+        private QuestionOption createOption(Question question, String content, boolean isCorrect, int order) {
+                QuestionOption option = new QuestionOption();
+                option.setContent(content);
+                option.setIsCorrect(isCorrect);
+                option.setOrderIndex(order);
+                option.setQuestion(question);
+                return option;
+        }
+
+        private void linkQuestionsToAssessments() {
+                if (assessmentQuestionRepository.count() > 0) {
+                        return;
+                }
+
+                List<Assessment> assessments = assessmentRepository.findAll();
+                List<Question> questions = questionRepository.findAll();
+
+                if (assessments.isEmpty() || questions.isEmpty()) {
+                        log.warn("Cannot link questions to assessments - missing data");
+                        return;
+                }
+
+                Assessment entranceAssessment = assessments.stream()
+                                .filter(a -> a.getCode().equals("JAVA_ENTRANCE_2025"))
+                                .findFirst()
+                                .orElse(null);
+
+                Assessment midtermAssessment = assessments.stream()
+                                .filter(a -> a.getCode().equals("JAVA_MIDTERM_2025"))
+                                .findFirst()
+                                .orElse(null);
+
+                Assessment finalAssessment = assessments.stream()
+                                .filter(a -> a.getCode().equals("JAVA_FINAL_2025"))
+                                .findFirst()
+                                .orElse(null);
+
+                List<AssessmentQuestion> assessmentQuestions = new ArrayList<>();
+
+                // Link first 4 questions to Entrance Assessment (40 points total)
+                if (entranceAssessment != null && questions.size() >= 4) {
+                        for (int i = 0; i < 4; i++) {
+                                assessmentQuestions.add(createAssessmentQuestion(entranceAssessment, questions.get(i),
+                                                10.0, i + 1));
+                        }
+                }
+
+                // Link questions 3-7 to Midterm Assessment (50 points total)
+                if (midtermAssessment != null && questions.size() >= 7) {
+                        for (int i = 2; i < 7; i++) {
+                                assessmentQuestions.add(createAssessmentQuestion(midtermAssessment, questions.get(i),
+                                                10.0, i - 1));
+                        }
+                }
+
+                // Link all 10 questions to Final Assessment (100 points total)
+                if (finalAssessment != null) {
+                        for (int i = 0; i < questions.size(); i++) {
+                                assessmentQuestions.add(createAssessmentQuestion(finalAssessment, questions.get(i),
+                                                10.0, i + 1));
+                        }
+                }
+
+                assessmentQuestionRepository.saveAll(assessmentQuestions);
+
+                log.info("Linked {} questions to {} assessments", questions.size(), assessments.size());
+        }
+
+        private AssessmentQuestion createAssessmentQuestion(Assessment assessment, Question question, Double score,
+                        int order) {
+                AssessmentQuestion aq = new AssessmentQuestion();
+                aq.setAssessment(assessment);
+                aq.setQuestion(question);
+                aq.setScore(score);
+                aq.setOrderIndex(order);
+                return aq;
         }
 
         private void initializeProgrammingLanguages() {
@@ -575,158 +801,12 @@ public class DataInitializer implements CommandLineRunner {
 
         private ProgrammingLanguage createProgrammingLanguage(String name, String version, String description,
                         boolean isSupported) {
-                ProgrammingLanguage language = new ProgrammingLanguage(name, version, description, isSupported);
+                ProgrammingLanguage language = new ProgrammingLanguage();
+                language.setName(name);
+                language.setVersion(version);
+                language.setDescription(description);
+                language.setSupported(isSupported);
                 return language;
-
-        }
-
-        private void ensureOutlinePermissions() {
-                boolean hasOutlinePerm = permissionRepository.existsByName("COURSE_OUTLINE_EDIT");
-
-                if (!hasOutlinePerm) {
-                        log.info("Course outline permissions not found, adding them...");
-
-                        List<Permission> outlinePermissions = Arrays.asList(
-                                        createPermission("COURSE_OUTLINE_EDIT", "Edit course outline", "COURSE",
-                                                        "EDIT"));
-
-                        permissionRepository.saveAll(outlinePermissions);
-
-                        // Add to all existing roles that have COURSE_UPDATE
-                        List<Role> roles = roleRepository.findAll();
-                        for (Role role : roles) {
-                                boolean hasCourseUpdate = role.getPermissions().stream()
-                                                .anyMatch(p -> "COURSE_UPDATE".equals(p.getName()));
-                                if (hasCourseUpdate || "ADMIN".equals(role.getName())) {
-                                        role.getPermissions().addAll(outlinePermissions);
-                                        roleRepository.save(role);
-                                        log.info("Added outline permissions to role: {}", role.getName());
-                                }
-                        }
-                }
-        }
-
-        private void initializeEnrollments() {
-                if (enrollmentRepository.count() > 0) {
-                        log.info("Enrollments already exist, skipping initialization");
-                        return;
-                }
-
-                User student1 = userRepository.findByEmail("student@example.com").orElse(null);
-                User student2 = userRepository.findByEmail("jane.smith@example.com").orElse(null);
-                User student3 = userRepository.findByEmail("manager1@example.com").orElse(null);
-                User student4 = userRepository.findByEmail("manager2@example.com").orElse(null);
-                User student5 = userRepository.findByEmail("trainer1@example.com").orElse(null);
-
-                List<TrainingClass> classes = new ArrayList<>();
-
-                if (classes.isEmpty() || student1 == null) {
-                        log.warn("Missing Students or Training Classes! Please run their initializers first.");
-                        return;
-                }
-
-                List<Enrollment> enrollments = new ArrayList<>();
-
-                int totalClasses = classes.size();
-
-                if (totalClasses > 0) {
-                        enrollments.add(buildEnrollment(student1, classes.get(0)));
-                        enrollments.add(buildEnrollment(student2, classes.get(0)));
-                        enrollments.add(buildEnrollment(student3, classes.get(0)));
-                }
-
-                if (totalClasses > 1) {
-                        enrollments.add(buildEnrollment(student4, classes.get(1)));
-                        enrollments.add(buildEnrollment(student5, classes.get(1)));
-                }
-
-                if (totalClasses > 2) {
-                        enrollments.add(buildEnrollment(student1, classes.get(2)));
-                        enrollments.add(buildEnrollment(student2, classes.get(2)));
-                        enrollments.add(buildEnrollment(student4, classes.get(2)));
-                        enrollments.add(buildEnrollment(student5, classes.get(2)));
-                }
-
-                if (totalClasses > 3) {
-                        enrollments.add(buildEnrollment(student3, classes.get(3)));
-                }
-
-                if (totalClasses > 4) {
-                        enrollments.add(buildEnrollment(student1, classes.get(4)));
-                }
-                if (totalClasses > 5) {
-                        enrollments.add(buildEnrollment(student2, classes.get(5)));
-                }
-                if (totalClasses > 6) {
-                        enrollments.add(buildEnrollment(student3, classes.get(6)));
-                }
-                if (totalClasses > 7) {
-                        enrollments.add(buildEnrollment(student4, classes.get(7)));
-                }
-
-                enrollmentRepository.saveAll(enrollments);
-
-                log.info("Initialized {} Enrollments successfully. Students are now in classes!", enrollments.size());
-        }
-
-        private Enrollment buildEnrollment(User student, TrainingClass trainingClass) {
-                Enrollment enrollment = new Enrollment();
-                enrollment.setUser(student);
-                // enrollment.setTrainingClass(trainingClass);
-                return enrollment;
-        }
-
-        // -----------------------------------------------------------------------
-        // initializeCohorts() - temporarily disabled, cohort feature not in use
-        // -----------------------------------------------------------------------
-        // private void initializeCohorts() {
-        // Course java01 = courseOnlineRepository.findAll().stream()
-        // .filter(c -> "JBM-01".equals(c.getCourseCode()))
-        // .findFirst().orElse(null);
-        // Course react01 = courseOnlineRepository.findAll().stream()
-        // .filter(c -> "RFP-01".equals(c.getCourseCode()))
-        // .findFirst().orElse(null);
-        //
-        // if (java01 != null) {
-        // CourseCohort jbm1 = CourseCohort.builder()
-        // .code("JBM-01-2026-C1")
-        // .startDate(java.time.LocalDate.of(2026, 3, 1))
-        // .endDate(java.time.LocalDate.of(2026, 5, 31))
-        // .capacity(30)
-        // .status(CohortStatus.OPEN)
-        // .course(java01)
-        // .build();
-        // CourseCohort jbm2 = CourseCohort.builder()
-        // .code("JBM-01-2026-C2")
-        // .startDate(java.time.LocalDate.of(2026, 6, 1))
-        // .endDate(java.time.LocalDate.of(2026, 8, 31))
-        // .capacity(25)
-        // .status(CohortStatus.DRAFT)
-        // .course(java01)
-        // .build();
-        // courseCohortRepository.saveAll(List.of(jbm1, jbm2));
-        // }
-        //
-        // if (react01 != null) {
-        // CourseCohort rfp1 = CourseCohort.builder()
-        // .code("RFP-01-2026-C1")
-        // .startDate(java.time.LocalDate.of(2026, 4, 1))
-        // .endDate(java.time.LocalDate.of(2026, 5, 31))
-        // .capacity(20)
-        // .status(CohortStatus.OPEN)
-        // .course(react01)
-        // .build();
-        // courseCohortRepository.save(rfp1);
-        // }
-        // log.info("Initialized cohorts for Java and React courses");
-        // }
-        private void initializeLocations() {
-                if (locationRepository.count() > 0) {
-                        log.info("Locations already exist, skipping initialization");
-                        return;
-                }
-
-                log.info("Initialized lessons for Java and React courses");
         }
 
         @JsonIgnoreProperties(ignoreUnknown = true)

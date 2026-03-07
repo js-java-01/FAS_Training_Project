@@ -1,117 +1,102 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import type { Role } from "@/types/role";
+import type { RoleDTO } from "@/types";
 import ActionBtn from "@/components/data_table/ActionBtn";
-import { EditIcon, EyeIcon, ToggleLeft } from "lucide-react";
-import dayjs from "dayjs";
+import {
+  EditIcon,
+  EyeIcon,
+  Trash,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import SortHeader from "@/components/data_table/SortHeader";
-import FilterHeader from "@/components/data_table/FilterHeader";
 import { createBaseColumns } from "@/components/data_table/baseColumns";
+import dayjs from "dayjs";
 
-export type TableActions = {
-  onView?: (row: Role) => void;
-  onEdit?: (row: Role) => void;
+export type RoleTableActions = {
+  onView?: (row: RoleDTO) => void;
+  onEdit?: (row: RoleDTO) => void;
   onToggleStatus?: (id: string) => void;
+  onDelete?: (row: RoleDTO) => void;
 };
 
-export const getColumns = (actions?: TableActions) => {
-  const columnHelper = createColumnHelper<Role>();
-  const base = createBaseColumns<Role>();
+export const getColumns = (actions?: RoleTableActions) => {
+  const columnHelper = createColumnHelper<RoleDTO>();
+  const base = createBaseColumns<RoleDTO>();
+
   return [
+    /* ================= SELECT ================= */
     base.selectColumn,
+
+    /* ================= NUMBER ================= */
     base.numberColumn,
 
+    /* ================= NAME ================= */
     columnHelper.accessor("name", {
       header: (info) => <SortHeader info={info} title="Name" />,
       size: 200,
-      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
-      meta: {
-        title: "Name"
-      }
+      cell: (info) => (
+        <span className="font-medium text-sm">{info.getValue()}</span>
+      ),
     }),
 
+    /* ================= DESCRIPTION ================= */
     columnHelper.accessor("description", {
       header: (info) => <SortHeader info={info} title="Description" />,
-      size: 300,
+      size: 280,
       cell: (info) => (
-        <span className="line-clamp-2 text-muted-foreground">
-          {info.getValue() || "-"}
+        <span className="text-muted-foreground text-sm">
+          {info.getValue() || <span className="italic">—</span>}
         </span>
       ),
-      meta: {
-        title: "Description"
-      }
     }),
 
-    columnHelper.accessor("hierarchyLevel", {
-      header: (info) => <SortHeader info={info} title="Hierarchy" />,
-      size: 120,
-      meta: {
-        title: "Hierarchy"
-      }
-    }),
-
-    columnHelper.accessor("permissionNames", {
-      id: "permissions",
-      header: "Permissions",
-      size: 140,
-      cell: (info) => <span>{(info.getValue() as string[])?.length || 0}</span>,
-      enableSorting: false,
-      meta: {
-        title: "Permissions"
-      }
-    }),
-
+    /* ================= STATUS ================= */
     columnHelper.accessor("isActive", {
-      id: "isActive",
-      header: ({ column }) => (
-        <FilterHeader
-          column={column}
-          title="Status"
-          selectedValue={column.getFilterValue() as string}
-          onFilterChange={(value) => column.setFilterValue(value || undefined)}
-        />
-      ),
-      size: 120,
+      header: "Status",
+      size: 100,
+      enableSorting: false,
+      cell: (info) =>
+        info.getValue() ? (
+          <Badge className="bg-green-100 text-green-700 border-green-200 shadow-none hover:bg-green-200">
+            Active
+          </Badge>
+        ) : (
+          <Badge variant="destructive">Inactive</Badge>
+        ),
+    }),
+
+    /* ================= PERMISSIONS COUNT ================= */
+    columnHelper.accessor("permissionIds", {
+      id: "permissionsCount",
+      header: "Permissions",
+      size: 110,
+      enableSorting: false,
       cell: (info) => (
-        <Badge
-          className={
-            info.getValue()
-              ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200 hover:border-green-300 shadow-none"
-              : "bg-red-100 text-red-700 border-red-200 hover:bg-red-200 shadow-none"
-          }
-        >
-          {info.getValue() ? "Active" : "In Active"}
+        <Badge variant="secondary" className="font-mono">
+          {info.getValue()?.length ?? 0}
         </Badge>
       ),
-      meta: {
-        filterOptions: ["ACTIVE", "INACTIVE"],
-        labelOptions: { ACTIVE: "Active", INACTIVE: "Inactive" },
-        title: "Status",
-      },
-      filterFn: (row, columnId, filterValue) => {
-        if (!filterValue) return true;
-        const cellValue = row.getValue(columnId) ? "ACTIVE" : "INACTIVE";
-        return cellValue === filterValue;
-      },
-      enableSorting: false,
     }),
 
+    /* ================= CREATED AT ================= */
     columnHelper.accessor("createdAt", {
       header: (info) => <SortHeader info={info} title="Created At" />,
       size: 160,
-      cell: (info) => dayjs(info.getValue()).format("YYYY-MM-DD HH:mm"),
-      meta: {
-        title: "Created At"
-      }
+      cell: (info) =>
+        info.getValue()
+          ? dayjs(info.getValue()).format("YYYY-MM-DD HH:mm")
+          : "—",
     }),
 
+    /* ================= ACTIONS ================= */
     columnHelper.display({
       id: "actions",
       header: "Actions",
       size: 140,
+      enableSorting: false,
       cell: ({ row }) => (
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           {actions?.onView && (
             <ActionBtn
               tooltipText="View"
@@ -128,20 +113,28 @@ export const getColumns = (actions?: TableActions) => {
           )}
           {actions?.onToggleStatus && (
             <ActionBtn
-              tooltipText="Toggle"
-              icon={<ToggleLeft size={12} />}
-              onClick={() => actions.onToggleStatus!(row.original.id)}
+              tooltipText={row.original.isActive ? "Deactivate" : "Activate"}
+              icon={
+                row.original.isActive ? (
+                  <ToggleRight size={12} className="text-green-600" />
+                ) : (
+                  <ToggleLeft size={12} className="text-gray-400" />
+                )
+              }
+              onClick={() => actions.onToggleStatus!(row.original.id!)}
+            />
+          )}
+          {actions?.onDelete && (
+            <ActionBtn
+              tooltipText="Delete"
+              icon={<Trash size={12} />}
+              onClick={() => actions.onDelete!(row.original)}
             />
           )}
         </div>
       ),
-      enableSorting: false,
-      meta: {
-        title: "Actions"
-      }
     }),
 
-     /* ================= COLUMN CONTROL ================= */
     base.columnControl,
   ];
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { QuestionCategory } from '../../types/questionCategory';
+import type { QuestionCategory } from '../../types/feature/assessment/question-category';
 import { Modal } from '@/components/modal/Modal';
 
 interface ViewQuestionCategoryModalProps {

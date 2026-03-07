@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.system.course_class.repository;
 
 import com.example.starter_project_2025.system.course_class.entity.CourseClass;
-import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.rbac.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.List;

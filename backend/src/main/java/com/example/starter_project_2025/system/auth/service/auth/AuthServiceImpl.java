@@ -7,17 +7,17 @@ import com.example.starter_project_2025.system.auth.dto.login.LoginRequest;
 import com.example.starter_project_2025.system.auth.dto.login.LoginResponse;
 import com.example.starter_project_2025.system.auth.dto.permission.GetPermissonReqDTO;
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
-import com.example.starter_project_2025.system.auth.entity.Role;
+import com.example.starter_project_2025.system.rbac.role.Role;
 import com.example.starter_project_2025.system.auth.mapper.AuthMapper;
 import com.example.starter_project_2025.system.auth.mapper.UserAuthMapper;
-import com.example.starter_project_2025.system.auth.repository.RoleRepository;
+import com.example.starter_project_2025.system.rbac.role.RoleRepository;
 import com.example.starter_project_2025.system.auth.repository.UserRoleRepository;
 import com.example.starter_project_2025.system.auth.service.email.EmailService;
 import com.example.starter_project_2025.system.auth.service.otp.OtpService;
 import com.example.starter_project_2025.system.auth.service.refreshToken.RefreshTokenService;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
-import com.example.starter_project_2025.system.user.service.UserService;
+import com.example.starter_project_2025.system.rbac.user.User;
+import com.example.starter_project_2025.system.rbac.user.UserRepository;
+import com.example.starter_project_2025.system.rbac.user.UserService;
 import com.example.starter_project_2025.util.CookieUtil;
 import com.example.starter_project_2025.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -140,7 +140,8 @@ public class AuthServiceImpl implements AuthService {
         var user = userRepository.findByEmail(userDetails.getEmail())
                 .orElseThrow(() -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
 
-        var defaultRole = userRoleRepository.findByUserAndIsDefault(user, true)
+        var defaultRole = userRoleRepository.findDefaultRolesOrderedByHierarchy(user)
+                .stream().findFirst()
                 .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND))
                 .getRole();
 
@@ -212,31 +213,14 @@ public class AuthServiceImpl implements AuthService {
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException(ErrorMessage.USER_NOT_FOUND));
 
-        // Load role with permissions eagerly to avoid LazyInitializationException
         var roleRef = roleRepository.findByName(data.roleName)
                 .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND));
         var role = roleRepository.findByIdWithPermissions(roleRef.getId())
                 .orElseThrow(() -> new RuntimeException(ErrorMessage.ROLE_NOT_FOUND));
 
         var userRoles = userRoleRepository.findByUserAndRole(user, role);
-        if (userRoles == null || userRoles.isEmpty()) {
-            // Also allow switching to a role the user can "simulate" via hierarchy level.
-            // This mirrors the logic in getMyRoles: a user with hierarchyLevel=1
-            // (SUPER_ADMIN)
-            // can switch into any active role with hierarchyLevel >= 1.
-            var assigned = userRoleRepository.findByUserIdWithPermissions(user.getId());
-            int userMinLevel = assigned.stream()
-                    .map(ur -> ur.getRole().getHierarchyLevel())
-                    .filter(l -> l != null && l > 0)
-                    .mapToInt(Integer::intValue)
-                    .min()
-                    .orElse(0);
-            int targetLevel = role.getHierarchyLevel() != null ? role.getHierarchyLevel() : 0;
-            boolean canSimulate = userMinLevel > 0 && targetLevel > 0 && targetLevel >= userMinLevel;
-
-            if (!canSimulate) {
-                throw new RuntimeException(ErrorMessage.USER_DOES_NOT_HAVE_THE_SPECIFIED_ROLE);
-            }
+        if (userRoles.isEmpty()) {
+            throw new RuntimeException(ErrorMessage.USER_DOES_NOT_HAVE_THE_SPECIFIED_ROLE);
         }
 
         var permissions = getPermissionFromRole(role);

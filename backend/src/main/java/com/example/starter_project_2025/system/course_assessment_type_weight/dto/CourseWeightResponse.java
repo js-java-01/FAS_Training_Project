@@ -25,7 +25,7 @@ public class CourseWeightResponse {
     private String courseName;
 
     @Schema(description = "ID of the AssessmentType", example = "uuid-string")
-    private String assessmentTypeId;
+    private UUID assessmentTypeId;
 
     @Schema(description = "Name of the AssessmentType", example = "Entrance Quiz")
     private String assessmentTypeName;

@@ -13,8 +13,8 @@ export const TooltipWrapper = ({
   content: string;
   side?: "top" | "bottom" | "left" | "right";
 }) => (
-  <Tooltip>
-    <TooltipTrigger asChild>{children}</TooltipTrigger>
-    <TooltipContent side={side}>{content}</TooltipContent>
-  </Tooltip>
+    <Tooltip>
+        <TooltipTrigger asChild>{children}</TooltipTrigger>
+        <TooltipContent side={side} className="max-w-[320px] break-words">{content}</TooltipContent>
+    </Tooltip>
 );

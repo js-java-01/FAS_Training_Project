@@ -1,20 +1,57 @@
-import { MainLayout } from '@/components/layout/MainLayout';
-import { QuestionCategoryTable } from './QuestionCategoryTable';
-import MainHeader from '@/components/layout/MainHeader';
+import { questionCategoryApi } from "@/api";
+import { ProTable } from "@/components/datatable/ProTable";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { useProTable } from "@/hooks/useProTable";
+import type { EntitySchema } from "@/types/common/datatable";
 
-/**
- * Question Category Management Page
- * 
- * Uses the same layout pattern as AssessmentManagement
- * with MainLayout wrapper and QuestionCategoryTable component.
- */
-export default function QuestionCategoryManagement() {
+const questionCategorySchema: EntitySchema = {
+    entityName: "questionCategory",
+    idField: "id",
+    fields: [
+        {
+            name: "name",
+            label: "Name",
+            type: "text",
+            sortable: true,
+            filterable: true,
+            filterType: "text",
+        },
+        {
+            name: "description",
+            label: "Description",
+            type: "text",
+            sortable: true,
+            filterable: true,
+            filterType: "text",
+        },
+        {
+            name: "createdAt",
+            label: "Created At",
+            type: "date",
+            sortable: true,
+            editable: false,
+            filterable: true,
+            filterType: "dateRange",
+        },
+        {
+            name: "updatedAt",
+            label: "Updated At",
+            type: "date",
+            sortable: true,
+            editable: false,
+            visible: false,
+        },
+    ],
+};
+
+const QuestionCategoryManagement = () => {
+    const table = useProTable(questionCategoryApi, questionCategorySchema);
+
     return (
         <MainLayout pathName={{ "question-categories": "Question Categories" }}>
-            <div className="h-full flex-1 flex flex-col gap-4">
-                <MainHeader title="Question Categories" />
-                <QuestionCategoryTable />
-            </div>
+            <ProTable table={table} />
         </MainLayout>
     );
-}
+};
+
+export default QuestionCategoryManagement;

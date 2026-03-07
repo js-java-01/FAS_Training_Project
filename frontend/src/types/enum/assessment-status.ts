@@ -1,0 +1,1 @@
+export type AssessmentStatus = 'DRAFT' | 'ACTIVE' | 'INACTIVE';

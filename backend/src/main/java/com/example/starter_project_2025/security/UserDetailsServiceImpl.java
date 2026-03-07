@@ -1,7 +1,7 @@
 package com.example.starter_project_2025.security;
 
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
+import com.example.starter_project_2025.system.rbac.user.User;
+import com.example.starter_project_2025.system.rbac.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

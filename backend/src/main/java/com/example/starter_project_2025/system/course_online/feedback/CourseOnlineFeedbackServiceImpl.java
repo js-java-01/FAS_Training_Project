@@ -6,11 +6,9 @@ import com.example.starter_project_2025.base.crud.CrudServiceImpl;
 import com.example.starter_project_2025.exception.BadRequestException;
 import com.example.starter_project_2025.exception.UnauthenticatedException;
 import com.example.starter_project_2025.security.UserDetailsImpl;
-import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
 import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
-import com.example.starter_project_2025.system.user.entity.User;
-import com.example.starter_project_2025.system.user.repository.UserRepository;
 
+import com.example.starter_project_2025.system.rbac.user.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -158,5 +156,15 @@ public class CourseOnlineFeedbackServiceImpl
     protected String[] searchableFields() {
         // TODO Auto-generated method stub
         return new String[] { "courseOnline.name", "student.firstName", "student.lastName" };
+    }
+
+    @Override
+    protected void beforeCreate(CourseOnlineFeedback entity, CourseOnlineFeedbackDTO request) {
+
+    }
+
+    @Override
+    protected void beforeUpdate(CourseOnlineFeedback entity, CourseOnlineFeedbackDTO request) {
+
     }
 }

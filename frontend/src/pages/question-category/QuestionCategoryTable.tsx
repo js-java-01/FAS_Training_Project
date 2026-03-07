@@ -5,11 +5,8 @@ import {
 import React, { useState, useMemo, useCallback } from 'react';
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
-import { questionCategoryApi } from '../../api/questionCategoryApi';
 import { PermissionGate } from '../../components/PermissionGate';
 
-import type { QuestionCategoryRequest } from '../../types/questionCategory';
-import type { QuestionCategory } from '../../types/questionCategory';
 
 import { CreateQuestionCategoryModal } from './CreateQuestionCategoryModal';
 import { DeleteQuestionCategoryDialog } from './DeleteQuestionCategoryDialog';
@@ -20,6 +17,8 @@ import { DataTable } from '@/components/data_table/DataTable';
 import { getColumns } from './columns';
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/useToast';
+import { questionCategoryApi } from '@/api';
+import type { QuestionCategory, QuestionCategoryRequest } from '@/types';
 
 export const QuestionCategoryTable: React.FC = () => {
     const { toast } = useToast();
@@ -29,6 +28,7 @@ export const QuestionCategoryTable: React.FC = () => {
     // State: Table Configuration
     // ========================================
     const [sortingClient, setSortingClient] = useState<SortingState>([]);
+    const [keyword, setKeyword] = useState('');
 
     // ========================================
     // State: Modal Controls
@@ -42,15 +42,25 @@ export const QuestionCategoryTable: React.FC = () => {
     // ========================================
     // Data Loading (Queries)
     // ========================================
-    const { data: categories, isLoading, isFetching } = useQuery({
+    const { data: categoriesResponse, isLoading, isFetching } = useQuery({
         queryKey: ['question-categories'],
-        queryFn: () => questionCategoryApi.getAll()
+        queryFn: () => questionCategoryApi.getPage({ page: 0, size: 1000 })
     });
 
+    const categories = categoriesResponse?.items ?? [];
+
     // Safe table data with defaults
-    const safeTableData = useMemo(() => ({
-        items: categories ?? [],
-    }), [categories]);
+    const safeTableData = useMemo(() => {
+        const items = categories ?? [];
+        // Client-side filtering based on keyword
+        const filteredItems = keyword
+            ? items.filter(category =>
+                category.name.toLowerCase().includes(keyword.toLowerCase()) ||
+                category.description?.toLowerCase().includes(keyword.toLowerCase())
+            )
+            : items;
+        return { items: filteredItems };
+    }, [categories, keyword]);
 
     // ========================================
     // CRUD Mutations
@@ -149,6 +159,12 @@ export const QuestionCategoryTable: React.FC = () => {
                 sorting={sortingClient}
                 onSortingChange={setSortingClient}
                 manualSorting={false}
+
+                // Search
+                isSearch
+                manualSearch
+                searchPlaceholder="name"
+                onSearchChange={setKeyword}
             />
 
             {/* Modals */}

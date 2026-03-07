@@ -1,8 +1,8 @@
 package com.example.starter_project_2025.system.course_assessment_type_weight.service.impl;
 
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
-import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
-import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_type.AssessmentType;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_type.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
 import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
@@ -106,7 +106,7 @@ public class CourseAssessmentTypeWeightServiceImpl implements CourseAssessmentTy
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found: " + courseId));
     }
 
-    private AssessmentType loadAssessmentType(String assessmentTypeId) {
+    private AssessmentType loadAssessmentType(UUID assessmentTypeId) {
         return assessmentTypeRepository.findById(assessmentTypeId)
                 .orElseThrow(() -> new ResourceNotFoundException("AssessmentType not found: " + assessmentTypeId));
     }

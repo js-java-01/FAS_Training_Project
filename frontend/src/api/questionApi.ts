@@ -1,57 +1,53 @@
 import axiosInstance from './axiosInstance';
-import { type Question, type QuestionCreateRequest } from '../types/question';
+import {
+    type Question,
+    type QuestionCreateRequest,
+    type PagedQuestionResponse,
+    type QuestionListItem
+} from '../types/question';
 
 export const questionApi = {
 
-    // ==================== GET ALL ====================
-    getAll: async (): Promise<Question[]> => {
-        const response = await axiosInstance.get<any>(
-            '/v1/questions'
+    // ==================== GET ALL (Paginated) ====================
+    getAll: async (params?: {
+        page?: number;
+        size?: number;
+        sort?: string;
+    }): Promise<PagedQuestionResponse> => {
+        const response = await axiosInstance.get<PagedQuestionResponse>(
+            '/questions',
+            { params }
         );
-        // Transform backend response to match frontend types
-        const questions = response.data.content || [];
-        return questions.map((question: any) => ({
-            ...question,
-            options: question.options?.map((opt: any) => ({
-                id: opt.id,
-                content: opt.content,
-                isCorrect: opt.correct,
-                orderIndex: opt.orderIndex
-            })) || []
-        }));
+        return response.data;
+    },
+
+    // ==================== GET ALL CONTENT (Non-paginated) ====================
+    getAllContent: async (): Promise<QuestionListItem[]> => {
+        const response = await axiosInstance.get<PagedQuestionResponse>(
+            '/questions',
+            { params: { page: 0, size: 9999 } }
+        );
+        return response.data.content || [];
     },
 
     // ==================== CREATE ====================
     create: async (
         data: QuestionCreateRequest
     ): Promise<Question> => {
-        // Transform data to match backend expectations
         const payload = {
-            questionCategoryId: data.categoryId,
+            categoryId: data.categoryId,
             questionType: data.questionType,
             content: data.content,
             isActive: data.isActive,
-            options: data.options.map(opt => ({
-                content: opt.content,
-                correct: opt.isCorrect,
-                orderIndex: opt.orderIndex
-            }))
+            options: data.options,
+            ...(data.tagIds && { tagIds: data.tagIds })
         };
 
-        const response = await axiosInstance.post<any>(
-            '/v1/questions',
+        const response = await axiosInstance.post<Question>(
+            '/questions',
             payload
         );
-        // Transform backend response to match frontend types
-        return {
-            ...response.data,
-            options: response.data.options?.map((opt: any) => ({
-                id: opt.id,
-                content: opt.content,
-                isCorrect: opt.correct,
-                orderIndex: opt.orderIndex
-            })) || []
-        };
+        return response.data;
     },
 
     // ==================== UPDATE ====================
@@ -59,54 +55,40 @@ export const questionApi = {
         id: string,
         data: QuestionCreateRequest
     ): Promise<Question> => {
-        // Transform data to match backend expectations
+        // Remove IDs from options - backend will recreate them
+        const options = data.options.map(opt => ({
+            content: opt.content,
+            correct: opt.correct,
+            orderIndex: opt.orderIndex
+        }));
+
         const payload = {
-            questionCategoryId: data.categoryId,
+            id,
+            categoryId: data.categoryId,
             questionType: data.questionType,
             content: data.content,
             isActive: data.isActive,
-            options: data.options.map(opt => ({
-                content: opt.content,
-                correct: opt.isCorrect,
-                orderIndex: opt.orderIndex
-            }))
+            options,
+            tagIds: data.tagIds || []
         };
 
-        const response = await axiosInstance.put<any>(
-            `/v1/questions/${id}`,
+        const response = await axiosInstance.put<Question>(
+            `/questions/${id}`,
             payload
         );
-        // Transform backend response to match frontend types
-        return {
-            ...response.data,
-            options: response.data.options?.map((opt: any) => ({
-                id: opt.id,
-                content: opt.content,
-                isCorrect: opt.correct,
-                orderIndex: opt.orderIndex
-            })) || []
-        };
+        return response.data;
     },
 
     // ==================== GET BY ID ====================
     getById: async (id: string): Promise<Question> => {
-        const response = await axiosInstance.get<any>(
-            `/v1/questions/${id}`
+        const response = await axiosInstance.get<Question>(
+            `/questions/${id}`
         );
-        // Transform backend response to match frontend types
-        return {
-            ...response.data,
-            options: response.data.options?.map((opt: any) => ({
-                id: opt.id,
-                content: opt.content,
-                isCorrect: opt.correct,
-                orderIndex: opt.orderIndex
-            })) || []
-        };
+        return response.data;
     },
 
     // ==================== DELETE ====================
     delete: async (id: string): Promise<void> => {
-        await axiosInstance.delete(`/v1/questions/${id}`);
+        await axiosInstance.delete(`/questions/${id}`);
     }
 };

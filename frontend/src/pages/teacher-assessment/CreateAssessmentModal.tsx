@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { AssessmentFormFields } from './AssessmentFormFields';
-import type { AssessmentCreateRequest } from '../../types/assessment';
+import type { AssessmentCreateRequest } from '../../types/feature/assessment/assessment';
 import { Modal } from '@/components/modal/Modal';
 
 interface CreateAssessmentModalProps {

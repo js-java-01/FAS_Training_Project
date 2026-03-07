@@ -1,5 +1,5 @@
 import React from 'react';
-import type { QuestionCategoryRequest } from '../../types/questionCategory';
+import type { QuestionCategoryRequest } from '../../types/feature/assessment/question-category';
 
 interface QuestionCategoryFormFieldsProps {
     data: QuestionCategoryRequest;

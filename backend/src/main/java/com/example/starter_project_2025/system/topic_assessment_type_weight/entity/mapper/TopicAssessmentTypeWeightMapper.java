@@ -1,6 +1,6 @@
 package com.example.starter_project_2025.system.topic_assessment_type_weight.entity.mapper;
 
-import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_type.AssessmentType;
 import com.example.starter_project_2025.system.topic.entity.Topic;
 import com.example.starter_project_2025.system.topic_assessment_type_weight.entity.dto.TopicAssessmentTypeWeightCreateRequest;
 import com.example.starter_project_2025.system.topic_assessment_type_weight.entity.dto.TopicAssessmentTypeWeightResponse;
@@ -68,7 +68,7 @@ public class TopicAssessmentTypeWeightMapper
         if (request.getAssessmentTypeId() != null)
         {
             AssessmentType assessmentType = new AssessmentType();
-            assessmentType.setId(request.getAssessmentTypeId().toString());
+            assessmentType.setId(request.getAssessmentTypeId());
             entity.setAssessmentType(assessmentType);
         }
 

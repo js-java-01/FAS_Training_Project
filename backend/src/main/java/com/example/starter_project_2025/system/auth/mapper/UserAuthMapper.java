@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import com.example.starter_project_2025.system.auth.dto.register.RegisterCreateDTO;
-import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.rbac.user.User;
 
 @Mapper(componentModel = "spring")
 public interface UserAuthMapper {

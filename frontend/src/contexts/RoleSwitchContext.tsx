@@ -9,7 +9,7 @@ import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "@/store/store";
 import { authApi } from "@/api/authApi";
 import { setLogin } from "@/store/slices/auth/authSlice";
-import type { RoleSwitchRole } from "@/types/role";
+import type { RoleSwitchRole } from "@/types/features/auth/role";
 import { toast } from "sonner";
 
 interface RoleSwitchContextType {
@@ -83,19 +83,34 @@ export const RoleSwitchProvider: React.FC<{ children: React.ReactNode }> = ({
                   (r.hierarchyLevel ?? 0) >= primaryLevel,
               );
 
-        setAvailableRoles(filteredRoles);
+        // If the API returns an empty list (e.g. backend logic commented out),
+        // fall back to a synthetic role built from the current JWT context so
+        // the sidebar + permissions work correctly.
+        const effectiveRoles =
+          filteredRoles.length === 0
+            ? [
+                {
+                  id: "",
+                  name: authRole ?? "",
+                  permissions: authPermissions,
+                  isActive: true,
+                } as RoleSwitchRole,
+              ]
+            : filteredRoles;
+
+        setAvailableRoles(effectiveRoles);
 
         // Keep the active role if it's still in the list; otherwise fall back to own role
         _setActiveRole((prev) => {
           if (prev) {
-            const stillAvailable = filteredRoles.find(
+            const stillAvailable = effectiveRoles.find(
               (r) => r.id === prev.id || r.name === prev.name,
             );
             if (stillAvailable) return stillAvailable;
           }
           return (
-            filteredRoles.find((r) => r.name === authRole) ??
-            filteredRoles[0] ??
+            effectiveRoles.find((r) => r.name === authRole) ??
+            effectiveRoles[0] ??
             null
           );
         });

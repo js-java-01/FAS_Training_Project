@@ -1,8 +1,8 @@
 package com.example.starter_project_2025.system.classes.repository;
 
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
-import com.example.starter_project_2025.system.user.entity.User;
 import com.example.starter_project_2025.system.classes.entity.ClassStatus;
+import com.example.starter_project_2025.system.rbac.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

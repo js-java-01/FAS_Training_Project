@@ -30,6 +30,7 @@ import {
   ChevronRight,
   Users,
 } from "lucide-react";
+import { useGetCourseSchemeConfig } from "./services/queries";
 
 // ── Learning Outcomes (Generic) ───────────────────────────────────────────────
 const LEARNING_OUTCOMES = [
@@ -126,9 +127,9 @@ function ConfirmEnrollModal({
                 course.level ? ["Level", course.level] : null,
                 course.estimatedTime
                   ? [
-                      "Duration",
-                      `${Math.round(course.estimatedTime / 60)} hours`,
-                    ]
+                    "Duration",
+                    `${Math.round(course.estimatedTime / 60)} hours`,
+                  ]
                   : null,
               ] as ([string, string] | null)[]
             )
@@ -195,6 +196,7 @@ export default function StudentCourseDetailPage() {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [_objectives, setObjectives] = useState<any[]>([]);
   const [lessons, setLessons] = useState<any[]>([]);
+  const { data: schemeConfig } = useGetCourseSchemeConfig(id);
 
   // Feedback form state
   const [rating, setRating] = useState<number>(5);
@@ -366,7 +368,7 @@ export default function StudentCourseDetailPage() {
   const avgRating =
     feedbacks.length > 0
       ? feedbacks.reduce((sum: number, f: any) => sum + f.rating, 0) /
-        feedbacks.length
+      feedbacks.length
       : 0;
   const reviewCount = feedbacks.length;
   const studentCount = reviewCount * 14; // Estimated student count
@@ -469,11 +471,10 @@ export default function StudentCourseDetailPage() {
               onClick={() =>
                 isEnrolled ? navigate(`/learn/${id}`) : setShowEnrollModal(true)
               }
-              className={`px-8 py-3 rounded-lg font-bold text-sm flex items-center gap-2 transition-all cursor-pointer shadow-sm ${
-                isEnrolled
-                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                  : "bg-blue-700 hover:bg-blue-800 text-white"
-              }`}
+              className={`px-8 py-3 rounded-lg font-bold text-sm flex items-center gap-2 transition-all cursor-pointer shadow-sm ${isEnrolled
+                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                : "bg-blue-700 hover:bg-blue-800 text-white"
+                }`}
             >
               {isEnrolled ? (
                 <>
@@ -537,11 +538,10 @@ export default function StudentCourseDetailPage() {
                   <button
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
-                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3.5 text-sm font-semibold transition-all cursor-pointer border-b-2 -mb-px ${
-                      activeTab === tab.key
-                        ? "border-blue-600 text-blue-600 bg-blue-50/40"
-                        : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3.5 text-sm font-semibold transition-all cursor-pointer border-b-2 -mb-px ${activeTab === tab.key
+                      ? "border-blue-600 text-blue-600 bg-blue-50/40"
+                      : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+                      }`}
                   >
                     {tab.icon}
                     <span className="hidden sm:inline">{tab.label}</span>
@@ -550,72 +550,36 @@ export default function StudentCourseDetailPage() {
               </div>
 
               {/* ── Tab: About ── */}
-              {activeTab === "about" && (
-                <div className="space-y-5 animate-in fade-in duration-200">
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <FileText size={15} className="text-blue-600" />
-                      </div>
-                      <h2 className="text-base font-bold text-gray-900">
-                        About this course
-                      </h2>
-                    </div>
-                    <p className="text-gray-600 leading-relaxed text-sm">
-                      {course.description ||
-                        "This course provides a comprehensive introduction to the subject matter. You will gain practical skills and theoretical knowledge through a structured learning path designed by expert instructors."}
-                    </p>
-                  </div>
+              {activeTab === "about" && schemeConfig && (
+                <div className="grid grid-cols-3 gap-6 mt-8">
 
-                  {/* Requirements stats */}
-                  {(course.minGpaToPass ||
-                    course.minAttendancePercent !== undefined ||
-                    course.allowFinalRetake !== undefined) && (
-                    <div className="grid grid-cols-3 gap-4">
-                      {course.minGpaToPass && (
-                        <div className="bg-white rounded-2xl p-5 border border-blue-50 shadow-sm text-center">
-                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
-                            <Award size={18} className="text-blue-600" />
-                          </div>
-                          <div className="text-2xl font-extrabold text-blue-600">
-                            {course.minGpaToPass}
-                          </div>
-                          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-1">
-                            Min GPA
-                          </div>
-                        </div>
-                      )}
-                      {course.minAttendancePercent !== undefined && (
-                        <div className="bg-white rounded-2xl p-5 border border-emerald-50 shadow-sm text-center">
-                          <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
-                            <CheckCircle
-                              size={18}
-                              className="text-emerald-600"
-                            />
-                          </div>
-                          <div className="text-2xl font-extrabold text-emerald-600">
-                            {course.minAttendancePercent}%
-                          </div>
-                          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-1">
-                            Attendance
-                          </div>
-                        </div>
-                      )}
-                      {course.allowFinalRetake !== undefined && (
-                        <div className="bg-white rounded-2xl p-5 border border-purple-50 shadow-sm text-center">
-                          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-3">
-                            <Play size={18} className="text-purple-600" />
-                          </div>
-                          <div className="text-2xl font-extrabold text-purple-600">
-                            {course.allowFinalRetake ? "Yes" : "No"}
-                          </div>
-                          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-1">
-                            Final Retake
-                          </div>
-                        </div>
-                      )}
+                  {schemeConfig.minGpaToPass && (
+                    <div className="bg-white border rounded-xl p-5 text-center">
+                      <p className="text-sm text-gray-500 mb-1">Minimum GPA to pass</p>
+                      <div className="text-3xl font-extrabold text-purple-600 mb-1">
+                        {schemeConfig.minGpaToPass}
+                      </div>
                     </div>
                   )}
+
+                  {schemeConfig.minAttendance !== undefined && (
+                    <div className="bg-white border rounded-xl p-5 text-center">
+                      <p className="text-sm text-gray-500 mb-1">Minimum Attendance</p>
+                      <div className="text-3xl font-extrabold text-purple-600 mb-1">
+                        {schemeConfig.minAttendance}%
+                      </div>
+                    </div>
+                  )}
+
+                  {schemeConfig.allowFinalRetake !== undefined && (
+                    <div className="bg-white border rounded-xl p-5 text-center">
+                      <p className="text-sm text-gray-500 mb-1">Final Retake</p>
+                      <div className="text-lg font-bold text-purple-600">
+                        {schemeConfig.allowFinalRetake ? "Allowed" : "Not allowed"}
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               )}
 
@@ -890,8 +854,8 @@ export default function StudentCourseDetailPage() {
                                     <span className="text-xs text-gray-400">
                                       {feedback.createdAt
                                         ? new Date(
-                                            feedback.createdAt,
-                                          ).toLocaleDateString("vi-VN")
+                                          feedback.createdAt,
+                                        ).toLocaleDateString("vi-VN")
                                         : ""}
                                     </span>
                                   </div>
@@ -1006,11 +970,10 @@ export default function StudentCourseDetailPage() {
                         ? navigate(`/learn/${id}`)
                         : setShowEnrollModal(true)
                     }
-                    className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm ${
-                      isEnrolled
-                        ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                        : "bg-blue-600 hover:bg-blue-700 text-white"
-                    }`}
+                    className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm ${isEnrolled
+                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                      }`}
                   >
                     {isEnrolled ? (
                       <>
@@ -1034,40 +997,40 @@ export default function StudentCourseDetailPage() {
               {/* Requirements mini card */}
               {(course.minGpaToPass ||
                 course.minAttendancePercent !== undefined) && (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-                    Requirements
-                  </h4>
-                  <div className="space-y-2">
-                    {course.minGpaToPass && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-500">Min GPA to pass</span>
-                        <span className="font-bold text-blue-600">
-                          {course.minGpaToPass}
-                        </span>
-                      </div>
-                    )}
-                    {course.minAttendancePercent !== undefined && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-500">Min attendance</span>
-                        <span className="font-bold text-emerald-600">
-                          {course.minAttendancePercent}%
-                        </span>
-                      </div>
-                    )}
-                    {course.allowFinalRetake !== undefined && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-500">Final retake</span>
-                        <span
-                          className={`font-bold ${course.allowFinalRetake ? "text-emerald-600" : "text-red-500"}`}
-                        >
-                          {course.allowFinalRetake ? "Allowed" : "Not allowed"}
-                        </span>
-                      </div>
-                    )}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                      Requirements
+                    </h4>
+                    <div className="space-y-2">
+                      {course.minGpaToPass && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500">Min GPA to pass</span>
+                          <span className="font-bold text-blue-600">
+                            {course.minGpaToPass}
+                          </span>
+                        </div>
+                      )}
+                      {course.minAttendancePercent !== undefined && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500">Min attendance</span>
+                          <span className="font-bold text-emerald-600">
+                            {course.minAttendancePercent}%
+                          </span>
+                        </div>
+                      )}
+                      {course.allowFinalRetake !== undefined && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500">Final retake</span>
+                          <span
+                            className={`font-bold ${course.allowFinalRetake ? "text-emerald-600" : "text-red-500"}`}
+                          >
+                            {course.allowFinalRetake ? "Allowed" : "Not allowed"}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
             {/* end right sidebar */}
           </div>

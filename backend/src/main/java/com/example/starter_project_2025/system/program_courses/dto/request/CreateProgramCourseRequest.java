@@ -11,7 +11,7 @@ public class CreateProgramCourseRequest {
 
     @NotNull
     @Schema (example = "1")
-    private long programmingLanguageId;
+    private UUID programmingLanguageId;
 
     @NotNull
     @Schema (example = "d290f1ee-6c54-4b01-90e6-d701748f0851")

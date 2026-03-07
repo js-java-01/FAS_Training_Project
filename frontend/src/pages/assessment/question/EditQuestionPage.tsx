@@ -1,0 +1,275 @@
+import { MainLayout } from '@/components/layout/MainLayout';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Loader2, Save, X, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { QuestionFormFields, QuestionOptionsManager } from './components';
+import { useToast } from '@/hooks/useToast';
+import type { QuestionCreateRequest } from '@/types';
+import { questionApi } from '@/api/questionApi';
+
+export default function EditQuestionPage() {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
+
+    const [formData, setFormData] = useState<QuestionCreateRequest>({
+        content: '',
+        questionType: 'SINGLE_CHOICE',
+        isActive: true,
+        categoryId: '',
+        options: [
+            { content: '', correct: false, orderIndex: 0 },
+            { content: '', correct: false, orderIndex: 1 },
+        ],
+        tagIds: []
+    });
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    // Fetch question data
+    const { data: question, isLoading } = useQuery({
+        queryKey: ['question', id],
+        queryFn: () => questionApi.getById(id!),
+        enabled: !!id,
+    });
+
+    // Populate form when question data is loaded
+    useEffect(() => {
+        if (question) {
+            setFormData({
+                content: question.content,
+                questionType: question.questionType,
+                isActive: question.isActive,
+                categoryId: question.categoryId || '',
+                options: question.options.map(opt => ({
+                    id: opt.id,
+                    content: opt.content,
+                    correct: opt.correct,
+                    orderIndex: opt.orderIndex,
+                    questionId: question.id, // Use parent question ID
+                })),
+                tagIds: question.tagIds || []
+            });
+        }
+    }, [question]);
+
+    const updateMutation = useMutation({
+        mutationFn: async (data: QuestionCreateRequest) => {
+            return await questionApi.update(id!, data);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['questions'] });
+            queryClient.invalidateQueries({ queryKey: ['question', id] });
+            toast({
+                variant: "success",
+                title: "Success",
+                description: "Question updated successfully"
+            });
+            navigate('/questions');
+        },
+        onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.response?.data?.message || "Failed to update question"
+            });
+        }
+    });
+
+    const validate = () => {
+        const newErrors: Record<string, string> = {};
+
+        if (!formData.content.trim()) {
+            newErrors.content = 'Question content is required';
+        }
+
+        if (!formData.categoryId) {
+            newErrors.categoryId = 'Category is required';
+        }
+
+        if (formData.options.length < 2) {
+            newErrors.options = 'At least 2 options are required';
+        }
+
+        const hasCorrectOption = formData.options.some(opt => opt.correct);
+        if (!hasCorrectOption) {
+            newErrors.correctOption = 'At least one option must be marked as correct';
+        }
+
+        formData.options.forEach((option, index) => {
+            if (!option.content.trim()) {
+                newErrors[`option_${index}`] = `Option ${index + 1} content is required`;
+            }
+        });
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = () => {
+        if (validate()) {
+            updateMutation.mutate(formData);
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Validation Error",
+                description: "Please fix all errors before submitting"
+            });
+        }
+    };
+
+    const handleCancel = () => {
+        navigate('/questions');
+    };
+
+    if (isLoading) {
+        return (
+            <MainLayout>
+                <div className="h-full flex items-center justify-center bg-gray-50">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600 font-medium text-lg">Loading question...</p>
+                        <p className="text-gray-400 text-sm mt-2">Please wait while we fetch the details</p>
+                    </div>
+                </div>
+            </MainLayout>
+        );
+    }
+
+    if (!question) {
+        return (
+            <MainLayout>
+                <div className="h-full flex items-center justify-center bg-gray-50">
+                    <div className="text-center bg-white p-8 rounded-xl shadow-lg border-2 border-red-200">
+                        <div className="h-20 w-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertCircle className="h-10 w-10 text-red-600" />
+                        </div>
+                        <p className="text-red-600 font-bold text-xl mb-2">Question Not Found</p>
+                        <p className="text-gray-500 mb-6">The question you're looking for doesn't exist or has been deleted.</p>
+                        <Button
+                            onClick={() => navigate('/questions')}
+                            className="bg-blue-600 hover:bg-blue-700"
+                        >
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to Questions
+                        </Button>
+                    </div>
+                </div>
+            </MainLayout>
+        );
+    }
+
+    return (
+        <MainLayout>
+            <div className="h-full flex-1 flex flex-col gap-6 p-6">
+                {/* Header Section */}
+                <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                    
+                            <div className="mt-3 flex items-center gap-4">
+                                <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg">
+                                    {Object.keys(errors).length === 0 ? (
+                                        <>
+                                            <CheckCircle2 className="h-4 w-4" />
+                                            <span className="text-sm font-medium">Ready to save</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <AlertCircle className="h-4 w-4" />
+                                            <span className="text-sm font-medium">
+                                                {Object.keys(errors).length} error(s) to fix
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg">
+                                    <span className="text-sm font-medium">
+                                        ID: {id}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={handleCancel}
+                                disabled={updateMutation.isPending}
+                            >
+                                <X className="mr-2 h-4 w-4" />
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleSubmit}
+                                disabled={updateMutation.isPending}
+                            >
+                                {updateMutation.isPending ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Updating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="mr-2 h-4 w-4" />
+                                        Save Changes
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="flex-1 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
+                    <div className="bg-gray-50 p-5 border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="font-bold text-xl text-gray-900">Question Details</h3>
+                                {Object.keys(errors).length > 0 ? (
+                                    <p className="text-sm text-red-600 mt-1 flex items-center gap-1 font-medium">
+                                        <AlertCircle className="h-4 w-4" />
+                                        Please fix the errors below before saving
+                                    </p>
+                                ) : (
+                                    <p className="text-sm text-green-600 mt-1 flex items-center gap-1 font-medium">
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        All fields are valid
+                                    </p>
+                                )}
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate('/questions')}
+                            >
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Back to List
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-auto p-6 bg-white">
+                        <div className="max-w-5xl mx-auto space-y-8">
+                            <QuestionFormFields
+                                data={formData}
+                                onChange={setFormData}
+                                errors={errors}
+                            />
+
+                            <div className="border-t-2 border-gray-200 pt-6">
+                                <QuestionOptionsManager
+                                    data={formData}
+                                    onChange={setFormData}
+                                    errors={errors}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </MainLayout>
+    );
+}

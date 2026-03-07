@@ -1,7 +1,7 @@
 import React from 'react';
 
-import type { AssessmentType } from '../../types/assessmentType';
 import { Modal } from '@/components/modal/Modal';
+import type { AssessmentType } from '@/types';
 
 interface ViewAssessmentModalProps {
     isOpen: boolean;

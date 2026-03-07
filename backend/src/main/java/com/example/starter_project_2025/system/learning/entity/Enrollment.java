@@ -3,7 +3,8 @@ package com.example.starter_project_2025.system.learning.entity;
 import com.example.starter_project_2025.system.classes.entity.TrainingClass;
 import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
 import com.example.starter_project_2025.system.learning.enums.EnrollmentStatus;
-import com.example.starter_project_2025.system.user.entity.User;
+import com.example.starter_project_2025.system.rbac.user.User;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
