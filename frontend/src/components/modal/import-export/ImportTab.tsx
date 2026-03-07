@@ -9,7 +9,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import dayjs from "dayjs";
-import { Badge } from "@/components/ui/badge";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
@@ -225,7 +224,7 @@ export default function ImportTab({
             ref={fileInputRef}
             type="file"
             accept=".xlsx,.xls"
-            className="hidden"
+            className="sr-only"
             onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
           />
 

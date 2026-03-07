@@ -36,8 +36,7 @@ export default function ImportExportModal({
   onImport,
   onExport,
   onDownloadTemplate,
-  acceptedFileTypes,
-  validateFile,
+
 }: Props) {
   const hasImport = mode !== "export" && !!onImport;
   const hasExport = mode !== "import" && !!onExport;
@@ -98,8 +97,6 @@ export default function ImportExportModal({
             <ImportTab
               onImport={onImport}
               onDownloadTemplate={onDownloadTemplate}
-              acceptedFileTypes={acceptedFileTypes}
-              validateFile={validateFile}
             />
           )}
 
