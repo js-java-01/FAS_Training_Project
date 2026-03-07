@@ -13,7 +13,6 @@ import {
   Plus,
   ChevronDown,
   ChevronRight,
-  DatabaseBackup,
   Layers,
   Sparkles,
   Trash2,
@@ -28,7 +27,14 @@ import {
   SessionSidePanel,
   type SessionSidePanelMode,
 } from "./SessionSidePanel";
-import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 
 // ─── Type badge ────────────────────────────────────────────────
 const TYPE_COLORS: Record<string, string> = {
@@ -270,7 +276,8 @@ function LessonRow({
   onDragEnd,
   onDrop,
   onAddSession,
-  onSessionImportExport,
+  lessonId,
+  onReloadSessions,
   onEditSession,
   onDeleteSession,
   onSessionDragStart,
@@ -293,7 +300,8 @@ function LessonRow({
   onDragEnd: () => void;
   onDrop: () => void;
   onAddSession: () => void;
-  onSessionImportExport: () => void;
+  lessonId: string;
+  onReloadSessions: () => void;
   onEditSession: (s: SessionResponse) => void;
   onDeleteSession: (s: SessionResponse) => void;
   onSessionDragStart: (i: number) => void;
@@ -372,15 +380,25 @@ function LessonRow({
               Sessions
             </span>
             <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={onSessionImportExport}
-                className="h-7 text-xs gap-1.5"
-              >
-                <DatabaseBackup className="h-3.5 w-3.5" />
-                Import / Export
-              </Button>
+              <EntityImportExportButton
+                title="Sessions"
+                useImportHook={() => ({
+                  mutateAsync: async (file: File) => {
+                    const result = await sessionService.importSessions(
+                      lessonId,
+                      file,
+                    );
+                    onReloadSessions();
+                    return result;
+                  },
+                })}
+                useExportHook={() => ({
+                  mutateAsync: () => sessionService.exportSessions(lessonId),
+                })}
+                useTemplateHook={() => ({
+                  mutateAsync: () => sessionService.downloadSessionTemplate(),
+                })}
+              />
               <button
                 onClick={onAddSession}
                 className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
@@ -459,8 +477,6 @@ function BatchOutlineModal({
       setCollapsed({});
     }
   }, [open]);
-
-  if (!open) return null;
 
   const toggleCollapse = (idx: number) =>
     setCollapsed((p) => ({ ...p, [idx]: !p[idx] }));
@@ -576,231 +592,237 @@ function BatchOutlineModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      {/* ── Top Header Bar ── */}
-      <div className="flex items-center justify-between px-6 py-4 border-b bg-white shrink-0">
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">
-            Create Batch Lessons with Sessions
-          </h1>
-          <p className="text-sm text-gray-400 mt-0.5">
-            Create multiple lessons and sessions at once for this course.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={addLesson} className="gap-1.5">
-            <Plus className="h-4 w-4" />
-            Add Lesson
-          </Button>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
-          >
-            {loading ? "Creating..." : "Create Batch"}
-          </Button>
-        </div>
-      </div>
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        className="w-[80vw] sm:max-w-[80vw] flex flex-col p-0 gap-0"
+      >
+        {/* ── Header ── */}
+        <SheetHeader className="flex flex-row items-center justify-between px-6 py-4 border-b shrink-0 space-y-0">
+          <div>
+            <SheetTitle className="text-base font-semibold text-gray-900">
+              Create Batch Lessons with Sessions
+            </SheetTitle>
+            <SheetDescription className="text-sm text-gray-400 mt-0.5">
+              Create multiple lessons and sessions at once for this course.
+            </SheetDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={addLesson} className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              Add Lesson
+            </Button>
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
+            >
+              {loading ? "Creating..." : "Create Batch"}
+            </Button>
+          </div>
+        </SheetHeader>
 
-      {/* ── Content ── */}
-      <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-        <div className="max-w-[1200px] mx-auto space-y-4">
-          {lessons.map((lesson, li) => {
-            const isCollapsed = !!collapsed[li];
-            const sessionCount = (lesson.sessions ?? []).length;
-            return (
-              <div
-                key={li}
-                className="border border-gray-200 rounded-xl bg-white shadow-sm"
-              >
-                {/* Lesson Header */}
-                <div className="px-5 py-4 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <button
-                      type="button"
-                      onClick={() => toggleCollapse(li)}
-                      className="mt-1 text-gray-400 hover:text-gray-600 shrink-0"
-                    >
-                      {isCollapsed ? (
-                        <ChevronRight size={18} />
-                      ) : (
-                        <ChevronDown size={18} />
-                      )}
-                    </button>
+        {/* ── Content ── */}
+        <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+          <div className="space-y-4">
+            {lessons.map((lesson, li) => {
+              const isCollapsed = !!collapsed[li];
+              const sessionCount = (lesson.sessions ?? []).length;
+              return (
+                <div
+                  key={li}
+                  className="border border-gray-200 rounded-xl bg-white shadow-sm"
+                >
+                  {/* Lesson Header */}
+                  <div className="px-5 py-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleCollapse(li)}
+                        className="mt-1 text-gray-400 hover:text-gray-600 shrink-0"
+                      >
+                        {isCollapsed ? (
+                          <ChevronRight size={18} />
+                        ) : (
+                          <ChevronDown size={18} />
+                        )}
+                      </button>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1">
-                          <label className="text-xs font-medium text-gray-500 mb-1 block">
-                            Lesson Name *
-                          </label>
-                          <input
-                            value={lesson.lessonName}
-                            onChange={(e) =>
-                              updateLesson(li, "lessonName", e.target.value)
-                            }
-                            placeholder="Enter lesson name"
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                        <div className="text-center shrink-0">
-                          <label className="text-xs font-medium text-gray-500 mb-1 block">
-                            Sessions
-                          </label>
-                          <span className="inline-block text-sm font-semibold text-gray-700 py-2">
-                            {sessionCount}
-                          </span>
-                        </div>
-                        <div className="shrink-0 flex items-end pb-0.5">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => addSession(li)}
-                            className="gap-1 h-9"
-                          >
-                            <Plus size={14} />
-                            Add Session
-                          </Button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <label className="text-xs font-medium text-gray-500 mb-1 block">
+                              Lesson Name *
+                            </label>
+                            <input
+                              value={lesson.lessonName}
+                              onChange={(e) =>
+                                updateLesson(li, "lessonName", e.target.value)
+                              }
+                              placeholder="Enter lesson name"
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                          <div className="text-center shrink-0">
+                            <label className="text-xs font-medium text-gray-500 mb-1 block">
+                              Sessions
+                            </label>
+                            <span className="inline-block text-sm font-semibold text-gray-700 py-2">
+                              {sessionCount}
+                            </span>
+                          </div>
+                          <div className="shrink-0 flex items-end pb-0.5">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addSession(li)}
+                              className="gap-1 h-9"
+                            >
+                              <Plus size={14} />
+                              Add Session
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
+
+                    {!isCollapsed && (
+                      <>
+                        <div className="pl-8">
+                          <label className="text-xs font-medium text-gray-500 mb-1 block">
+                            Description
+                          </label>
+                          <input
+                            value={lesson.description ?? ""}
+                            onChange={(e) =>
+                              updateLesson(li, "description", e.target.value)
+                            }
+                            placeholder="Enter description (optional)"
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        {/* Sessions Table */}
+                        {sessionCount > 0 && (
+                          <div className="pl-8">
+                            {/* Table Header */}
+                            <div className="grid grid-cols-[160px_1fr_1fr_48px] gap-3 mb-2">
+                              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Type
+                              </span>
+                              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Topic
+                              </span>
+                              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Student Tasks
+                              </span>
+                              <span />
+                            </div>
+
+                            {/* Session Rows */}
+                            <div className="space-y-2">
+                              {(lesson.sessions ?? []).map((session, si) => (
+                                <div
+                                  key={si}
+                                  className="grid grid-cols-[160px_1fr_1fr_48px] gap-3 items-center"
+                                >
+                                  <select
+                                    value={session.type ?? "VIDEO_LECTURE"}
+                                    onChange={(e) =>
+                                      updateSession(
+                                        li,
+                                        si,
+                                        "type",
+                                        e.target.value,
+                                      )
+                                    }
+                                    className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  >
+                                    <option value="" disabled>
+                                      Select type
+                                    </option>
+                                    {SESSION_TYPE_OPTIONS.map((opt) => (
+                                      <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <input
+                                    value={session.topic ?? ""}
+                                    onChange={(e) =>
+                                      updateSession(
+                                        li,
+                                        si,
+                                        "topic",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Topic"
+                                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                  <input
+                                    value={session.studentTasks ?? ""}
+                                    onChange={(e) =>
+                                      updateSession(
+                                        li,
+                                        si,
+                                        "studentTasks",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Tasks"
+                                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeSession(li, si)}
+                                    className="flex items-center justify-center h-9 w-9 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition-colors"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
 
-                  {!isCollapsed && (
-                    <>
-                      <div className="pl-8">
-                        <label className="text-xs font-medium text-gray-500 mb-1 block">
-                          Description
-                        </label>
-                        <input
-                          value={lesson.description ?? ""}
-                          onChange={(e) =>
-                            updateLesson(li, "description", e.target.value)
-                          }
-                          placeholder="Enter description (optional)"
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-
-                      {/* Sessions Table */}
-                      {sessionCount > 0 && (
-                        <div className="pl-8">
-                          {/* Table Header */}
-                          <div className="grid grid-cols-[160px_1fr_1fr_48px] gap-3 mb-2">
-                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                              Type
-                            </span>
-                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                              Topic
-                            </span>
-                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                              Student Tasks
-                            </span>
-                            <span />
-                          </div>
-
-                          {/* Session Rows */}
-                          <div className="space-y-2">
-                            {(lesson.sessions ?? []).map((session, si) => (
-                              <div
-                                key={si}
-                                className="grid grid-cols-[160px_1fr_1fr_48px] gap-3 items-center"
-                              >
-                                <select
-                                  value={session.type ?? "VIDEO_LECTURE"}
-                                  onChange={(e) =>
-                                    updateSession(
-                                      li,
-                                      si,
-                                      "type",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                  <option value="" disabled>
-                                    Select type
-                                  </option>
-                                  {SESSION_TYPE_OPTIONS.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                      {opt.label}
-                                    </option>
-                                  ))}
-                                </select>
-                                <input
-                                  value={session.topic ?? ""}
-                                  onChange={(e) =>
-                                    updateSession(
-                                      li,
-                                      si,
-                                      "topic",
-                                      e.target.value,
-                                    )
-                                  }
-                                  placeholder="Topic"
-                                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                                <input
-                                  value={session.studentTasks ?? ""}
-                                  onChange={(e) =>
-                                    updateSession(
-                                      li,
-                                      si,
-                                      "studentTasks",
-                                      e.target.value,
-                                    )
-                                  }
-                                  placeholder="Tasks"
-                                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => removeSession(li, si)}
-                                  className="flex items-center justify-center h-9 w-9 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition-colors"
-                                >
-                                  <Trash2 size={15} />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </>
+                  {/* Lesson Footer - delete */}
+                  {lessons.length > 1 && !isCollapsed && (
+                    <div className="px-5 py-2 border-t border-gray-100 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => removeLesson(li)}
+                        className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1"
+                      >
+                        <Trash2 size={12} />
+                        Remove Lesson
+                      </button>
+                    </div>
                   )}
                 </div>
+              );
+            })}
 
-                {/* Lesson Footer - delete */}
-                {lessons.length > 1 && !isCollapsed && (
-                  <div className="px-5 py-2 border-t border-gray-100 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => removeLesson(li)}
-                      className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1"
-                    >
-                      <Trash2 size={12} />
-                      Remove Lesson
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {/* Add lesson dashed button */}
-          <button
-            type="button"
-            onClick={addLesson}
-            className="w-full py-3 text-sm border-2 border-dashed border-gray-300 rounded-xl text-gray-400 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
-          >
-            <Plus size={16} />
-            Add Another Lesson
-          </button>
+            {/* Add lesson dashed button */}
+            <button
+              type="button"
+              onClick={addLesson}
+              className="w-full py-3 text-sm border-2 border-dashed border-gray-300 rounded-xl text-gray-400 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+            >
+              <Plus size={16} />
+              Add Another Lesson
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -853,10 +875,6 @@ export function OutlineTab({ courseId, course }: OutlineTabProps) {
   const [deleteSession, setDeleteSession] = useState<SessionResponse | null>(
     null,
   );
-
-  // Import/export modals
-  const [lessonImportExportOpen, setLessonImportExportOpen] = useState(false);
-  const [sessionImportExportOpen, setSessionImportExportOpen] = useState(false);
 
   // Batch outline modal
   const [batchModalOpen, setBatchModalOpen] = useState(false);
@@ -959,80 +977,6 @@ export function OutlineTab({ courseId, course }: OutlineTabProps) {
     }
   };
 
-  // ── Import/Export handlers ─────────────────────────────────
-  const handleOutlineImport = async (file: File) => {
-    const result = await batchOutlineApi.importOutline(courseId, file);
-    void loadData();
-    return result;
-  };
-
-  const handleOutlineExport = async () => {
-    try {
-      const blob = await batchOutlineApi.exportOutline(courseId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-      a.download = `outline_${courseId}_${date}.xlsx`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success("Outline exported");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to export outline");
-    }
-  };
-
-  const handleOutlineTemplate = async () => {
-    try {
-      const blob = await batchOutlineApi.downloadTemplate();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "outline_template.xlsx";
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch {
-      toast.error("Failed to download template");
-    }
-  };
-
-  const handleSessionImport = async (file: File) => {
-    if (!sessionLessonId) return;
-    const result = await sessionService.importSessions(sessionLessonId, file);
-    void loadSessions(sessionLessonId);
-    return result;
-  };
-
-  const handleSessionExport = async () => {
-    if (!sessionLessonId) return;
-    try {
-      const blob = await sessionService.exportSessions(sessionLessonId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `sessions_${sessionLessonId}.xlsx`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success("Sessions exported");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to export sessions");
-    }
-  };
-
-  const handleSessionTemplate = async () => {
-    try {
-      const blob = await sessionService.downloadSessionTemplate();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "sessions_template.xlsx";
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch {
-      toast.error("Failed to download template");
-    }
-  };
-
   return (
     <div className="space-y-4">
       {/* Top bar */}
@@ -1041,13 +985,25 @@ export function OutlineTab({ courseId, course }: OutlineTabProps) {
           Course Outlines
         </span>
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => setLessonImportExportOpen(true)}
-          >
-            <DatabaseBackup className="h-4 w-4" />
-            Import / Export
-          </Button>
+          <EntityImportExportButton
+            title="Outline"
+            useImportHook={() => ({
+              mutateAsync: async (file: File) => {
+                const result = await batchOutlineApi.importOutline(
+                  courseId,
+                  file,
+                );
+                void loadData();
+                return result;
+              },
+            })}
+            useExportHook={() => ({
+              mutateAsync: () => batchOutlineApi.exportOutline(courseId),
+            })}
+            useTemplateHook={() => ({
+              mutateAsync: () => batchOutlineApi.downloadTemplate(),
+            })}
+          />
           <Button
             variant="secondary"
             onClick={() => setBatchModalOpen(true)}
@@ -1122,10 +1078,8 @@ export function OutlineTab({ courseId, course }: OutlineTabProps) {
                 setEditingSession(s);
                 setPanelOpen(true);
               }}
-              onSessionImportExport={() => {
-                setSessionLessonId(lesson.id);
-                setSessionImportExportOpen(true);
-              }}
+              lessonId={lesson.id}
+              onReloadSessions={() => loadSessions(lesson.id)}
               onDeleteSession={(s) => setDeleteSession(s)}
               onSessionDragStart={(i) => {
                 sessionDragIdx.current = i;
@@ -1207,26 +1161,6 @@ export function OutlineTab({ courseId, course }: OutlineTabProps) {
           course={course ?? { id: courseId, courseName: "", courseCode: "" }}
         />
       )}
-
-      {/* Outline Import/Export */}
-      <ImportExportModal
-        title="Outline"
-        open={lessonImportExportOpen}
-        setOpen={setLessonImportExportOpen}
-        onImport={handleOutlineImport}
-        onExport={handleOutlineExport}
-        onDownloadTemplate={handleOutlineTemplate}
-      />
-
-      {/* Session Import/Export */}
-      <ImportExportModal
-        title="Sessions"
-        open={sessionImportExportOpen}
-        setOpen={setSessionImportExportOpen}
-        onImport={handleSessionImport}
-        onExport={handleSessionExport}
-        onDownloadTemplate={handleSessionTemplate}
-      />
     </div>
   );
 }

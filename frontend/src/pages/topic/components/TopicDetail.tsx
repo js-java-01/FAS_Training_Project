@@ -92,10 +92,11 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 text-sm transition-all ${activeTab === tab
-                ? "border-b-2 border-blue-600 text-blue-600 font-medium"
-                : "text-gray-500 hover:text-gray-700"
-                }`}
+              className={`pb-2 text-sm transition-all ${
+                activeTab === tab
+                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
             >
               {tab}
             </button>
@@ -134,26 +135,6 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
             Done
           </button>
         )}
-        {activeTab === "Outline & Schedule" && !outlineEditing && (
-          <PermissionGate permission="TOPIC_UPDATE">
-            <button
-              onClick={() => setOutlineEditing(true)}
-              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              <FiEdit /> Edit
-            </button>
-          </PermissionGate>
-        )}
-        {activeTab === "Outline & Schedule" && outlineEditing && (
-          <PermissionGate permission="TOPIC_UPDATE">
-            <button
-              onClick={() => setOutlineEditing(false)}
-              className="flex items-center text-sm gap-2 mb-2 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors"
-            >
-              Done
-            </button>
-          </PermissionGate>
-        )}
       </div>
 
       {/* CONTENT: OVERVIEW - READ ONLY */}
@@ -179,10 +160,11 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
                 )}
               </div>
               <span
-                className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${topic.status === "ACTIVE"
+                className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${
+                  topic.status === "ACTIVE"
                     ? "text-emerald-700 border-emerald-300"
                     : "text-gray-500 border-gray-300"
-                  }`}
+                }`}
               >
                 {topic.status}
               </span>
@@ -301,18 +283,14 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
 
       {/* OUTLINE & SCHEDULE TAB */}
       {activeTab === "Outline & Schedule" && (
-        <TopicOutlineTab
-          topicId={topic.id}
-          isEditMode={outlineEditing}
-        />
+        <TopicOutlineTab topicId={topic.id} isEditMode={outlineEditing} />
       )}
 
-      {activeTab === "Objectives" && (
-        <TopicObjectivesPage topicId={topic.id} />
-      )}
+      {activeTab === "Objectives" && <TopicObjectivesPage topicId={topic.id} />}
 
       {/* OTHER TABS PLACEHOLDER */}
-      {activeTab !== "Overview" && activeTab !== "Objectives" &&
+      {activeTab !== "Overview" &&
+        activeTab !== "Objectives" &&
         activeTab !== "Skills" &&
         activeTab !== "Delivery Principles" &&
         activeTab !== "Assessment Scheme" &&

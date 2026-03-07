@@ -7,7 +7,6 @@ import {
   Loader2,
   Plus,
   Trash2,
-  DatabaseBackup,
   Layers,
   Sparkles,
 } from "lucide-react";
@@ -34,7 +33,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
-import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
+import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
 import {
   topicBatchOutlineApi,
   type TopicLessonBatchItem,
@@ -114,8 +113,6 @@ function TopicBatchOutlineModal({
       setCollapsed({});
     }
   }, [open]);
-
-  if (!open) return null;
 
   const toggleCollapse = (idx: number) =>
     setCollapsed((p) => ({ ...p, [idx]: !p[idx] }));
@@ -224,247 +221,257 @@ function TopicBatchOutlineModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      {/* ── Top Header Bar ── */}
-      <div className="flex items-center justify-between px-6 py-4 border-b bg-white shrink-0">
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">
-            Create Batch Lessons with Sessions
-          </h1>
-          <p className="text-sm text-gray-400 mt-0.5">
-            Create multiple lessons and sessions at once for this topic.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={addBatchLesson}
-            className="gap-1.5"
-          >
-            <Plus className="h-4 w-4" /> Add Lesson
-          </Button>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleBatchSubmit}
-            disabled={batchLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
-          >
-            {batchLoading ? "Creating..." : "Create Batch"}
-          </Button>
-        </div>
-      </div>
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        className="w-[80vw] sm:max-w-[80vw] flex flex-col p-0 gap-0"
+      >
+        {/* ── Header ── */}
+        <SheetHeader className="flex flex-row items-center justify-between px-6 py-4 border-b shrink-0 space-y-0">
+          <div>
+            <SheetTitle className="text-base font-semibold text-gray-900">
+              Create Batch Lessons with Sessions
+            </SheetTitle>
+            <SheetDescription className="text-sm text-gray-400 mt-0.5">
+              Create multiple lessons and sessions at once for this topic.
+            </SheetDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={addBatchLesson}
+              className="gap-1.5"
+            >
+              <Plus className="h-4 w-4" /> Add Lesson
+            </Button>
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBatchSubmit}
+              disabled={batchLoading}
+              className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
+            >
+              {batchLoading ? "Creating..." : "Create Batch"}
+            </Button>
+          </div>
+        </SheetHeader>
 
-      {/* ── Content ── */}
-      <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-        <div className="max-w-[1200px] mx-auto space-y-4">
-          {batchLessons.map((lesson, li) => {
-            const isCollapsed = !!collapsed[li];
-            const sessionCount = (lesson.sessions ?? []).length;
-            return (
-              <div
-                key={li}
-                className="border border-gray-200 rounded-xl bg-white shadow-sm"
-              >
-                {/* Lesson card header */}
-                <div className="px-5 py-4 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <button
-                      type="button"
-                      onClick={() => toggleCollapse(li)}
-                      className="mt-1 text-gray-400 hover:text-gray-600 shrink-0"
-                    >
-                      {isCollapsed ? (
-                        <ChevronRight size={18} />
-                      ) : (
-                        <ChevronDown size={18} />
-                      )}
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1">
-                          <label className="text-xs font-medium text-gray-500 mb-1 block">
-                            Lesson Name *
-                          </label>
-                          <input
-                            value={lesson.lessonName}
-                            onChange={(e) =>
-                              updateBatchLesson(
-                                li,
-                                "lessonName",
-                                e.target.value,
-                              )
-                            }
-                            placeholder="Enter lesson name"
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                        <div className="text-center shrink-0">
-                          <label className="text-xs font-medium text-gray-500 mb-1 block">
-                            Sessions
-                          </label>
-                          <span className="inline-block text-sm font-semibold text-gray-700 py-2">
-                            {sessionCount}
-                          </span>
-                        </div>
-                        <div className="shrink-0 flex items-end pb-0.5">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => addBatchSession(li)}
-                            className="gap-1 h-9"
-                          >
-                            <Plus size={14} /> Add Session
-                          </Button>
+        {/* ── Content ── */}
+        <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+          <div className="space-y-4">
+            {batchLessons.map((lesson, li) => {
+              const isCollapsed = !!collapsed[li];
+              const sessionCount = (lesson.sessions ?? []).length;
+              return (
+                <div
+                  key={li}
+                  className="border border-gray-200 rounded-xl bg-white shadow-sm"
+                >
+                  {/* Lesson card header */}
+                  <div className="px-5 py-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleCollapse(li)}
+                        className="mt-1 text-gray-400 hover:text-gray-600 shrink-0"
+                      >
+                        {isCollapsed ? (
+                          <ChevronRight size={18} />
+                        ) : (
+                          <ChevronDown size={18} />
+                        )}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <label className="text-xs font-medium text-gray-500 mb-1 block">
+                              Lesson Name *
+                            </label>
+                            <input
+                              value={lesson.lessonName}
+                              onChange={(e) =>
+                                updateBatchLesson(
+                                  li,
+                                  "lessonName",
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Enter lesson name"
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                          <div className="text-center shrink-0">
+                            <label className="text-xs font-medium text-gray-500 mb-1 block">
+                              Sessions
+                            </label>
+                            <span className="inline-block text-sm font-semibold text-gray-700 py-2">
+                              {sessionCount}
+                            </span>
+                          </div>
+                          <div className="shrink-0 flex items-end pb-0.5">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addBatchSession(li)}
+                              className="gap-1 h-9"
+                            >
+                              <Plus size={14} /> Add Session
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
+
+                    {!isCollapsed && (
+                      <>
+                        <div className="pl-8">
+                          <label className="text-xs font-medium text-gray-500 mb-1 block">
+                            Description
+                          </label>
+                          <input
+                            value={lesson.description ?? ""}
+                            onChange={(e) =>
+                              updateBatchLesson(
+                                li,
+                                "description",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Enter description (optional)"
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+
+                        {/* Sessions table */}
+                        {sessionCount > 0 && (
+                          <div className="pl-8">
+                            <div className="grid grid-cols-[180px_1fr_100px_1fr_48px] gap-3 mb-2">
+                              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Delivery Type
+                              </span>
+                              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Content
+                              </span>
+                              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Duration (min)
+                              </span>
+                              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Note
+                              </span>
+                              <span />
+                            </div>
+                            <div className="space-y-2">
+                              {(lesson.sessions ?? []).map((session, si) => (
+                                <div
+                                  key={si}
+                                  className="grid grid-cols-[180px_1fr_100px_1fr_48px] gap-3 items-center"
+                                >
+                                  <select
+                                    value={
+                                      session.deliveryType ?? "VIDEO_LECTURE"
+                                    }
+                                    onChange={(e) =>
+                                      updateBatchSession(
+                                        li,
+                                        si,
+                                        "deliveryType",
+                                        e.target.value,
+                                      )
+                                    }
+                                    className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  >
+                                    {DELIVERY_TYPE_OPTIONS.map((opt) => (
+                                      <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <input
+                                    value={session.content ?? ""}
+                                    onChange={(e) =>
+                                      updateBatchSession(
+                                        li,
+                                        si,
+                                        "content",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Content"
+                                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    value={session.duration ?? 60}
+                                    onChange={(e) =>
+                                      updateBatchSession(
+                                        li,
+                                        si,
+                                        "duration",
+                                        Number(e.target.value),
+                                      )
+                                    }
+                                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                  <input
+                                    value={session.note ?? ""}
+                                    onChange={(e) =>
+                                      updateBatchSession(
+                                        li,
+                                        si,
+                                        "note",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Note"
+                                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeBatchSession(li, si)}
+                                    className="flex items-center justify-center h-9 w-9 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition-colors"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
 
-                  {!isCollapsed && (
-                    <>
-                      <div className="pl-8">
-                        <label className="text-xs font-medium text-gray-500 mb-1 block">
-                          Description
-                        </label>
-                        <input
-                          value={lesson.description ?? ""}
-                          onChange={(e) =>
-                            updateBatchLesson(li, "description", e.target.value)
-                          }
-                          placeholder="Enter description (optional)"
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      {/* Sessions table */}
-                      {sessionCount > 0 && (
-                        <div className="pl-8">
-                          <div className="grid grid-cols-[180px_1fr_100px_1fr_48px] gap-3 mb-2">
-                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                              Delivery Type
-                            </span>
-                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                              Content
-                            </span>
-                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                              Duration (min)
-                            </span>
-                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                              Note
-                            </span>
-                            <span />
-                          </div>
-                          <div className="space-y-2">
-                            {(lesson.sessions ?? []).map((session, si) => (
-                              <div
-                                key={si}
-                                className="grid grid-cols-[180px_1fr_100px_1fr_48px] gap-3 items-center"
-                              >
-                                <select
-                                  value={
-                                    session.deliveryType ?? "VIDEO_LECTURE"
-                                  }
-                                  onChange={(e) =>
-                                    updateBatchSession(
-                                      li,
-                                      si,
-                                      "deliveryType",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                  {DELIVERY_TYPE_OPTIONS.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                      {opt.label}
-                                    </option>
-                                  ))}
-                                </select>
-                                <input
-                                  value={session.content ?? ""}
-                                  onChange={(e) =>
-                                    updateBatchSession(
-                                      li,
-                                      si,
-                                      "content",
-                                      e.target.value,
-                                    )
-                                  }
-                                  placeholder="Content"
-                                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                                <input
-                                  type="number"
-                                  min={1}
-                                  value={session.duration ?? 60}
-                                  onChange={(e) =>
-                                    updateBatchSession(
-                                      li,
-                                      si,
-                                      "duration",
-                                      Number(e.target.value),
-                                    )
-                                  }
-                                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                                <input
-                                  value={session.note ?? ""}
-                                  onChange={(e) =>
-                                    updateBatchSession(
-                                      li,
-                                      si,
-                                      "note",
-                                      e.target.value,
-                                    )
-                                  }
-                                  placeholder="Note"
-                                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => removeBatchSession(li, si)}
-                                  className="flex items-center justify-center h-9 w-9 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition-colors"
-                                >
-                                  <Trash2 size={15} />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </>
+                  {/* Lesson footer — remove */}
+                  {batchLessons.length > 1 && !isCollapsed && (
+                    <div className="px-5 py-2 border-t border-gray-100 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => removeBatchLesson(li)}
+                        className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1"
+                      >
+                        <Trash2 size={12} /> Remove Lesson
+                      </button>
+                    </div>
                   )}
                 </div>
+              );
+            })}
 
-                {/* Lesson footer — remove */}
-                {batchLessons.length > 1 && !isCollapsed && (
-                  <div className="px-5 py-2 border-t border-gray-100 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => removeBatchLesson(li)}
-                      className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1"
-                    >
-                      <Trash2 size={12} /> Remove Lesson
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {/* Dashed add-another-lesson button */}
-          <button
-            type="button"
-            onClick={addBatchLesson}
-            className="w-full py-3 text-sm border-2 border-dashed border-gray-300 rounded-xl text-gray-400 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
-          >
-            <Plus size={16} /> Add Another Lesson
-          </button>
+            {/* Dashed add-another-lesson button */}
+            <button
+              type="button"
+              onClick={addBatchLesson}
+              className="w-full py-3 text-sm border-2 border-dashed border-gray-300 rounded-xl text-gray-400 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+            >
+              <Plus size={16} /> Add Another Lesson
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -522,14 +529,8 @@ export function TopicOutlineTab({ topicId }: Props) {
   );
   const [deletingSession, setDeletingSession] =
     useState<TopicSessionResponse | null>(null);
-  const [lessonImportExportOpen, setLessonImportExportOpen] = useState(false);
-  const [sessionImportExportOpen, setSessionImportExportOpen] = useState(false);
-  const [batchImportExportOpen, setBatchImportExportOpen] = useState(false);
   const [batchCreateOpen, setBatchCreateOpen] = useState(false);
   const [aiPreviewOpen, setAiPreviewOpen] = useState(false);
-  const [selectedSessionLessonId, setSelectedSessionLessonId] = useState<
-    string | null
-  >(null);
 
   /* ── Drag-and-drop ── */
   const lessonDragIdx = useRef<number | null>(null);
@@ -785,120 +786,6 @@ export function TopicOutlineTab({ topicId }: Props) {
     }
   };
 
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleSessionImport = async (file: File) => {
-    if (!selectedSessionLessonId) {
-      throw new Error("Please select a lesson before importing sessions.");
-    }
-    const result = await topicSessionApi.importSessions(
-      selectedSessionLessonId,
-      file,
-    );
-    await fetchSessions(selectedSessionLessonId);
-    return result;
-  };
-
-  const handleSessionExport = async () => {
-    if (!selectedSessionLessonId) {
-      toast.error("Please select a lesson before exporting sessions.");
-      return;
-    }
-
-    try {
-      const blob = await topicSessionApi.exportSessions(
-        selectedSessionLessonId,
-      );
-      downloadBlob(blob, `topic-sessions-${selectedSessionLessonId}.xlsx`);
-      toast.success("Sessions exported");
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message || "Failed to export sessions",
-      );
-    }
-  };
-
-  const handleSessionTemplate = async () => {
-    try {
-      const blob = await topicSessionApi.downloadSessionTemplate();
-      downloadBlob(blob, "topic-sessions-template.xlsx");
-    } catch {
-      toast.error("Failed to download template");
-    }
-  };
-
-  const validateImportFile = (file: File): string | null => {
-    if (!file.name.match(/\.(xlsx|xls)$/i)) {
-      return "Invalid file format. Only Excel files (.xlsx, .xls) are allowed.";
-    }
-
-    const maxSize = 50 * 1024 * 1024;
-    if (file.size > maxSize) {
-      return "File size exceeds 50MB limit.";
-    }
-
-    return null;
-  };
-
-  const handleLessonImport = async (file: File) => {
-    const result = await topicApi.importLessons(topicId, file);
-    await fetchLessons();
-    return result;
-  };
-
-  const handleLessonExport = async () => {
-    try {
-      const blob = await topicApi.exportLessons(topicId);
-      downloadBlob(blob, `topic-lessons-${topicId}.xlsx`);
-      toast.success("Lessons exported");
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to export lessons");
-    }
-  };
-
-  const handleLessonTemplate = async () => {
-    try {
-      const blob = await topicApi.downloadLessonTemplate(topicId);
-      downloadBlob(blob, "topic-lessons-template.xlsx");
-    } catch {
-      toast.error("Failed to download lesson template");
-    }
-  };
-
-  const handleBatchExport = async () => {
-    try {
-      const blob = await topicBatchOutlineApi.exportOutline(topicId);
-      downloadBlob(blob, `topic-outline-${topicId}.xlsx`);
-      toast.success("Outline exported");
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to export outline");
-    }
-  };
-
-  const handleBatchImport = async (file: File) => {
-    const result = await topicBatchOutlineApi.importOutline(topicId, file);
-    await fetchLessons();
-    return result;
-  };
-
-  const handleBatchTemplate = async () => {
-    try {
-      const blob = await topicBatchOutlineApi.downloadTemplate(topicId);
-      downloadBlob(blob, "topic-outline-template.xlsx");
-    } catch {
-      toast.error("Failed to download batch outline template");
-    }
-  };
-
   /* ─── Drag handlers ──────────────────────────────────────── */
   const handleLessonDrop = (targetIdx: number) => {
     const fromIdx = lessonDragIdx.current;
@@ -946,14 +833,25 @@ export function TopicOutlineTab({ topicId }: Props) {
           Topic Outlines
         </span>
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => setBatchImportExportOpen(true)}
-            className="gap-2"
-          >
-            <DatabaseBackup className="h-4 w-4" />
-            Import / Export
-          </Button>
+          <EntityImportExportButton
+            title="Topic Batch Outline"
+            useImportHook={() => ({
+              mutateAsync: async (file: File) => {
+                const result = await topicBatchOutlineApi.importOutline(
+                  topicId,
+                  file,
+                );
+                await fetchLessons();
+                return result;
+              },
+            })}
+            useExportHook={() => ({
+              mutateAsync: () => topicBatchOutlineApi.exportOutline(topicId),
+            })}
+            useTemplateHook={() => ({
+              mutateAsync: () => topicBatchOutlineApi.downloadTemplate(topicId),
+            })}
+          />
           <Button
             variant="secondary"
             onClick={() => setBatchCreateOpen(true)}
@@ -1078,18 +976,28 @@ export function TopicOutlineTab({ topicId }: Props) {
                         Sessions
                       </span>
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedSessionLessonId(lesson.id);
-                            setSessionImportExportOpen(true);
-                          }}
-                          className="h-7 text-xs gap-1.5"
-                        >
-                          <DatabaseBackup className="h-3.5 w-3.5" />
-                          Import / Export
-                        </Button>
+                        <EntityImportExportButton
+                          title="Topic Sessions"
+                          useImportHook={() => ({
+                            mutateAsync: async (file: File) => {
+                              const result =
+                                await topicSessionApi.importSessions(
+                                  lesson.id,
+                                  file,
+                                );
+                              await fetchSessions(lesson.id);
+                              return result;
+                            },
+                          })}
+                          useExportHook={() => ({
+                            mutateAsync: () =>
+                              topicSessionApi.exportSessions(lesson.id),
+                          })}
+                          useTemplateHook={() => ({
+                            mutateAsync: () =>
+                              topicSessionApi.downloadSessionTemplate(),
+                          })}
+                        />
                         <button
                           onClick={() => openCreateSession(lesson.id)}
                           className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
@@ -1552,39 +1460,6 @@ export function TopicOutlineTab({ topicId }: Props) {
         message="Are you sure you want to delete this session? This action cannot be undone."
         onCancel={() => setDeletingSession(null)}
         onConfirm={handleDeleteSession}
-      />
-
-      <ImportExportModal
-        title="Topic Lessons"
-        open={lessonImportExportOpen}
-        setOpen={setLessonImportExportOpen}
-        onImport={handleLessonImport}
-        onExport={handleLessonExport}
-        onDownloadTemplate={handleLessonTemplate}
-        acceptedFileTypes=".xlsx,.xls"
-        validateFile={validateImportFile}
-      />
-
-      <ImportExportModal
-        title="Topic Sessions"
-        open={sessionImportExportOpen}
-        setOpen={setSessionImportExportOpen}
-        onImport={handleSessionImport}
-        onExport={handleSessionExport}
-        onDownloadTemplate={handleSessionTemplate}
-        acceptedFileTypes=".xlsx,.xls"
-        validateFile={validateImportFile}
-      />
-
-      <ImportExportModal
-        title="Topic Batch Outline"
-        open={batchImportExportOpen}
-        setOpen={setBatchImportExportOpen}
-        onImport={handleBatchImport}
-        onExport={handleBatchExport}
-        onDownloadTemplate={handleBatchTemplate}
-        acceptedFileTypes=".xlsx,.xls"
-        validateFile={validateImportFile}
       />
 
       <TopicBatchOutlineModal

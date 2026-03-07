@@ -1,9 +1,5 @@
 import { useState } from "react";
-import {
-  DatabaseBackup,
-  Upload,
-  Download,
-} from "lucide-react";
+import { DatabaseBackup, Upload, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ImportExportModal from "@/components/modal/import-export/ImportExportModal";
 import { toast } from "sonner";
@@ -46,7 +42,10 @@ export default function EntityImportExportButton({
     link.remove();
     window.URL.revokeObjectURL(url);
   };
-  const base64ToBlob = (base64: string, mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"): Blob => {
+  const base64ToBlob = (
+    base64: string,
+    mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ): Blob => {
     const byteCharacters = atob(base64);
     const byteNumbers = new Array(byteCharacters.length);
 
@@ -66,14 +65,17 @@ export default function EntityImportExportButton({
       const errorBlob = res.errorFile ? base64ToBlob(res.errorFile) : undefined;
 
       return {
-        message: res.failedCount > 0 ? "Import finished with some errors." : "Import successful!",
-        totalRows: res.totalCount,
-        successCount: res.successCount,
-        failedCount: res.failedCount,
-        errors: [],
+        message:
+          res.message ??
+          (res.failedCount > 0
+            ? "Import finished with some errors."
+            : "Import successful!"),
+        totalRows: res.totalRows ?? res.totalCount ?? 0,
+        successCount: res.successCount ?? 0,
+        failedCount: res.failedCount ?? 0,
+        errors: res.errors ?? [],
         errorBlob: errorBlob,
       };
-
     } catch (err: any) {
       const errorData = err?.response?.data;
       toast.error(errorData?.message ?? `Failed to import ${title}`);
@@ -89,9 +91,7 @@ export default function EntityImportExportButton({
 
       downloadBlob(
         blob,
-        `${title.toLowerCase()}_${dayjs().format(
-          "DD-MM-YYYY_HH-mm-ss"
-        )}.xlsx`
+        `${title.toLowerCase()}_${dayjs().format("DD-MM-YYYY_HH-mm-ss")}.xlsx`,
       );
 
       toast.success(`${title} exported successfully`);
@@ -109,8 +109,8 @@ export default function EntityImportExportButton({
       downloadBlob(
         blob,
         `${title.toLowerCase()}_template_${dayjs().format(
-          "DD-MM-YYYY_HH-mm-ss"
-        )}.xlsx`
+          "DD-MM-YYYY_HH-mm-ss",
+        )}.xlsx`,
       );
 
       toast.success(`Template downloaded successfully`);
