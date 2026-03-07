@@ -2,6 +2,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import type { UserDTO } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import ActionBtn from "@/components/data_table/ActionBtn";
+import { createBaseColumns } from "@/components/data_table/baseColumns";
 import { EditIcon, EyeIcon, Trash, ToggleLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import SortHeader from "@/components/data_table/SortHeader";
@@ -16,6 +17,7 @@ export type UserTableActions = {
 
 export const getColumns = (actions?: UserTableActions) => {
   const columnHelper = createColumnHelper<UserDTO>();
+  const base = createBaseColumns<UserDTO>();
 
   return [
     columnHelper.display({
@@ -119,6 +121,7 @@ export const getColumns = (actions?: UserTableActions) => {
       id: "actions",
       header: "Actions",
       size: 140,
+      enableHiding: false,
       cell: ({ row }) => (
         <div className="flex gap-2">
           {actions?.onView && (
@@ -153,5 +156,8 @@ export const getColumns = (actions?: UserTableActions) => {
       ),
       enableSorting: false,
     }),
+
+    /* ================= COLUMN CONTROL ================= */
+    base.columnControl,
   ];
 };
