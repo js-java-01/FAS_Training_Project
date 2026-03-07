@@ -19,7 +19,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -42,7 +42,7 @@ public class Assessment {
 
     @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({ "assessment" })
-    List<AssessmentQuestion> assessmentQuestions = new ArrayList<>();
+    Set<AssessmentQuestion> assessmentQuestions = new HashSet<>();
 
     @OneToMany(mappedBy = "assessment", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference

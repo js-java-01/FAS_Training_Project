@@ -11,8 +11,26 @@ import java.util.UUID;
 
 @Repository
 public interface AssessmentQuestionRepository extends BaseCrudRepository<AssessmentQuestion, UUID> {
+
     List<AssessmentQuestion> findByAssessmentId(UUID assessmentId);
 
-    @Query("SELECT aq FROM AssessmentQuestion aq LEFT JOIN FETCH aq.options WHERE aq.assessment.id = :assessmentId AND aq.question.id = :questionId")
-    Optional<AssessmentQuestion> findByAssessmentIdAndQuestionId(@Param("assessmentId") UUID assessmentId, @Param("questionId") UUID questionId);
+    @Query("SELECT aq FROM AssessmentQuestion aq " +
+           "LEFT JOIN FETCH aq.options " +
+           "WHERE aq.assessment.id = :assessmentId AND aq.question.id = :questionId")
+    Optional<AssessmentQuestion> findByAssessmentIdAndQuestionId(
+            @Param("assessmentId") UUID assessmentId,
+            @Param("questionId") UUID questionId);
+
+    /**
+     * Load all AssessmentQuestions for an assessment WITH question + options eagerly.
+     * Used by startSubmission to build snapshot — avoids Hibernate 1st-level cache issue
+     * that occurs when fetching through Assessment.assessmentQuestions.
+     */
+    @Query("SELECT DISTINCT aq FROM AssessmentQuestion aq " +
+           "LEFT JOIN FETCH aq.question q " +
+           "LEFT JOIN FETCH aq.options " +
+           "WHERE aq.assessment.id = :assessmentId")
+    List<AssessmentQuestion> findByAssessmentIdWithQuestionAndOptions(
+            @Param("assessmentId") UUID assessmentId);
 }
+

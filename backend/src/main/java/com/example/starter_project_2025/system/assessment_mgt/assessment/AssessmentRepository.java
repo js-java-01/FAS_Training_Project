@@ -16,14 +16,24 @@ public interface AssessmentRepository extends BaseCrudRepository<Assessment, UUI
     Optional<Assessment> findByCode(String code);
 
     /**
-     * Fetch assessment cùng assessmentQuestions + question + options trong 1 query.
-     * Tránh LazyInitializationException khi build SubmissionQuestion snapshot.
+     * Fetch assessment + assessmentQuestions (Set) + question + options (Set) in ONE query.
+     * Safe now because both assessmentQuestions and options are Set (not List/bag).
      */
     @Query("SELECT DISTINCT a FROM Assessment a " +
            "LEFT JOIN FETCH a.assessmentQuestions aq " +
            "LEFT JOIN FETCH aq.question q " +
+           "LEFT JOIN FETCH aq.options " +
            "WHERE a.id = :id")
     Optional<Assessment> findByIdWithQuestions(@Param("id") UUID id);
+
+    /**
+     * Kept for backward compatibility (identical to findByIdWithQuestions).
+     */
+    @Query("SELECT DISTINCT a FROM Assessment a " +
+           "LEFT JOIN FETCH a.assessmentQuestions aq " +
+           "LEFT JOIN FETCH aq.options " +
+           "WHERE a.id = :id")
+    Optional<Assessment> findByIdWithQuestionOptions(@Param("id") UUID id);
 }
 
 

@@ -3,11 +3,14 @@ package com.example.starter_project_2025.system.assessment_mgt.submission_questi
 import com.example.starter_project_2025.system.assessment_mgt.question.QuestionType;
 import com.example.starter_project_2025.system.assessment_mgt.submission.Submission;
 import com.example.starter_project_2025.system.assessment_mgt.submission_answer.SubmissionAnswer;
+import com.example.starter_project_2025.system.assessment_mgt.submission_question_option.SubmissionQuestionOption;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,4 +57,12 @@ public class SubmissionQuestion {
     )
     @Builder.Default
     private Set<SubmissionAnswer> submissionAnswers = new HashSet<>();
+
+    @OneToMany(
+            mappedBy = "submissionQuestion",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<SubmissionQuestionOption> options = new ArrayList<>();
 }

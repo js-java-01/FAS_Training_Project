@@ -5,6 +5,7 @@ import com.example.starter_project_2025.system.assessment_mgt.assessment.Assessm
 import com.example.starter_project_2025.system.assessment_mgt.assessment.Assessment;
 import com.example.starter_project_2025.system.assessment_mgt.assessment_question.AssessmentQuestion;
 import com.example.starter_project_2025.system.assessment_mgt.assessment_question.AssessmentQuestionRepository;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_question_option.AssessmentQuestionOption;
 import com.example.starter_project_2025.system.assessment_mgt.assessment_type.AssessmentType;
 import com.example.starter_project_2025.system.assessment_mgt.assessment_type.AssessmentTypeRepository;
 import com.example.starter_project_2025.system.assessment_mgt.question.Question;
@@ -52,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -554,6 +556,18 @@ public class DataInitializer implements CommandLineRunner
         aq.setQuestion(q);
         aq.setScore(score);
         aq.setOrderIndex(order);
+
+        // Copy QuestionOption → AssessmentQuestionOption (snapshot for this assessment)
+        Set<AssessmentQuestionOption> aqOptions = new HashSet<>();
+        for (QuestionOption qo : q.getOptions()) {
+            AssessmentQuestionOption aqo = new AssessmentQuestionOption();
+            aqo.setContent(qo.getContent());
+            aqo.setCorrect(qo.isCorrect());
+            aqo.setOrderIndex(qo.getOrderIndex());
+            aqo.setAssessmentQuestion(aq);
+            aqOptions.add(aqo);
+        }
+        aq.setOptions(aqOptions);
 
         return aq;
     }

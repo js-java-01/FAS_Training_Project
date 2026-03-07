@@ -18,14 +18,23 @@ public interface SubmissionRepository
            "WHERE s.id = :id")
     Optional<Submission> findByIdWithQuestions(@Param("id") UUID id);
 
+    // Fetch questions + answers only (no options — avoids MultipleBagFetchException)
     @Query("SELECT DISTINCT s FROM Submission s " +
            "LEFT JOIN FETCH s.submissionQuestions sq " +
            "LEFT JOIN FETCH sq.submissionAnswers " +
            "WHERE s.id = :id")
     Optional<Submission> findByIdWithQuestionsAndAnswers(@Param("id") UUID id);
 
+    // Fetch questions + options snapshot only
+    @Query("SELECT DISTINCT s FROM Submission s " +
+           "LEFT JOIN FETCH s.submissionQuestions sq " +
+           "LEFT JOIN FETCH sq.options " +
+           "WHERE s.id = :id")
+    Optional<Submission> findByIdWithQuestionsAndOptions(@Param("id") UUID id);
+
     @Query("SELECT COUNT(s) FROM Submission s " +
-           "WHERE s.user.id = :userId AND s.assessment.id = :assessmentId")
+           "WHERE s.user.id = :userId AND s.assessment.id = :assessmentId " +
+           "AND s.status = 'SUBMITTED'")
     int countByUserIdAndAssessmentId(@Param("userId") UUID userId,
                                      @Param("assessmentId") UUID assessmentId);
 

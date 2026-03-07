@@ -8,7 +8,6 @@ import com.example.starter_project_2025.system.assessment_mgt.assessment.Assessm
 import com.example.starter_project_2025.system.assessment_mgt.assessment_question.AssessmentQuestion;
 import com.example.starter_project_2025.system.assessment_mgt.assessment_question.AssessmentQuestionRepository;
 import com.example.starter_project_2025.system.assessment_mgt.assessment_question_option.AssessmentQuestionOption;
-import com.example.starter_project_2025.system.assessment_mgt.assessment_question_option.AssessmentQuestionOptionRepository;
 import com.example.starter_project_2025.system.assessment_mgt.question.QuestionType;
 import com.example.starter_project_2025.system.assessment_mgt.submission.request.StartSubmissionRequest;
 import com.example.starter_project_2025.system.assessment_mgt.submission.request.SubmitAnswerRequest;
@@ -18,6 +17,7 @@ import com.example.starter_project_2025.system.assessment_mgt.submission.respons
 import com.example.starter_project_2025.system.assessment_mgt.submission.response.SubmissionResultResponse;
 import com.example.starter_project_2025.system.assessment_mgt.submission_answer.SubmissionAnswer;
 import com.example.starter_project_2025.system.assessment_mgt.submission_question.SubmissionQuestion;
+import com.example.starter_project_2025.system.assessment_mgt.submission_question_option.SubmissionQuestionOption;
 import com.example.starter_project_2025.system.rbac.user.User;
 import com.example.starter_project_2025.system.rbac.user.UserRepository;
 import lombok.AccessLevel;
@@ -49,7 +49,6 @@ public class SubmissonServiceImpl
     UserRepository userRepository;
     AssessmentRepository assessmentRepository;
     AssessmentQuestionRepository assessmentQuestionRepository;
-    AssessmentQuestionOptionRepository assessmentQuestionOptionRepository;
 
     @Override
     protected BaseCrudRepository<Submission, UUID> getRepository() {
@@ -104,21 +103,39 @@ public class SubmissonServiceImpl
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found: " + email));
 
-        Assessment assessment = assessmentRepository.findByIdWithQuestions(request.getAssessmentId())
+        Assessment assessment = assessmentRepository.findById(request.getAssessmentId())
                 .orElseThrow(() -> new RuntimeException("Assessment not found"));
 
-        // Check attempt limit
+        List<AssessmentQuestion> assessmentQuestions =
+                assessmentQuestionRepository.findByAssessmentIdWithQuestionAndOptions(assessment.getId());
+
+        log.debug("startSubmission: assessmentId={} questionCount={}",
+                assessment.getId(), assessmentQuestions.size());
+
+        // Validate: assessment must have at least one question
+        if (assessmentQuestions.isEmpty()) {
+            throw new RuntimeException("This assessment has no questions. Please contact your instructor.");
+        }
+
+        // Return existing IN_PROGRESS submission first (resume it, don't count as new attempt)
+        Optional<Submission> existing =
+                submissionRepository.findInProgressByUserAndAssessment(user.getId(), assessment.getId());
+        if (existing.isPresent()) {
+            Submission existingFull = loadSubmissionFull(existing.get().getId());
+            // If the existing IN_PROGRESS has questions → resume it
+            if (!existingFull.getSubmissionQuestions().isEmpty()) {
+                return buildSubmissionResponse(existingFull, false);
+            }
+            // Otherwise it's a broken/empty submission → delete and create fresh
+            log.warn("Found empty IN_PROGRESS submission {}, deleting and recreating", existingFull.getId());
+            submissionRepository.delete(existingFull);
+        }
+
+        // Count only SUBMITTED attempts (IN_PROGRESS does not consume an attempt slot)
         int attemptCount = submissionRepository.countByUserIdAndAssessmentId(user.getId(), assessment.getId());
         if (assessment.getAttemptLimit() != null && attemptCount >= assessment.getAttemptLimit()) {
             throw new RuntimeException(
                     "You have reached the maximum number of attempts (" + assessment.getAttemptLimit() + ") for this assessment");
-        }
-
-        // Return existing IN_PROGRESS submission if any
-        Optional<Submission> existing =
-                submissionRepository.findInProgressByUserAndAssessment(user.getId(), assessment.getId());
-        if (existing.isPresent()) {
-            return buildSubmissionResponse(existing.get(), false);
         }
 
         // Build new submission
@@ -132,8 +149,7 @@ public class SubmissonServiceImpl
                 .attemptNumber(attemptCount + 1)
                 .build();
 
-        // Snapshot questions from AssessmentQuestion → Question
-        List<AssessmentQuestion> assessmentQuestions = new ArrayList<>(assessment.getAssessmentQuestions());
+        // Shuffle if needed
         if (Boolean.TRUE.equals(assessment.getIsShuffleQuestion())) {
             Collections.shuffle(assessmentQuestions);
         }
@@ -142,7 +158,8 @@ public class SubmissonServiceImpl
         for (AssessmentQuestion aq : assessmentQuestions) {
             String rawType = aq.getQuestion().getQuestionType();
             QuestionType questionType = parseQuestionType(rawType);
-            log.debug("Snapshot question id={} type={} parsed={}", aq.getQuestion().getId(), rawType, questionType);
+            log.debug("Snapshot question id={} type={} options={}",
+                    aq.getQuestion().getId(), rawType, aq.getOptions().size());
 
             SubmissionQuestion sq = SubmissionQuestion.builder()
                     .submission(submission)
@@ -152,6 +169,17 @@ public class SubmissonServiceImpl
                     .score(aq.getScore() != null ? aq.getScore() : 0.0)
                     .orderIndex(Boolean.TRUE.equals(assessment.getIsShuffleQuestion()) ? idx++ : aq.getOrderIndex())
                     .build();
+
+            // Snapshot AssessmentQuestionOption → SubmissionQuestionOption
+            for (AssessmentQuestionOption aqo : aq.getOptions()) {
+                SubmissionQuestionOption sqo = new SubmissionQuestionOption();
+                sqo.setContent(aqo.getContent());
+                sqo.setCorrect(aqo.isCorrect());
+                sqo.setOrderIndex(aqo.getOrderIndex());
+                sqo.setSubmissionQuestion(sq);
+                sq.getOptions().add(sqo);
+            }
+
             submission.getSubmissionQuestions().add(sq);
         }
 
@@ -164,8 +192,7 @@ public class SubmissonServiceImpl
      * POST /api/submissions/{submissionId}/answer
      */
     public SubmissionResponse submitAnswer(UUID submissionId, SubmitAnswerRequest request) {
-        Submission submission = submissionRepository.findByIdWithQuestionsAndAnswers(submissionId)
-                .orElseThrow(() -> new RuntimeException("Submission not found"));
+        Submission submission = loadSubmissionFull(submissionId);
 
         if (submission.getStatus() != SubmissionStatus.IN_PROGRESS) {
             throw new RuntimeException("This submission is no longer in progress");
@@ -204,8 +231,7 @@ public class SubmissonServiceImpl
      * POST /api/submissions/{submissionId}/submit
      */
     public SubmissionResponse submitSubmission(UUID submissionId) {
-        Submission submission = submissionRepository.findByIdWithQuestionsAndAnswers(submissionId)
-                .orElseThrow(() -> new RuntimeException("Submission not found"));
+        Submission submission = loadSubmissionFull(submissionId);
 
         if (submission.getStatus() != SubmissionStatus.IN_PROGRESS) {
             throw new RuntimeException("This submission has already been submitted");
@@ -224,8 +250,7 @@ public class SubmissonServiceImpl
      * GET /api/submissions/{submissionId}/result
      */
     public SubmissionResultResponse getSubmissionResult(UUID submissionId) {
-        Submission submission = submissionRepository.findByIdWithQuestionsAndAnswers(submissionId)
-                .orElseThrow(() -> new RuntimeException("Submission not found"));
+        Submission submission = loadSubmissionFull(submissionId);
 
         if (submission.getStatus() == SubmissionStatus.IN_PROGRESS) {
             throw new RuntimeException("This submission has not been submitted yet");
@@ -239,12 +264,38 @@ public class SubmissonServiceImpl
      * GET /api/submissions/{submissionId}/review
      */
     public SubmissionResponse getSubmissionForReview(UUID submissionId) {
-        Submission submission = submissionRepository.findByIdWithQuestionsAndAnswers(submissionId)
-                .orElseThrow(() -> new RuntimeException("Submission not found"));
+        Submission submission = loadSubmissionFull(submissionId);
         return buildSubmissionResponse(submission, true);
     }
 
     // ==================== Private Helpers ====================
+
+    /**
+     * Load submission with BOTH options snapshot AND answers.
+     * Uses two separate queries to avoid MultipleBagFetchException,
+     * then merges options into the already-loaded question objects.
+     */
+    private Submission loadSubmissionFull(UUID submissionId) {
+        // First: load questions + answers
+        Submission submission = submissionRepository.findByIdWithQuestionsAndAnswers(submissionId)
+                .orElseThrow(() -> new RuntimeException("Submission not found"));
+
+        // Second: load questions + options, then merge into the submission loaded above
+        submissionRepository.findByIdWithQuestionsAndOptions(submissionId).ifPresent(withOptions -> {
+            Map<UUID, List<SubmissionQuestionOption>> optionsMap = withOptions.getSubmissionQuestions().stream()
+                    .collect(Collectors.toMap(
+                            SubmissionQuestion::getId,
+                            sq -> new ArrayList<>(sq.getOptions())
+                    ));
+            submission.getSubmissionQuestions().forEach(sq -> {
+                List<SubmissionQuestionOption> opts = optionsMap.getOrDefault(sq.getId(), Collections.emptyList());
+                sq.getOptions().clear();
+                sq.getOptions().addAll(opts);
+            });
+        });
+
+        return submission;
+    }
 
     private boolean isTimeExpired(Submission submission) {
         Integer limit = submission.getAssessment().getTimeLimitMinutes();
@@ -253,7 +304,7 @@ public class SubmissonServiceImpl
     }
 
     /**
-     * Grade a single answer by comparing selected option IDs with correct ones.
+     * Grade a single answer by comparing selected option IDs with correct ones from SubmissionQuestionOption snapshot.
      */
     private void gradeAnswer(SubmissionQuestion question, SubmissionAnswer answer) {
         try {
@@ -261,17 +312,12 @@ public class SubmissonServiceImpl
                     .map(String::trim).filter(s -> !s.isEmpty())
                     .map(UUID::fromString).collect(Collectors.toSet());
 
-            UUID assessmentId = question.getSubmission().getAssessment().getId();
-            UUID originalQuestionId = question.getOriginalQuestionId();
-
-            List<AssessmentQuestionOption> options = assessmentQuestionRepository
-                    .findByAssessmentIdAndQuestionId(assessmentId, originalQuestionId)
-                    .map(aq -> assessmentQuestionOptionRepository.findByAssessmentQuestionId(aq.getId()))
-                    .orElse(Collections.emptyList());
+            // Use SubmissionQuestionOption snapshot — NOT AssessmentQuestionOption
+            List<SubmissionQuestionOption> options = question.getOptions();
 
             Set<UUID> correct = options.stream()
-                    .filter(AssessmentQuestionOption::isCorrect)
-                    .map(AssessmentQuestionOption::getId)
+                    .filter(SubmissionQuestionOption::isCorrect)
+                    .map(SubmissionQuestionOption::getId)
                     .collect(Collectors.toSet());
 
             boolean isCorrect = !correct.isEmpty() && selected.equals(correct);
@@ -324,16 +370,10 @@ public class SubmissonServiceImpl
     }
 
     private SubmissionQuestionResponse buildQuestionResponse(SubmissionQuestion sq, boolean showCorrectAnswers) {
-        UUID assessmentId = sq.getSubmission().getAssessment().getId();
-        UUID originalQuestionId = sq.getOriginalQuestionId();
-
-        List<AssessmentQuestionOption> options = assessmentQuestionRepository
-                .findByAssessmentIdAndQuestionId(assessmentId, originalQuestionId)
-                .map(aq -> assessmentQuestionOptionRepository.findByAssessmentQuestionId(aq.getId()))
-                .orElse(Collections.emptyList());
+        // Use snapshot SubmissionQuestionOption instead of fetching from AssessmentQuestionOption
+        List<SubmissionQuestionOption> options = new ArrayList<>(sq.getOptions());
 
         if (Boolean.TRUE.equals(sq.getSubmission().getAssessment().getIsShuffleOption())) {
-            options = new ArrayList<>(options);
             Collections.shuffle(options);
         }
 
@@ -353,7 +393,7 @@ public class SubmissonServiceImpl
 
         String correctAnswer = null;
         if (showCorrectAnswers) {
-            correctAnswer = options.stream().filter(AssessmentQuestionOption::isCorrect)
+            correctAnswer = options.stream().filter(SubmissionQuestionOption::isCorrect)
                     .map(o -> o.getId().toString()).collect(Collectors.joining(","));
         }
 

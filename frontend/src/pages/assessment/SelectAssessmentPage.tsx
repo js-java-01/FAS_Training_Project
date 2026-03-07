@@ -48,6 +48,13 @@ export default function SelectAssessmentPage() {
     setStartingId(assessment.id);
     try {
       const submission = await startSubmission(assessment.id);
+
+      // Guard: do not navigate if submission has no questions (assessment not configured)
+      if (!submission.questions || submission.questions.length === 0) {
+        toast.error("This assessment has no questions assigned. Please contact your instructor.");
+        return;
+      }
+
       navigate(`/assessments/quiz/${submission.submissionId}`);
     } catch (err: unknown) {
       // Extract exact message from backend response
