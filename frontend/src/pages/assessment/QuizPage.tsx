@@ -171,7 +171,7 @@ export default function QuizPage() {
         const currentVal = existing?.answerValue ?? "";
         const q = questions.find((q) => q.id === questionId);
         let newValue: string;
-        if (q?.questionType === "MULTI_CHOICE") {
+        if (q?.questionType === "MULTIPLE_CHOICE") {
           const selected = new Set(currentVal ? currentVal.split(",") : []);
           if (selected.has(optionId)) selected.delete(optionId);
           else selected.add(optionId);
@@ -438,7 +438,7 @@ export default function QuizPage() {
                     {sortedOptions.length > 0 ? (
                       sortedOptions.map((opt, idx) => {
                         const isSelected =
-                          question.questionType === "MULTI_CHOICE"
+                          question.questionType === "MULTIPLE_CHOICE"
                             ? currentAnswer.split(",").includes(opt.id)
                             : currentAnswer === opt.id;
                         return (

@@ -6,9 +6,10 @@ import com.example.starter_project_2025.base.crud.CrudServiceImpl;
 import com.example.starter_project_2025.system.assessment_mgt.assessment.Assessment;
 import com.example.starter_project_2025.system.assessment_mgt.assessment.AssessmentRepository;
 import com.example.starter_project_2025.system.assessment_mgt.assessment_question.AssessmentQuestion;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_question.AssessmentQuestionRepository;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_question_option.AssessmentQuestionOption;
+import com.example.starter_project_2025.system.assessment_mgt.assessment_question_option.AssessmentQuestionOptionRepository;
 import com.example.starter_project_2025.system.assessment_mgt.question.QuestionType;
-import com.example.starter_project_2025.system.assessment_mgt.question_option.QuestionOption;
-import com.example.starter_project_2025.system.assessment_mgt.question_option.QuestionOptionRepository;
 import com.example.starter_project_2025.system.assessment_mgt.submission.request.StartSubmissionRequest;
 import com.example.starter_project_2025.system.assessment_mgt.submission.request.SubmitAnswerRequest;
 import com.example.starter_project_2025.system.assessment_mgt.submission.response.QuestionOptionResponse;
@@ -47,7 +48,8 @@ public class SubmissonServiceImpl
     SubmissionMapper submissionMapper;
     UserRepository userRepository;
     AssessmentRepository assessmentRepository;
-    QuestionOptionRepository questionOptionRepository;
+    AssessmentQuestionRepository assessmentQuestionRepository;
+    AssessmentQuestionOptionRepository assessmentQuestionOptionRepository;
 
     @Override
     protected BaseCrudRepository<Submission, UUID> getRepository() {
@@ -259,12 +261,20 @@ public class SubmissonServiceImpl
                     .map(String::trim).filter(s -> !s.isEmpty())
                     .map(UUID::fromString).collect(Collectors.toSet());
 
-            Set<UUID> correct = questionOptionRepository
-                    .findByQuestionId(question.getOriginalQuestionId())
-                    .stream().filter(QuestionOption::isCorrect)
-                    .map(QuestionOption::getId).collect(Collectors.toSet());
+            UUID assessmentId = question.getSubmission().getAssessment().getId();
+            UUID originalQuestionId = question.getOriginalQuestionId();
 
-            boolean isCorrect = selected.equals(correct);
+            List<AssessmentQuestionOption> options = assessmentQuestionRepository
+                    .findByAssessmentIdAndQuestionId(assessmentId, originalQuestionId)
+                    .map(aq -> assessmentQuestionOptionRepository.findByAssessmentQuestionId(aq.getId()))
+                    .orElse(Collections.emptyList());
+
+            Set<UUID> correct = options.stream()
+                    .filter(AssessmentQuestionOption::isCorrect)
+                    .map(AssessmentQuestionOption::getId)
+                    .collect(Collectors.toSet());
+
+            boolean isCorrect = !correct.isEmpty() && selected.equals(correct);
             answer.setIsCorrect(isCorrect);
             answer.setScore(isCorrect ? question.getScore() : 0.0);
         } catch (Exception e) {
@@ -314,10 +324,16 @@ public class SubmissonServiceImpl
     }
 
     private SubmissionQuestionResponse buildQuestionResponse(SubmissionQuestion sq, boolean showCorrectAnswers) {
-        List<QuestionOption> options = new ArrayList<>(
-                questionOptionRepository.findByQuestionId(sq.getOriginalQuestionId()));
+        UUID assessmentId = sq.getSubmission().getAssessment().getId();
+        UUID originalQuestionId = sq.getOriginalQuestionId();
+
+        List<AssessmentQuestionOption> options = assessmentQuestionRepository
+                .findByAssessmentIdAndQuestionId(assessmentId, originalQuestionId)
+                .map(aq -> assessmentQuestionOptionRepository.findByAssessmentQuestionId(aq.getId()))
+                .orElse(Collections.emptyList());
 
         if (Boolean.TRUE.equals(sq.getSubmission().getAssessment().getIsShuffleOption())) {
+            options = new ArrayList<>(options);
             Collections.shuffle(options);
         }
 
@@ -337,7 +353,7 @@ public class SubmissonServiceImpl
 
         String correctAnswer = null;
         if (showCorrectAnswers) {
-            correctAnswer = options.stream().filter(QuestionOption::isCorrect)
+            correctAnswer = options.stream().filter(AssessmentQuestionOption::isCorrect)
                     .map(o -> o.getId().toString()).collect(Collectors.joining(","));
         }
 
