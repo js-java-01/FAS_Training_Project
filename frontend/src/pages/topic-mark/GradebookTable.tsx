@@ -55,6 +55,9 @@ export default function GradebookTable({ classId }: Props) {
     }
   }, [courseClasses, selectedCourseClassId])
 
+  // Derive topicId from the selected course class
+  const topicId = classCourse?.course?.topicId ?? courseClasses.find(cc => cc.id === selectedCourseClassId)?.course?.topicId ?? ""
+
   /* ================= SORT & STATUS PARAM ================= */
 
   const statusParam =
@@ -69,13 +72,14 @@ export default function GradebookTable({ classId }: Props) {
     isLoading,
     isFetching,
   } = useGetGradebookTable({
-    id: selectedCourseClassId,
+    topicId,
+    trainingClassId: classId,
     page: pageIndex,
     pageSize,
     sort: sortParam,
     keyword: debouncedSearch,
     passed: statusParam,
-    enabled: !!selectedCourseClassId,
+    enabled: !!topicId && !!classId,
   })
 
   useEffect(() => {
@@ -94,7 +98,8 @@ export default function GradebookTable({ classId }: Props) {
     const mappedItems =
       rows?.items?.map((r) => ({
         ...r,
-        courseClassId: selectedCourseClassId,
+        topicId,
+        trainingClassId: classId,
         topic: topicDisplay,
       })) ?? []
 
@@ -196,11 +201,11 @@ export default function GradebookTable({ classId }: Props) {
                 <EntityImportExportButton
                   mode={activeRole?.name === ROLES.SUPER_ADMIN ? "export" : "all"}
                   title={`Topic Marks [${classCourse?.course.courseCode || 'Unknown'}]`}
-                  useImportHook={() => useImportTopicMarks({ id: selectedCourseClassId })}
+                  useImportHook={() => useImportTopicMarks({ topicId, trainingClassId: classId })}
                   useExportHook={() =>
-                    useExportTopicMarks({ id: selectedCourseClassId })
+                    useExportTopicMarks({ topicId, trainingClassId: classId })
                   }
-                  useTemplateHook={() => useExportTemplate({ id: selectedCourseClassId })}
+                  useTemplateHook={() => useExportTemplate({ topicId, trainingClassId: classId })}
                 />
               </div>
             </div>
@@ -222,7 +227,8 @@ export default function GradebookTable({ classId }: Props) {
       <GradeHistorySheet
         open={historyOpen}
         onOpenChange={setHistoryOpen}
-        courseClassId={selectedCourseClassId}
+        topicId={topicId}
+        trainingClassId={classId}
         courseCode={classCourse?.course.courseCode || 'Unknown'}
       />
     </div>

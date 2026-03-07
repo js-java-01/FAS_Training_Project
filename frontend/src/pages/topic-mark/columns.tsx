@@ -50,20 +50,6 @@ export const buildGradebookColumns = (
         title: "Student Email",
       },
     }),
-    columnHelper.accessor("topic", {
-      size: 220,
-      header: (info) => (
-        <SortHeader info={info} title="Topic" />
-      ),
-      cell: (info) => (
-        <span>
-          {info.getValue() || "-"}
-        </span>
-      ),
-      meta: {
-        title: "Topic",
-      },
-    }),
   ]
 
   const dynamicColumns = metaColumns.map((col) =>
@@ -97,7 +83,8 @@ export const buildGradebookColumns = (
             return (
               <EditableGradeCell
                 value={value ?? null}
-                courseClassId={rowData.courseClassId}
+                topicId={rowData.topicId}
+                trainingClassId={rowData.trainingClassId}
                 userId={rowData.userId}
                 columnId={col.key}
                 isTableEditing={isEditing}

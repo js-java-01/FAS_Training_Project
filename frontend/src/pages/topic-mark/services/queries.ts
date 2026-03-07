@@ -22,7 +22,8 @@ export const useGetClassCourseById = (id: string) => {
 }
 
 interface GradebookParams {
-  id: string
+  topicId: string
+  trainingClassId: string
   page: number
   pageSize: number
   sort?: string
@@ -32,7 +33,8 @@ interface GradebookParams {
 }
 
 export const useGetGradebookTable = ({
-  id,
+  topicId,
+  trainingClassId,
   page,
   pageSize,
   sort,
@@ -43,7 +45,8 @@ export const useGetGradebookTable = ({
   return useQuery({
     queryKey: [
       "gradebook-table",
-      id,
+      topicId,
+      trainingClassId,
       page,
       pageSize,
       sort,
@@ -52,7 +55,8 @@ export const useGetGradebookTable = ({
     ],
     queryFn: () =>
       topicMarkApi.getTopicMarksById({
-        id,
+        topicId,
+        trainingClassId,
         page,
         pageSize,
         sort: sort ?? "fullName,asc",
@@ -63,18 +67,19 @@ export const useGetGradebookTable = ({
           ? { passed }
           : {}),
       }),
-    enabled: enabled && !!id,
+    enabled: enabled && !!topicId && !!trainingClassId,
     placeholderData: (prev) => prev,
     staleTime: 5 * 60 * 1000,
   })
 }
 
-export function useInfiniteGradeHistory(id?: string) {
+export function useInfiniteGradeHistory(topicId?: string, trainingClassId?: string) {
   return useInfiniteQuery({
-    queryKey: ["grade-history", id],
+    queryKey: ["grade-history", topicId, trainingClassId],
     queryFn: ({ pageParam = 0 }) =>
       topicMarkApi.getHistoryUpdateById({
-        id: id!,
+        topicId: topicId!,
+        trainingClassId: trainingClassId!,
         page: pageParam,
         pageSize: 10,
       }),
@@ -83,6 +88,6 @@ export function useInfiniteGradeHistory(id?: string) {
         ? lastPage.page + 1
         : undefined,
     initialPageParam: 0,
-    enabled: !!id,
+    enabled: !!topicId && !!trainingClassId,
   })
 }

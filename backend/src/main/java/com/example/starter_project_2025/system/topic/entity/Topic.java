@@ -1,6 +1,5 @@
 package com.example.starter_project_2025.system.topic.entity;
 
-import com.example.starter_project_2025.system.course.entity.Course;
 import com.example.starter_project_2025.system.topic.enums.TopicLevel;
 import com.example.starter_project_2025.system.topic.enums.TopicStatus;
 import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
@@ -12,6 +11,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -21,8 +21,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Topic
-{
+public class Topic {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -33,9 +32,6 @@ public class Topic
     @Column(nullable = false, unique = true)
     private String topicCode;
 
-    @Enumerated(EnumType.STRING)
-    private TopicLevel level; // Beginner, Intermediate, Advanced
-
     private String version; // v1.0, v1.1...
 
     @Column(columnDefinition = "TEXT")
@@ -44,6 +40,9 @@ public class Topic
     @Enumerated(EnumType.STRING)
     private TopicStatus status; // DRAFT, ACTIVE, REJECTED...
 
+    @Column(name = "min_gpa_to_pass")
+    private Double minGpaToPass;
+
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 
@@ -51,33 +50,30 @@ public class Topic
     @JsonManagedReference
     private Set<TrainingProgramTopic> trainingProgramTopics;
 
-
-    @OneToMany(mappedBy = "topic")
-    @JsonManagedReference
-    private Set<Course> courses;
-
     @ManyToOne
     @JoinColumn(name = "creator_id")
     private User creator;
+    @Enumerated(EnumType.STRING)
+    private TopicLevel level;
 
     @ManyToOne
     @JoinColumn(name = "updater_id")
     private User updater;
 
     @PrePersist
-    public void prePersist()
-    {
+    public void prePersist() {
         this.createdDate = LocalDateTime.now();
         this.updatedDate = LocalDateTime.now();
-        if (this.version == null)
-        {
+        if (this.version == null) {
             this.version = "v1.0";
         }
     }
 
     @PreUpdate
-    public void preUpdate()
-    {
+    public void preUpdate() {
         this.updatedDate = LocalDateTime.now();
     }
+
+    @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TopicObjective> objectives;
 }

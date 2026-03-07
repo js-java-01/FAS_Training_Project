@@ -81,6 +81,25 @@ export const trainingClassApi = {
     );
     return res.data;
   },
+
+  exportClasses: async (): Promise<Blob> => {
+    const res = await axiosInstance.get('/classes/export', { responseType: 'blob' });
+    return res.data;
+  },
+
+  downloadTemplate: async (): Promise<Blob> => {
+    const res = await axiosInstance.get('/classes/template', { responseType: 'blob' });
+    return res.data;
+  },
+
+  importClasses: async (file: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await axiosInstance.post('/classes/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
 };
 export const classDetailsApi = {
   getTrainees: async (classId: string, params: any) => {

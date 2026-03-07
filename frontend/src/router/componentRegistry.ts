@@ -11,6 +11,8 @@ import ProgramManagement from "@/pages/programs/ProgramManagement";
 import ClassesComponent from "@/pages/classes/ClassesManagement";
 import { RoleManagement } from "@/pages/role/RoleManagement";
 import SemesterManagement from "@/pages/semesters/SemsterManagement";
+import SkillManagementPage from "@/pages/skill/SkillManagementPage";
+import SkillGroupManagementPage from "@/pages/skill/SkillGroupManagementPage";
 
 export const componentRegistry: Record<string, ComponentType> = {
   "/dashboard": Dashboard,
@@ -23,6 +25,8 @@ export const componentRegistry: Record<string, ComponentType> = {
   "/locations": LocationsManagement,
   "/permissions": PermissionsManagement,
   "/topics": TopicManagement,
+  "/skills": SkillManagementPage,
+  "/skillGroups": SkillGroupManagementPage,
   "/programs": ProgramManagement,
   "/semesters": SemesterManagement,
 };

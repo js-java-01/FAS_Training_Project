@@ -35,100 +35,23 @@ interface TypeStat {
   bgClass: string;
 }
 
-// ── SVG Donut Chart ────────────────────────────────────────────────────────────
-function DonutChart({ stats, total }: { stats: TypeStat[]; total: number }) {
-  const R = 80;
-  const CX = 110;
-  const CY = 110;
-  const STROKE = 30;
-
-  // compute arcs
-  let cumAngle = -90; // start from top
-  const arcs: { d: string; color: string; type: string }[] = [];
-
-  for (const s of stats) {
-    if (s.count === 0) continue;
-    const pct = s.count / total;
-    const angle = pct * 360;
-
-    // prevent full-circle degenerate arc
-    const sweep = angle >= 360 ? 359.999 : angle;
-    const start = (cumAngle * Math.PI) / 180;
-    const end = ((cumAngle + sweep) * Math.PI) / 180;
-
-    const x1 = CX + R * Math.cos(start);
-    const y1 = CY + R * Math.sin(start);
-    const x2 = CX + R * Math.cos(end);
-    const y2 = CY + R * Math.sin(end);
-    const largeArc = sweep > 180 ? 1 : 0;
-
-    arcs.push({
-      d: `M ${x1} ${y1} A ${R} ${R} 0 ${largeArc} 1 ${x2} ${y2}`,
-      color: s.color,
-      type: s.type,
-    });
-    cumAngle += angle;
-  }
-
-  if (arcs.length === 0) {
-    return (
-      <svg width={220} height={220} viewBox="0 0 220 220">
-        <circle
-          cx={CX}
-          cy={CY}
-          r={R}
-          fill="none"
-          stroke="#e5e7eb"
-          strokeWidth={STROKE}
-        />
-        <text
-          x={CX}
-          y={CY + 5}
-          textAnchor="middle"
-          className="text-sm fill-gray-400"
-        >
-          No data
-        </text>
-      </svg>
-    );
-  }
-
+// ── Stacked Bar Segment ────────────────────────────────────────────────────────
+function Bar({
+  pct,
+  color,
+  label,
+}: {
+  pct: number;
+  color: string;
+  label: string;
+}) {
+  if (pct <= 0) return null;
   return (
-    <svg width={220} height={220} viewBox="0 0 220 220">
-      {/* background circle */}
-      <circle
-        cx={CX}
-        cy={CY}
-        r={R}
-        fill="none"
-        stroke="#f3f4f6"
-        strokeWidth={STROKE}
-      />
-      {arcs.map((arc) => (
-        <path
-          key={arc.type}
-          d={arc.d}
-          fill="none"
-          stroke={arc.color}
-          strokeWidth={STROKE}
-          strokeLinecap="butt"
-        />
-      ))}
-      {/* center label */}
-      <text
-        x={CX}
-        y={CY - 8}
-        textAnchor="middle"
-        fontSize={22}
-        fontWeight={700}
-        fill="#111827"
-      >
-        {total}
-      </text>
-      <text x={CX} y={CY + 14} textAnchor="middle" fontSize={11} fill="#6b7280">
-        Sessions
-      </text>
-    </svg>
+    <div
+      title={`${label}: ${pct.toFixed(1)}%`}
+      style={{ width: `${pct}%`, background: color }}
+      className="transition-all"
+    />
   );
 }
 
@@ -251,74 +174,102 @@ export function TimeAllocationTab({ courseId }: Props) {
         ))}
       </div>
 
-      {/* ── Chart + Legend ── */}
-      <div className="rounded-xl border border-gray-100 bg-white shadow-sm p-6">
-        <h3 className="text-sm font-semibold text-gray-700 mb-6">
-          Session Distribution by Type
-        </h3>
-
-        {totalSessions === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-gray-400 gap-2">
-            <BookOpen className="w-8 h-8" />
-            <p className="text-sm">No sessions found for this course.</p>
+      {/* ── Stacked Bar + Legend ── */}
+      <div className="border rounded-2xl bg-white shadow-sm overflow-hidden">
+        {/* ── Header ── */}
+        <div className="px-6 py-4 border-b flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-blue-500" />
+            <span className="text-sm font-semibold text-gray-800">
+              Session Distribution
+            </span>
           </div>
-        ) : (
-          <div className="flex flex-col sm:flex-row items-center gap-8">
-            {/* Donut */}
-            <div className="shrink-0">
-              <DonutChart stats={typeStats} total={totalSessions} />
-            </div>
 
-            {/* Legend */}
-            <div className="flex-1 w-full space-y-3">
-              {typeStats.map((s) => {
-                const pct =
-                  totalSessions > 0
-                    ? ((s.count / totalSessions) * 100).toFixed(1)
-                    : "0.0";
-                return (
-                  <div key={s.type} className="flex items-center gap-3">
-                    {/* color dot */}
-                    <span
-                      className="w-3 h-3 rounded-full shrink-0"
-                      style={{ backgroundColor: s.color }}
-                    />
-                    {/* label */}
-                    <span className="flex-1 text-sm text-gray-700">
-                      {s.label}
-                    </span>
-                    {/* count badge */}
-                    <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${s.bgClass}`}
-                    >
-                      {s.count} session{s.count !== 1 ? "s" : ""}
-                    </span>
-                    {/* minutes */}
-                    <span className="text-xs text-gray-400 w-16 text-right">
-                      {s.minutes > 0 ? `${s.minutes} min` : "—"}
-                    </span>
-                    {/* pct bar */}
-                    <div className="w-24 hidden sm:block">
-                      <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{
-                            width: `${pct}%`,
-                            backgroundColor: s.color,
-                          }}
-                        />
+          <div className="flex items-center gap-3 text-xs">
+            <div className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 font-medium">
+              {totalSessions} sessions
+            </div>
+            <div className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 font-medium">
+              {totalMinutes} min
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {totalSessions === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-gray-400 gap-2">
+              <BookOpen className="w-8 h-8" />
+              <p className="text-sm">No sessions found for this course.</p>
+            </div>
+          ) : (
+            <>
+              {/* ── Stacked bar ── */}
+              <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden flex">
+                {typeStats.map((s) => (
+                  <Bar
+                    key={s.type}
+                    pct={(s.count / totalSessions) * 100}
+                    color={s.color}
+                    label={s.label}
+                  />
+                ))}
+              </div>
+
+              {/* ── Legend ── */}
+              <div className="space-y-4">
+                {typeStats
+                  .filter((s) => s.count > 0)
+                  .map((s) => {
+                    const pct = (s.count / totalSessions) * 100;
+
+                    return (
+                      <div key={s.type} className="space-y-1.5">
+                        {/* top row */}
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: s.color }}
+                            />
+
+                            <span className="font-medium text-gray-700 truncate">
+                              {s.label}
+                            </span>
+
+                            <span className="text-xs text-gray-400">
+                              {s.minutes > 0 && `• ${s.minutes} min`}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-xs">
+                            <span
+                              className={`px-2 py-0.5 rounded-full font-medium ${s.bgClass}`}
+                            >
+                              {s.count}
+                            </span>
+                            <span className="w-10 text-right font-semibold text-gray-600">
+                              {pct.toFixed(0)}%
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* progress */}
+                        <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${pct}%`,
+                              backgroundColor: s.color,
+                            }}
+                          />
+                        </div>
                       </div>
-                    </div>
-                    {/* pct label */}
-                    <span className="text-xs text-gray-500 w-10 text-right">
-                      {pct}%
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+                    );
+                  })}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* ── Footer ── */}

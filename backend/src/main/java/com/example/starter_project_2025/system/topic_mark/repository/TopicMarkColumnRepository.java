@@ -7,34 +7,49 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface TopicMarkColumnRepository extends JpaRepository<TopicMarkColumn, UUID> {
 
-    /** All active (non-deleted) columns for a course class, ordered by assessment type then index. */
     @Query("""
         SELECT c FROM TopicMarkColumn c
-        WHERE c.courseClass.id = :courseClassId
+        WHERE c.topic.id = :topicId AND c.trainingClass.id = :trainingClassId
           AND c.isDeleted = false
-        ORDER BY c.assessmentType.id ASC, c.columnIndex ASC
+        ORDER BY c.assessmentType.name ASC, c.columnIndex ASC
     """)
-    List<TopicMarkColumn> findActiveByCourseClassId(@Param("courseClassId") UUID courseClassId);
+    List<TopicMarkColumn> findActiveByTopicAndClass(
+            @Param("topicId") UUID topicId,
+            @Param("trainingClassId") UUID trainingClassId);
 
-    /** Check if a column already has any entries (to prevent deletion). */
+    @Query("""
+        SELECT c FROM TopicMarkColumn c
+        WHERE c.topic.id = :topicId AND c.trainingClass.id = :trainingClassId
+        ORDER BY c.assessmentType.name ASC, c.columnIndex ASC
+    """)
+    List<TopicMarkColumn> findAllByTopicAndClass(
+            @Param("topicId") UUID topicId,
+            @Param("trainingClassId") UUID trainingClassId);
+
+    @Query("""
+        SELECT COALESCE(MAX(c.columnIndex), 0)
+        FROM TopicMarkColumn c
+        WHERE c.topic.id = :topicId
+          AND c.trainingClass.id = :trainingClassId
+          AND c.assessmentType.id = :assessmentTypeId
+    """)
+    int findMaxColumnIndex(
+            @Param("topicId") UUID topicId,
+            @Param("trainingClassId") UUID trainingClassId,
+            @Param("assessmentTypeId") String assessmentTypeId);
+
     @Query("""
         SELECT COUNT(e) > 0 FROM TopicMarkEntry e
-        WHERE e.topicMarkColumn.id = :columnId
-          AND e.score IS NOT NULL
+        WHERE e.topicMarkColumn.id = :columnId AND e.score IS NOT NULL
     """)
     boolean hasNonNullEntries(@Param("columnId") UUID columnId);
 
-    /** Next available column index for a given courseClass + assessmentType. */
-    @Query("""
-        SELECT COALESCE(MAX(c.columnIndex), 0) + 1 FROM TopicMarkColumn c
-        WHERE c.courseClass.id = :courseClassId
-          AND c.assessmentType.id = :assessmentTypeId
-    """)
-    int nextColumnIndex(@Param("courseClassId") UUID courseClassId,
-                        @Param("assessmentTypeId") String assessmentTypeId);
+    Optional<TopicMarkColumn> findByTopicIdAndTrainingClassIdAndAssessmentTypeIdAndColumnIndex(
+            UUID topicId, UUID trainingClassId, String assessmentTypeId, Integer columnIndex);
 }

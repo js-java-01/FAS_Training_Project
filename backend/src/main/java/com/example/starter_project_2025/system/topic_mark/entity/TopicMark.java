@@ -1,6 +1,7 @@
 package com.example.starter_project_2025.system.topic_mark.entity;
 
-import com.example.starter_project_2025.system.course_class.entity.CourseClass;
+import com.example.starter_project_2025.system.classes.entity.TrainingClass;
+import com.example.starter_project_2025.system.topic.entity.Topic;
 import com.example.starter_project_2025.system.training_program.entity.TrainingProgram;
 import com.example.starter_project_2025.system.training_program_topic.entity.TrainingProgramTopic;
 import com.example.starter_project_2025.system.user.entity.User;
@@ -14,56 +15,71 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Topic Mark - Final gradebook aggregation for a student in a course class.
- * Stores the computed final score and pass/fail status based on assessment type weights.
+ * TopicMark  final computed score of a student for a given topic in a training class.
+ *
+ * Unique per (topic, trainingClass, user).
+ * trainingProgram and trainingProgramTopic are denormalized for faster querying.
  */
 @Entity
 @Table(name = "topic_marks", uniqueConstraints = {
-    @UniqueConstraint(name = "uk_topic_mark_class_user", columnNames = {"course_class_id", "user_id"})
+    @UniqueConstraint(name = "uk_topic_mark_topic_class_user",
+            columnNames = {"topic_id", "training_class_id", "user_id"})
 })
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Topic Mark entity representing final gradebook entry for a student in a course class")
+@Schema(description = "Final aggregated score of a student for a topic in a training class")
 public class TopicMark {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Schema(description = "Unique identifier", example = "123e4567-e89b-12d3-a456-426614174000")
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "training_program_topic_id", nullable = false)
-    @Schema(description = "Associated course class")
-    private TrainingProgramTopic trainingProgramTopic;
+    @JoinColumn(name = "topic_id", nullable = false)
+    @Schema(description = "The topic (subject) being scored")
+    private Topic topic;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "training_class_id", nullable = false)
+    @Schema(description = "The training class in which the student is scored")
+    private TrainingClass trainingClass;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @Schema(description = "Student user")
+    @Schema(description = "The student being scored")
     private User user;
 
-    @Column(name = "topic_id")
-    @Schema(description = "Topic ID of the related course class", nullable = true)
-    private UUID topicId;
+    //  Denormalized fields for fast querying 
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "training_program_id")
+    @Schema(description = "(Denorm) Training program that owns this class")
+    private TrainingProgram trainingProgram;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "training_program_topic_id")
+    @Schema(description = "(Denorm) TrainingProgramTopic linking program to topic")
+    private TrainingProgramTopic trainingProgramTopic;
+
+    //  Score 
 
     @Column(name = "final_score")
-    @Schema(description = "Final computed score (0-10), null if not yet calculated", example = "8.5", nullable = true)
+    @Schema(description = "Computed final score (010), null if not all columns are filled", example = "8.5")
     private Double finalScore;
 
     @Column(name = "is_passed", nullable = false)
     @Builder.Default
-    @Schema(description = "Whether the student passed based on course.minGpaToPass", example = "true")
+    @Schema(description = "Whether the student passed (finalScore >= topic.minGpaToPass)", example = "true")
     private Boolean isPassed = false;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    @Schema(description = "Timestamp of creation")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    @Schema(description = "Timestamp of last update", example = "2026-02-26T10:30:00")
     private LocalDateTime updatedAt;
 }

@@ -29,35 +29,37 @@ export const topicMarkApi = {
   },
 
   getTopicMarksById: async (
-    params: { id: string; page: number; pageSize: number; sort?: string | string[]; keyword?: string; passed?: boolean; }
+    params: { topicId: string; trainingClassId: string; page: number; pageSize: number; sort?: string | string[]; keyword?: string; passed?: boolean; }
   ): Promise<GradebookTableResponse> => {
     const response = await axiosInstance.get<GradebookTableResponse>(
-      `/course-classes/${params.id}/topic-marks/search`,
-      { params: { page: params.page, pageSize: params.pageSize, sort: params.sort, keyword: params.keyword, passed: params.passed } }
+      `/topics/${params.topicId}/topic-marks/search`,
+      { params: { trainingClassId: params.trainingClassId, page: params.page, pageSize: params.pageSize, sort: params.sort, keyword: params.keyword, passed: params.passed } }
     )
 
     return response.data
   },
 
   getHistoryUpdateById: async (
-    params: { id: string; page: number; pageSize: number; sort?: string | string[]; keyword?: string; changeType?: boolean; }
+    params: { topicId: string; trainingClassId: string; page: number; pageSize: number; sort?: string | string[]; keyword?: string; changeType?: boolean; }
   ): Promise<GradeHistoryPageResponse<GradeHistoryItem>> => {
     const response = await axiosInstance.get<GradeHistoryPageResponse<GradeHistoryItem>>(
-      `/course-classes/${params.id}/topic-marks/history`,
-      { params: { page: params.page, pageSize: params.pageSize, sort: params.sort, keyword: params.keyword, changeType: params.changeType } }
+      `/topics/${params.topicId}/topic-marks/history`,
+      { params: { trainingClassId: params.trainingClassId, page: params.page, pageSize: params.pageSize, sort: params.sort, keyword: params.keyword, changeType: params.changeType } }
     )
 
     return response.data
   },
 
   updateGrade: async ({
-    courseClassId,
+    topicId,
+    trainingClassId,
     userId,
     columnId,
     score,
     reason,
   }: {
-    courseClassId: string
+    topicId: string
+    trainingClassId: string
     userId: string
     columnId: string
     score: number
@@ -76,38 +78,44 @@ export const topicMarkApi = {
     }
 
     console.log("[topicMarkApi.updateGrade] request", {
-      url: `/course-classes/${courseClassId}/topic-marks/${userId}`,
+      url: `/topics/${topicId}/topic-marks/${userId}?trainingClassId=${trainingClassId}`,
       payload,
     })
 
     return axiosInstance.put(
-      `/course-classes/${courseClassId}/topic-marks/${userId}`,
-      payload
+      `/topics/${topicId}/topic-marks/${userId}`,
+      payload,
+      { params: { trainingClassId } }
     )
   },
 
-    exportTopicMark: async (id: string): Promise<Blob> => {
-      const response = await axiosInstance.get(`/course-classes/${id}/topic-marks/export`, {
-        responseType: "blob",
-      });
-
-      return response.data;
-  },
-
-  exportTemplate: async (id: string): Promise<Blob> => {
-    const response = await axiosInstance.get(`/course-classes/${id}/topic-marks/export/template`, {
+  exportTopicMark: async ({ topicId, trainingClassId }: { topicId: string; trainingClassId: string }): Promise<Blob> => {
+    const response = await axiosInstance.get(`/topics/${topicId}/topic-marks/export`, {
+      params: { trainingClassId },
       responseType: "blob",
     });
 
     return response.data;
   },
 
-  importTopicMark: async (formData: FormData, id: string): Promise<TopicMarkImportResult> => {
-    const response = await axiosInstance.post<TopicMarkImportResult>(`/course-classes/${id}/topic-marks/import`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+  exportTemplate: async ({ topicId, trainingClassId }: { topicId: string; trainingClassId: string }): Promise<Blob> => {
+    const response = await axiosInstance.get(`/topics/${topicId}/topic-marks/export/template`, {
+      params: { trainingClassId },
+      responseType: "blob",
     });
+
+    return response.data;
+  },
+
+  importTopicMark: async (formData: FormData, { topicId, trainingClassId }: { topicId: string; trainingClassId: string }): Promise<TopicMarkImportResult> => {
+    const response = await axiosInstance.post<TopicMarkImportResult>(
+      `/topics/${topicId}/topic-marks/import`,
+      formData,
+      {
+        params: { trainingClassId },
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
 
     return response.data;
   },

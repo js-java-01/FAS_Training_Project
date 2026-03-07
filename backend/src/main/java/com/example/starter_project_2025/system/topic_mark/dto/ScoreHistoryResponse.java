@@ -50,8 +50,8 @@ public class ScoreHistoryResponse {
         @Schema(description = "History record ID")
         private UUID id;
 
-        @Schema(description = "Course class ID this record belongs to")
-        private UUID courseClassId;
+        @Schema(description = "Training class ID this record belongs to")
+        private UUID trainingClassId;
 
         @Schema(description = "Student whose score was changed")
         private UserRef student;

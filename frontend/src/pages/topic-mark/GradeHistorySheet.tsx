@@ -45,14 +45,16 @@ import { useInfiniteGradeHistory } from "./services/queries"
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
-  courseClassId: string
+  topicId: string
+  trainingClassId: string
   courseCode?: string
 }
 
 export default function GradeHistorySheet({
   open,
   onOpenChange,
-  courseClassId,
+  topicId,
+  trainingClassId,
   courseCode,
 }: Props) {
   const [search, setSearch] = useState("")
@@ -89,7 +91,7 @@ export default function GradeHistorySheet({
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
-  } = useInfiniteGradeHistory(courseClassId)
+  } = useInfiniteGradeHistory(topicId, trainingClassId)
 
   // flatten pages
   const rawHistoryList: GradeHistoryItem[] =

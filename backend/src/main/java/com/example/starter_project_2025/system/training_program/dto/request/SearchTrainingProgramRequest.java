@@ -3,6 +3,8 @@ package com.example.starter_project_2025.system.training_program.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class SearchTrainingProgramRequest {
 
@@ -16,4 +18,6 @@ public class SearchTrainingProgramRequest {
     private String[] sort = new String[]{"createdAt","desc"};
 
     private String keyword;
+    private List<String> version;
+
 }

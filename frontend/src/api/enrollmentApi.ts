@@ -56,5 +56,5 @@ export const enrollmentApi = {
       responseType: "blob",
     });
     return response.data;
-  }
+  },
 };

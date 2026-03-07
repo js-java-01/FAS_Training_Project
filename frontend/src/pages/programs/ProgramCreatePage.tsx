@@ -82,7 +82,11 @@ export default function ProgramCreatePage() {
     const nextErrors: Partial<FormState> = {};
 
     if (!form.name.trim()) nextErrors.name = "Program name is required";
-    if (!form.version.trim()) nextErrors.version = "Version is required";
+    if (!form.version.trim()) {
+      nextErrors.version = "Version is required";
+    } else if (!/^\d+(\.\d+)*$/.test(form.version.trim())) {
+      nextErrors.version = "Version must contain only numbers and dots (e.g. 1.0, 2.0)";
+    }
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;

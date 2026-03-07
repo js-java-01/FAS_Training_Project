@@ -18,7 +18,7 @@ public interface EnrollmentService {
 
     // List<CourseResponse> getMyEnrolledCourses();
 
-    String enroll(EnrollmentRequest request, UUID id);
+    String enroll(EnrollmentRequest request);
 
     byte[] getExportTemplate();
 

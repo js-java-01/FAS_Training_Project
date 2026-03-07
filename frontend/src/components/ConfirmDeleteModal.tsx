@@ -22,7 +22,7 @@ export const ConfirmDeleteModal = ({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
         <div className="flex gap-4">
           {/* ICON */}

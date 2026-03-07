@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useNavigate } from "react-router-dom";
 
-import { DataTable } from "@/components/data_table/DataTable";
+import { ServerDataTable } from "@/components/data_table/ServerDataTable";
+import { FacetedFilter } from "@/components/FacedFilter";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirmdialog";
 import EntityImportExportButton from "@/components/modal/import-export/EntityImportExportBtn";
@@ -41,8 +42,14 @@ export default function TopicTable() {
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
 
+  /* ---------- status filter ---------- */
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const statusParam = statusFilter.length === 1 ? statusFilter[0] : undefined;
+
   /* ---------- sort param ---------- */
-  const sortParam = useSortParam(sorting, "createdDate,desc");
+  const rawSort = useSortParam(sorting, "createdDate,desc");
+
+  const sortParam = rawSort.replace("name", "topicName");
 
   /* ---------- query (Sử dụng hook useGetAllTopics) ---------- */
   const {
@@ -54,6 +61,7 @@ export default function TopicTable() {
     pageSize,
     sort: sortParam,
     keyword: debouncedSearch,
+    status: statusParam,
   });
 
   // Helper để bọc data an toàn
@@ -100,23 +108,34 @@ export default function TopicTable() {
   /* ===================== RENDER ===================== */
   return (
     <div className="relative space-y-4 h-full flex-1">
-      <DataTable<Topic, unknown>
+      <ServerDataTable<Topic, unknown>
         columns={columns as ColumnDef<Topic, unknown>[]}
         data={safeTableData.items}
         isLoading={isLoading}
         isFetching={isFetching}
-        manualPagination
         pageIndex={safeTableData.page}
         pageSize={safeTableData.pageSize}
         totalPage={safeTableData.totalPages}
         onPageChange={setPageIndex}
         onPageSizeChange={setPageSize}
         isSearch
-        manualSearch
         onSearchChange={setSearchValue}
         sorting={sorting}
         onSortingChange={setSorting}
-        manualSorting
+        facetedFilters={
+          <FacetedFilter
+            title="Status"
+            options={[
+              { value: "DRAFT", label: "Draft" },
+              { value: "UNDER_REVIEW", label: "Under Review" },
+              { value: "ACTIVE", label: "Active" },
+              { value: "REJECTED", label: "Rejected" },
+            ]}
+            value={statusFilter}
+            setValue={setStatusFilter}
+            multiple={false}
+          />
+        }
         headerActions={
           <div className="flex gap-2">
             <EntityImportExportButton

@@ -50,7 +50,8 @@ export interface GradebookColumnMeta {
 
 export interface GradebookRow {
   userId: string
-  courseClassId: string
+  topicId: string
+  trainingClassId: string
   fullName: string
   email: string
   topic: string | null

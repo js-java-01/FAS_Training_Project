@@ -11,10 +11,16 @@ import { RegisterForm } from "@/components/auth/RegisterForm";
 import { VerifyForm } from "@/components/auth/OTPForm";
 import { ForgotEmailForm } from "@/components/auth/ForgotEmailForm";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
-import type { RegisterRequest, VerifyRequest, ForgotPasswordEmailRequest, ResetPasswordData } from "@/types/auth";
+import type {
+  RegisterRequest,
+  VerifyRequest,
+  ForgotPasswordEmailRequest,
+  ResetPasswordData,
+} from "@/types/auth";
 
 const URL_LOGIN_WITH_GOOGLE =
-  import.meta.env.VITE_API_URL_FOR_GOOGLE || "http://localhost:8080/oauth2/authorization/google";
+  import.meta.env.VITE_API_URL_FOR_GOOGLE ||
+  "http://localhost:8080/oauth2/authorization/google";
 
 type AuthMode = "login" | "register" | "forgot";
 
@@ -69,10 +75,12 @@ export const AuthPage: React.FC = () => {
         isRememberedMe,
       });
       dispatch(setLogin(res));
-      navigate("/dashboard");
+      navigate(res.role === "STUDENT" ? "/student-home" : "/dashboard");
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        setLoginError(err.response?.data?.message || "Invalid email or password");
+        setLoginError(
+          err.response?.data?.message || "Invalid email or password",
+        );
       } else if (err instanceof Error) {
         setLoginError(err.message);
       } else {
@@ -157,7 +165,8 @@ export const AuthPage: React.FC = () => {
     setMode(newMode);
     if (newMode === "login") navigate("/login", { replace: true });
     else if (newMode === "register") navigate("/register", { replace: true });
-    else if (newMode === "forgot") navigate("/forgot-password", { replace: true });
+    else if (newMode === "forgot")
+      navigate("/forgot-password", { replace: true });
   };
 
   // ==================== WRAPPER CLASS ====================
@@ -182,11 +191,24 @@ export const AuthPage: React.FC = () => {
           <div className="auth-form-panel auth-login-panel">
             {mode === "forgot" ? (
               /* Forgot password / Reset password form (reuses login panel position) */
-              <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
                 {!resetToken ? (
-                  <ForgotEmailForm onSubmit={onForgotPasswordSubmit} loading={forgotLoading} />
+                  <ForgotEmailForm
+                    onSubmit={onForgotPasswordSubmit}
+                    loading={forgotLoading}
+                  />
                 ) : (
-                  <ResetPasswordForm onSubmit={onResetPasswordSubmit} loading={forgotLoading} />
+                  <ResetPasswordForm
+                    onSubmit={onResetPasswordSubmit}
+                    loading={forgotLoading}
+                  />
                 )}
                 <button
                   type="button"
@@ -207,7 +229,10 @@ export const AuthPage: React.FC = () => {
             ) : (
               /* Normal login form */
               <>
-                <h2 className="text-3xl font-semibold mb-2" style={{ color: "#1e293b" }}>
+                <h2
+                  className="text-3xl font-semibold mb-2"
+                  style={{ color: "#1e293b" }}
+                >
                   Welcome Back!
                 </h2>
                 <p className="text-sm mb-4" style={{ color: "#64748b" }}>
@@ -222,7 +247,12 @@ export const AuthPage: React.FC = () => {
 
                 <form
                   onSubmit={handleLoginSubmit}
-                  style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
                 >
                   <div className="auth-field-container">
                     <i className="fas fa-envelope" />
@@ -259,7 +289,14 @@ export const AuthPage: React.FC = () => {
                     </span>
                   </div>
 
-                  <div style={{ width: "85%", display: "flex", alignItems: "center", margin: "8px 0" }}>
+                  <div
+                    style={{
+                      width: "85%",
+                      display: "flex",
+                      alignItems: "center",
+                      margin: "8px 0",
+                    }}
+                  >
                     <input
                       type="checkbox"
                       id="rememberMe"
@@ -267,7 +304,14 @@ export const AuthPage: React.FC = () => {
                       onChange={(e) => setIsRememberedMe(e.target.checked)}
                       style={{ marginRight: "8px", cursor: "pointer" }}
                     />
-                    <label htmlFor="rememberMe" style={{ fontSize: "14px", cursor: "pointer", color: "#334155" }}>
+                    <label
+                      htmlFor="rememberMe"
+                      style={{
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        color: "#334155",
+                      }}
+                    >
                       Remember me
                     </label>
                   </div>
@@ -288,12 +332,39 @@ export const AuthPage: React.FC = () => {
                     Forgot Password?
                   </button>
 
-                  <button type="submit" className="auth-action-button" disabled={loginLoading}>
+                  <button
+                    type="submit"
+                    className="auth-action-button"
+                    disabled={loginLoading}
+                  >
                     {loginLoading ? (
-                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                        <svg className="animate-spin" style={{ width: 16, height: 16 }} viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px",
+                        }}
+                      >
+                        <svg
+                          className="animate-spin"
+                          style={{ width: 16, height: 16 }}
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
                         </svg>
                       </span>
                     ) : (
@@ -302,8 +373,18 @@ export const AuthPage: React.FC = () => {
                   </button>
                 </form>
 
-                <p style={{ fontSize: "13px", color: "#64748b", margin: "8px 0 4px" }}>or sign in with</p>
-                <div style={{ display: "flex", gap: "12px", marginBottom: "8px" }}>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#64748b",
+                    margin: "8px 0 4px",
+                  }}
+                >
+                  or sign in with
+                </p>
+                <div
+                  style={{ display: "flex", gap: "12px", marginBottom: "8px" }}
+                >
                   <button
                     onClick={handleGoogleLogin}
                     disabled={loginLoading}
@@ -327,7 +408,14 @@ export const AuthPage: React.FC = () => {
                     fontSize: "11px",
                   }}
                 >
-                  <p style={{ color: "#64748b", fontWeight: 700, marginBottom: "4px", textTransform: "uppercase" }}>
+                  <p
+                    style={{
+                      color: "#64748b",
+                      fontWeight: 700,
+                      marginBottom: "4px",
+                      textTransform: "uppercase",
+                    }}
+                  >
                     Test Only:
                   </p>
                   <p style={{ color: "#334155" }}>
@@ -351,7 +439,10 @@ export const AuthPage: React.FC = () => {
           </div>
 
           {/* ===== REGISTER FORM ===== */}
-          <div className="auth-form-panel auth-register-panel" style={{ padding: "0 2rem", width: "100%" }}>
+          <div
+            className="auth-form-panel auth-register-panel"
+            style={{ padding: "0 2rem", width: "100%" }}
+          >
             {!isVerifyStep ? (
               <RegisterForm onSubmit={onRegister} loading={registerLoading} />
             ) : (
@@ -362,12 +453,22 @@ export const AuthPage: React.FC = () => {
                 onBack={() => setIsVerifyStep(false)}
               />
             )}
-            <div className="text-center mb-4" style={{ fontSize: "13px", color: "#64748b" }}>
+            <div
+              className="text-center mb-4"
+              style={{ fontSize: "13px", color: "#64748b" }}
+            >
               Forgot Password?{" "}
               <button
                 type="button"
                 onClick={() => switchTo("forgot")}
-                style={{ color: "#475569", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", fontSize: "13px" }}
+                style={{
+                  color: "#475569",
+                  textDecoration: "underline",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                }}
               >
                 Reset here
               </button>
@@ -382,7 +483,10 @@ export const AuthPage: React.FC = () => {
             <div className="auth-panel-content">
               <h3>New Here?</h3>
               <p>Sign up and discover a great amount of new opportunities!</p>
-              <button className="auth-transparent-btn" onClick={() => switchTo("register")}>
+              <button
+                className="auth-transparent-btn"
+                onClick={() => switchTo("register")}
+              >
                 Sign Up
               </button>
             </div>
@@ -392,8 +496,13 @@ export const AuthPage: React.FC = () => {
           <div className="auth-info-panel auth-right-info">
             <div className="auth-panel-content">
               <h3>One of us?</h3>
-              <p>If you already have an account, just sign in. We've missed you!</p>
-              <button className="auth-transparent-btn" onClick={() => switchTo("login")}>
+              <p>
+                If you already have an account, just sign in. We've missed you!
+              </p>
+              <button
+                className="auth-transparent-btn"
+                onClick={() => switchTo("login")}
+              >
                 Sign In
               </button>
             </div>
@@ -405,4 +514,3 @@ export const AuthPage: React.FC = () => {
 };
 
 export default AuthPage;
-

@@ -14,22 +14,37 @@ import java.util.UUID;
 @Repository
 public interface TopicMarkEntryHistoryRepository extends JpaRepository<TopicMarkEntryHistory, UUID> {
 
-    /** History for a specific entry, newest first. */
-    List<TopicMarkEntryHistory> findByTopicMarkEntryIdOrderByUpdatedAtDesc(UUID topicMarkEntryId);
+    List<TopicMarkEntryHistory> findByTopicMarkEntryId(UUID entryId);
 
-    /** Combined history for all entries of one student in a course class. */
-    List<TopicMarkEntryHistory> findByTopicMarkEntry_CourseClass_IdAndTopicMarkEntry_User_IdOrderByUpdatedAtDesc(
-            UUID courseClassId, UUID userId);
+    @Query("""
+        SELECT h FROM TopicMarkEntryHistory h
+        WHERE h.topicMarkEntry.topic.id = :topicId
+          AND h.topicMarkEntry.trainingClass.id = :trainingClassId
+          AND h.topicMarkEntry.user.id = :userId
+        ORDER BY h.updatedAt DESC
+    """)
+    List<TopicMarkEntryHistory> findByTopicAndClassAndUser(
+            @Param("topicId") UUID topicId,
+            @Param("trainingClassId") UUID trainingClassId,
+            @Param("userId") UUID userId);
 
-    /** Paginated full history for a course class ordered by updatedAt desc. */
-    @Query(value = "SELECT h FROM TopicMarkEntryHistory h " +
-                   "JOIN FETCH h.topicMarkEntry e " +
-                   "JOIN FETCH e.user u " +
-                   "JOIN FETCH e.topicMarkColumn c " +
-                   "JOIN FETCH h.updatedBy ub " +
-                   "WHERE e.courseClass.id = :courseClassId AND h.changeType IS NOT NULL",
-           countQuery = "SELECT COUNT(h) FROM TopicMarkEntryHistory h " +
-                        "WHERE h.topicMarkEntry.courseClass.id = :courseClassId AND h.changeType IS NOT NULL")
-    Page<TopicMarkEntryHistory> findPageByCourseClassId(
-            @Param("courseClassId") UUID courseClassId, Pageable pageable);
+    @Query("""
+        SELECT h FROM TopicMarkEntryHistory h
+        WHERE h.topicMarkEntry.topic.id = :topicId
+          AND h.topicMarkEntry.trainingClass.id = :trainingClassId
+        ORDER BY h.updatedAt DESC
+    """)
+    List<TopicMarkEntryHistory> findByTopicAndClass(
+            @Param("topicId") UUID topicId,
+            @Param("trainingClassId") UUID trainingClassId);
+
+    @Query("""
+        SELECT h FROM TopicMarkEntryHistory h
+        WHERE h.topicMarkEntry.topic.id = :topicId
+          AND h.topicMarkEntry.trainingClass.id = :trainingClassId
+    """)
+    Page<TopicMarkEntryHistory> findPageByTopicAndClass(
+            @Param("topicId") UUID topicId,
+            @Param("trainingClassId") UUID trainingClassId,
+            Pageable pageable);
 }

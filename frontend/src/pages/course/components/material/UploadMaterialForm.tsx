@@ -2,14 +2,22 @@ import { useState, useRef } from "react";
 import type { Material, MaterialTypeValue } from "@/types/material";
 import { MATERIAL_TYPE_OPTIONS } from "@/types/material";
 import { toast } from "sonner";
-import { FiX, FiUpload, FiLink } from "react-icons/fi";
+import { FiUpload, FiLink } from "react-icons/fi";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useUploadMaterial, useCreateMaterial, useUpdateMaterial } from "../../services/material";
 
-type Mode = "upload" | "url";
+type SourceMode = "file" | "url";
 
 interface UploadMaterialFormProps {
   sessionId: string;
-  material?: Material | null; // when provided → edit mode
+  material?: Material | null;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -24,7 +32,7 @@ export default function UploadMaterialForm({
   onCancel,
 }: UploadMaterialFormProps) {
   const isEdit = !!material;
-  const [mode, setMode] = useState<Mode>(isEdit ? "url" : "upload");
+  const [sourceMode, setSourceMode] = useState<SourceMode>(isEdit ? "url" : "file");
 
   const [fields, setFields] = useState({
     title: material?.title ?? "",
@@ -38,8 +46,9 @@ export default function UploadMaterialForm({
 
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  const uploadMutation = useUploadMaterial(sessionId);
+  const uploadMutation = useUploadMaterial(sessionId, setUploadProgress);
   const createMutation = useCreateMaterial(sessionId);
   const updateMutation = useUpdateMaterial(sessionId);
   const loading =
@@ -51,20 +60,13 @@ export default function UploadMaterialForm({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    if (f.size > 500 * 1024 * 1024) {
-      toast.error("File size must be less than 500MB");
-      return;
-    }
     setFile(f);
-    // Auto-fill title from filename if empty
     if (!fields.title.trim()) {
       set("title", f.name.replace(/\.[^.]+$/, ""));
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = () => {
     if (!fields.title.trim()) {
       toast.error("Title is required");
       return;
@@ -89,7 +91,7 @@ export default function UploadMaterialForm({
       return;
     }
 
-    if (mode === "upload") {
+    if (sourceMode === "file") {
       if (!file) {
         toast.error("Please select a file");
         return;
@@ -103,8 +105,8 @@ export default function UploadMaterialForm({
       if (fields.tags) data.append("tags", fields.tags);
       data.append("displayOrder", String(fields.displayOrder));
       data.append("isActive", String(fields.isActive));
-
-      uploadMutation.mutate(data, { onSuccess: () => onSuccess?.() });
+      setUploadProgress(0);
+      uploadMutation.mutate(data, { onSuccess: () => { setUploadProgress(0); onSuccess?.(); } });
     } else {
       if (!fields.sourceUrl.trim()) {
         toast.error("Source URL is required");
@@ -126,57 +128,37 @@ export default function UploadMaterialForm({
     }
   };
 
-  const submitLabel = () => {
-    if (loading) return isEdit ? "Saving..." : mode === "upload" ? "Uploading..." : "Adding...";
-    if (isEdit) return "Save Changes";
-    return mode === "upload" ? "Upload" : "Add Material";
-  };
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-      <div className="bg-white w-full max-w-md shadow-lg flex flex-col h-full animate-in slide-in-from-right">
+    <Sheet open onOpenChange={(open) => { if (!open) onCancel?.(); }}>
+      <SheetContent className="p-0 sm:max-w-md flex flex-col" side="right" showCloseButton={false}>
         {/* Header */}
-        <div className="border-b p-5 flex justify-between items-center sticky top-0 bg-white z-10">
-          <h2 className="text-lg font-semibold">
+        <SheetHeader className="flex flex-row items-center justify-between border-b px-4 py-3 shrink-0">
+          <SheetTitle className="text-base font-semibold">
             {isEdit ? "Edit Material" : "Add Material"}
-          </h2>
-          <button onClick={onCancel} className="p-1 hover:bg-gray-100 rounded transition">
-            <FiX size={20} />
-          </button>
-        </div>
-
-        {/* Mode Toggle (create only) */}
-        {!isEdit && (
-          <div className="px-5 pt-4">
-            <div className="flex rounded-lg border overflow-hidden text-sm font-medium">
-              <button
-                type="button"
-                onClick={() => setMode("upload")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 transition ${
-                  mode === "upload"
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <FiUpload size={14} /> Upload File
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("url")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 transition ${
-                  mode === "url"
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <FiLink size={14} /> Enter URL
-              </button>
-            </div>
+          </SheetTitle>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={loading}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {isEdit ? "Saving..." : sourceMode === "file" ? "Uploading..." : "Adding..."}
+                </span>
+              ) : isEdit ? "Save Changes" : "Save"}
+            </Button>
           </div>
-        )}
+        </SheetHeader>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
+        {/* Form body */}
+        <div className="flex-1 overflow-y-auto p-4 grid gap-4">
           {/* Title */}
           <div>
             <label className="block text-sm font-medium mb-1">Title *</label>
@@ -203,36 +185,76 @@ export default function UploadMaterialForm({
             </select>
           </div>
 
-          {/* File picker (upload mode) */}
-          {!isEdit && mode === "upload" && (
-            <div>
-              <label className="block text-sm font-medium mb-1">File *</label>
-              <input ref={fileInputRef} type="file" onChange={handleFileChange} className="hidden" />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-blue-500 hover:bg-blue-50 transition"
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <FiUpload size={22} className="text-gray-400" />
-                  <p className="text-sm font-medium text-gray-700">
-                    {file ? file.name : "Choose file"}
-                  </p>
-                  {file && (
-                    <p className="text-xs text-gray-400">
-                      {(file.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  )}
-                </div>
-              </button>
-              <p className="text-xs text-gray-400 mt-1">Max 500 MB</p>
-            </div>
-          )}
+          {/* Source section */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Source *</label>
 
-          {/* Source URL (url mode or edit) */}
-          {(isEdit || mode === "url") && (
-            <div>
-              <label className="block text-sm font-medium mb-1">Source URL *</label>
+            {/* Radio selector — only show in create mode */}
+            {!isEdit && (
+              <div className="flex gap-4 mb-3">
+                <label className="flex items-center gap-2 cursor-pointer text-sm">
+                  <input
+                    type="radio"
+                    checked={sourceMode === "file"}
+                    onChange={() => { setSourceMode("file"); setFile(null); }}
+                    className="accent-blue-600"
+                  />
+                  <FiUpload size={13} className="text-gray-500" />
+                  Upload file
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-sm">
+                  <input
+                    type="radio"
+                    checked={sourceMode === "url"}
+                    onChange={() => { setSourceMode("url"); }}
+                    className="accent-blue-600"
+                  />
+                  <FiLink size={13} className="text-gray-500" />
+                  URL / YouTube link
+                </label>
+              </div>
+            )}
+
+            {/* File picker */}
+            {!isEdit && sourceMode === "file" && (
+              <>
+                <input ref={fileInputRef} type="file" onChange={handleFileChange} className="hidden" />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-blue-500 hover:bg-blue-50 transition"
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    <FiUpload size={22} className="text-gray-400" />
+                    <p className="text-sm font-medium text-gray-700">
+                      {file ? file.name : "Click to choose file"}
+                    </p>
+                    {file ? (
+                      <p className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    ) : (
+                      <p className="text-xs text-gray-400">Max 2 GB</p>
+                    )}
+                  </div>
+                </button>
+                {uploadMutation.isPending && uploadProgress > 0 && (
+                  <div className="mt-2">
+                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                      <span>Uploading…</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-200"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* URL input */}
+            {(isEdit || sourceMode === "url") && (
               <input
                 type="text"
                 value={fields.sourceUrl}
@@ -240,14 +262,14 @@ export default function UploadMaterialForm({
                 className={inputCls}
                 placeholder={
                   fields.type === "VIDEO"
-                    ? "Video URL or YouTube link"
+                    ? "Video URL or YouTube link (https://...)"
                     : fields.type === "DOCUMENT"
                     ? "Document URL (PDF, DOC…)"
                     : "https://"
                 }
               />
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Description */}
           <div>
@@ -297,27 +319,8 @@ export default function UploadMaterialForm({
               </label>
             </div>
           </div>
-        </form>
-
-        {/* Footer buttons */}
-        <div className="border-t p-5 bg-white sticky bottom-0 flex gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 px-4 py-2 text-sm border rounded-md hover:bg-gray-50 transition font-medium"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
-          >
-            {mode === "upload" && !isEdit ? <FiUpload size={14} /> : <FiLink size={14} />}
-            {submitLabel()}
-          </button>
         </div>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 }

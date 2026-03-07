@@ -2,7 +2,8 @@ import { topicMarkApi } from "@/api/topicMarkApi"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 export interface UpdateGradePayload {
-  courseClassId: string
+  topicId: string
+  trainingClassId: string
   userId: string
   columnId: string
   score: number
@@ -32,19 +33,19 @@ export const useUpdateGrade = () => {
   })
 }
 
-export const useExportTopicMarks = ({ id }: { id: string }) => {
+export const useExportTopicMarks = ({ topicId, trainingClassId }: { topicId: string; trainingClassId: string }) => {
   return useMutation<Blob, Error>({
-    mutationFn: () => topicMarkApi.exportTopicMark(id),
+    mutationFn: () => topicMarkApi.exportTopicMark({ topicId, trainingClassId }),
   });
 };
 
-export const useExportTemplate = ({ id }: { id: string }) => {
+export const useExportTemplate = ({ topicId, trainingClassId }: { topicId: string; trainingClassId: string }) => {
   return useMutation<Blob, Error>({
-    mutationFn: () => topicMarkApi.exportTemplate(id),
+    mutationFn: () => topicMarkApi.exportTemplate({ topicId, trainingClassId }),
   });
 };
 
-export const useImportTopicMarks = ({ id }: { id: string }) => {
+export const useImportTopicMarks = ({ topicId, trainingClassId }: { topicId: string; trainingClassId: string }) => {
   const queryClient = useQueryClient();
   const invalidateAll = async () => {
     await Promise.all([
@@ -57,7 +58,7 @@ export const useImportTopicMarks = ({ id }: { id: string }) => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await topicMarkApi.importTopicMark(formData, id);
+      const res = await topicMarkApi.importTopicMark(formData, { topicId, trainingClassId });
       console.log(res.data)
       return res.data;
     },

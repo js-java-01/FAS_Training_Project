@@ -14,6 +14,9 @@ export interface TrainingClass {
   creatorName?: string;
   approverName?: string;
   semesterName?: string;
+  semesterId?: string;
+  trainingProgramId?: string;
+  trainingProgramName?: string;
   startDate: string;
   endDate: string;
   status: ClassStatusType;
@@ -36,6 +39,7 @@ export interface UpdateTrainingClassRequest {
   startDate?: string;
   endDate?: string;
   description?: string;
+  trainingProgramId?: string;
 }
 
 /* ========================

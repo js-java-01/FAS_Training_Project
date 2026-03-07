@@ -13,49 +13,35 @@ import java.util.UUID;
 @Repository
 public interface TopicMarkEntryRepository extends JpaRepository<TopicMarkEntry, UUID> {
 
-    /** All entries for a specific student in a course class. */
-    List<TopicMarkEntry> findByCourseClassIdAndUserId(UUID courseClassId, UUID userId);
+    Optional<TopicMarkEntry> findByTopicMarkColumnIdAndUserId(UUID columnId, UUID userId);
 
-    /** All entries for a course class (used for gradebook view). */
-    List<TopicMarkEntry> findByCourseClassId(UUID courseClassId);
+    List<TopicMarkEntry> findByTopicMarkColumnId(UUID columnId);
 
-    /** Find single entry for a student on a specific column. */
-    Optional<TopicMarkEntry> findByTopicMarkColumnIdAndUserId(UUID topicMarkColumnId, UUID userId);
-
-    /** Check if ALL entries for a student in a class have non-null scores. */
-    @Query("""
-        SELECT COUNT(e) = 0 FROM TopicMarkEntry e
-        JOIN e.topicMarkColumn col
-        WHERE e.courseClass.id = :courseClassId
-          AND e.user.id = :userId
-          AND col.isDeleted = false
-          AND e.score IS NULL
-    """)
-    boolean allEntriesFilled(@Param("courseClassId") UUID courseClassId,
-                             @Param("userId") UUID userId);
-
-    /** Count active (non-deleted column) entries that are null for a student. */
-    @Query("""
-        SELECT COUNT(e) FROM TopicMarkEntry e
-        JOIN e.topicMarkColumn col
-        WHERE e.courseClass.id = :courseClassId
-          AND e.user.id = :userId
-          AND col.isDeleted = false
-          AND e.score IS NULL
-    """)
-    long countNullEntriesForUser(@Param("courseClassId") UUID courseClassId,
-                                 @Param("userId") UUID userId);
-
-    /** Get all entries grouped by column for section-score computation. */
+    /** All entries for a student in one topic  class */
     @Query("""
         SELECT e FROM TopicMarkEntry e
-        JOIN FETCH e.topicMarkColumn col
-        JOIN FETCH col.assessmentType
-        WHERE e.courseClass.id = :courseClassId
+        WHERE e.topic.id = :topicId AND e.trainingClass.id = :trainingClassId
           AND e.user.id = :userId
-          AND col.isDeleted = false
-        ORDER BY col.assessmentType.id, col.columnIndex
+        ORDER BY e.topicMarkColumn.assessmentType.name ASC, e.topicMarkColumn.columnIndex ASC
     """)
-    List<TopicMarkEntry> findFilledEntriesForUser(@Param("courseClassId") UUID courseClassId,
-                                                  @Param("userId") UUID userId);
+    List<TopicMarkEntry> findByTopicAndClassAndUser(
+            @Param("topicId") UUID topicId,
+            @Param("trainingClassId") UUID trainingClassId,
+            @Param("userId") UUID userId);
+
+    /** All entries for all students in one topic  class */
+    @Query("""
+        SELECT e FROM TopicMarkEntry e
+        WHERE e.topic.id = :topicId AND e.trainingClass.id = :trainingClassId
+        ORDER BY e.user.fullName ASC, e.topicMarkColumn.columnIndex ASC
+    """)
+    List<TopicMarkEntry> findByTopicAndClass(
+            @Param("topicId") UUID topicId,
+            @Param("trainingClassId") UUID trainingClassId);
+
+    boolean existsByTopicMarkColumnIdAndUserId(UUID columnId, UUID userId);
+
+    /** How many entries in a column have a non-null score */
+    @Query("SELECT COUNT(e) FROM TopicMarkEntry e WHERE e.topicMarkColumn.id = :columnId AND e.score IS NOT NULL")
+    long countScoredByColumnId(@Param("columnId") UUID columnId);
 }

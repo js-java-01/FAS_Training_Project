@@ -5,6 +5,7 @@ import { courseApi } from "@/api/courseApi";
 import { CourseDetail } from "./components/CourseDetail";
 import { toast } from "sonner";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useRoleSwitch } from "@/contexts/RoleSwitchContext";
 import StudentCourseDetailPage from "@/pages/learning/StudentCourseDetailPage";
 
 const CourseDetailPage = () => {
@@ -13,10 +14,12 @@ const CourseDetailPage = () => {
   const [course, setCourse] = useState<any>();
   const [loading, setLoading] = useState(true);
   const { hasPermission } = usePermissions();
+  const { isLoading: permissionsLoading } = useRoleSwitch();
   const isStudentMode = !hasPermission("COURSE_UPDATE");
 
   useEffect(() => {
-    if (id && !isStudentMode) loadCourse();
+    if (id && !isStudentMode && !permissionsLoading) loadCourse();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isStudentMode]);
 
   const loadCourse = async () => {
@@ -25,7 +28,6 @@ const CourseDetailPage = () => {
       setCourse(data);
     } catch {
       toast.error("Failed to load course detail");
-      navigate("/courses");
     } finally {
       setLoading(false);
     }

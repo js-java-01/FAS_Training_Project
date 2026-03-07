@@ -972,7 +972,8 @@ export function OutlineTab({ courseId, course }: OutlineTabProps) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `outline_${courseId}.xlsx`;
+      const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      a.download = `outline_${courseId}_${date}.xlsx`;
       a.click();
       window.URL.revokeObjectURL(url);
       toast.success("Outline exported");

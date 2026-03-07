@@ -3,8 +3,8 @@ package com.example.starter_project_2025.system.course_assessment_type_weight.se
 import com.example.starter_project_2025.exception.ResourceNotFoundException;
 import com.example.starter_project_2025.system.assessment.entity.AssessmentType;
 import com.example.starter_project_2025.system.assessment.repository.AssessmentTypeRepository;
-import com.example.starter_project_2025.system.course.entity.Course;
-import com.example.starter_project_2025.system.course.repository.CourseRepository;
+import com.example.starter_project_2025.system.course_online.entity.CourseOnline;
+import com.example.starter_project_2025.system.course_online.repository.CourseOnlineRepository;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeight;
 import com.example.starter_project_2025.system.course_assessment_type_weight.CourseAssessmentTypeWeightRepository;
 import com.example.starter_project_2025.system.course_assessment_type_weight.dto.CourseWeightRequest;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CourseAssessmentTypeWeightServiceImpl implements CourseAssessmentTypeWeightService {
 
-    private final CourseRepository courseRepository;
+    private final CourseOnlineRepository courseRepository;
     private final AssessmentTypeRepository assessmentTypeRepository;
     private final CourseAssessmentTypeWeightRepository weightRepository;
 
@@ -42,7 +42,7 @@ public class CourseAssessmentTypeWeightServiceImpl implements CourseAssessmentTy
     @Override
     @Transactional
     public CourseWeightResponse create(UUID courseId, CourseWeightRequest request) {
-        Course course = loadCourse(courseId);
+        CourseOnline course = loadCourse(courseId);
         AssessmentType assessmentType = loadAssessmentType(request.getAssessmentTypeId());
 
         // Prevent duplicate: same assessmentType already configured for this course
@@ -101,7 +101,7 @@ public class CourseAssessmentTypeWeightServiceImpl implements CourseAssessmentTy
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private Course loadCourse(UUID courseId) {
+    private CourseOnline loadCourse(UUID courseId) {
         return courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found: " + courseId));
     }

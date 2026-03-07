@@ -12,7 +12,8 @@ import { useUpdateGrade } from "@/pages/topic-mark/services/mutations"
 
 interface Props {
   value: number | string | null
-  courseClassId: string
+  topicId: string
+  trainingClassId: string
   userId: string
   columnId: string
   isTableEditing: boolean
@@ -20,7 +21,8 @@ interface Props {
 
 export function EditableGradeCell({
   value,
-  courseClassId,
+  topicId,
+  trainingClassId,
   userId,
   columnId,
   isTableEditing
@@ -117,7 +119,8 @@ export function EditableGradeCell({
 
     mutate(
       {
-        courseClassId,
+        topicId,
+        trainingClassId,
         userId,
         columnId,
         score: Number(localValue),

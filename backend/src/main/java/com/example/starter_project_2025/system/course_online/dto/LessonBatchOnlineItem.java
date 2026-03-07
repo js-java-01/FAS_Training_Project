@@ -1,0 +1,21 @@
+package com.example.starter_project_2025.system.course_online.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class LessonBatchOnlineItem {
+
+    @NotBlank
+    private String lessonName;
+
+    private String description;
+
+    private Integer order;
+
+    private Integer duration;
+
+    private List<SessionBatchOnlineItem> sessions;
+}

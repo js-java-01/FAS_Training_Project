@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-@Component
+@Component("systemExcelExporter")
 public class ExcelExporter implements Exporter {
 
     @Override
