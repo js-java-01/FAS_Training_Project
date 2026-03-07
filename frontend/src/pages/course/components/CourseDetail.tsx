@@ -179,7 +179,7 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
             <button
               type="button"
               onClick={cancelEdit}
-              className="flex items-center text-sm gap-2 mb-2 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors"
+              className="flex items-center text-sm gap-2 -mt-3 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors"
             >
               <FiX /> Cancel
             </button>
@@ -187,231 +187,238 @@ export function CourseDetail({ course, onBack, onRefresh }: any) {
             <button
               type="button"
               onClick={startEdit}
-              className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
+              className="flex items-center text-sm gap-2 -mt-3 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
             >
               <FiEdit /> Edit
             </button>
           ))}
       </div>
       <div className="flex-1 overflow-y-auto min-h-0">
-        {" "}
-        {/* READ-ONLY */}
-        {activeTab === "Overview" && !isEditing && (
-          <div className="animate-in fade-in duration-200">
-            <OverviewTab course={course} />
-          </div>
-        )}
-        {/* INLINE EDIT FORM */}
-        {activeTab === "Overview" && isEditing && (
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-6 animate-in fade-in duration-200"
-          >
-            {/* Basic Information */}
-            <div className="border rounded-lg p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="font-semibold text-gray-700">
-                  Basic Information
-                </h2>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex items-center gap-1.5 text-sm bg-blue-600 text-white rounded-md px-3 py-1.5 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
-                >
-                  <FiSave size={13} />
-                  {loading ? "Saving..." : "Save"}
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Field icon={<FiBookOpen />} label="Course Name">
-                  <input
-                    {...register("courseName", { required: true })}
-                    className={inputCls}
-                  />
-                </Field>
-                <Field icon={<FiHash />} label="Course Code">
-                  <input
-                    {...register("courseCode", { required: true })}
-                    className={inputCls}
-                  />
-                </Field>
-                <Field icon={<FiTag />} label="Topic">
-                  <input
-                    disabled
-                    value={course.topic ?? "-"}
-                    className={inputCls + " bg-gray-50 text-gray-400"}
-                  />
-                </Field>
-              </div>
+        <div
+          key={`${activeTab}-${isEditing}`}
+          className="animate-in fade-in slide-in-from-bottom-4 duration-300 h-full"
+        >
+          {/* READ-ONLY */}
+          {activeTab === "Overview" && !isEditing && (
+            <div>
+              <OverviewTab course={course} />
             </div>
-
-            {/* Course Details + Metadata */}
-            <div className="grid grid-cols-2 gap-6">
-              <div className="border rounded-lg p-4 space-y-3">
-                <h2 className="font-semibold text-gray-700">Course Details</h2>
-
-                <Field icon={<FiLayers />} label="Level">
-                  <select
-                    {...register("level")}
-                    className={inputCls + " bg-white"}
-                  >
-                    <option value="">Select level</option>
-                    {["BEGINNER", "INTERMEDIATE", "ADVANCED"].map((l) => (
-                      <option key={l} value={l}>
-                        {l}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field icon={<FiBarChart2 />} label="Status">
-                  <select
-                    {...register("status")}
-                    className={inputCls + " bg-white"}
-                  >
-                    {["DRAFT", "UNDER_REVIEW", "ACTIVE"].map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field icon={<FiClock />} label="Estimated Time (minutes)">
-                  <input
-                    type="number"
-                    min={0}
-                    {...register("estimatedTime", { valueAsNumber: true })}
-                    className={inputCls}
-                  />
-                </Field>
-
-                <Field icon={<FiUser />} label="Trainer">
-                  <select
-                    {...register("trainerId")}
-                    className={inputCls + " bg-white"}
-                  >
-                    <option value="">Select trainer</option>
-                    {users.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.email}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                {/* Thumbnail */}
-                <div>
-                  <label className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
-                    <FiImage size={13} /> Thumbnail
-                  </label>
-                  {thumbnailPreview && (
-                    <div className="mb-2 relative w-full h-32 rounded-md overflow-hidden border">
-                      <img
-                        src={thumbnailPreview}
-                        alt="preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setThumbnailPreview(null)}
-                        className="absolute top-1 right-1 bg-white rounded-full p-0.5 shadow hover:bg-red-50"
-                      >
-                        <FiX size={12} className="text-red-500" />
-                      </button>
-                    </div>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleThumbnailChange}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 text-sm border rounded-md px-3 py-2 hover:bg-gray-50 cursor-pointer w-full justify-center"
-                  >
-                    <FiUpload size={14} />
-                    Upload Thumbnail
-                  </button>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Chỉ chấp nhận file ảnh, tối đa 5MB
-                  </p>
-                </div>
-              </div>
-
-              {/* Metadata read-only */}
+          )}
+          {/* INLINE EDIT FORM */}
+          {activeTab === "Overview" && isEditing && (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Basic Information */}
               <div className="border rounded-lg p-4">
-                <h2 className="font-semibold text-gray-700 mb-4">Metadata</h2>
-                <div className="space-y-4">
-                  <InfoRO
-                    icon={<FiCalendar />}
-                    label="Date Created"
-                    value={formatDate(course.createdDate)}
-                  />
-                  <InfoRO
-                    icon={<FiUser />}
-                    label="Creator"
-                    value={course.createdByName ?? course.createdBy}
-                  />
-                  <InfoRO
-                    icon={<FiCalendar />}
-                    label="Date Updated"
-                    value={formatDate(course.updatedDate)}
-                  />
-                  <InfoRO
-                    icon={<FiUser />}
-                    label="Updater"
-                    value={course.updatedByName ?? course.updatedBy}
-                  />
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="font-semibold text-gray-700">
+                    Basic Information
+                  </h2>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex items-center gap-1.5 text-sm bg-blue-600 text-white rounded-md px-3 py-1.5 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+                  >
+                    <FiSave size={13} />
+                    {loading ? "Saving..." : "Save"}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Field icon={<FiBookOpen />} label="Course Name">
+                    <input
+                      {...register("courseName", { required: true })}
+                      className={inputCls}
+                    />
+                  </Field>
+                  <Field icon={<FiHash />} label="Course Code">
+                    <input
+                      {...register("courseCode", { required: true })}
+                      className={inputCls}
+                    />
+                  </Field>
+                  <Field icon={<FiTag />} label="Topic">
+                    <input
+                      disabled
+                      value={course.topic ?? "-"}
+                      className={inputCls + " bg-gray-50 text-gray-400"}
+                    />
+                  </Field>
                 </div>
               </div>
-            </div>
 
-            {/* Description & Note */}
-            <div className="border rounded-lg p-4 space-y-4">
-              <h2 className="font-semibold text-gray-700">Additional</h2>
-              <Field icon={<FiFileText />} label="Description">
-                <textarea
-                  rows={3}
-                  {...register("description")}
-                  className={inputCls}
-                />
-              </Field>
-              <Field icon={<FiFileText />} label="Note">
-                <textarea rows={2} {...register("note")} className={inputCls} />
-              </Field>
+              {/* Course Details + Metadata */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="border rounded-lg p-4 space-y-3">
+                  <h2 className="font-semibold text-gray-700">
+                    Course Details
+                  </h2>
+
+                  <Field icon={<FiLayers />} label="Level">
+                    <select
+                      {...register("level")}
+                      className={inputCls + " bg-white"}
+                    >
+                      <option value="">Select level</option>
+                      {["BEGINNER", "INTERMEDIATE", "ADVANCED"].map((l) => (
+                        <option key={l} value={l}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field icon={<FiBarChart2 />} label="Status">
+                    <select
+                      {...register("status")}
+                      className={inputCls + " bg-white"}
+                    >
+                      {["DRAFT", "UNDER_REVIEW", "ACTIVE"].map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field icon={<FiClock />} label="Estimated Time (minutes)">
+                    <input
+                      type="number"
+                      min={0}
+                      {...register("estimatedTime", { valueAsNumber: true })}
+                      className={inputCls}
+                    />
+                  </Field>
+
+                  <Field icon={<FiUser />} label="Trainer">
+                    <select
+                      {...register("trainerId")}
+                      className={inputCls + " bg-white"}
+                    >
+                      <option value="">Select trainer</option>
+                      {users.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.email}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  {/* Thumbnail */}
+                  <div>
+                    <label className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+                      <FiImage size={13} /> Thumbnail
+                    </label>
+                    {thumbnailPreview && (
+                      <div className="mb-2 relative w-full h-32 rounded-md overflow-hidden border">
+                        <img
+                          src={thumbnailPreview}
+                          alt="preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setThumbnailPreview(null)}
+                          className="absolute top-1 right-1 bg-white rounded-full p-0.5 shadow hover:bg-red-50"
+                        >
+                          <FiX size={12} className="text-red-500" />
+                        </button>
+                      </div>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleThumbnailChange}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center gap-2 text-sm border rounded-md px-3 py-2 hover:bg-gray-50 cursor-pointer w-full justify-center"
+                    >
+                      <FiUpload size={14} />
+                      Upload Thumbnail
+                    </button>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Chỉ chấp nhận file ảnh, tối đa 5MB
+                    </p>
+                  </div>
+                </div>
+
+                {/* Metadata read-only */}
+                <div className="border rounded-lg p-4">
+                  <h2 className="font-semibold text-gray-700 mb-4">Metadata</h2>
+                  <div className="space-y-4">
+                    <InfoRO
+                      icon={<FiCalendar />}
+                      label="Date Created"
+                      value={formatDate(course.createdDate)}
+                    />
+                    <InfoRO
+                      icon={<FiUser />}
+                      label="Creator"
+                      value={course.createdByName ?? course.createdBy}
+                    />
+                    <InfoRO
+                      icon={<FiCalendar />}
+                      label="Date Updated"
+                      value={formatDate(course.updatedDate)}
+                    />
+                    <InfoRO
+                      icon={<FiUser />}
+                      label="Updater"
+                      value={course.updatedByName ?? course.updatedBy}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Description & Note */}
+              <div className="border rounded-lg p-4 space-y-4">
+                <h2 className="font-semibold text-gray-700">Additional</h2>
+                <Field icon={<FiFileText />} label="Description">
+                  <textarea
+                    rows={3}
+                    {...register("description")}
+                    className={inputCls}
+                  />
+                </Field>
+                <Field icon={<FiFileText />} label="Note">
+                  <textarea
+                    rows={2}
+                    {...register("note")}
+                    className={inputCls}
+                  />
+                </Field>
+              </div>
+            </form>
+          )}
+          {activeTab === "Assessment Scheme" && (
+            <CourseAssessmentSchemeTab courseId={course.id} />
+          )}
+          {activeTab === "Outline" && (
+            <OutlineTab courseId={course.id} course={course} />
+          )}
+          {activeTab === "Materials" && <MaterialTab courseId={course.id} />}
+          {activeTab === "Objectives" && (
+            <CourseObjectivesTab courseId={course.id} />
+          )}
+          {activeTab === "Time Allocation" && (
+            <TimeAllocationTab courseId={course.id} />
+          )}
+          {![
+            "Overview",
+            "Assessment Scheme",
+            "Outline",
+            "Objectives",
+            "Materials",
+            "Time Allocation",
+          ].includes(activeTab) && (
+            <div className="text-gray-400 text-sm py-10 text-center border-2 border-dashed rounded-lg">
+              This tab ({activeTab}) is being developed by another team.
             </div>
-          </form>
-        )}
-        {activeTab === "Assessment Scheme" && (
-          <CourseAssessmentSchemeTab courseId={course.id} />
-        )}
-        {activeTab === "Outline" && (
-          <OutlineTab courseId={course.id} course={course} />
-        )}
-        {activeTab === "Materials" && <MaterialTab courseId={course.id} />}
-        {activeTab === "Objectives" && (
-          <CourseObjectivesTab courseId={course.id} />
-        )}
-        {activeTab === "Time Allocation" && (
-          <TimeAllocationTab courseId={course.id} />
-        )}
-        {![
-          "Overview",
-          "Assessment Scheme",
-          "Outline",
-          "Objectives",
-          "Materials",
-          "Time Allocation",
-        ].includes(activeTab) && (
-          <div className="text-gray-400 text-sm py-10 text-center border-2 border-dashed rounded-lg">
-            This tab ({activeTab}) is being developed by another team.
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

@@ -126,7 +126,6 @@ export function TopicSkillsTab({
       {/* Section header */}
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-gray-700 flex items-center gap-2">
-          <Users className="h-4 w-4 text-blue-500" />
           Topic Skills
         </h2>
         {isEditMode && (

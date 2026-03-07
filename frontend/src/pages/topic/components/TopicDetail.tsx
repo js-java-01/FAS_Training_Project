@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { topicApi } from "@/api/topicApi";
-import { PermissionGate } from "@/components/PermissionGate";
 import { toast } from "sonner";
 import {
   FiEdit,
@@ -106,7 +105,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
         {activeTab === "Overview" && (
           <button
             onClick={isEditing ? () => setIsEditing(false) : startEdit}
-            className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
+            className="flex items-center text-sm gap-2 -mt-3 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
           >
             {isEditing ? (
               <>
@@ -122,7 +121,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
         {activeTab === "Skills" && !skillsEditing && (
           <button
             onClick={() => setSkillsEditing(true)}
-            className="flex items-center text-sm gap-2 mb-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
+            className="flex items-center text-sm gap-2 -mt-3 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
           >
             <FiEdit /> Edit
           </button>
@@ -130,7 +129,7 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
         {activeTab === "Skills" && skillsEditing && (
           <button
             onClick={() => setSkillsEditing(false)}
-            className="flex items-center text-sm gap-2 mb-2 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors"
+            className="flex items-center text-sm gap-2 -mt-3 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors"
           >
             Done
           </button>
@@ -138,178 +137,189 @@ export function TopicDetail({ topic, onBack, onRefresh }: any) {
       </div>
 
       <div className="flex-1 overflow-y-auto min-h-0">
-        {/* CONTENT: OVERVIEW - READ ONLY */}
-        {activeTab === "Overview" && !isEditing && (
-          <div className="space-y-5 animate-in fade-in duration-300">
-            {/* Identity card */}
-            <div className="rounded-xl border border-gray-200 p-6">
-              <div className="flex items-start justify-between gap-6">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FiBookOpen size={14} className="text-blue-500 shrink-0" />
-                    <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
-                      {topic.topicCode}
-                    </span>
+        <div
+          key={`${activeTab}-${isEditing}`}
+          className="animate-in fade-in slide-in-from-bottom-4 duration-300 h-full"
+        >
+          {/* CONTENT: OVERVIEW - READ ONLY */}
+          {activeTab === "Overview" && !isEditing && (
+            <div className="space-y-5">
+              {/* Identity card */}
+              <div className="rounded-xl border border-gray-200 p-6">
+                <div className="flex items-start justify-between gap-6">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FiBookOpen
+                        size={14}
+                        className="text-blue-500 shrink-0"
+                      />
+                      <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
+                        {topic.topicCode}
+                      </span>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 leading-tight">
+                      {topic.topicName}
+                    </h2>
+                    {topic.description && (
+                      <p className="text-sm text-gray-500 mt-3 leading-relaxed max-w-2xl">
+                        {topic.description}
+                      </p>
+                    )}
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900 leading-tight">
-                    {topic.topicName}
-                  </h2>
-                  {topic.description && (
-                    <p className="text-sm text-gray-500 mt-3 leading-relaxed max-w-2xl">
-                      {topic.description}
-                    </p>
-                  )}
-                </div>
-                <span
-                  className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${
-                    topic.status === "ACTIVE"
-                      ? "text-emerald-700 border-emerald-300"
-                      : "text-gray-500 border-gray-300"
-                  }`}
-                >
-                  {topic.status}
-                </span>
-              </div>
-            </div>
-
-            {/* Detail grid */}
-            <div className="grid grid-cols-2 gap-5">
-              <div className="rounded-xl border border-gray-200 p-5">
-                <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400 mb-4">
-                  Metadata
-                </p>
-                <div className="space-y-4">
-                  <Info
-                    icon={<FiCalendar />}
-                    label="Created Date"
-                    value={new Date(topic.createdDate).toLocaleString("vi-VN")}
-                  />
-                  <Info
-                    icon={<FiUser />}
-                    label="Created By"
-                    value={topic.createdByName}
-                  />
-                </div>
-              </div>
-              <div className="rounded-xl border border-gray-200 p-5">
-                <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400 mb-4">
-                  Additional
-                </p>
-                <div className="space-y-4">
-                  <Info icon={<FiFileText />} label="Note" value={topic.note} />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* CONTENT: OVERVIEW - EDIT MODE */}
-        {activeTab === "Overview" && isEditing && (
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-6 animate-in zoom-in-95 duration-200"
-          >
-            <div className="border rounded-lg p-4 bg-gray-50/30">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="font-semibold text-gray-700">
-                  Edit Topic Information
-                </h2>
-                <button
-                  disabled={loading}
-                  className="flex items-center gap-1.5 text-sm bg-blue-600 text-white rounded-md px-4 py-1.5 hover:bg-blue-700"
-                >
-                  <FiSave /> {loading ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Field icon={<FiBookOpen />} label="Topic Name">
-                  <input
-                    {...register("topicName", { required: true })}
-                    className={inputCls}
-                  />
-                </Field>
-                <Field icon={<FiHash />} label="Topic Code">
-                  <input
-                    {...register("topicCode", { required: true })}
-                    className={inputCls}
-                  />
-                </Field>
-                <Field icon={<FiLayers />} label="Status">
-                  <select
-                    {...register("status")}
-                    className={inputCls + " bg-white"}
+                  <span
+                    className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${
+                      topic.status === "ACTIVE"
+                        ? "text-emerald-700 border-emerald-300"
+                        : "text-gray-500 border-gray-300"
+                    }`}
                   >
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="INACTIVE">INACTIVE</option>
-                  </select>
-                </Field>
+                    {topic.status}
+                  </span>
+                </div>
               </div>
 
-              <div className="mt-4 space-y-4">
-                <Field icon={<FiFileText />} label="Description">
-                  <textarea
-                    rows={3}
-                    {...register("description")}
-                    className={inputCls}
-                  />
-                </Field>
-                <Field icon={<FiFileText />} label="Note">
-                  <textarea
-                    rows={2}
-                    {...register("note")}
-                    className={inputCls}
-                  />
-                </Field>
+              {/* Detail grid */}
+              <div className="grid grid-cols-2 gap-5">
+                <div className="rounded-xl border border-gray-200 p-5">
+                  <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400 mb-4">
+                    Metadata
+                  </p>
+                  <div className="space-y-4">
+                    <Info
+                      icon={<FiCalendar />}
+                      label="Created Date"
+                      value={new Date(topic.createdDate).toLocaleString(
+                        "vi-VN",
+                      )}
+                    />
+                    <Info
+                      icon={<FiUser />}
+                      label="Created By"
+                      value={topic.createdByName}
+                    />
+                  </div>
+                </div>
+                <div className="rounded-xl border border-gray-200 p-5">
+                  <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400 mb-4">
+                    Additional
+                  </p>
+                  <div className="space-y-4">
+                    <Info
+                      icon={<FiFileText />}
+                      label="Note"
+                      value={topic.note}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          </form>
-        )}
-
-        {/* SKILLS TAB */}
-        {activeTab === "Skills" && (
-          <TopicSkillsTab topicId={topic.id} isEditMode={skillsEditing} />
-        )}
-
-        {/* DELIVERY PRINCIPLES TAB */}
-        {activeTab === "Delivery Principles" && (
-          <TopicDeliveryPrinciplesTab topicId={topic.id} />
-        )}
-
-        {/* ASSESSMENT SCHEME TAB */}
-        {activeTab === "Assessment Scheme" && (
-          <TopicAssessmentSchemeTab topicId={topic.id} />
-        )}
-
-        {/* TIME ALLOCATION TAB */}
-        {activeTab === "Time Allocation" && (
-          <TopicTimeAllocationTab topicId={topic.id} />
-        )}
-
-        {/* OUTLINE & SCHEDULE TAB */}
-        {activeTab === "Outline & Schedule" && (
-          <TopicOutlineTab topicId={topic.id} isEditMode={outlineEditing} />
-        )}
-
-        {activeTab === "Objectives" && (
-          <TopicObjectivesPage topicId={topic.id} />
-        )}
-
-        {/* OTHER TABS PLACEHOLDER */}
-        {activeTab !== "Overview" &&
-          activeTab !== "Objectives" &&
-          activeTab !== "Skills" &&
-          activeTab !== "Delivery Principles" &&
-          activeTab !== "Assessment Scheme" &&
-          activeTab !== "Outline & Schedule" &&
-          activeTab !== "Time Allocation" && (
-            <div className="py-20 text-center border-2 border-dashed rounded-xl bg-gray-50 text-gray-400">
-              <FiLayers size={40} className="mx-auto mb-2 opacity-20" />
-              <p>
-                Content for {activeTab} is being updated by the content team.
-              </p>
             </div>
           )}
+
+          {/* CONTENT: OVERVIEW - EDIT MODE */}
+          {activeTab === "Overview" && isEditing && (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <div className="border rounded-lg p-4 bg-gray-50/30">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="font-semibold text-gray-700">
+                    Edit Topic Information
+                  </h2>
+                  <button
+                    disabled={loading}
+                    className="flex items-center gap-1.5 text-sm bg-blue-600 text-white rounded-md px-4 py-1.5 hover:bg-blue-700"
+                  >
+                    <FiSave /> {loading ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Field icon={<FiBookOpen />} label="Topic Name">
+                    <input
+                      {...register("topicName", { required: true })}
+                      className={inputCls}
+                    />
+                  </Field>
+                  <Field icon={<FiHash />} label="Topic Code">
+                    <input
+                      {...register("topicCode", { required: true })}
+                      className={inputCls}
+                    />
+                  </Field>
+                  <Field icon={<FiLayers />} label="Status">
+                    <select
+                      {...register("status")}
+                      className={inputCls + " bg-white"}
+                    >
+                      <option value="ACTIVE">ACTIVE</option>
+                      <option value="INACTIVE">INACTIVE</option>
+                    </select>
+                  </Field>
+                </div>
+
+                <div className="mt-4 space-y-4">
+                  <Field icon={<FiFileText />} label="Description">
+                    <textarea
+                      rows={3}
+                      {...register("description")}
+                      className={inputCls}
+                    />
+                  </Field>
+                  <Field icon={<FiFileText />} label="Note">
+                    <textarea
+                      rows={2}
+                      {...register("note")}
+                      className={inputCls}
+                    />
+                  </Field>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {/* SKILLS TAB */}
+          {activeTab === "Skills" && (
+            <TopicSkillsTab topicId={topic.id} isEditMode={skillsEditing} />
+          )}
+
+          {/* DELIVERY PRINCIPLES TAB */}
+          {activeTab === "Delivery Principles" && (
+            <TopicDeliveryPrinciplesTab topicId={topic.id} />
+          )}
+
+          {/* ASSESSMENT SCHEME TAB */}
+          {activeTab === "Assessment Scheme" && (
+            <TopicAssessmentSchemeTab topicId={topic.id} />
+          )}
+
+          {/* TIME ALLOCATION TAB */}
+          {activeTab === "Time Allocation" && (
+            <TopicTimeAllocationTab topicId={topic.id} />
+          )}
+
+          {/* OUTLINE & SCHEDULE TAB */}
+          {activeTab === "Outline & Schedule" && (
+            <TopicOutlineTab topicId={topic.id} isEditMode={outlineEditing} />
+          )}
+
+          {activeTab === "Objectives" && (
+            <TopicObjectivesPage topicId={topic.id} />
+          )}
+
+          {/* OTHER TABS PLACEHOLDER */}
+          {activeTab !== "Overview" &&
+            activeTab !== "Objectives" &&
+            activeTab !== "Skills" &&
+            activeTab !== "Delivery Principles" &&
+            activeTab !== "Assessment Scheme" &&
+            activeTab !== "Outline & Schedule" &&
+            activeTab !== "Time Allocation" && (
+              <div className="py-20 text-center border-2 border-dashed rounded-xl bg-gray-50 text-gray-400">
+                <FiLayers size={40} className="mx-auto mb-2 opacity-20" />
+                <p>
+                  Content for {activeTab} is being updated by the content team.
+                </p>
+              </div>
+            )}
+        </div>
       </div>
     </div>
   );
